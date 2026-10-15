@@ -2,9 +2,9 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { books, selectionFromHash, pdfURL, hashFor } = require("../rules/book-library.js");
-const spells = require("../rules/phb2014-spells.js");
-const references = require("../rules/phb2014-references.js");
+const { books, selectionFromHash, pdfURL, hashFor } = require("../public/rules/book-library.js");
+const spells = require("../public/rules/phb2014-spells.js");
+const references = require("../public/rules/phb2014-references.js");
 
 test("links existentes das regras continuam abrindo o Jogador na página indicada", () => {
   for (const reference of [...spells, ...references]) {
@@ -38,11 +38,11 @@ test("links inválidos não navegam a arquivos externos nem quebram o leitor", (
 
 test("os dois arquivos reais do catálogo são PDFs e nenhuma ficha entra na biblioteca", () => {
   assert.deepEqual(
-    fs.readdirSync(path.join(__dirname, "../books")).filter((name) => name.endsWith(".pdf")).sort(),
+    fs.readdirSync(path.join(__dirname, "../public/books")).filter((name) => name.endsWith(".pdf")).sort(),
     books.map((book) => path.basename(book.file)).sort(),
   );
   for (const book of books) {
-    const fd = fs.openSync(path.join(__dirname, "..", book.file), "r");
+    const fd = fs.openSync(path.join(__dirname, "../public", book.file), "r");
     try {
       const header = Buffer.alloc(5);
       fs.readSync(fd, header, 0, 5, 0);

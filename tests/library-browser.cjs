@@ -5,7 +5,7 @@ const { chromium } = require(process.env.DND_PLAYWRIGHT_MODULE || "playwright");
 const { serve } = require("./serve.cjs");
 
 (async () => {
-  const server = await serve(path.join(__dirname, ".."));
+  const server = await serve(process.env.DND_TEST_ROOT || path.join(__dirname, "../dist"));
   let browser;
   try {
     browser = await chromium.launch({ headless: true });

@@ -1,7 +1,7 @@
 # Somente os dois livros autorizados entram na biblioteca; fichas reais não entram.
 *.[pP][dD][fF]
-!books/livro-jogador-2014.pdf
-!books/livro-mestre-2014.pdf
+!public/books/livro-jogador-2014.pdf
+!public/books/livro-mestre-2014.pdf
 .env
 .env.*
 !.env.example
@@ -14,3 +14,5 @@ exports/
 test-results/
 playwright-report/
 .DS_Store
+__pycache__/
+*.py[cod]

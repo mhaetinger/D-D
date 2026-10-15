@@ -1,0 +1,20 @@
+import "@fontsource/cinzel/latin-600.css";
+import "@fontsource/cinzel/latin-700.css";
+import "@fontsource/cinzel/latin-800.css";
+import "@fontsource/crimson-pro/latin-400.css";
+import "@fontsource/crimson-pro/latin-600.css";
+import "@fontsource/crimson-pro/latin-700.css";
+import "@fontsource/crimson-pro/latin-400-italic.css";
+import "@fontsource/inter/latin-400.css";
+import "@fontsource/inter/latin-500.css";
+import "@fontsource/inter/latin-600.css";
+import "@fontsource/inter/latin-700.css";
+import "./styles/tailwind.css";
+import "./styles/sheet.css";
+import "./app/icons";
+import "./app/sheet.js";
+import { setupBackups } from "./storage/backup-ui";
+import { registerOffline } from "./pwa/register";
+
+setupBackups();
+registerOffline();

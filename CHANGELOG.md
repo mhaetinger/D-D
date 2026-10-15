@@ -2,6 +2,43 @@
 
 ## Não lançado
 
+### Base da aplicação — 2026-10-15
+
+- Iniciada a estrutura com Vite e TypeScript, extraindo estilos e aplicação do
+  HTML. Mantidos motor, assistente e visual existentes, com ponte temporária para
+  os eventos da ficha. Novos módulos ficam em `src/`; arquivos distribuíveis em
+  `public/`; somente `dist/` é publicado. Dependências e lockfile fixados.
+- Fontes e 35 ícones usados agora são locais. Removidos Tailwind em tempo de
+  execução e dependências de fontes/ícones por CDN; CSS é compilado no build.
+  Licenças dos componentes acompanham a distribuição.
+- Armazenamento local versionado, com migração da chave anterior sem apagá-la.
+  Dados inválidos/futuros são preservados e informados; falhas de escrita não são
+  tratadas como sucesso. Uma leitura bloqueada impede gravar sobre dados desconhecidos.
+- Backup JSON no perfil local, sem notas por padrão. Inclusão de notas é explícita;
+  importação cria cópias com novos IDs e remapeia as notas. Recuperação de conteúdo
+  ilegível exige confirmação e preserva uma cópia, inclusive em recuperações sucessivas.
+- Cache offline do build, manifest e ícone. Depois do preparo inicial, a ficha
+  funciona sem rede, incluindo criação/evolução e salvamento local. Atualizações
+  aguardam fechar as abas, sem recarregar uma edição; não há PDFs automáticos ou
+  dados do jogador no cache do aplicativo.
+- Pipeline com tipos, testes, build e navegador para branches/PRs. Publicação
+  permitida somente no push da `main`, após verificação, via GitHub Actions e
+  artefato `dist/`. A fonte do Pages precisa mudar para GitHub Actions na conta;
+  a `main` não foi alterada por esta tarefa.
+- Documentados módulos, execução e sequência de evolução. Contas, banco remoto,
+  histórico persistente, sincronização e salas ainda não foram implementados.
+  O extrator de catálogos agora está no projeto público e lê o PDF autorizado.
+- Verificação: **149 testes Node passaram**, incluindo salvamento das 41
+  subclasses em todos os níveis de 1 a 20; tipos e build de produção passaram.
+  Chromium passou para ficha/biblioteca e para migração, downloads/importação,
+  notas opcionais, dados inválidos, texto não executável, quota, storage bloqueado,
+  recuperação com cancelamento/confirmação e recarga/evolução sem rede sob `/D-D/`.
+  Perfil conferido nos três temas, 320 px e fonte GG, sem rolagem horizontal;
+  nenhuma requisição externa de fontes/ícones/código. O extrator recebeu apenas
+  verificação de sintaxe nesta etapa; não foi regenerado o catálogo.
+
+### Biblioteca e fluxo de branches — etapa anterior
+
 - Biblioteca com os dois livros autorizados para consulta, seleção de livro,
   navegação por página, abertura em outra aba e download. Links existentes
   `book.html#page=N` continuam abrindo a regra no Jogador. O Mestre tem paginação

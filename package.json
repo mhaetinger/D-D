@@ -1,0 +1,31 @@
+{
+  "name": "orbyt-dnd",
+  "version": "0.1.0",
+  "private": true,
+  "engines": { "node": ">=22.12.0" },
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build && node scripts/build-offline.mjs",
+    "preview": "vite preview --host 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test tests/*.test.cjs tests/*.test.ts",
+    "test:browser": "node tests/sheet-browser.cjs && node tests/library-browser.cjs && node tests/app-browser.cjs",
+    "check": "npm run test && npm run build && npm run test:browser"
+  },
+  "dependencies": {
+    "@fontsource/cinzel": "5.3.0",
+    "@fontsource/crimson-pro": "5.3.0",
+    "@fontsource/inter": "5.3.0",
+    "lucide": "1.57.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "autoprefixer": "10.4.21",
+    "playwright": "1.56.1",
+    "postcss": "8.5.6",
+    "tailwindcss": "3.4.19",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vite": "8.3.4"
+  }
+}
