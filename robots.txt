@@ -1,0 +1,3 @@
+# O crawler pode ler as páginas para encontrar noindex. Isso não é controle de acesso.
+User-agent: *
+Allow: /
