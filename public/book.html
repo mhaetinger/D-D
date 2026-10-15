@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex,nofollow,noarchive" />
+    <meta name="referrer" content="same-origin" />
+    <title>Livros da mesa · Fichas D&D</title>
+    <link rel="stylesheet" href="vendor/pdfjs/text-layer.css" />
+    <link rel="stylesheet" href="rules/book-library.css" />
+    <script src="rules/window-scroll.js" defer></script>
+    <script src="rules/book-reader.mjs" type="module"></script>
+  </head>
+  <body>
+    <main data-book-library>
+      <header>
+        <h1>Livros da mesa</h1>
+        <a class="button" href="./index.html">← Voltar à ficha</a>
+      </header>
+      <form id="bookNavigation" aria-label="Consultar livro">
+        <label for="bookSelect">Livro
+          <select id="bookSelect" name="book">
+            <option value="jogador">Livro do Jogador · 2014</option>
+            <option value="mestre">Livro do Mestre · 2014</option>
+          </select>
+        </label>
+        <label for="bookPage">Página do PDF
+          <input id="bookPage" name="page" type="number" min="1" max="314" value="1" required inputmode="numeric" />
+        </label>
+        <button class="primary" type="submit">Ir à página</button>
+        <nav aria-label="Arquivo do livro">
+          <a id="openBook" class="button" href="books/livro-jogador-2014.pdf#page=1" target="_blank" rel="noopener">Abrir PDF ↗</a>
+          <a id="downloadBook" class="button" href="books/livro-jogador-2014.pdf" download>Baixar</a>
+        </nav>
+      </form>
+      <p id="bookStatus" role="status">314 páginas</p>
+      <p class="hint">A página do PDF pode diferir da numeração impressa no livro.</p>
+      <div class="reader-toolbar">
+        <button id="previousPage" type="button" aria-label="Página anterior">←</button>
+        <select id="bookZoom" aria-label="Zoom do livro">
+          <option value="1">Largura</option>
+          <option value="1.5">Zoom 150%</option>
+          <option value="2">Zoom 200%</option>
+          <option value="3">Zoom 300%</option>
+        </select>
+        <button id="nextPage" type="button" aria-label="Próxima página">→</button>
+      </div>
+      <section id="bookReader" aria-label="Leitor do livro" tabindex="0" data-scroll-window>
+        <p>Carregando livro… Se o leitor não abrir, use Abrir PDF ou Baixar.</p>
+      </section>
+      <noscript>
+        <p>Abra um livro para consultar:
+          <a href="books/livro-jogador-2014.pdf">Livro do Jogador</a> ·
+          <a href="books/livro-mestre-2014.pdf">Livro do Mestre</a>.
+        </p>
+      </noscript>
+    </main>
+  </body>
+</html>
