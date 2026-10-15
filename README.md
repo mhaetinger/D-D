@@ -11,3 +11,7 @@ A edição começa vazia. Use Criar personagem e siga as etapas. As 12 classes m
 O código usa a licença MIT. Ela não se estende a livros, marcas ou materiais de terceiros.
 
 Publicação: GitHub Pages, branch main, raiz. A estrutura estática permite acrescentar autenticação/autorização posteriormente; tornar o cadastro aberto não deve expor fichas pessoais.
+
+Desenvolvimento: mudanças entram em branches `feature/*` ou `fix/*` a partir de
+`develop`. Após revisão e verificação, uma pull request integra a mudança em
+`develop`; outra leva a entrega à `main`. Veja [CONTRIBUTING.md](CONTRIBUTING.md).
