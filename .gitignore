@@ -1,0 +1,16 @@
+# Somente os dois livros autorizados entram na biblioteca; fichas reais não entram.
+*.[pP][dD][fF]
+!books/livro-jogador-2014.pdf
+!books/livro-mestre-2014.pdf
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+node_modules/
+dist/
+exports/
+.private/
+test-results/
+playwright-report/
+.DS_Store

@@ -1,0 +1,3 @@
+# Dependências preservam os arquivos e avisos originais, inclusive seus espaços.
+vendor/pdfjs/** linguist-vendored=true
+vendor/pdfjs/**/LICENSE* -whitespace

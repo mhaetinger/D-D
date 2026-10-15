@@ -4,8 +4,10 @@
 - Trabalhar em `feature/*` ou `fix/*` a partir de `develop`. Usar pull requests
   para `develop` e, depois de verificar a entrega, para `main`. Não fazer push
   direto à `main` nem mesclar sem aprovação do responsável.
-- A base de trabalho é o histórico público. Não mesclar referências locais com
-  fichas pessoais ou textos integrais de livros; não enviar outras branches/tags.
+- A base de trabalho é o histórico público. Não mesclar o histórico local com
+  fichas pessoais nem enviar outras branches/tags. O usuário autorizou os dois
+  livros em `books/` e os catálogos completos de consulta em 15/10/2026. Outros
+  arquivos não entram automaticamente; fichas reais continuam excluídas.
 - Preservar fichas, anotações e escolhas existentes. Anotações pessoais devem
   permanecer separadas da ficha compartilhável e da impressão.
 - O usuário é daltônico. Usar texto, símbolos e contraste; manter ajustes visuais
