@@ -2,6 +2,14 @@
 
 ## Não lançado
 
+### Última ficha aberta — 2026-10-15
+
+- A aplicação lembra a última ficha selecionada neste navegador pelo ID,
+  preservando a seleção mesmo se a ordem mudar. Se a ficha não existir mais,
+  abre a primeira disponível. Armazenamento bloqueado não impede a consulta.
+- Verificação: tipos/build de produção e teste Chromium da aplicação, incluindo
+  seleção/recarga, reordenação e referência a uma ficha removida.
+
 ### Base da aplicação — 2026-10-15
 
 - Iniciada a estrutura com Vite e TypeScript, extraindo estilos e aplicação do

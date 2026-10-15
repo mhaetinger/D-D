@@ -30,6 +30,8 @@ executa a aplicação; use o servidor de desenvolvimento ou o build via HTTP/HTT
 
 As fichas e notas ficam neste navegador. Ainda não há login, banco remoto ou
 sincronização. Abrir outro dispositivo/endereço não transfere seus dados.
+Ao reabrir a aplicação, a última ficha selecionada é restaurada. Se ela tiver
+sido removida, abre a primeira ficha disponível.
 
 No perfil local, **Baixar backup** salva suas fichas em JSON. As anotações pessoais
 ficam fora do arquivo por padrão; marque a opção para incluí-las em um backup

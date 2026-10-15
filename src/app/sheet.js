@@ -1,5 +1,5 @@
 import { sheetStore } from "../storage/character-store";
-import { readPreference, writePreference } from "../storage/preferences";
+import { ACTIVE_CHARACTER_KEY, readPreference, writePreference } from "../storage/preferences";
 
 // =========================================================================
 // 1. METADADOS E CATÁLOGOS
@@ -454,7 +454,9 @@ for (const [id, cls] of Object.entries(PHB_DATA.classes)) {
 // 4. ESTADO GLOBAL + 3 MODOS DE DADOS + POOL COMBINADO (1d20 + 1d4...)
 // =========================================================================
 let characters = sheetStore.read();
-let activeCharIndex = 0;
+// O ID continua válido mesmo quando a ordem das fichas muda.
+const rememberedCharacterId = readPreference(ACTIVE_CHARACTER_KEY);
+let activeCharIndex = Math.max(0, characters.findIndex(char => char.id === rememberedCharacterId));
 let currentTab = "spells";
 let currentTheme =
   readPreference("dnd_sheet_theme") || "pergaminho_claro";
@@ -1885,6 +1887,10 @@ function renderAll() {
       return `<option value="${idx}" ${idx === activeCharIndex ? "selected" : ""}>${escapeHTML(c.name)} (${escapeHTML(clsStr)})</option>`;
     })
     .join("");
+
+  if (char && readPreference(ACTIVE_CHARACTER_KEY) !== char.id) {
+    writePreference(ACTIVE_CHARACTER_KEY, char.id);
+  }
 
   document.getElementById("btnUndo").disabled = historyPointer <= 0;
   document.getElementById("btnRedo").disabled =

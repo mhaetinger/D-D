@@ -48,6 +48,27 @@ async function importBackup(page, value) {
     const imported = await page.evaluate(() => characters[1].id);
     assert.notEqual(imported, char.id);
     assert.equal(await page.evaluate(({ key, id }) => JSON.parse(localStorage.getItem(key))[id], { key: NOTES, id: imported }), "Uma nota privada de teste");
+
+    // A seleção sobrevive à recarga e acompanha o ID, mesmo com outra ordem.
+    await page.evaluate(() => closeAuthAccountModal());
+    for (const [index, id] of [["0", char.id], ["1", imported]]) {
+      await page.locator("#charSelect").selectOption(index);
+      await page.reload({ waitUntil: "networkidle" });
+      assert.equal(await page.evaluate(() => getChar().id), id);
+    }
+    for (let i = 0; i < 2; i++) {
+      await page.evaluate((key) => {
+        const saved = JSON.parse(localStorage.getItem(key));
+        saved.characters.reverse();
+        localStorage.setItem(key, JSON.stringify(saved));
+      }, KEY);
+      await page.reload({ waitUntil: "networkidle" });
+      assert.equal(await page.evaluate(() => getChar().id), imported);
+    }
+    await page.evaluate(() => localStorage.setItem("orbyt_active_character_v1", "ficha-removida"));
+    await page.reload({ waitUntil: "networkidle" });
+    assert.equal(await page.evaluate(() => getChar().id), char.id, "ID ausente abre a primeira ficha disponível");
+    await page.evaluate(() => openAuthAccountModal());
     await importBackup(page, "{arquivo inválido");
     await page.waitForFunction(() => document.querySelector("#backupStatus").textContent.includes("JSON válido"));
     assert.equal(await page.evaluate(() => characters.length), 2);
