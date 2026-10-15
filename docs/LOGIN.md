@@ -4,8 +4,9 @@
 
 O responsável confirmou e-mail/senha em 15/10/2026 e pediu um projeto Supabase
 exclusivo do CritCall, administrado pela mesma conta que já possui o projeto Orbyt.
-O usuário informou que criou o projeto novo. Falta conferir sua URL/identificador
-e conectá-lo. Orbyt é outro aplicativo e não deve receber alterações.
+O usuário criou e identificou o projeto novo: `qhrpgkpvwbztubnrdhya`, URL pública
+`https://qhrpgkpvwbztubnrdhya.supabase.co`. URL e chave publicável foram configuradas
+em `.env.local`, ignorado pelo Git. Orbyt é outro aplicativo e não deve receber alterações.
 Cada projeto Supabase tem seu
 próprio banco e serviço de autenticação: [projetos e organizações](https://supabase.com/docs/guides/platform).
 
@@ -13,8 +14,11 @@ Implementados cadastro, entrada, reenvio de confirmação, recuperação de senh
 troca de senha pelo link PKCE, sessão e saída. O cliente oficial
 `@supabase/supabase-js` 2.118.0 faz as requisições. Sem URL/chave configuradas, a
 aplicação continua local e não oferece um formulário de login fictício.
-Esta implementação ainda não está ativada no site publicado: identificação e
-conexão do projeto já criado e validação com o serviço real estão pendentes.
+Esta implementação ainda não está ativada no site publicado. A API real respondeu
+HTTP 200 em settings/health, com e-mail e cadastro habilitados e confirmação
+obrigatória. O Chromium enviou uma tentativa com credenciais inexistentes ao
+projeto real: HTTP 400, mensagem correta e nenhum erro JavaScript. Não houve
+cadastro, envio de e-mail ou entrada bem-sucedida em conta real nessa verificação.
 
 Fichas e anotações continuam neste navegador. Autenticação e sincronização são
 etapas distintas: não há tabelas remotas de personagens, fila de envio ou
@@ -23,19 +27,26 @@ como autorização de dados no servidor ou proteção contra quem controla o dis
 
 ## Configurar o projeto exclusivo
 
-1. Identificar e conferir o **projeto novo do CritCall que o usuário já criou**, com
-   sua própria URL e identificador. Não criar outro projeto por repetição nem
-   reaproveitar o banco, usuários ou chaves do Orbyt.
+1. Usar somente o projeto **CritCall** identificado acima. Não criar outro por
+   repetição nem reaproveitar o banco, usuários ou chaves do Orbyt. A chave pública
+   permite o cliente do aplicativo; não concede acesso à administração do projeto.
 2. Em Authentication, habilitar cadastro por e-mail/senha e manter confirmação
    de e-mail. Configurar senha mínima de 12 caracteres, compatível com a interface.
 3. Usar `https://mhaetinger.github.io/D-D/` como Site URL e retorno permitido.
    Para desenvolvimento, acrescentar somente os endereços locais usados, por
-   exemplo `http://127.0.0.1:5173/`. O retorno é sempre a raiz do aplicativo;
-   nenhuma rota de callback exige configuração extra no Pages.
+   exemplo `http://127.0.0.1:5174/`. O retorno é sempre a raiz do aplicativo;
+   nenhuma rota de callback exige configuração extra no Pages. O usuário confirmou
+   Site URL/retorno do Pages e o retorno local inicial em 5173. Como essa porta
+   está ocupada por outro aplicativo, CritCall foi iniciado em 5174; a correção
+   do retorno local foi solicitada, ainda sem confirmação. A configuração
+   administrativa não foi lida pelo conector nesta sessão.
 4. Conferir entrega de confirmação e recuperação. O SMTP padrão do Supabase
    serve apenas a endereços pré-autorizados da equipe e tem limites restritos;
    configurar um remetente SMTP próprio antes de liberar e-mails para jogadores.
    Credenciais de SMTP ficam no serviço, nunca no Vite, Git ou documentação.
+   O usuário confirmou que ainda usa o envio padrão. Para a conferência inicial,
+   usar o próprio endereço autorizado da conta administrativa do Supabase;
+   entrega/retorno do e-mail continuam sem validação real.
 5. Conferir limites de autenticação e proteção contra abuso no serviço antes de
    ativar cadastro público. Não desabilitar confirmação para contornar falhas de entrega.
 
@@ -49,9 +60,13 @@ Referências: [senhas](https://supabase.com/docs/guides/auth/passwords),
 Copiar `.env.example` para `.env.local` e preencher apenas:
 
 ```dotenv
-VITE_SUPABASE_URL=
+VITE_SUPABASE_URL=https://qhrpgkpvwbztubnrdhya.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=
 ```
+
+Para usar o retorno local configurado, iniciar com
+`npm run dev -- --port 5174 --strictPort`. A opção impede trocar silenciosamente
+de porta e invalidar o retorno de confirmação/recuperação.
 
 A URL é a origem HTTPS do novo projeto, e a chave é a publicável
 (`sb_publishable_…`) ou a chave `anon` legada. Essas informações identificam o

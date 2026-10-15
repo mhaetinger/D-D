@@ -1192,9 +1192,14 @@ function commitLeveledCharacter(char, action) {
 // =========================================================================
 // 7. RENDERIZADOR DE MAGIAS COM COLUNAS INDEPENDENTES (SEM BURACO!)
 // =========================================================================
+function standardSlotEntries(char) {
+  // As chaves do backup também são dados não confiáveis. Só círculos de 1 a 9
+  // viram controles; entradas desconhecidas continuam preservadas no armazenamento.
+  return Object.entries(char.standardSlots).filter(([level]) => /^[1-9]$/.test(level));
+}
 function getSpellSlotOptions(char, spell) {
   if (spell.circle === 0 || spell.ritual || spell.limitedUse || spell.atWill) return [];
-  const options = Object.entries(char.standardSlots)
+  const options = standardSlotEntries(char)
     .filter(([level, slot]) => Number(level) >= spell.circle && slot.total > 0)
     .map(([level, slot]) => ({ value: Number(level), level: Number(level), remaining: slot.total - slot.used, total: slot.total, source: "Conjuração" }));
   if (char.pactMagic.total > 0 && char.pactMagic.level >= spell.circle) {
@@ -1222,11 +1227,11 @@ function renderSpellCastControls(char, spell, index) {
   const unavailable = (usesSlot && (!selected || selected.remaining <= 0)) || (spell.limitedUse && (spell.usesUsed || 0) >= spell.limitedUse);
   const canNormal = spell.prepared !== false || spell.ritual || spell.limitedUse || spell.atWill;
   return `
-    ${spell.canTwin && characterHasTwinned(char) ? `<button type="button" onclick="toggleSpellTwinnedByIndex(${index})" class="spell-action-button spell-twin-control" aria-label="${detail.twin ? "Desativar" : "Ativar"} Magia Gêmea para ${escapeHTML(spell.name)}" aria-pressed="${detail.twin}">Gêmea (${detail.cost ?? spell.circle}pt)</button>` : ""}
+    ${spell.canTwin && characterHasTwinned(char) ? `<button type="button" onclick="toggleSpellTwinnedByIndex(${index})" class="spell-action-button spell-twin-control" aria-label="${detail.twin ? "Desativar" : "Ativar"} Magia Gêmea para ${escapeHTML(spell.name)}" aria-pressed="${detail.twin}">Gêmea (${escapeHTML(detail.cost ?? spell.circle)}pt)</button>` : ""}
     ${usesSlot && canNormal ? `<select data-spell-slot="${index}" aria-label="Espaço para ${escapeHTML(spell.name)}" onchange="setSpellCastLevelByIndex(${index}, this.value)" class="spell-slot-select">
       ${options.length ? options.map((option) => `<option value="${option.value}" ${option.value === chosen ? "selected" : ""}>${option.source} · ${option.level}º · ${Math.max(0, option.remaining)}/${option.total}${option.remaining <= 0 ? " (esgotado)" : ""}</option>`).join("") : '<option value="">Sem espaços compatíveis</option>'}
     </select>` : ""}
-    ${spell.limitedUse ? `<span class="text-[11px]">Usos: ${Math.max(0, spell.limitedUse - (spell.usesUsed || 0))}/${spell.limitedUse}</span>` : ''}
+    ${spell.limitedUse ? `<span class="text-[11px]">Usos: ${Math.max(0, spell.limitedUse - (spell.usesUsed || 0))}/${escapeHTML(spell.limitedUse)}</span>` : ''}
     ${canNormal ? `<button data-cast-spell="${index}" onclick="castSpellByIndex(${index})" ${unavailable ? "disabled" : ""} class="spell-action-button spell-cast-button t-btn-primary" title="${usesSlot ? "Gasta apenas o espaço selecionado. Para trocar a origem, use o seletor." : "Não gasta espaços de magia."}">${spell.ritual ? "Ritual" : spell.circle === 0 ? "Truque" : unavailable ? "Esgotado" : "Conjurar"}</button>` : ''}
     ${!spell.ritual && canCastRitual(char, spell) ? `<button onclick="castRitualByIndex(${index})" class="spell-action-button spell-cast-button t-inset" title="Acrescenta 10 minutos ao tempo de conjuração e não gasta espaço.">Ritual</button>` : ''}
   `;
@@ -1465,7 +1470,7 @@ function renderSorceryCollapsiblePanel(char) {
         <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] pt-1">
           <span class="t-text-muted font-semibold">Conjuração Flexível (Converter Slots ⇄ Pontos):</span>
           <div class="flex flex-wrap gap-1.5">
-            ${Object.entries(char.standardSlots).filter(([, slot]) => slot.total > 0).map(([level]) => `<button onclick="convertSlotToSorceryPoints(${Number(level)})" class="px-2 py-1 t-inset rounded font-semibold">Converter ${level}º (+${level} pt)</button>`).join('')}
+            ${standardSlotEntries(char).filter(([, slot]) => slot.total > 0).map(([level]) => `<button onclick="convertSlotToSorceryPoints(${Number(level)})" class="px-2 py-1 t-inset rounded font-semibold">Converter ${Number(level)}º (+${Number(level)} pt)</button>`).join('')}
             ${[2,3,5,6,7].map((cost,index) => `<button onclick="createSlotWithSorceryPoints(${index+1}, ${cost})" class="px-2 py-1 t-inset rounded font-semibold">Criar ${index+1}º (-${cost} pt)</button>`).join('')}
           </div>
         </div>
@@ -2789,7 +2794,7 @@ function renderShopItems() {
   )
     .map(
       ([k, v]) =>
-        `<span class="px-2 py-0.5 rounded t-card t-text-accent">${v} ${k.toUpperCase()}</span>`,
+        `<span class="px-2 py-0.5 rounded t-card t-text-accent">${escapeHTML(v)} ${escapeHTML(k.toUpperCase())}</span>`,
     )
     .join("");
 

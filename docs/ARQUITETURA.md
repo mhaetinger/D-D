@@ -56,8 +56,10 @@ atuais da interface ainda ficam somente na sessão e não incluem notas pessoais
 ## Login preparado, ativação pendente
 
 Confirmados e-mail/senha e projeto exclusivo do CritCall em 15/10/2026. O usuário
-informou que criou o projeto novo; falta identificá-lo e conectá-lo. Os fluxos
-estão implementados nesta branch com Supabase JS 2.118.0, sem conexão real ainda.
+identificou o projeto novo `qhrpgkpvwbztubnrdhya`. URL/chave publicável estão na
+configuração local ignorada pelo Git. Os fluxos usam Supabase JS 2.118.0; API real
+e recusa de credenciais inexistentes foram conferidas, sem criar usuários ou
+enviar e-mails. Confirmação, entrada e recuperação reais ainda não foram validadas.
 Orbyt é outro projeto do responsável e permanece separado. Sem configuração, o
 aplicativo continua local. O bootstrap valida a identidade antes de importar
 `sheet.js`; chaves de armazenamento pessoais recebem prefixo por projeto/usuário.
@@ -122,10 +124,10 @@ O indicador no perfil informa quando o primeiro preparo offline terminou.
 2. **Próxima etapa individual:** armazenamento assíncrono com revisões entre abas, histórico/checkpoints
    por personagem e preparação da sincronização; manter migração e exportação.
 3. **Contas e sincronização:** o usuário antecipou o login por e-mail/senha,
-   preparado nesta branch, com projeto Supabase exclusivo ainda pendente de conexão
-   e validação real. Propriedade/autorização remotas, notas exclusivas do dono,
+   preparado nesta branch, com conexão local ao projeto exclusivo conferida e
+   validação de contas/e-mails reais ainda pendente. Propriedade/autorização remotas, notas exclusivas do dono,
    fila offline e conflitos entre dispositivos continuam para a etapa de dados.
-   Não há tabelas, projeto remoto conectado ou sincronização configurados.
+   Não há tabelas remotas de fichas/notas ou sincronização configuradas.
 4. **Depois da base individual:** retrato, salas, participantes, resumo do grupo e
    turnos do mestre; voz/vídeo por último. Não implementar permissões de mesa só
    escondendo botões nem compartilhar notas pessoais.

@@ -2,6 +2,31 @@
 
 ## Não lançado
 
+### Supabase do CritCall identificado e conexão local conferida — 2026-10-15
+
+- Projeto exclusivo informado pelo usuário: `qhrpgkpvwbztubnrdhya`. URL/chave
+  publicável configuradas em `.env.local`, ignorado pelo Git; a chave não foi
+  adicionada ao código/documentação. API real respondeu 200 em settings/health,
+  com cadastro por e-mail habilitado e confirmação obrigatória.
+- Build configurado e Chromium contra a API real: tentativa de entrada com
+  conta inexistente recusada com 400 e mensagem em português, sem erro JS.
+  Nenhum usuário criado, e-mail enviado ou login bem-sucedido real nessa verificação.
+- Usuário confirmou retornos salvos e uso do envio padrão. Porta 5173 do exemplo
+  está ocupada por outro aplicativo; CritCall iniciado em 5174 com porta estrita,
+  e correção do retorno local solicitada. Variables do Actions solicitadas,
+  ainda sem confirmação. Entrega de e-mail/SMTP próprio para jogadores,
+  configuração administrativa e duas contas reais continuam pendentes.
+- Corrigida execução de HTML por campos de recurso de backups importados:
+  somente círculos de 1 a 9 viram controles; usos/custos opcionais e carteira
+  antiga exibem texto escapado. Dados originais preservados, sem alteração
+  de regras ou reativação da loja incompleta. A revisão integral permanece pendente.
+- Verificação: regressão reproduziu a falha antes da correção; depois passaram
+  **154 testes Node**, tipos/build e quatro roteiros Chromium. Regressão ampliada
+  cobre campos adulterados nos dois layouts e preservação dos dados. Servidor
+  local 5174 conferido no Chromium: cadastro visível, mínimo de 12 caracteres
+  e nenhum erro JS. Diff sem erros de whitespace. O site publicado e bancos
+  remotos não foram alterados.
+
 ### Nome confirmado: CritCall — 2026-10-15
 
 - Usuário definiu **CritCall** como nome do aplicativo de fichas de D&D.

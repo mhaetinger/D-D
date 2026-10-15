@@ -2,7 +2,9 @@
 
 Este aplicativo se chama CritCall e é dedicado às fichas de D&D. Orbyt é outro
 projeto do responsável e usa infraestrutura separada. O projeto Supabase novo
-do CritCall já foi criado pelo usuário e ainda aguarda identificação/conexão nesta sessão.
+do CritCall foi identificado e configurado localmente. A conexão com a API foi
+conferida; cadastro confirmado, recuperação por e-mail e ativação pública ainda
+dependem da validação com o usuário. Consulte [docs/LOGIN.md](docs/LOGIN.md).
 
 Aplicação de fichas individuais de D&D 5e, com criador, evolução, multiclasse,
 grimório, inventário, anotações pessoais e consulta aos livros da mesa.

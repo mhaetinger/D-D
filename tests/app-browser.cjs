@@ -77,12 +77,34 @@ async function importBackup(page, value) {
     const hostile = structuredClone(plain);
     hostile.characters[0].name = '<img src=x onerror="window.importExecuted=1">';
     hostile.characters[0].lore.backstory = '<svg onload="window.importExecuted=1">';
+    const resourceMarkup = '<img src=x onerror="window.importExecuted=1">';
+    const importedResources = hostile.characters[0];
+    importedResources.sorceryPoints = { current: 2, max: 2 };
+    importedResources.standardSlots[resourceMarkup] = { used: 0, total: 1 };
+    importedResources.standardSlots[1] = { used: 0, total: 1 };
+    importedResources.coins[resourceMarkup] = resourceMarkup;
+    importedResources.spells = [
+      { name: 'Usos importados', circle: 1, classId: 'feiticeiro', limitedUse: resourceMarkup },
+      { name: 'Custo importado', circle: 1, classId: 'feiticeiro', limitedUse: 1, canTwin: true, castLevel: resourceMarkup },
+    ];
+    importedResources.rules.history.push({ classId: 'feiticeiro', level: 3, answers: { metamagic: ['Magia Duplicada'] } });
     await importBackup(page, hostile);
     await page.waitForFunction(() => characters.length === 3);
     await page.evaluate(() => { closeAuthAccountModal(); setTab("lore"); });
     assert.equal(await page.evaluate(() => window.importExecuted), undefined);
     assert.equal(await page.locator('#sheetViewport img').count(), 0);
     assert.equal(await page.locator('textarea[aria-label="Anotações pessoais do jogador"]').inputValue(), "");
+    // Chaves e recursos opcionais também vêm do arquivo; não são marcação nem
+    // código confiáveis apenas porque os campos obrigatórios foram validados.
+    for (const layout of ['classic_2014', 'modern_2024']) {
+      await page.evaluate((layout) => { getChar().preferredLayout = layout; setTab('spells'); }, layout);
+      assert.equal(await page.locator('#sheetViewport img').count(), 0);
+      assert.equal(await page.getByRole('button', { name: 'Converter 1º (+1 pt)', exact: true }).count(), 1);
+      await page.evaluate(() => setTab('lore'));
+      assert.equal(await page.locator('#sheetViewport img').count(), 0);
+    }
+    assert.equal(await page.evaluate(() => window.importExecuted), undefined);
+    assert.equal(await page.evaluate((key) => getChar().standardSlots[key].total, resourceMarkup), 1, 'o conteúdo original continua preservado');
     for (const theme of ["pergaminho_claro", "pergaminho_escuro", "obsidiana"]) {
       await page.setViewportSize({ width: 320, height: 800 });
       await page.evaluate((theme) => { setTheme(theme); setFontScale(125); openAuthAccountModal(); }, theme);
