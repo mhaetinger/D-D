@@ -57,6 +57,9 @@ atuais da interface ainda ficam somente na sessão e não incluem notas pessoais
 Dependências e lockfile fixados; fontes e ícones são compilados/hospedados com o
 aplicativo. O build mantém apenas os ícones usados. Licenças acompanham os arquivos.
 Tailwind 3 foi mantido para preservar as utilidades do visual existente.
+PostCSS 8.5.30 e o override de `postcss-selector-parser` 7.1.6 corrigem os avisos
+com versões disponíveis, preservando o CSS gerado. O aviso remanescente da cadeia
+de build e sua exposição estão registrados no guia da primeira publicação.
 
 Vite usa caminhos relativos para permitir `/D-D/` no Pages e domínio próprio.
 Somente `public/` e os assets gerados entram em `dist/`; não copiar a pasta inteira
@@ -69,6 +72,9 @@ ambiente `github-pages`. Publicar exige configurar a fonte do Pages como GitHub
 Actions na conta; preparar o workflow não afirma que o site já foi ativado.
 Proteção de branches/aprovações automáticas ainda dependem das configurações do
 repositório; o fluxo convencionado continua em `CONTRIBUTING.md`.
+Cada execução aprovada também guarda o artefato `github-pages` por três dias para
+revisão, sem publicar branches de trabalho. A auditoria de dependências de produção
+faz parte da verificação; somente o job da `main` tem permissão de publicação.
 
 ## Offline e atualizações
 

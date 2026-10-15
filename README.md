@@ -95,6 +95,8 @@ precisam ser conferidos na conta antes da primeira entrega dessa estrutura.
 
 Veja [CONTRIBUTING.md](CONTRIBUTING.md) e [docs/ARQUITETURA.md](docs/ARQUITETURA.md)
 para os módulos, contratos, decisões e próximas etapas.
+O [guia da primeira publicação](docs/PRIMEIRA-PUBLICACAO.md) reúne a entrega,
+as verificações, o pacote de revisão no GitHub e os passos para ativar o site.
 
 O site é acessível a qualquer pessoa com o endereço. `noindex` orienta mecanismos
 de busca e não restringe acesso. Histórico/checkpoints da interface ainda são da

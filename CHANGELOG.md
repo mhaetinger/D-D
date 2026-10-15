@@ -2,6 +2,22 @@
 
 ## Não lançado
 
+### Preparação da primeira publicação — 2026-10-15
+
+- Reunidas as tarefas anteriores em `feature/primeira-versao`, com guia de
+  conferência e integração `develop` → `main`, sem ativar publicação nesta etapa.
+- A pipeline guarda o pacote verificado por três dias também nas branches de
+  trabalho. Publicação continua restrita ao push da `main` após todas as verificações.
+- PostCSS atualizado para 8.5.30 e parser de seletores fixado em 7.1.6. O CSS
+  compilado permaneceu idêntico. Auditoria de produção sem alertas; aviso sem
+  correção da cadeia de build documentado no guia. Sem migração automática do Tailwind.
+- Conferidos artefato público, livros autorizados, ausência de fichas pessoais,
+  caminhos relativos e configuração de cache; notas e dados do jogador não entram
+  no pacote. A auditoria de produção passa a ser exigida pela pipeline.
+- Verificação após instalação limpa: **149 testes Node**, tipos/build e os três
+  testes Chromium passaram. Conferidos também integridade dos PDFs e ocultação
+  das notas na impressão, sem inseri-las no objeto da ficha.
+
 ### Alinhamento do combate — 2026-10-15
 
 - Alinhados os rótulos e valores de CA, iniciativa, deslocamento e pontos de

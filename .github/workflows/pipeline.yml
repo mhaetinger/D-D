@@ -22,15 +22,17 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      - name: Conferir dependências distribuídas
+        run: npm audit --omit=dev --audit-level=moderate
       - run: npm test
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
-      - name: Preparar somente o build aprovado da main
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Guardar o site verificado para revisão ou publicação
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
           path: dist
+          retention-days: 3
   publicar:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: verificar
