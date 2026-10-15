@@ -13,8 +13,9 @@
   Nenhum usuário criado, e-mail enviado ou login bem-sucedido real nessa verificação.
 - Usuário confirmou retornos salvos e uso do envio padrão. Porta 5173 do exemplo
   está ocupada por outro aplicativo; CritCall iniciado em 5174 com porta estrita,
-  e correção do retorno local solicitada. Variables do Actions solicitadas,
-  ainda sem confirmação. Entrega de e-mail/SMTP próprio para jogadores,
+  e usuário confirmou a troca do retorno local para 5174. Caminho de criação das
+  variables do Actions detalhado após dificuldade para localizar; ainda sem
+  confirmação da criação. Entrega de e-mail/SMTP próprio para jogadores,
   configuração administrativa e duas contas reais continuam pendentes.
 - Corrigida execução de HTML por campos de recurso de backups importados:
   somente círculos de 1 a 9 viram controles; usos/custos opcionais e carteira

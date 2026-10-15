@@ -36,9 +36,8 @@ como autorização de dados no servidor ou proteção contra quem controla o dis
    Para desenvolvimento, acrescentar somente os endereços locais usados, por
    exemplo `http://127.0.0.1:5174/`. O retorno é sempre a raiz do aplicativo;
    nenhuma rota de callback exige configuração extra no Pages. O usuário confirmou
-   Site URL/retorno do Pages e o retorno local inicial em 5173. Como essa porta
-   está ocupada por outro aplicativo, CritCall foi iniciado em 5174; a correção
-   do retorno local foi solicitada, ainda sem confirmação. A configuração
+   Site URL/retorno do Pages e a substituição do retorno local por 5174 em
+   15/10/2026. A porta 5173 pertence a outro aplicativo. A configuração
    administrativa não foi lida pelo conector nesta sessão.
 4. Conferir entrega de confirmação e recuperação. O SMTP padrão do Supabase
    serve apenas a endereços pré-autorizados da equipe e tem limites restritos;
@@ -80,6 +79,13 @@ No GitHub Actions, configurar as **variables** do repositório `SUPABASE_URL` e
 `SUPABASE_PUBLISHABLE_KEY` com os valores públicos do projeto exclusivo. A etapa
 de build já as encaminha ao Vite. A falta das duas mantém o modo local; preencher
 somente uma causa falha de build. Não inserir uma chave secreta nessas variables.
+
+Caminho no **repositório D-D do GitHub**: Settings → Secrets and variables →
+Actions → aba Variables → New repository variable. Preencher Name/Value e
+salvar em Add variable, uma por vez. A página é
+[Actions variables](https://github.com/mhaetinger/D-D/settings/variables/actions);
+[guia oficial do GitHub](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables#creating-configuration-variables-for-a-repository).
+O usuário informou que não encontrou essa opção; a criação ainda não foi confirmada.
 
 ## Dados, sessão e troca de conta
 
