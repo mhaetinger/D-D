@@ -26,7 +26,14 @@ export function setupBackups() {
     issue.textContent = sheetStore.issue?.message || "";
     recovery.hidden = sheetStore.issue?.kind !== "invalid";
   };
-  sheetStore.addEventListener("change", update);
+  let observedStore = sheetStore;
+  observedStore.addEventListener("change", update);
+  window.addEventListener("orbyt-workspace-changed", () => {
+    observedStore.removeEventListener("change", update);
+    observedStore = sheetStore;
+    observedStore.addEventListener("change", update);
+    update();
+  });
   update();
   if (sheetStore.issue) host.openAuthAccountModal();
   exportButton.addEventListener("click", () => {
@@ -44,11 +51,14 @@ export function setupBackups() {
     const file = input.files?.[0];
     input.value = "";
     if (!file) return;
+    const importingStore = sheetStore;
     try {
       if (file.size > MAX_BACKUP_BYTES) throw new Error("O backup deve ter até 20 MB. Nenhum dado foi alterado.");
       const backup = parseBackup(await file.text());
+      if (importingStore !== sheetStore) throw new Error("A conta mudou durante a leitura. Importe novamente no espaço desejado.");
       const replacing = sheetStore.issue?.kind === "invalid";
       if (replacing && !await host.confirmDestructiveAction("Recuperar fichas de um backup?", "Os dados que não puderam ser lidos serão guardados separadamente neste navegador. Depois, as fichas deste backup serão importadas. Você também pode baixar os dados originais antes de continuar.", "Importar backup")) return;
+      if (importingStore !== sheetStore) throw new Error("A conta mudou durante a confirmação. Nenhuma ficha foi importada.");
       const combined = sheetStore.importCopies(backup, host.characters, replacing);
       host.applyImportedCharacters(combined);
       message.textContent = `${backup.characters.length} personagem(ns) importado(s) como cópias. Suas fichas anteriores foram mantidas.`;

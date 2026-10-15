@@ -504,8 +504,31 @@
     <!-- ===================================================================== -->
     <div id="authAccountModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:#000b">
     <section data-scroll-window class="t-card-accent max-w-lg w-full p-5 space-y-4 max-h-[92dvh] overflow-y-auto">
-      <div class="flex justify-between gap-3"><h2 class="font-rpg font-bold">Perfil local e personagens</h2><button onclick="closeAuthAccountModal()" aria-label="Fechar perfil">×</button></div>
-      <p class="text-sm">Suas fichas e anotações ficam neste navegador. Use um backup para levá-las a outro dispositivo.</p>
+      <div class="flex justify-between gap-3"><h2 class="font-rpg font-bold">Perfil e personagens</h2><button onclick="closeAuthAccountModal()" aria-label="Fechar perfil">×</button></div>
+      <p id="workspaceDescription" class="text-sm">Suas fichas e anotações ficam neste navegador. Use um backup para levá-las a outro dispositivo.</p>
+      <section id="accountAccess" class="space-y-3 border-b t-border pb-3" aria-label="Acesso à conta" hidden>
+        <p id="accountIdentity" class="text-sm font-bold break-words"></p>
+        <div id="accountSignedOut" class="space-y-3">
+          <div class="flex flex-wrap gap-2" aria-label="Opções de acesso">
+            <button type="button" data-auth-mode="login" class="t-inset px-3 py-1.5 rounded text-xs" aria-pressed="true">Entrar</button>
+            <button type="button" data-auth-mode="signup" class="t-inset px-3 py-1.5 rounded text-xs" aria-pressed="false">Criar conta</button>
+            <button type="button" data-auth-mode="reset" class="underline text-xs" aria-pressed="false">Esqueci a senha</button>
+          </div>
+          <form id="accountForm" class="space-y-3">
+            <div id="accountEmailField"><label for="accountEmail" class="block text-xs mb-1">E-mail</label><input id="accountEmail" type="email" autocomplete="username" required maxlength="254" class="t-inset w-full p-2 rounded" /></div>
+            <div id="accountPasswordField"><label for="accountPassword" class="block text-xs mb-1">Senha</label><input id="accountPassword" type="password" autocomplete="current-password" class="t-inset w-full p-2 rounded" /></div>
+            <div id="accountPasswordConfirmField" hidden><label for="accountPasswordConfirm" class="block text-xs mb-1">Confirmar senha</label><input id="accountPasswordConfirm" type="password" autocomplete="new-password" class="t-inset w-full p-2 rounded" /></div>
+            <p id="accountPasswordHint" class="text-xs t-text-muted" hidden>Use pelo menos 12 caracteres. Abra os links de confirmação e recuperação neste navegador.</p>
+            <button id="accountSubmit" type="submit" class="t-btn-primary px-3 py-2 rounded">Entrar</button>
+          </form>
+          <button id="accountResend" type="button" class="underline text-xs">Reenviar confirmação de e-mail</button>
+        </div>
+        <div id="accountSignedIn" class="space-y-2" hidden>
+          <button id="accountSignOut" type="button" class="t-inset px-3 py-2 rounded">Sair desta conta</button>
+          <p class="text-xs t-text-muted">Ao sair, a cópia local é mantida neste navegador. Em um dispositivo compartilhado, ela continua acessível a quem controla o navegador.</p>
+        </div>
+        <p id="accountAccessStatus" class="text-sm" role="status" aria-live="polite"></p>
+      </section>
       <label for="accPlayerName">Nome do jogador</label><input id="accPlayerName" value="Jogador" class="t-inset w-full p-2 rounded">
       <button onclick="saveAccountProfile()" class="t-btn-primary px-3 py-2 rounded">Salvar nome local</button>
       <div id="accountCharactersList" class="space-y-2"></div>
@@ -524,6 +547,13 @@
         <p id="backupStatus" class="text-xs" role="status"></p>
       </section>
     </section></div>
+    <dialog id="accountWorkspaceChanged" data-scroll-window class="t-card-accent rounded-xl p-5 space-y-3" aria-labelledby="accountWorkspaceChangedTitle">
+      <h2 id="accountWorkspaceChangedTitle" class="font-rpg font-bold">Sua sessão mudou</h2>
+      <p class="text-sm">Para abrir o outro espaço, os editores da sessão anterior serão fechados. Você pode baixar um backup antes de continuar.</p>
+      <label class="flex gap-2 items-center text-xs"><input id="accountSwitchNotes" type="checkbox" /> Incluir anotações pessoais no backup</label>
+      <div class="flex flex-wrap gap-2"><button id="accountSwitchBackup" type="button" class="t-inset px-3 py-2 rounded">Baixar backup anterior</button><button id="accountSwitchContinue" type="button" class="t-btn-primary px-3 py-2 rounded">Continuar e fechar editores</button></div>
+      <p id="accountSwitchStatus" role="status" class="text-sm"></p>
+    </dialog>
     <!-- Editor compartilhado por armas, itens e adaptações de magias. -->
     <div id="homebrewModal" role="dialog" aria-modal="true" aria-labelledby="hbModalTitle"
       class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">

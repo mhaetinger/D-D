@@ -28,8 +28,10 @@ executa a aplicação; use o servidor de desenvolvimento ou o build via HTTP/HTT
 
 ## Salvamento e backups
 
-As fichas e notas ficam neste navegador. Ainda não há login, banco remoto ou
-sincronização. Abrir outro dispositivo/endereço não transfere seus dados.
+As fichas e notas ficam neste navegador, sem sincronização. A branch de login
+por e-mail/senha já tem os fluxos de conta implementados, mas sua ativação depende
+do projeto Supabase exclusivo do Orbyt e da validação real. Sem configuração,
+o aplicativo continua no modo local. Abrir outro dispositivo/endereço não transfere seus dados.
 Ao reabrir a aplicação, a última ficha selecionada é restaurada. Se ela tiver
 sido removida, abre a primeira ficha disponível.
 
@@ -70,6 +72,19 @@ responsável pelo projeto; veja [public/books/README.md](public/books/README.md)
 O leitor PDF.js é hospedado junto do aplicativo e tem texto selecionável. Os
 balões e consultas do criador também oferecem as descrições das regras.
 
+## Login em desenvolvimento
+
+O fluxo escolhido é e-mail/senha no Supabase, em um projeto separado do outro
+aplicativo do responsável. Consulte [docs/LOGIN.md](docs/LOGIN.md) para cadastro,
+confirmação, recuperação, configuração local e variables do GitHub Actions.
+O formulário só aparece quando o projeto está configurado. Senhas não são
+guardadas pela ficha nem incluídas em backups.
+
+Cada conta abre seu próprio espaço de fichas neste navegador; entrar não adota
+as fichas anteriores do modo local. Ao sair, as cópias são preservadas. Isso não
+criptografa o dispositivo nem envia dados ao banco. Login real no ambiente
+publicado, entrega de e-mails e sincronização ainda não foram habilitados.
+
 ## Verificar
 
 ```sh
@@ -83,6 +98,8 @@ npm run test:browser
 aceita instalação externa por `DND_PLAYWRIGHT_MODULE`. Os testes de navegador usam
 `dist/` sob `/D-D/`; `DND_TEST_ROOT` permite indicar outro artefato e
 `DND_TEST_ARTIFACTS` ativa capturas opcionais.
+O teste de login compila um artefato temporário com projeto fictício e respostas
+HTTP controladas, sem criar usuários reais ou depender das credenciais do ambiente.
 
 ## Desenvolvimento e publicação
 
@@ -90,8 +107,9 @@ Branches por tarefa seguem para `develop`; uma entrega revisada segue para
 `main`. Não fazer push direto à `main`. A pipeline verifica tipos, testes,
 build e navegador; somente um push na `main` pode publicar `dist/` no Pages.
 Para essa nova estrutura, a fonte do Pages deve ser **GitHub Actions**. Não publicar
-a raiz com os arquivos de desenvolvimento. A configuração e o site ativo ainda
-precisam ser conferidos na conta antes da primeira entrega dessa estrutura.
+a raiz com os arquivos de desenvolvimento. A primeira versão já está em
+[mhaetinger.github.io/D-D](https://mhaetinger.github.io/D-D/), integrada pelas
+PRs #1/#2 e verificada em 15/10/2026. O login desta branch ainda aguarda ativação.
 
 Veja [CONTRIBUTING.md](CONTRIBUTING.md) e [docs/ARQUITETURA.md](docs/ARQUITETURA.md)
 para os módulos, contratos, decisões e próximas etapas.
@@ -100,7 +118,7 @@ as verificações, o pacote de revisão no GitHub e os passos para ativar o site
 
 O site é acessível a qualquer pessoa com o endereço. `noindex` orienta mecanismos
 de busca e não restringe acesso. Histórico/checkpoints da interface ainda são da
-sessão atual; contas, sincronização e salas continuam nas próximas etapas.
+sessão atual; ativação das contas, sincronização e salas continuam nas próximas etapas.
 
 Código próprio sob MIT. Fontes/ícones e demais componentes conservam suas licenças
 em [public/licenses](public/licenses/README.md); PDF.js e seus avisos ficam em

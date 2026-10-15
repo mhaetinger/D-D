@@ -1,4 +1,5 @@
-import { sheetStore } from "../storage/character-store";
+import { sheetStore, selectCharacterWorkspace } from "../storage/character-store";
+import { currentWorkspaceKey } from "../storage/account-scope";
 import { ACTIVE_CHARACTER_KEY, readPreference, writePreference } from "../storage/preferences";
 
 // =========================================================================
@@ -1069,6 +1070,54 @@ function closeAuthAccountModal() {
   document.getElementById("authAccountModal").classList.add("hidden");
 }
 
+const workspaceDrafts = new Map();
+function hasOpenAccountEditor() {
+  if (document.getElementById('confirmationDialog').open) return true;
+  if (document.getElementById('accPlayerName').value !== (readPreference('dnd_public_player_name') || 'Jogador')) return true;
+  return ['characterWizard', 'homebrewModal'].some(id => {
+    const el = document.getElementById(id);
+    return el && !el.hidden && !el.classList.contains('hidden');
+  });
+}
+function activateAccountWorkspace(identity) {
+  // Um erro de quota não joga fora a ficha em memória ao trocar de conta.
+  // Ela só poderá reaparecer ao voltar ao mesmo espaço, nesta aba.
+  if (sheetStore.issue?.kind === 'write' || sheetStore.issue?.kind === 'unavailable') workspaceDrafts.set(currentWorkspaceKey(), characters);
+  else workspaceDrafts.delete(currentWorkspaceKey());
+  hideBookTooltip();
+  const confirmation = document.getElementById('confirmationDialog');
+  if (confirmation.open) confirmation.close('cancel');
+  CharacterWizard.close(true);
+  closeHomebrewModal(true);
+  closeShopModal();
+  document.getElementById('characterWizard')?.replaceChildren();
+  document.getElementById('hbModalBody').replaceChildren();
+  document.getElementById('historyDrawer').classList.add('translate-x-full');
+  diceRollSequence++;
+  clearDicePool();
+  document.getElementById('dice3dResultText').textContent = '';
+  document.getElementById('dice3dCube').textContent = '20';
+  document.getElementById('diceTrayTotal').textContent = '—';
+  selectCharacterWorkspace(identity);
+  const saved = sheetStore.read();
+  characters = workspaceDrafts.get(currentWorkspaceKey()) || saved;
+  activeCharIndex = Math.max(0, characters.findIndex(char => char.id === readPreference(ACTIVE_CHARACTER_KEY)));
+  historyStack = [{ timestamp: new Date().toLocaleTimeString(), action: 'Abriu este espaço de fichas', isCheckpoint: true, stateJson: JSON.stringify(characters) }];
+  historyPointer = 0;
+  spellFilterClass = 'all';
+  selectedCastLevelBySpell = {};
+  twinnedActiveBySpell = {};
+  expandedSingleSpells = {};
+  const player = readPreference('dnd_public_player_name') || 'Jogador';
+  document.getElementById('accPlayerName').value = player;
+  document.getElementById('currentUserBadge').textContent = player;
+  document.getElementById('backupIncludeNotes').checked = false;
+  document.getElementById('backupStatus').textContent = '';
+  renderAll();
+  renderAccountCharactersList();
+  window.dispatchEvent(new Event('orbyt-workspace-changed'));
+}
+
 function saveAccountProfile() {
   const newName =
     document.getElementById("accPlayerName").value || "Jogador";
@@ -1772,20 +1821,14 @@ function renderFeaturesCollapsible(char, wide = false) {
     </div>${isCollapsed ? '' : `<div data-size-motion><div data-size-content class="p-3 feature-list${wide ? ' feature-list-wide' : ''} text-xs">${content}</div></div>`}</div>`;
 }
 
-// Notas pessoais ficam fora da ficha e de seus snapshots. Este protótipo
-// não autentica: isolamento real por jogador será responsabilidade do servidor.
-const PRIVATE_NOTES_KEY = 'dnd_player_private_notes_v1';
+// Notas ficam fora da ficha/snapshots, no mesmo espaço local da conta atual.
+// Isso organiza o cache; não criptografa o navegador nem sincroniza com o servidor.
 function readPrivateNotes(id) {
-  try { return JSON.parse(localStorage.getItem(PRIVATE_NOTES_KEY) || '{}')[id] || ''; }
-  catch { return ''; }
+  return sheetStore.note(id);
 }
 function savePrivateNotes(value) {
-  try {
-    const all = JSON.parse(localStorage.getItem(PRIVATE_NOTES_KEY) || '{}');
-    all[getChar().id] = String(value);
-    localStorage.setItem(PRIVATE_NOTES_KEY, JSON.stringify(all));
-    document.getElementById('privateNotesStatus').textContent = 'Salvas neste navegador';
-  } catch { document.getElementById('privateNotesStatus').textContent = 'Não foi possível salvar; copie o texto antes de sair.'; }
+  const saved = sheetStore.writeNote(getChar().id, String(value));
+  document.getElementById('privateNotesStatus').textContent = saved ? 'Salvas neste navegador' : 'Não foi possível salvar; baixe um backup com notas antes de fechar.';
 }
 async function clearPrivateNotes() {
   if (!readPrivateNotes(getChar().id)) return;
@@ -1793,7 +1836,7 @@ async function clearPrivateNotes() {
   savePrivateNotes(''); renderAll();
 }
 function renderPrivateNotes(char) {
-  return `<section class="player-private-notes t-card-accent p-4 space-y-2 text-xs"><div class="flex justify-between items-center gap-2"><h3 class="font-rpg font-bold uppercase t-text-accent">Anotações pessoais do jogador</h3><button class="underline" onclick="clearPrivateNotes()">Apagar</button></div><p class="t-text-muted">Salvas separadamente neste navegador. Não acompanham a ficha. Este protótipo ainda não tem login.</p><textarea aria-label="Anotações pessoais do jogador" rows="7" class="w-full t-inset p-3 rounded-lg" oninput="savePrivateNotes(this.value)">${escapeHTML(readPrivateNotes(char.id))}</textarea><p id="privateNotesStatus" class="t-text-muted" aria-live="polite">Salvas neste navegador</p></section>`;
+  return `<section class="player-private-notes t-card-accent p-4 space-y-2 text-xs"><div class="flex justify-between items-center gap-2"><h3 class="font-rpg font-bold uppercase t-text-accent">Anotações pessoais do jogador</h3><button class="underline" onclick="clearPrivateNotes()">Apagar</button></div><p class="t-text-muted">Salvas separadamente neste navegador. Não acompanham a ficha e não são sincronizadas.</p><textarea aria-label="Anotações pessoais do jogador" rows="7" class="w-full t-inset p-3 rounded-lg" oninput="savePrivateNotes(this.value)">${escapeHTML(readPrivateNotes(char.id))}</textarea><p id="privateNotesStatus" class="t-text-muted" aria-live="polite">Salvas neste navegador</p></section>`;
 }
 
 function toggleWornArmor(index) {
@@ -1939,7 +1982,7 @@ function renderAll() {
   if (!char) {
     const header = document.getElementById('headerSection');
     header.className = 't-card p-5 space-y-3';
-    header.innerHTML = '<h1 class="font-rpg text-xl font-bold t-text-accent">Crie sua primeira ficha</h1><p>Suas fichas ficam neste navegador. Esta versão ainda não tem login ou sincronização.</p><button class="t-btn-primary px-4 py-2 rounded font-bold" onclick="openNewCharacterModal()">Criar personagem</button>';
+    header.innerHTML = '<h1 class="font-rpg text-xl font-bold t-text-accent">Crie sua primeira ficha</h1><p>Suas fichas ficam neste navegador. A sincronização entre dispositivos ainda não está disponível.</p><button class="t-btn-primary px-4 py-2 rounded font-bold" onclick="openNewCharacterModal()">Criar personagem</button>';
     document.getElementById('sheetViewport').innerHTML = '';
     window.SizeMotion?.refresh();
     return;
@@ -2848,6 +2891,8 @@ Object.assign(window, {
   triggerSheetRoll,
   openAuthAccountModal,
   closeAuthAccountModal,
+  hasOpenAccountEditor,
+  activateAccountWorkspace,
   saveAccountProfile,
   renderAccountCharactersList,
   deleteCharacter,

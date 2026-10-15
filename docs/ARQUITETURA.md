@@ -13,6 +13,7 @@ fichas locais. Não foi adotado um novo framework de interface nesta etapa.
 | `src/app/sheet.js` | Interface anterior extraída, ainda com ponte global para eventos dos cartões/assistentes. |
 | `src/styles/` | Tailwind compilado e estilos/temas preservados. |
 | `src/storage/` | Formato/validação de fichas, migração local, backup, importação e recuperação. |
+| `src/auth/` | Configuração pública, sessão Supabase e interface de entrada/cadastro/recuperação. |
 | `src/pwa/` | Registro do service worker e informação de disponibilidade offline. |
 | `public/rules/` | Motor sem DOM, catálogos, assistente, balões, rolagem e animações. |
 | `public/book.html`, `public/books/`, `public/vendor/pdfjs/` | Biblioteca, dois PDFs e leitor com suas licenças. |
@@ -51,6 +52,26 @@ O adaptador atual é síncrono com localStorage para preservar os fluxos existen
 A migração para IndexedDB, revisões atômicas entre abas, histórico por personagem e sincronização terá uma API
 assíncrona própria; não foi simulada com gravações remotas fictícias. Checkpoints
 atuais da interface ainda ficam somente na sessão e não incluem notas pessoais.
+
+## Login preparado, ativação pendente
+
+Confirmados e-mail/senha e projeto exclusivo do Orbyt em 15/10/2026. Os fluxos
+estão implementados nesta branch com Supabase JS 2.118.0, sem conexão real ainda.
+O projeto anterior do responsável permanece separado. Sem configuração, o
+aplicativo continua local. O bootstrap valida a identidade antes de importar
+`sheet.js`; chaves de armazenamento pessoais recebem prefixo por projeto/usuário.
+As chaves originais permanecem no modo sem login, sem adoção automática.
+
+Sessões online passam por `getUser`; uma identidade previamente validada só
+seleciona sua cópia local offline. Esse cache não é criptografado nem representa
+autorização remota. Trocas limpam histórico/interface e cancelam confirmações
+pendentes; editores abertos exigem decisão antes do fechamento. Rascunhos com
+falha de quota são preservados por espaço em memória, sem gravar na conta nova.
+
+Não há armazenamento remoto de personagens ou notas, RLS aplicada, envio
+automático ou sincronização nesta etapa. Ativação real, entrega de e-mails e
+revisão integral de segurança ainda estão pendentes. Contratos, configuração,
+limites e teste com HTTP controlado em [LOGIN.md](LOGIN.md).
 
 ## Dependências, build e publicação
 
@@ -96,10 +117,11 @@ O indicador no perfil informa quando o primeiro preparo offline terminou.
    backup, recuperação, migração preservando legado e funcionamento offline da ficha.
 2. **Próxima etapa individual:** armazenamento assíncrono com revisões entre abas, histórico/checkpoints
    por personagem e preparação da sincronização; manter migração e exportação.
-3. **Contas e sincronização:** implementar autenticação real, propriedade da ficha,
-   notas exclusivas do dono, fila offline e conflitos entre dispositivos. Supabase
-   Auth/PostgreSQL é a proposta técnica; não há projeto, sessão ou banco conectado.
-   Confirmar os dados do serviço e opções de login antes da conexão pública.
+3. **Contas e sincronização:** o usuário antecipou o login por e-mail/senha,
+   preparado nesta branch, com projeto Supabase exclusivo ainda pendente de conexão
+   e validação real. Propriedade/autorização remotas, notas exclusivas do dono,
+   fila offline e conflitos entre dispositivos continuam para a etapa de dados.
+   Não há tabelas, projeto remoto conectado ou sincronização configurados.
 4. **Depois da base individual:** retrato, salas, participantes, resumo do grupo e
    turnos do mestre; voz/vídeo por último. Não implementar permissões de mesa só
    escondendo botões nem compartilhar notas pessoais.

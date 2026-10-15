@@ -207,6 +207,12 @@ body.dice-tray-resizing { user-select: none; cursor: ne-resize; }
   border-radius: 0.75rem;
 }
 
+#accountWorkspaceChanged::backdrop { background: var(--bg-page, #14100d); }
+#accountWorkspaceChanged { width: min(32rem, calc(100vw - 2rem)); max-height: 92dvh; overflow-y: auto; color: var(--text-main); }
+#accountAccess [data-auth-mode][aria-pressed="true"] { outline: 2px solid currentColor; outline-offset: 1px; font-weight: 800; }
+#accountAccess input { min-width: 0; }
+#accountAccess button:disabled { opacity: .65; cursor: wait; }
+
 .t-card-accent {
   background-color: var(--bg-card);
   border: 2px solid var(--border-strong);

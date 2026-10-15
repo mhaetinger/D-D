@@ -2,6 +2,50 @@
 
 ## Não lançado
 
+### Login por e-mail/senha preparado — 2026-10-15
+
+- Confirmados e-mail/senha e projeto Supabase exclusivo do Orbyt, separado do
+  projeto já existente na mesma conta administrativa. Implementados cadastro,
+  entrada, reenvio de confirmação, recuperação/troca de senha por PKCE e saída
+  com o SDK oficial 2.118.0. Configuração ausente conserva o modo local.
+- Identidade online conferida no serviço antes de carregar a ficha. Espaços
+  locais separados por projeto/usuário para fichas, notas, recuperação e
+  preferências pessoais. Dados anteriores continuam no espaço sem login;
+  entrar não os envia nem os adota automaticamente. Backups continuam sem
+  notas por padrão, e a importação cria cópias no espaço escolhido.
+- Troca de conta reinicia histórico/interface e limpa rolagens. Com editor ou
+  confirmação abertos, o jogador decide o fechamento e pode baixar backup;
+  exclusões pendentes são canceladas. Importações assíncronas não terminam em
+  outra conta. Rascunhos com falha de gravação permanecem no espaço anterior
+  em memória, inclusive notas para backup explícito.
+- Cópia de uma identidade previamente validada abre offline. Saída offline
+  remove a sessão deste aplicativo sem declarar revogação no servidor; fichas
+  e notas são preservadas. O cache não é criptografado e continua acessível a
+  quem controla o navegador. Nenhuma tabela remota ou sincronização adicionada.
+- Preflight de desenvolvimento/build recusa chave secreta/service_role e
+  configuração incompleta. URL/chave publicável podem vir de `.env.local` ou
+  das variables públicas do workflow. Licenças das novas dependências preservadas.
+- Verificação: **154 testes Node**, tipos/build e os três testes anteriores de
+  navegador passaram. O novo teste Chromium usa o SDK real com respostas HTTP
+  controladas: erros, cadastro/confirmação, retorno PKCE/recuperação, duas contas
+  e espaço local com notas distintas, histórico, recarga/offline/saída offline,
+  sessão revogada com editor/exclusão pendentes e backup. Raiz e index.html
+  compartilham a sessão. Três temas em 320 px/GG
+  sem rolagem horizontal; rodinha no limite do perfil não alcança a página;
+  capturas inspecionadas. Roteiros sem erros JavaScript. Auditoria de produção
+  sem alertas. O aviso anterior da cadeia de desenvolvimento permanece documentado.
+- Limites: projeto exclusivo ainda não criado/conectado nesta sessão; nenhum
+  usuário real cadastrado ou e-mail real enviado nos testes. Ativação no site,
+  SMTP/retornos, revisão integral de segurança e validação real ainda pendentes.
+  Guia em `docs/LOGIN.md`; autenticação não significa sincronização de fichas.
+
+### Primeira publicação concluída — etapa anterior
+
+- Integradas as PRs #1/#2 até `8520bd4`, com deploy aprovado no GitHub Actions.
+  Site e roteiro online conferidos em 15/10/2026:
+  [mhaetinger.github.io/D-D](https://mhaetinger.github.io/D-D/). Essa validação é
+  da entrega anterior, sem o login agora preparado nesta branch.
+
 ### Preparação da primeira publicação — 2026-10-15
 
 - Reunidas as tarefas anteriores em `feature/primeira-versao`, com guia de

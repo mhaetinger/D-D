@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
-const directory = path.resolve("dist");
+const directory = path.resolve(process.argv[2] || "dist");
 const walk = (folder) => fs.readdirSync(folder, { withFileTypes: true }).flatMap((entry) => entry.isDirectory() ? walk(path.join(folder, entry.name)) : [path.join(folder, entry.name)]);
 const all = walk(directory).map((file) => path.relative(directory, file).split(path.sep).join("/"));
 // PDFs são consultas online/downloads explícitos, não uma transferência automática
