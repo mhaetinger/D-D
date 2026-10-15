@@ -1115,7 +1115,7 @@ function activateAccountWorkspace(identity) {
   document.getElementById('backupStatus').textContent = '';
   renderAll();
   renderAccountCharactersList();
-  window.dispatchEvent(new Event('orbyt-workspace-changed'));
+  window.dispatchEvent(new Event('dnd-workspace-changed'));
 }
 
 function saveAccountProfile() {

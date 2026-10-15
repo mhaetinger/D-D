@@ -1,4 +1,8 @@
-# Orbyt · Fichas D&D
+# Fichas D&D
+
+Este aplicativo é o projeto D&D. Orbyt é outro projeto do responsável e usa
+infraestrutura separada; o projeto Supabase novo do D&D já foi criado pelo usuário
+e ainda aguarda identificação/conexão nesta sessão.
 
 Aplicação de fichas individuais de D&D 5e, com criador, evolução, multiclasse,
 grimório, inventário, anotações pessoais e consulta aos livros da mesa.
@@ -30,7 +34,7 @@ executa a aplicação; use o servidor de desenvolvimento ou o build via HTTP/HTT
 
 As fichas e notas ficam neste navegador, sem sincronização. A branch de login
 por e-mail/senha já tem os fluxos de conta implementados, mas sua ativação depende
-do projeto Supabase exclusivo do Orbyt e da validação real. Sem configuração,
+do projeto Supabase exclusivo do D&D e da validação real. Sem configuração,
 o aplicativo continua no modo local. Abrir outro dispositivo/endereço não transfere seus dados.
 Ao reabrir a aplicação, a última ficha selecionada é restaurada. Se ela tiver
 sido removida, abre a primeira ficha disponível.

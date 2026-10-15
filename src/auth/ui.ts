@@ -103,7 +103,7 @@ export function setupAccountUI(account: AccountSession) {
       const notes = (document.getElementById("accountSwitchNotes") as HTMLInputElement).checked;
       const value = sheetStore.backup(host.characters, notes);
       const url = URL.createObjectURL(new Blob([JSON.stringify(value, null, 2)], { type: "application/json" }));
-      const link = document.createElement("a"); link.href = url; link.download = "orbyt-sessao-anterior.json"; link.click();
+      const link = document.createElement("a"); link.href = url; link.download = "dnd-sessao-anterior.json"; link.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       result.textContent = notes ? "Backup baixado com as anotações pessoais." : "Backup baixado sem anotações pessoais.";
     } catch { result.textContent = "Não foi possível gerar o backup. Os dados anteriores continuam preservados nesta aba."; }

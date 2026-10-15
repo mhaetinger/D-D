@@ -3,7 +3,7 @@ export interface WorkspaceIdentity { project: string; userId: string }
 let identity: WorkspaceIdentity | null = null;
 
 export function workspaceKey(value: WorkspaceIdentity | null): string {
-  return value ? `orbyt_account_v1:${encodeURIComponent(value.project)}:${encodeURIComponent(value.userId)}:` : "";
+  return value ? `dnd_account_v1:${encodeURIComponent(value.project)}:${encodeURIComponent(value.userId)}:` : "";
 }
 export function currentWorkspaceKey() { return workspaceKey(identity); }
 export function selectWorkspace(value: WorkspaceIdentity | null) { identity = value; }

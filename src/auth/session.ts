@@ -27,7 +27,7 @@ export class AccountSession extends EventTarget {
     if (!this.config) return;
     // A raiz e index.html precisam compartilhar o verificador PKCE e a sessão.
     const scope = new URL("./", document.baseURI).pathname;
-    const storageKey = this.storageKey = `orbyt_auth_v1:${encodeURIComponent(this.config.url)}:${encodeURIComponent(scope)}`;
+    const storageKey = this.storageKey = `dnd_auth_v1:${encodeURIComponent(this.config.url)}:${encodeURIComponent(scope)}`;
     this.verificationKey = storageKey + ":verified";
     const memory = new Map<string, string>();
     try {

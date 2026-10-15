@@ -13,11 +13,11 @@ class MemoryStorage {
 }
 test("login desativado sem configuração; chaves privilegiadas e URLs com credenciais são recusadas", () => {
   assert.equal(parseAuthConfig(undefined, ""), null);
-  assert.deepEqual(parseAuthConfig("https://orbyt.supabase.co", "sb_publishable_test"), { url: "https://orbyt.supabase.co", publishableKey: "sb_publishable_test" });
+  assert.deepEqual(parseAuthConfig("https://dnd-fixture.supabase.co", "sb_publishable_test"), { url: "https://dnd-fixture.supabase.co", publishableKey: "sb_publishable_test" });
   const jwt = (role: string) => `header.${Buffer.from(JSON.stringify({ role })).toString("base64url")}.signature`;
-  assert.ok(parseAuthConfig("https://orbyt.supabase.co", jwt("anon")));
-  for (const key of ["sb_secret_test", jwt("service_role"), "senha", ""]) assert.throws(() => parseAuthConfig("https://orbyt.supabase.co", key));
-  for (const url of ["http://orbyt.supabase.co", "https://senha@orbyt.supabase.co", "https://orbyt.supabase.co/path", "https://orbyt.supabase.co/?token=secreto"]) assert.throws(() => parseAuthConfig(url, "sb_publishable_test"));
+  assert.ok(parseAuthConfig("https://dnd-fixture.supabase.co", jwt("anon")));
+  for (const key of ["sb_secret_test", jwt("service_role"), "senha", ""]) assert.throws(() => parseAuthConfig("https://dnd-fixture.supabase.co", key));
+  for (const url of ["http://dnd-fixture.supabase.co", "https://senha@dnd-fixture.supabase.co", "https://dnd-fixture.supabase.co/path", "https://dnd-fixture.supabase.co/?token=secreto"]) assert.throws(() => parseAuthConfig(url, "sb_publishable_test"));
 });
 test("cada conta/projeto tem fichas, legado e notas próprios; entrar não adota as fichas sem login", () => {
   const storage = new MemoryStorage(), char = warrior();

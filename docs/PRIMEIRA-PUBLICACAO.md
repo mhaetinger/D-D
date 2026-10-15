@@ -1,4 +1,4 @@
-# Primeira publicação · Orbyt 0.1.0
+# Primeira publicação · Fichas D&D 0.1.0
 
 A branch `feature/primeira-versao` reúne biblioteca, base da aplicação e os ajustes
 de última ficha aberta e alinhamento do combate. A publicação depende da revisão

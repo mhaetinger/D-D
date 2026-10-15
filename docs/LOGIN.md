@@ -3,16 +3,18 @@
 ## Estado desta branch
 
 O responsável confirmou e-mail/senha em 15/10/2026 e pediu um projeto Supabase
-exclusivo do Orbyt, administrado pela mesma conta que já possui outro projeto.
-O projeto existente não deve receber alterações. Cada projeto Supabase tem seu
+exclusivo do D&D, administrado pela mesma conta que já possui o projeto Orbyt.
+O usuário informou que criou o projeto novo. Falta conferir sua URL/identificador
+e conectá-lo. Orbyt é outro aplicativo e não deve receber alterações.
+Cada projeto Supabase tem seu
 próprio banco e serviço de autenticação: [projetos e organizações](https://supabase.com/docs/guides/platform).
 
 Implementados cadastro, entrada, reenvio de confirmação, recuperação de senha,
 troca de senha pelo link PKCE, sessão e saída. O cliente oficial
 `@supabase/supabase-js` 2.118.0 faz as requisições. Sem URL/chave configuradas, a
 aplicação continua local e não oferece um formulário de login fictício.
-Esta implementação ainda não está ativada no site publicado: criação/conexão
-do projeto exclusivo e validação com o serviço real estão pendentes.
+Esta implementação ainda não está ativada no site publicado: identificação e
+conexão do projeto já criado e validação com o serviço real estão pendentes.
 
 Fichas e anotações continuam neste navegador. Autenticação e sincronização são
 etapas distintas: não há tabelas remotas de personagens, fila de envio ou
@@ -21,9 +23,9 @@ como autorização de dados no servidor ou proteção contra quem controla o dis
 
 ## Configurar o projeto exclusivo
 
-1. Na conta existente do Supabase, criar ou selecionar um **novo projeto para o
-   Orbyt**, com seu próprio identificador. Conferir organização/plano antes de
-   criar; não reaproveitar o banco, usuários ou chaves do outro aplicativo.
+1. Identificar e conferir o **projeto novo do D&D que o usuário já criou**, com
+   sua própria URL e identificador. Não criar outro projeto por repetição nem
+   reaproveitar o banco, usuários ou chaves do Orbyt.
 2. Em Authentication, habilitar cadastro por e-mail/senha e manter confirmação
    de e-mail. Configurar senha mínima de 12 caracteres, compatível com a interface.
 3. Usar `https://mhaetinger.github.io/D-D/` como Site URL e retorno permitido.
@@ -66,6 +68,11 @@ somente uma causa falha de build. Não inserir uma chave secreta nessas variable
 
 ## Dados, sessão e troca de conta
 
+- O nome do aplicativo é Fichas D&D. Algumas chaves e o formato
+  `orbyt.character-backup` são identificadores legados da primeira publicação,
+  que recebeu esse nome por engano. Eles são preservados para continuar lendo
+  fichas/backups existentes; não indicam vínculo com o outro aplicativo.
+  Os novos espaços de autenticação/conta usam prefixos `dnd_auth_v1` e `dnd_account_v1`.
 - O bootstrap consulta a identidade antes de carregar a ficha. Online, `getUser`
   valida a sessão no Supabase. Não se usa um nome digitado ou um JWT decodificado
   pelo aplicativo como autorização de acesso ao serviço.

@@ -1,5 +1,11 @@
 # Orientações para manutenção
 
+- Este é o projeto **Fichas D&D**. **Orbyt** é outro projeto do responsável:
+  não usar esse nome, banco ou configuração de autenticação nesta aplicação.
+  O usuário informou que já criou um projeto Supabase novo para D&D; conferir
+  sua URL/identificador antes de conectar ou alterar o serviço.
+  Chaves/formato de backup publicados com `orbyt` são legados da nomeação
+  equivocada; preservar compatibilidade até uma migração testada.
 - Ler `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md` e `docs/ARQUITETURA.md` antes de alterar.
 - Trabalhar em `feature/*` ou `fix/*` a partir de `develop`. Usar pull requests
   para `develop` e, depois de verificar a entrega, para `main`. Não fazer push

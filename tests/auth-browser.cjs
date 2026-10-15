@@ -8,18 +8,21 @@ const { chromium } = require(process.env.DND_PLAYWRIGHT_MODULE || 'playwright');
 const { serve } = require('./serve.cjs');
 const { warrior } = require('./fixture.cjs');
 const root = path.resolve(__dirname, '..');
-const endpoint = 'https://orbyt-login-test.supabase.co';
+const endpoint = 'https://dnd-login-test.supabase.co';
 const ids = { a: '11111111-1111-4111-8111-111111111111', b: '22222222-2222-4222-8222-222222222222' };
 const password = 'Senha de teste 123!';
+// O relógio do token é fixo durante o roteiro: a conta simulada não pode mudar
+// quando o login e a consulta de usuário atravessam a virada de um segundo.
+const issuedAt = Math.floor(Date.now() / 1000);
 const user = (key) => ({ id: ids[key], email: `${key}@example.test`, aud: 'authenticated', role: 'authenticated', email_confirmed_at: new Date().toISOString(), app_metadata: { provider: 'email', providers: ['email'] }, user_metadata: {}, created_at: new Date().toISOString() });
 const jwt = (key) => {
   const json = (obj) => Buffer.from(JSON.stringify(obj)).toString('base64url');
-  return `${json({ alg: 'HS256', typ: 'JWT' })}.${json({ sub: ids[key], email: `${key}@example.test`, role: 'authenticated', aud: 'authenticated', exp: Math.floor(Date.now() / 1000) + 3600, iat: Math.floor(Date.now() / 1000) })}.${Buffer.from('assinatura-de-teste').toString('base64url')}`;
+  return `${json({ alg: 'HS256', typ: 'JWT' })}.${json({ sub: ids[key], email: `${key}@example.test`, role: 'authenticated', aud: 'authenticated', exp: issuedAt + 3600, iat: issuedAt })}.${Buffer.from('assinatura-de-teste').toString('base64url')}`;
 };
 const session = (key) => ({ access_token: jwt(key), refresh_token: `refresh_${key}`, token_type: 'bearer', expires_in: 3600, user: user(key) });
 
 (async () => {
-  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'orbyt-auth-'));
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dnd-auth-'));
   let server, browser, page;
   try {
     const vite = path.join(path.dirname(require.resolve('vite/package.json')), 'bin/vite.js');
@@ -222,7 +225,7 @@ const session = (key) => ({ access_token: jwt(key), refresh_token: `refresh_${ke
   } catch (error) {
     if (page && !page.isClosed()) {
       console.error('Estado do formulário:', await page.locator('#accountAccessStatus').textContent());
-      await page.screenshot({ path: path.join(os.tmpdir(), 'orbyt-auth-failure.png'), fullPage: true });
+      await page.screenshot({ path: path.join(os.tmpdir(), 'dnd-auth-failure.png'), fullPage: true });
     }
     throw error;
   } finally {

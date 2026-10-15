@@ -2,9 +2,27 @@
 
 ## Não lançado
 
+### Identidade correta: Fichas D&D — 2026-10-15
+
+- Usuário esclareceu que **Orbyt é outro projeto** e informou que já criou o
+  Supabase novo do D&D. Corrigidos título, nome de instalação, pacote, ícone,
+  downloads e documentação para Fichas D&D; registrada a separação no AGENTS.md.
+  Falta identificar/conectar o projeto novo; não criar outro por repetição.
+- Novos espaços de autenticação/conta usam prefixos `dnd_auth_v1` e
+  `dnd_account_v1`. As chaves de fichas publicadas e o formato de backup legado
+  são preservados para não interromper a leitura dos dados existentes; não
+  representam vínculo com a aplicação Orbyt.
+- Verificação desta correção: 18 testes de armazenamento/contas, tipos/build e
+  roteiros Chromium de armazenamento e login passaram. Conferidos título,
+  manifest, ícone e nome do download no navegador, com formato legado legível.
+  Corrigido o relógio dos tokens fictícios no teste de login: a conta simulada
+  não muda ao atravessar a virada de um segundo. Diff sem erros de whitespace.
+  A validação de 154 testes e dos quatro roteiros completos é da etapa anterior.
+- Site publicado e bancos remotos não foram alterados por esta correção.
+
 ### Login por e-mail/senha preparado — 2026-10-15
 
-- Confirmados e-mail/senha e projeto Supabase exclusivo do Orbyt, separado do
+- Confirmados e-mail/senha e projeto Supabase exclusivo do D&D, separado do
   projeto já existente na mesma conta administrativa. Implementados cadastro,
   entrada, reenvio de confirmação, recuperação/troca de senha por PKCE e saída
   com o SDK oficial 2.118.0. Configuração ausente conserva o modo local.
