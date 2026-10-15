@@ -225,6 +225,15 @@ body.dice-tray-resizing { user-select: none; cursor: ne-resize; }
   border: 1px solid var(--border-main);
 }
 
+/* Compartilha as linhas de rótulo, valor e ação, inclusive com rótulos quebrados. */
+.combat-stat {
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+  row-gap: 0;
+  justify-items: center;
+}
+
 .t-text-main {
   color: var(--text-main);
 }

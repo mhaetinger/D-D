@@ -1645,22 +1645,22 @@ function renderCombatBlock(char) {
         ? `
       <div class="p-4 space-y-3.5">
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
-          <div class="t-inset p-2 rounded-lg">
+          <div class="combat-stat t-inset p-2 rounded-lg">
             <span tabindex="0" ${RuleTooltips.attributes('Cálculo da CA', { text: getArmorExplanation(char) })} class="text-[10px] uppercase t-text-muted block cursor-help">CA</span>
             <span class="text-2xl font-extrabold t-text-accent">${ac}</span>
             ${char.spells.some(s => s.name === 'Armadura Arcana' || s.bookId === 'armadura-arcana') ? `<button onclick="toggleMageArmor()" class="text-[10px] underline block mx-auto mt-0.5">
               ${char.mageArmorActive ? `Arcana: CA ${getMageArmorAC(char)}` : "Ativar Arcana"}
             </button>` : ''}
           </div>
-          <button onclick="triggerSheetRoll('1d20${fmtMod(dexMod)}', 'Iniciativa')" class="t-inset p-2 rounded-lg hover:scale-105 transition">
+          <button onclick="triggerSheetRoll('1d20${fmtMod(dexMod)}', 'Iniciativa')" class="combat-stat t-inset p-2 rounded-lg hover:scale-105 transition">
             <span class="text-[10px] uppercase t-text-muted block">Iniciativa</span>
             <span class="text-2xl font-extrabold">${fmtMod(dexMod)}</span>
           </button>
-          <div class="t-inset p-2 rounded-lg">
+          <div class="combat-stat t-inset p-2 rounded-lg">
             <span class="text-[10px] uppercase t-text-muted block">Desloc.</span>
-            <span class="text-xl font-extrabold">${CharacterEngine.movementSpeed(char)}m</span>
+            <span class="text-2xl font-extrabold">${CharacterEngine.movementSpeed(char)}m</span>
           </div>
-          ${char.sorceryPoints.max > 0 ? `<div class="t-inset p-2 rounded-lg">
+          ${char.sorceryPoints.max > 0 ? `<div class="combat-stat t-inset p-2 rounded-lg">
             <span class="text-[10px] uppercase t-text-muted block">Pts Feitiçaria</span>
             <span class="text-2xl font-extrabold t-text-accent">${char.sorceryPoints.current}/${char.sorceryPoints.max}</span>
           </div>` : ''}

@@ -2,6 +2,15 @@
 
 ## Não lançado
 
+### Alinhamento do combate — 2026-10-15
+
+- Alinhados os rótulos e valores de CA, iniciativa, deslocamento e pontos de
+  feitiçaria. A ação de Armadura Arcana fica abaixo da CA sem deslocar os outros
+  valores; deslocamento usa o mesmo tamanho de número dos demais quadros.
+- Verificação: tipos/build e Chromium nos dois layouts, três temas, larguras
+  de 320/1440 px e fontes normal/GG; ativação de Armadura Arcana e regressão da
+  ficha, incluindo criação, evolução, moedas e persistência.
+
 ### Última ficha aberta — 2026-10-15
 
 - A aplicação lembra a última ficha selecionada neste navegador pelo ID,
