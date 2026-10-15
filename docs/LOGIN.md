@@ -3,7 +3,7 @@
 ## Estado desta branch
 
 O responsável confirmou e-mail/senha em 15/10/2026 e pediu um projeto Supabase
-exclusivo do D&D, administrado pela mesma conta que já possui o projeto Orbyt.
+exclusivo do CritCall, administrado pela mesma conta que já possui o projeto Orbyt.
 O usuário informou que criou o projeto novo. Falta conferir sua URL/identificador
 e conectá-lo. Orbyt é outro aplicativo e não deve receber alterações.
 Cada projeto Supabase tem seu
@@ -23,7 +23,7 @@ como autorização de dados no servidor ou proteção contra quem controla o dis
 
 ## Configurar o projeto exclusivo
 
-1. Identificar e conferir o **projeto novo do D&D que o usuário já criou**, com
+1. Identificar e conferir o **projeto novo do CritCall que o usuário já criou**, com
    sua própria URL e identificador. Não criar outro projeto por repetição nem
    reaproveitar o banco, usuários ou chaves do Orbyt.
 2. Em Authentication, habilitar cadastro por e-mail/senha e manter confirmação
@@ -68,7 +68,7 @@ somente uma causa falha de build. Não inserir uma chave secreta nessas variable
 
 ## Dados, sessão e troca de conta
 
-- O nome do aplicativo é Fichas D&D. Algumas chaves e o formato
+- O nome do aplicativo é CritCall. Algumas chaves e o formato
   `orbyt.character-backup` são identificadores legados da primeira publicação,
   que recebeu esse nome por engano. Eles são preservados para continuar lendo
   fichas/backups existentes; não indicam vínculo com o outro aplicativo.

@@ -2,6 +2,18 @@
 
 ## Não lançado
 
+### Nome confirmado: CritCall — 2026-10-15
+
+- Usuário definiu **CritCall** como nome do aplicativo de fichas de D&D.
+  Atualizados título, instalação, pacote, nomes de downloads, documentação e
+  instruções de manutenção. Orbyt continua identificado como outro projeto.
+- Chaves de armazenamento, formato dos backups e endereço publicado preservados.
+  O projeto Supabase novo já foi criado pelo usuário e ainda aguarda identificação/conexão.
+- Verificação: tipos/build e conferência Chromium de título, manifest, ícone,
+  download `critcall-fichas` e formato de backup legado passaram. Diff sem erros
+  de whitespace; os testes funcionais da etapa anterior não foram repetidos
+  por esta alteração de nome. Sem merge ou publicação nesta etapa.
+
 ### Identidade correta: Fichas D&D — 2026-10-15
 
 - Usuário esclareceu que **Orbyt é outro projeto** e informou que já criou o

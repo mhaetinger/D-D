@@ -39,12 +39,12 @@ export function setupBackups() {
   exportButton.addEventListener("click", () => {
     try {
       const backup = sheetStore.backup(host.characters, notes.checked);
-      download(JSON.stringify(backup, null, 2), `dnd-fichas-${new Date().toISOString().slice(0, 10)}.json`);
+      download(JSON.stringify(backup, null, 2), `critcall-fichas-${new Date().toISOString().slice(0, 10)}.json`);
       message.textContent = notes.checked ? "Backup baixado com suas anotações pessoais. Guarde-o em um lugar privado." : "Backup baixado. As anotações pessoais não foram incluídas.";
     } catch (error) { message.textContent = (error as Error).message; }
   });
   recovery.addEventListener("click", () => {
-    if (sheetStore.raw !== null) download(sheetStore.raw, "dnd-dados-para-recuperacao.json");
+    if (sheetStore.raw !== null) download(sheetStore.raw, "critcall-dados-para-recuperacao.json");
   });
   importButton.addEventListener("click", () => input.click());
   input.addEventListener("change", async () => {

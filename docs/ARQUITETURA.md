@@ -55,14 +55,14 @@ atuais da interface ainda ficam somente na sessão e não incluem notas pessoais
 
 ## Login preparado, ativação pendente
 
-Confirmados e-mail/senha e projeto exclusivo do D&D em 15/10/2026. O usuário
+Confirmados e-mail/senha e projeto exclusivo do CritCall em 15/10/2026. O usuário
 informou que criou o projeto novo; falta identificá-lo e conectá-lo. Os fluxos
 estão implementados nesta branch com Supabase JS 2.118.0, sem conexão real ainda.
 Orbyt é outro projeto do responsável e permanece separado. Sem configuração, o
 aplicativo continua local. O bootstrap valida a identidade antes de importar
 `sheet.js`; chaves de armazenamento pessoais recebem prefixo por projeto/usuário.
 As chaves originais permanecem no modo sem login, sem adoção automática.
-O título, a instalação e os downloads usam Fichas D&D. Identificadores legados
+O título, a instalação e os downloads usam CritCall. Identificadores legados
 com `orbyt` são mantidos apenas para compatibilidade de fichas/backups publicados;
 novos espaços de login/conta usam `dnd_auth_v1`/`dnd_account_v1`.
 

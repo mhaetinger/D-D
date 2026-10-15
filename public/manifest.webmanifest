@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Fichas D&D",
-  "short_name": "D&D",
+  "name": "CritCall",
+  "short_name": "CritCall",
   "lang": "pt-BR",
   "description": "Suas fichas de personagem, regras e dados da mesa.",
   "start_url": "./",
