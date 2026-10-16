@@ -2,6 +2,36 @@
 
 ## Não lançado
 
+### Configuração do login incluída no build e domínio proposto — 2026-10-15
+
+- URL e chave publicável do projeto exclusivo do CritCall passam a acompanhar o
+  build em `src/auth/public-project.ts`, como configuração pública destinada ao
+  navegador. O workflow não depende mais das variables do GitHub que o usuário
+  não encontrou. Nenhuma chave administrativa ou senha entrou nesse arquivo.
+- Mesmo resolvedor no preflight e no cliente: override exige o par completo,
+  configuração privilegiada é recusada e `VITE_AUTH_ENABLED=false` permite uma
+  edição apenas local. Dados e espaços de conta existentes permanecem preservados.
+- Entrada só mostra sucesso depois da validação da identidade. Links expirados
+  e códigos PKCE sem verificador exibem orientação, limpam o retorno e preservam
+  uma conta válida já aberta. Restrição de envio de e-mail tem mensagem própria.
+- Usuário propôs `critcall.com.br`. RDAP do Registro.br retornou 404, sem registro
+  encontrado, sem reserva/compra. Preparado guia de registro, Pages/DNS/HTTPS,
+  retornos e transporte de backups entre origens em `docs/DOMINIO.md`.
+  Um CNAME no código não configura o domínio no fluxo de GitHub Actions.
+- Verificação desta alteração: `npm run check` com URL/chave de ambiente vazias
+  passou em **155 testes Node**, tipos/build e quatro roteiros Chromium; o login
+  foi executado sob `/D-D/` e `/`, incluindo casos novos de retorno, validação
+  recusada e envio restrito, sem erros JavaScript. Configuração pública incluída
+  aceita pelo projeto real, com e-mail/cadastro ativos e confirmação obrigatória.
+- Caso adicional: build recusou chave secreta fictícia mesmo com login desligado,
+  antes do Vite; edição local explícita abriu sem formulário/chamadas ao Supabase
+  ou erros JS. Diff conferido. Essas verificações não criaram usuários nem
+  enviaram e-mails reais. SMTP próprio, configuração administrativa, teste real
+  de confirmação/entrada/recuperação e ativação pública continuam pendentes.
+- CI da etapa anterior `2ff912e` conferida nesta retomada: push e PR concluídos
+  com sucesso. Isso não substitui a CI desta alteração. Sem merge/publicação,
+  registro de domínio ou alteração em bancos remotos nesta etapa.
+
 ### Supabase do CritCall identificado e conexão local conferida — 2026-10-15
 
 - Projeto exclusivo informado pelo usuário: `qhrpgkpvwbztubnrdhya`. URL/chave

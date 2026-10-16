@@ -131,6 +131,7 @@ export function setupAccountUI(account: AccountSession) {
         if (error) throw error;
         password.value = "";
         await account.validate();
+        if (!account.identity || account.offline) throw new Error("Identidade não validada no serviço");
         message("Você entrou. As fichas deste espaço continuam salvas neste navegador.");
       } else if (mode === "signup") {
         const { data, error } = await auth.signUp({ email: email.value.trim(), password: password.value, options: { emailRedirectTo: redirectTo() } });

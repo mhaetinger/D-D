@@ -57,12 +57,13 @@ atuais da interface ainda ficam somente na sessão e não incluem notas pessoais
 
 Confirmados e-mail/senha e projeto exclusivo do CritCall em 15/10/2026. O usuário
 identificou o projeto novo `qhrpgkpvwbztubnrdhya`. URL/chave publicável estão na
-configuração local ignorada pelo Git. Os fluxos usam Supabase JS 2.118.0; API real
-e recusa de credenciais inexistentes foram conferidas, sem criar usuários ou
+configuração pública revisada `src/auth/public-project.ts`, incluída no build.
+Os fluxos usam Supabase JS 2.118.0; API real e recusa de credenciais inexistentes foram conferidas, sem criar usuários ou
 enviar e-mails. Confirmação, entrada e recuperação reais ainda não foram validadas.
-Orbyt é outro projeto do responsável e permanece separado. Sem configuração, o
-aplicativo continua local. O bootstrap valida a identidade antes de importar
-`sheet.js`; chaves de armazenamento pessoais recebem prefixo por projeto/usuário.
+Orbyt é outro projeto do responsável e permanece separado. O
+aplicativo tem os identificadores públicos do CritCall incluídos; o modo local
+pode ser escolhido com `VITE_AUTH_ENABLED=false`. O bootstrap valida a identidade
+antes de importar `sheet.js`; chaves de armazenamento pessoais recebem prefixo por projeto/usuário.
 As chaves originais permanecem no modo sem login, sem adoção automática.
 O título, a instalação e os downloads usam CritCall. Identificadores legados
 com `orbyt` são mantidos apenas para compatibilidade de fichas/backups publicados;
@@ -78,6 +79,19 @@ Não há armazenamento remoto de personagens ou notas, RLS aplicada, envio
 automático ou sincronização nesta etapa. Ativação real, entrega de e-mails e
 revisão integral de segurança ainda estão pendentes. Contratos, configuração,
 limites e teste com HTTP controlado em [LOGIN.md](LOGIN.md).
+
+O preflight e o navegador usam o mesmo resolvedor: o projeto público é o padrão,
+um override exige URL/chave completos, e chaves privilegiadas são recusadas mesmo
+com login desligado. O workflow não depende de repository variables para essa
+configuração. O arquivo público não contém capacidade administrativa ou dados de
+usuários. Links inválidos não encerram uma conta válida já aberta; a mensagem de
+entrada depende da conferência da identidade, além da resposta de token.
+
+O domínio próprio proposto é `critcall.com.br`, ainda sem registro/DNS configurados.
+Caminhos relativos e retornos pela origem atual funcionam sob `/D-D/` e `/` nos
+testes. Antes de mudar a origem, exportar dados locais e configurar Pages, DNS,
+HTTPS e retornos no Supabase conforme [DOMINIO.md](DOMINIO.md). Não há migração
+entre origens ou sincronização remota simulada nessa mudança.
 
 ## Dependências, build e publicação
 

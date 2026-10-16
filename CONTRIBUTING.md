@@ -77,7 +77,10 @@ PDF.js está fixado em `public/vendor/pdfjs/`; preservar seus avisos ao atualiza
   README quando mudarem execução ou recursos disponíveis.
 - Preservar as fichas e anotações já salvas. Não limpar o armazenamento para
   contornar problemas; usar dados fictícios em verificações compartilhadas.
-- Manter fichas reais e credenciais fora dos commits. Os dois livros em `public/books/`
+- Manter fichas reais e credenciais privadas fora dos commits. URL e chave
+  publicável do projeto são configuração pública revisada em
+  `src/auth/public-project.ts`, destinada ao navegador; nunca usar chaves
+  secretas/service_role nesse arquivo. Os dois livros em `public/books/`
   e os catálogos de consulta foram autorizados pelo responsável; outros PDFs não
   entram automaticamente. A licença do código não cobre os livros.
 - Esta branch pública é a base do desenvolvimento. Uma cópia local de referência

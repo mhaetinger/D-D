@@ -5,15 +5,18 @@
 O responsável confirmou e-mail/senha em 15/10/2026 e pediu um projeto Supabase
 exclusivo do CritCall, administrado pela mesma conta que já possui o projeto Orbyt.
 O usuário criou e identificou o projeto novo: `qhrpgkpvwbztubnrdhya`, URL pública
-`https://qhrpgkpvwbztubnrdhya.supabase.co`. URL e chave publicável foram configuradas
-em `.env.local`, ignorado pelo Git. Orbyt é outro aplicativo e não deve receber alterações.
+`https://qhrpgkpvwbztubnrdhya.supabase.co`. URL e chave publicável acompanham o
+build em `src/auth/public-project.ts`. São identificadores públicos feitos para
+o navegador, sem privilégio administrativo; o preflight confere o tipo da chave.
+Orbyt é outro aplicativo e não deve receber alterações.
 Cada projeto Supabase tem seu
 próprio banco e serviço de autenticação: [projetos e organizações](https://supabase.com/docs/guides/platform).
 
 Implementados cadastro, entrada, reenvio de confirmação, recuperação de senha,
 troca de senha pelo link PKCE, sessão e saída. O cliente oficial
-`@supabase/supabase-js` 2.118.0 faz as requisições. Sem URL/chave configuradas, a
-aplicação continua local e não oferece um formulário de login fictício.
+`@supabase/supabase-js` 2.118.0 faz as requisições. O build padrão já tem a
+configuração pública do CritCall, sem depender de variables do GitHub ou arquivo
+local. `VITE_AUTH_ENABLED=false` desliga o login e mantém o espaço local.
 Esta implementação ainda não está ativada no site publicado. A API real respondeu
 HTTP 200 em settings/health, com e-mail e cadastro habilitados e confirmação
 obrigatória. O Chromium enviou uma tentativa com credenciais inexistentes ao
@@ -56,36 +59,49 @@ Referências: [senhas](https://supabase.com/docs/guides/auth/passwords),
 
 ## Configuração do aplicativo
 
-Copiar `.env.example` para `.env.local` e preencher apenas:
+O projeto público em `src/auth/public-project.ts` é a configuração padrão do
+build. A chave publicável é distribuída de qualquer modo no código do navegador;
+sua presença nesse arquivo não permite administrar o Supabase, ler senhas ou
+ignorar autorização do serviço. Ela não substitui as futuras políticas RLS.
+Não colocar chaves secretas, service_role, senhas do banco ou tokens administrativos
+nesse arquivo, em arquivos Vite ou em documentação.
+[Tipos de chave do Supabase](https://supabase.com/docs/guides/getting-started/api-keys).
 
-```dotenv
-VITE_SUPABASE_URL=https://qhrpgkpvwbztubnrdhya.supabase.co
-VITE_SUPABASE_PUBLISHABLE_KEY=
-```
+**Não é mais necessário criar variables no GitHub** para publicar esta configuração.
+O workflow compila o projeto público revisado, sem consultar as variables que
+haviam sido solicitadas anteriormente. Nenhuma configuração administrativa do
+GitHub foi alterada por ferramenta.
+
+Para testar outro projeto, copiar `.env.example` para `.env.local` e preencher o
+par completo `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY`. Um par vazio
+usa o projeto incluído; um par incompleto é recusado, sem combinar URLs/chaves
+de projetos diferentes. A chave precisa ser publicável (`sb_publishable_…`) ou
+anon legada. A configuração é validada antes de `npm run dev` e `npm run build`,
+inclusive quando o login estiver desligado. Nenhum valor é impresso no preflight.
+
+Para gerar uma edição apenas local, definir `VITE_AUTH_ENABLED=false`. Isso
+esconde o formulário, sem excluir contas, fichas ou notas do navegador. Os testes
+de login sempre sobrescrevem os identificadores por um projeto fictício com HTTP
+controlado; não usam a configuração real para cadastrar ou enviar e-mails.
 
 Para usar o retorno local configurado, iniciar com
 `npm run dev -- --port 5174 --strictPort`. A opção impede trocar silenciosamente
 de porta e invalidar o retorno de confirmação/recuperação.
 
-A URL é a origem HTTPS do novo projeto, e a chave é a publicável
-(`sb_publishable_…`) ou a chave `anon` legada. Essas informações identificam o
-projeto no navegador. `sb_secret_…`, `service_role`, senhas do banco e tokens de
-administração são proibidos no cliente. O preflight de `npm run dev` e
-`npm run build` recusa configurações incompletas, URLs com credenciais/caminhos
-e chaves privilegiadas antes de compilar.
-[Chaves públicas e secretas](https://supabase.com/docs/guides/getting-started/api-keys).
+Um link expirado ou aberto sem o verificador PKCE deste navegador mostra uma
+mensagem e limpa os parâmetros do retorno. A falha do link preserva uma sessão
+válida que já esteja aberta. A interface só confirma entrada depois de validar
+a identidade no serviço. A restrição de envio de e-mail do Supabase tem mensagem
+própria, sem mostrar erros brutos ou credenciais ao jogador.
 
-No GitHub Actions, configurar as **variables** do repositório `SUPABASE_URL` e
-`SUPABASE_PUBLISHABLE_KEY` com os valores públicos do projeto exclusivo. A etapa
-de build já as encaminha ao Vite. A falta das duas mantém o modo local; preencher
-somente uma causa falha de build. Não inserir uma chave secreta nessas variables.
+## Domínio próprio
 
-Caminho no **repositório D-D do GitHub**: Settings → Secrets and variables →
-Actions → aba Variables → New repository variable. Preencher Name/Value e
-salvar em Add variable, uma por vez. A página é
-[Actions variables](https://github.com/mhaetinger/D-D/settings/variables/actions);
-[guia oficial do GitHub](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-variables#creating-configuration-variables-for-a-repository).
-O usuário informou que não encontrou essa opção; a criação ainda não foi confirmada.
+O usuário propôs `critcall.com.br`; registro e DNS ainda não foram configurados.
+O mesmo build usa caminhos relativos e é conferido tanto em `/D-D/` quanto em `/`.
+O retorno acompanha a origem/pasta em que o jogador iniciou o fluxo; o Supabase
+precisa autorizar a nova URL antes do teste real no domínio. A troca de origem
+não transfere automaticamente as fichas locais. Procedimento e limites em
+[DOMINIO.md](DOMINIO.md).
 
 ## Dados, sessão e troca de conta
 

@@ -3,8 +3,9 @@
 Este aplicativo se chama CritCall e é dedicado às fichas de D&D. Orbyt é outro
 projeto do responsável e usa infraestrutura separada. O projeto Supabase novo
 do CritCall foi identificado e configurado localmente. A conexão com a API foi
-conferida; cadastro confirmado, recuperação por e-mail e ativação pública ainda
-dependem da validação com o usuário. Consulte [docs/LOGIN.md](docs/LOGIN.md).
+conferida. O build já inclui a configuração pública, sem variables do GitHub;
+cadastro confirmado, recuperação por e-mail e ativação pública ainda dependem
+da validação com o usuário. Consulte [docs/LOGIN.md](docs/LOGIN.md).
 
 Aplicação de fichas individuais de D&D 5e, com criador, evolução, multiclasse,
 grimório, inventário, anotações pessoais e consulta aos livros da mesa.
@@ -36,8 +37,9 @@ executa a aplicação; use o servidor de desenvolvimento ou o build via HTTP/HTT
 
 As fichas e notas ficam neste navegador, sem sincronização. A branch de login
 por e-mail/senha já tem os fluxos de conta implementados, mas sua ativação depende
-do projeto Supabase exclusivo do CritCall e da validação real. Sem configuração,
-o aplicativo continua no modo local. Abrir outro dispositivo/endereço não transfere seus dados.
+da validação de contas/e-mails reais. O projeto público do CritCall já acompanha
+o build; `VITE_AUTH_ENABLED=false` permite uma edição apenas local. Abrir outro
+dispositivo/endereço não transfere seus dados.
 Ao reabrir a aplicação, a última ficha selecionada é restaurada. Se ela tiver
 sido removida, abre a primeira ficha disponível.
 
@@ -82,8 +84,8 @@ balões e consultas do criador também oferecem as descrições das regras.
 
 O fluxo escolhido é e-mail/senha no Supabase, em um projeto separado do outro
 aplicativo do responsável. Consulte [docs/LOGIN.md](docs/LOGIN.md) para cadastro,
-confirmação, recuperação, configuração local e variables do GitHub Actions.
-O formulário só aparece quando o projeto está configurado. Senhas não são
+confirmação, recuperação, configuração pública incluída e overrides locais.
+Não é necessário configurar variables no GitHub para esse build. Senhas não são
 guardadas pela ficha nem incluídas em backups.
 
 Cada conta abre seu próprio espaço de fichas neste navegador; entrar não adota
@@ -116,6 +118,9 @@ Para essa nova estrutura, a fonte do Pages deve ser **GitHub Actions**. Não pub
 a raiz com os arquivos de desenvolvimento. A primeira versão já está em
 [mhaetinger.github.io/D-D](https://mhaetinger.github.io/D-D/), integrada pelas
 PRs #1/#2 e verificada em 15/10/2026. O login desta branch ainda aguarda ativação.
+
+O usuário propôs `critcall.com.br` para o acesso. Registro, DNS e ativação ainda
+estão pendentes; o procedimento está em [docs/DOMINIO.md](docs/DOMINIO.md).
 
 Veja [CONTRIBUTING.md](CONTRIBUTING.md) e [docs/ARQUITETURA.md](docs/ARQUITETURA.md)
 para os módulos, contratos, decisões e próximas etapas.

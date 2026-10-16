@@ -21,16 +21,16 @@ const jwt = (key) => {
 };
 const session = (key) => ({ access_token: jwt(key), refresh_token: `refresh_${key}`, token_type: 'bearer', expires_in: 3600, user: user(key) });
 
-(async () => {
+async function verify(prefix) {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'dnd-auth-'));
   let server, browser, page;
   try {
     const vite = path.join(path.dirname(require.resolve('vite/package.json')), 'bin/vite.js');
     for (const args of [[vite, 'build', '--outDir', directory, '--emptyOutDir'], [path.join(root, 'scripts/build-offline.mjs'), directory]]) {
-      const result = spawnSync(process.execPath, args, { cwd: root, encoding: 'utf8', env: { ...process.env, VITE_SUPABASE_URL: endpoint, VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test' } });
+      const result = spawnSync(process.execPath, args, { cwd: root, encoding: 'utf8', env: { ...process.env, VITE_SUPABASE_URL: endpoint, VITE_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_test', VITE_AUTH_ENABLED: 'true' } });
       assert.equal(result.status, 0, result.stderr || result.stdout);
     }
-    server = await serve(directory);
+    server = await serve(directory, prefix);
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     const calls = [], errors = [];
@@ -52,7 +52,8 @@ const session = (key) => ({ access_token: jwt(key), refresh_token: `refresh_${ke
         const key = request.headers().authorization?.includes(jwt('b')) ? 'b' : 'a';
         return revoked ? respond({ code: 'bad_jwt', msg: 'Invalid JWT' }, 401) : respond(user(key));
       }
-      if (url.pathname.endsWith('/signup')) return respond(user('a'));
+      if (url.pathname.endsWith('/signup')) return body.email === 'smtp@example.test'
+        ? respond({ code: 'email_address_not_authorized', msg: 'Email address not authorized' }, 403) : respond(user('a'));
       if (/\/(recover|resend)$/.test(url.pathname)) return respond({});
       if (url.pathname.endsWith('/logout')) return route.fulfill({ status: 204, headers });
       return respond({ message: 'Rota inesperada no teste' }, 500);
@@ -85,6 +86,11 @@ const session = (key) => ({ access_token: jwt(key), refresh_token: `refresh_${ke
     await page.waitForFunction(() => document.querySelector('#accountAccessStatus').textContent.includes('Confirme'));
     await page.locator('#accountResend').click();
     await page.waitForFunction(() => document.querySelector('#accountAccessStatus').textContent.includes('outra mensagem'));
+    revoked = true;
+    await login('a@example.test');
+    await page.waitForFunction(() => document.querySelector('#accountAccessStatus').textContent.includes('Não foi possível concluir'));
+    assert.equal(await page.evaluate(() => getChar().id), guest.id, 'token recebido sem identidade validada não confirma entrada');
+    revoked = false;
     await login('a@example.test');
     await page.waitForFunction(() => characters.length === 0);
     assert.ok((await page.locator('#accountIdentity').textContent()).includes('a@example.test'));
@@ -156,6 +162,10 @@ const session = (key) => ({ access_token: jwt(key), refresh_token: `refresh_${ke
     assert.ok((await page.locator('#accountAccessStatus').textContent()).includes('iguais'));
     assert.equal(calls.filter((call) => call.path.endsWith('/signup')).length, 0);
     await page.locator('#accountPasswordConfirm').fill(password);
+    await page.locator('#accountEmail').fill('smtp@example.test');
+    await page.locator('#accountSubmit').click();
+    await page.waitForFunction(() => document.querySelector('#accountAccessStatus').textContent.includes('envio de e-mails'));
+    await page.locator('#accountEmail').fill('cadastro@example.test');
     await page.locator('#accountSubmit').click();
     await page.waitForFunction(() => document.querySelector('#accountAccessStatus').textContent.includes('Confira seu e-mail'));
     assert.equal(await page.evaluate(() => getChar().id), guest.id, 'cadastro sem confirmação não entra na conta');
@@ -220,8 +230,23 @@ const session = (key) => ({ access_token: jwt(key), refresh_token: `refresh_${ke
     await page.waitForFunction(() => characters.length === 2);
     assert.ok(await page.evaluate((id) => characters.some((char) => char.id === id), idA), 'a exclusão pendente da sessão anterior foi cancelada');
     assert.equal(await page.evaluate((pass) => Object.values(localStorage).some((value) => value.includes(pass)), password), false);
+    await page.goto(server.url + '?error=access_denied&error_code=otp_expired&error_description=texto-nao-confiavel', { waitUntil: 'networkidle' });
+    await page.locator('#authAccountModal').waitFor({ state: 'visible' });
+    assert.ok((await page.locator('#accountAccessStatus').textContent()).includes('O link expirou'));
+    assert.equal(await page.evaluate(() => characters.length), 2, 'link expirado preserva a conta válida e suas fichas');
+    assert.ok(!page.url().includes('error_'));
+    const fresh = await browser.newContext();
+    await fresh.route(`${endpoint}/**`, route => route.abort());
+    const wrongBrowser = await fresh.newPage();
+    wrongBrowser.on('pageerror', error => errors.push(error.message));
+    await wrongBrowser.goto(server.url + '?code=sem-verificador', { waitUntil: 'networkidle' });
+    await wrongBrowser.locator('#authAccountModal').waitFor({ state: 'visible' });
+    assert.ok((await wrongBrowser.locator('#accountAccessStatus').textContent()).includes('outro navegador'));
+    assert.ok(!wrongBrowser.url().includes('code='));
+    assert.equal(await wrongBrowser.evaluate(() => characters.length), 0);
+    await fresh.close();
     assert.deepEqual(errors, []);
-    console.log('PASS: SDK real com provedor HTTP simulado; erros, cadastro/confirmação, PKCE/recuperação, contas A/B/local e notas separadas, histórico, recarga/offline/saída offline, sessão revogada com editor aberto, backup e três temas/320px/GG; sem erros JS.');
+    console.log(`PASS ${prefix}: SDK real com HTTP simulado; cadastro/confirmação, PKCE/recuperação, contas A/B/local, offline, editores, links expirados/outro navegador, SMTP restrito e três temas/320px/GG; sem erros JS.`);
   } catch (error) {
     if (page && !page.isClosed()) {
       console.error('Estado do formulário:', await page.locator('#accountAccessStatus').textContent());
@@ -233,4 +258,5 @@ const session = (key) => ({ access_token: jwt(key), refresh_token: `refresh_${ke
     if (server) await server.close();
     fs.rmSync(directory, { recursive: true, force: true });
   }
-})().catch((error) => { console.error(error); process.exitCode = 1; });
+}
+(async () => { for (const prefix of ['/D-D/', '/']) await verify(prefix); })().catch((error) => { console.error(error); process.exitCode = 1; });

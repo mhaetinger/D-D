@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient, type User } from "@supabase/supabase-js";
-import { parseAuthConfig, type AuthConfig } from "./config";
+import { resolveAuthConfig, type AuthConfig } from "./config";
 import { selectCharacterWorkspace } from "../storage/character-store";
 import type { WorkspaceIdentity, StoragePort } from "../storage/account-scope";
 
@@ -62,7 +62,21 @@ export class AccountSession extends EventTarget {
         setTimeout(() => { void this.validate(); }, 0);
       }
     });
-    if (navigator.onLine) { await this.client.auth.initialize(); await this.validate(); }
+    if (navigator.onLine) {
+      const { error } = await this.client.auth.initialize();
+      await this.validate();
+      const returned = new URL(location.href);
+      // Sem o verificador deste navegador, o SDK não troca o código PKCE.
+      // Erros do retorno são mostrados sem invalidar uma conta já conectada.
+      const unhandledCode = returned.searchParams.has("code");
+      if (error || unhandledCode) {
+        this.message = authErrorMessage(error || { code: "bad_code_verifier" });
+        for (const key of ["code", "error", "error_code", "error_description"]) returned.searchParams.delete(key);
+        const hash = new URLSearchParams(returned.hash.slice(1));
+        if (["error", "error_code", "error_description"].some(key => hash.has(key))) returned.hash = "";
+        history.replaceState(history.state, "", returned.href);
+      }
+    }
     else this.restoreOffline();
     this.starting = false;
     window.addEventListener("online", () => { void this.client!.auth.startAutoRefresh(); void this.validate(); });
@@ -130,7 +144,7 @@ export class AccountSession extends EventTarget {
 
 export async function initializeAccount() {
   let account: AccountSession;
-  try { account = new AccountSession(parseAuthConfig(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY)); }
+  try { account = new AccountSession(resolveAuthConfig(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, import.meta.env.VITE_AUTH_ENABLED)); }
   catch { account = new AccountSession(null); account.message = "O login ainda não foi configurado corretamente. O modo local continua disponível."; }
   try { await account.start(); }
   catch { account.message = "Não foi possível iniciar o login. O modo local continua disponível."; }
@@ -139,11 +153,13 @@ export async function initializeAccount() {
 }
 
 export function authErrorMessage(error: unknown): string {
-  const code = (error as { code?: string })?.code;
+  const details = error as { code?: string; details?: { code?: string } };
+  const code = details?.code || details?.details?.code;
   if (code === "invalid_credentials") return "E-mail ou senha inválidos.";
   if (code === "email_not_confirmed") return "Confirme seu e-mail antes de entrar. Você pode solicitar outra mensagem abaixo.";
   if (code === "weak_password") return "A senha não atende aos requisitos. Use uma senha longa e diferente de outras contas.";
   if (["over_request_rate_limit", "over_email_send_rate_limit", "email_rate_limit_exceeded"].includes(code || "")) return "Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.";
-  if (code === "otp_expired" || code === "flow_state_expired" || code === "bad_code_verifier") return "O link expirou ou foi aberto em outro navegador. Solicite um novo link e abra-o neste navegador.";
+  if (["otp_expired", "flow_state_expired", "flow_state_not_found", "bad_code_verifier", "pkce_verifier_not_found"].includes(code || "")) return "O link expirou ou foi aberto em outro navegador. Solicite um novo link e abra-o neste navegador.";
+  if (code === "email_address_not_authorized") return "O envio de e-mails para este endereço ainda não está disponível. Avise o responsável pelo CritCall.";
   return "Não foi possível concluir. Confira a conexão e os dados informados e tente novamente.";
 }
