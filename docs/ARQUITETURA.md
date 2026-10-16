@@ -15,7 +15,7 @@ fichas locais. Não foi adotado um novo framework de interface nesta etapa.
 | `src/storage/` | Formato/validação de fichas, migração local, backup, importação e recuperação. |
 | `src/auth/` | Configuração pública, sessão Supabase e interface de entrada/cadastro/recuperação. |
 | `src/sync/` | Documentos pessoais, fila IndexedDB, cliente Supabase, datas e recuperação de versões. |
-| `supabase/migrations/` | Tabelas/RLS/RPC de salvamento pessoal, ainda sem aplicação real conferida. |
+| `supabase/migrations/` | Tabelas/RLS/RPC de salvamento pessoal; migração aplicada ao CritCall real em 16/10/2026. |
 | `src/pwa/` | Registro do service worker e informação de disponibilidade offline. |
 | `public/rules/` | Motor sem DOM, catálogos, assistente, balões, rolagem e animações. |
 | `public/book.html`, `public/books/`, `public/vendor/pdfjs/` | Biblioteca, dois PDFs e leitor com suas licenças. |
@@ -85,12 +85,19 @@ falha de quota são preservados por espaço em memória, sem gravar na conta nov
 
 A branch implementa sincronização pessoal: fichas, notas privadas separadas,
 perfil, preferências, histórico/checkpoints e recuperação. A migração define
-critcall_documents/critcall_versions, RLS do dono e RPCs restritas; ainda não foi
-aplicada ao projeto real. Cliente e SQL foram testados com HTTP controlado e
-PostgreSQL descartável, respectivamente. Isso não comprova ativação remota.
-O plugin Supabase passou a instalado, mas ferramentas administrativas ainda não
-ficaram disponíveis. Ativação real, SMTP próprio e revisão integral de segurança
-continuam pendentes. Contratos em [LOGIN.md](LOGIN.md) e [SINCRONIZACAO.md](SINCRONIZACAO.md).
+critcall_documents/critcall_versions, RLS do dono e RPCs restritas. Em 16/10/2026,
+o conector confirmou o projeto exclusivo `qhrpgkpvwbztubnrdhya`, ativo em
+PostgreSQL 17.11 e identificado como D-D no painel. Antes da aplicação, não havia
+tabelas públicas nem migrações. A migração `personal_sync` foi aplicada com a
+versão remota `20261016101143`, a partir do arquivo
+`202610160001_personal_sync.sql`. Conferidas RLS, leitura apenas do dono e
+grants restritos; a API recusou anon nas duas tabelas. As RPCs negam EXECUTE
+a anon, permitem authenticated e têm `search_path` vazio. Teste SQL real com
+identidade sintética, integralmente revertido, confirmou escrita/idempotência
+e isolamento do dono, sem dados pessoais. Cliente e SQL também foram testados
+com HTTP controlado e PostgreSQL 16 descartável, respectivamente. Ainda faltam
+sincronização real entre dispositivos, publicação, SMTP próprio e revisão dos
+alertas descritos em SINCRONIZACAO.md. Contratos em [LOGIN.md](LOGIN.md) e [SINCRONIZACAO.md](SINCRONIZACAO.md).
 
 Documentos têm revisão crescente e datas de edição/recebimento, com calibração
 do relógio. Se edições simultâneas disputam a mesma revisão, vence a data mais
@@ -162,8 +169,8 @@ O indicador no perfil informa quando o primeiro preparo offline terminou.
    backup, recuperação, migração preservando legado e funcionamento offline da ficha.
 2. **Implementado na branch:** fila IndexedDB, histórico/checkpoints persistidos,
    nome automático, sincronização pessoal e versões recuperáveis.
-3. **Ativação de contas/dados:** aplicar e inspecionar a migração no projeto
-   CritCall; conferir RLS e sincronização com duas contas/dispositivos reais,
+3. **Validação de contas/dados:** migração aplicada e RLS conferida no CritCall;
+   conferir sincronização com duas contas/dispositivos reais,
    SMTP próprio e publicação por PR. Conta e recuperação locais foram relatadas
    como bem-sucedidas; isso não valida a sincronização real.
 4. **Depois da base individual:** retrato, salas, participantes, resumo do grupo e

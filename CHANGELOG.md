@@ -2,6 +2,27 @@
 
 ## Não lançado
 
+### Banco ativado e retomada em outro PC — 2026-10-16
+
+- Após o usuário confirmar conexão/autorização, ferramentas Supabase ficaram
+  disponíveis. Projeto exclusivo `qhrpgkpvwbztubnrdhya` conferido, sem tabelas
+  públicas/migrações/RPCs de sincronização antes da alteração. Aplicado o script
+  preparado como `personal_sync`, versão remota `20261016101143`, sem alterar
+  outro projeto. RLS, políticas do dono, grants e execução das RPCs conferidos.
+- API anônima das duas tabelas recusou acesso (401/42501). Smoke SQL real em
+  PostgreSQL 17 passou escrita/idempotência, bloqueio entre identidades e dono
+  incorreto no relógio. Fixtures sintéticas sem e-mail foram revertidas com
+  ROLLBACK; nenhuma ficha/nota real foi lida. Fluxo real entre PCs ainda pendente.
+- Criado `docs/RETOMADA.md` com branch, comandos para outro PC, contratos,
+  estado remoto e próximos passos. README e demais documentos passam a refletir
+  o banco aplicado. Fichas/filas locais não entram no Git: confirmar envio na
+  origem ou levar backup privado. Histórico privado do protótipo fica separado.
+- CI de `8e94a9e` conferida: push/PR concluídos com sucesso, incluindo o teste
+  PostgreSQL. Testes locais de 168 casos/build/Chromium são da implementação
+  anterior, sem repetição por esta documentação. Diff revisado. Advisories do
+  serviço registrados em SINCRONIZACAO.md; revisão integral de segurança, SMTP,
+  teste real entre dispositivos, merge/publicação e domínio seguem pendentes.
+
 ### Salvamento pessoal, nome automático e fila offline — 2026-10-16
 
 - Usuário autorizou salvar dados pessoais no Supabase e receber a versão mais

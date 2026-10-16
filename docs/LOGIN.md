@@ -38,7 +38,8 @@ ferramenta. Reenvio real, duas contas e ativação publicada continuam pendentes
 
 Fichas e anotações mantêm cópia neste navegador. A sincronização pessoal foi
 implementada na branch, com fila IndexedDB e migração de tabelas/RLS/RPC. Essa
-migração ainda não foi aplicada ao projeto real. A separação do cache não é
+migração foi aplicada ao projeto real em 16/10/2026; o teste de sincronização
+entre dispositivos reais permanece pendente. A separação do cache não é
 proteção contra quem controla o dispositivo. Dados, datas, conflitos, ativação
 e verificações em [SINCRONIZACAO.md](SINCRONIZACAO.md).
 
@@ -128,7 +129,7 @@ perfil do navegador ou janela privada durante a solicitação.
 Essa exigência pertence ao retorno do link. É possível iniciar a recuperação em
 qualquer navegador/dispositivo e concluí-la nele. Entrada normal com e-mail/senha
 funciona em outros navegadores; o compartilhamento das fichas usa a fila descrita
-em SINCRONIZACAO.md, ainda sem ativação real conferida.
+em SINCRONIZACAO.md, com banco preparado e validação real entre dispositivos pendente.
 
 O provedor simulado dos testes passou a conferir o código emitido e o desafio
 PKCE, com prazo e uso único. Antes, aceitava qualquer código e não comprovava
@@ -188,8 +189,9 @@ não transfere automaticamente as fichas locais. Procedimento e limites em
   copia nem vincula automaticamente fichas anteriores. Para levar uma ficha ao
   espaço da conta, exportar no modo local, entrar e importar o backup como cópia.
 - Cada projeto/usuário tem um prefixo próprio para fichas, anotações, recuperação,
-  nome do jogador e ficha ativa. Temas/fonte continuam preferências do navegador.
-  Notas ficam separadas da ficha/snapshots e fora do backup padrão.
+  nome do jogador, ficha ativa e preferências visuais. Tema/fundo/fonte entram
+  na sincronização por conta; valores visuais antigos do navegador são apenas
+  fallback local. Notas ficam separadas da ficha/snapshots e fora do backup padrão.
 - Ao trocar de identidade, a lista e o histórico da sessão são reconstruídos
   para o espaço correto. Rolagens antigas e formulários fechados são limpos.
   Uma importação assíncrona não pode terminar em uma conta diferente da original.
@@ -206,7 +208,7 @@ não transfere automaticamente as fichas locais. Procedimento e limites em
 - Ao sair, a cópia local é mantida. Ela não aparece no espaço de outra conta,
   mas continua acessível a quem controla o navegador. Não há criptografia do cache
   nem isolamento do sistema operacional. Um fluxo de remoção/exportação do cache
-  e a autorização dos futuros dados remotos pertencem à etapa de persistência.
+  continua pendente; os dados remotos pessoais usam RLS/RPC da migração aplicada.
 
 ## Conferência antes de ativar
 
@@ -217,6 +219,7 @@ não comprova entrega de e-mail, configuração do serviço ou proteção de dad
 
 Antes de ativar na publicação: conferir o projeto exclusivo, SMTP/retornos,
 cadastro/confirmação/recuperação reais, duas contas distintas e os caminhos de
-renderização de dados não confiáveis. A revisão integral de segurança e as
-aplicação real das políticas de personagens/notas continuam pendentes. Integrar
-por PR em develop e depois em main; não habilitar o projeto anterior por engano.
+renderização de dados não confiáveis. A revisão integral de segurança e a
+validação real entre dispositivos continuam pendentes. A migração de
+personagens/notas foi aplicada e as políticas conferidas; os alertas do serviço
+estão em SINCRONIZACAO.md. Integrar por PR em develop e depois em main; não habilitar o projeto anterior por engano.

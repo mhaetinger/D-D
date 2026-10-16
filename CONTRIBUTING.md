@@ -42,8 +42,13 @@ Use Node.js 22.12+ e as dependências do lockfile:
 
 ```sh
 npm ci
-npm run dev
+npm run dev -- --port 5174 --strictPort
 ```
+
+Para continuar esta entrega, selecionar `feature/login-email` e ler
+[docs/RETOMADA.md](docs/RETOMADA.md) antes de iniciar uma nova branch. Abrir
+`http://localhost:5174/`, retorno autorizado no Supabase. A configuração pública
+do CritCall já acompanha o código; não é necessário copiar `.env.local`.
 
 Para validar uma alteração funcional:
 
@@ -87,7 +92,8 @@ PDF.js está fixado em `public/vendor/pdfjs/`; preservar seus avisos ao atualiza
   não deve ser mesclada nem enviada com seu histórico. Qualquer reaproveitamento
   de código exige revisão dos arquivos e do conteúdo antes do commit.
 - O seletor 2014/2024 muda o layout. Login e sincronização pessoal estão na
-  branch de tarefa; aplicação da migração e validação remota seguem pendentes.
+  branch de tarefa; migração aplicada ao Supabase real, com validação entre
+  dispositivos reais e publicação ainda pendentes.
   Salas não estão implementadas. PDFs não entram no download automático.
 
 O teste `npm run test:database` usa Docker com PostgreSQL 16 descartável, sem

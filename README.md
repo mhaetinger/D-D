@@ -9,9 +9,10 @@ Os retornos locais foram corrigidos e conferidos. O link de recuperação foi
 aberto em outro navegador/dispositivo, incompatível com o fluxo atual. Após a
 orientação, o usuário relatou sucesso na recuperação/troca no teste local em
 16/10/2026. Salvamento pessoal e sincronização estão implementados/testados nesta
-branch; falta aplicar a migração no Supabase real e validar entre dispositivos
-reais. Ativação pública e SMTP próprio também aguardam.
-Consulte [docs/LOGIN.md](docs/LOGIN.md).
+branch; a migração foi aplicada ao Supabase real em 16/10/2026. A validação
+entre dispositivos reais, ativação pública e SMTP próprio ainda aguardam.
+Consulte [docs/LOGIN.md](docs/LOGIN.md). Para continuar em outro computador,
+siga [docs/RETOMADA.md](docs/RETOMADA.md).
 
 Aplicação de fichas individuais de D&D 5e, com criador, evolução, multiclasse,
 grimório, inventário, anotações pessoais e consulta aos livros da mesa.
@@ -23,10 +24,11 @@ Use Node.js 22.12 ou superior (a série 22 está em `.nvmrc`) e npm:
 
 ```sh
 npm ci
-npm run dev
+npm run dev -- --port 5174 --strictPort
 ```
 
-Abra o endereço local mostrado pelo Vite, normalmente `http://127.0.0.1:5173`.
+Abra `http://localhost:5174/`, retorno já autorizado no Supabase. A porta 5173
+pertence a outro aplicativo no ambiente original.
 O aplicativo usa fontes, ícones e leitor locais, sem CDNs durante o uso.
 
 Para conferir o que será publicado:
@@ -43,7 +45,7 @@ executa a aplicação; use o servidor de desenvolvimento ou o build via HTTP/HTT
 
 Fichas e notas mantêm uma cópia neste navegador. A branch inclui salvamento por
 conta no Supabase com fila offline, perfil, preferências e versões recuperáveis;
-**falta aplicar a migração no projeto real e validar a sincronização real**.
+**migração aplicada no projeto real; validação entre dispositivos reais pendente**.
 Confira o estado de envio no perfil. Estar conectado não significa que tudo já
 chegou à nuvem. `VITE_AUTH_ENABLED=false` permite uma edição apenas local.
 Veja [docs/SINCRONIZACAO.md](docs/SINCRONIZACAO.md).
@@ -72,7 +74,7 @@ O servidor de desenvolvimento não instala o cache offline.
 O aplicativo guarda seu código, regras, estilos, fontes e ícones. Os PDFs não são
 baixados automaticamente: a consulta aos livros exige conexão, ou você pode abrir
 uma cópia previamente baixada fora do leitor integrado. A fila da branch envia
-alterações ao reconectar, após ativação do banco. Outro PC só recebe edições
+alterações ao reconectar; o banco real já recebeu a migração. Outro PC só recebe edições
 offline depois de seu envio.
 
 Atualizações aguardam as abas anteriores fecharem, sem recarregar uma edição em
@@ -99,12 +101,13 @@ atende cadastros pendentes; **Esqueci a senha** inicia a recuperação. Quem já
 entrou pode usar **Enviar link para trocar senha**, sem sair da conta.
 E-mail/senha permitem entrar em outros navegadores e dispositivos. Os links de
 confirmação/recuperação exigem o mesmo navegador/dispositivo que os solicitou;
-o envio de fichas usa a fila própria, que ainda aguarda ativação real.
+o envio de fichas usa a fila própria, com migração aplicada e teste real entre
+dispositivos ainda pendente.
 
 Cada conta abre seu próprio espaço de fichas neste navegador; entrar não adota
 as fichas anteriores do modo local. Ao sair, as cópias são preservadas. Isso não
-criptografa o dispositivo. O cliente envia os dados da conta após a migração;
-até aplicá-la, o perfil informa que a nuvem não está configurada. Login e
+criptografa o dispositivo. A migração do banco foi aplicada; conferir a
+confirmação de envio no perfil antes de trocar de computador. Login e
 sincronização publicados e SMTP próprio ainda não foram ativados.
 
 ## Verificar
@@ -146,7 +149,8 @@ as verificações, o pacote de revisão no GitHub e os passos para ativar o site
 
 O site é acessível a qualquer pessoa com o endereço. `noindex` orienta mecanismos
 de busca e não restringe acesso. Histórico/checkpoints da interface ainda são da
-cache pessoal e entram na fila da branch; ativação remota e salas seguem pendentes.
+cache pessoal e entram na fila da branch; validação real entre dispositivos,
+publicação e salas seguem pendentes.
 
 Código próprio sob MIT. Fontes/ícones e demais componentes conservam suas licenças
 em [public/licenses](public/licenses/README.md); PDF.js e seus avisos ficam em

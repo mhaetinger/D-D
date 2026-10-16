@@ -4,10 +4,12 @@
 
 Solicitado em 16/10/2026: dados do jogador no Supabase, incluindo nome, uso
 offline e atualização em outro PC. Cliente, migração e testes estão implementados
-nesta branch. **Falta aplicar a migração no projeto real e validar a sincronização
-real/publicação.** O plugin Supabase aparece instalado; suas ferramentas de banco
-ainda não estão disponíveis na conversa. Usar somente o projeto CritCall
-`qhrpgkpvwbztubnrdhya`, URL `https://qhrpgkpvwbztubnrdhya.supabase.co`. Orbyt é outro projeto.
+nesta branch. **Migração aplicada ao projeto real em 16/10/2026; validação de
+sincronização entre dispositivos reais e publicação ainda pendentes.** As
+ferramentas do Supabase ficaram disponíveis e confirmaram o projeto exclusivo
+`qhrpgkpvwbztubnrdhya`, ativo em PostgreSQL 17.11, com nome D-D no painel e URL
+`https://qhrpgkpvwbztubnrdhya.supabase.co`. Antes da aplicação não havia tabelas
+públicas nem migrações. Orbyt é outro projeto e não recebeu alterações.
 
 ## Dados e fila
 
@@ -69,14 +71,43 @@ recebe escrita direta. A RPC de escrita deriva autoria de `auth.uid()`, fixa
 `search_path` vazio, qualifica objetos e restringe execução. Não há acesso de
 mestre, mesa ou outro participante. Futuras permissões não devem ampliar notas.
 
-Antes de aplicar, conferir o projeto e inspecionar nomes já existentes. Usar a
-conexão administrativa do CritCall; se indisponível, o responsável pode colar o
-arquivo completo no [SQL Editor](https://supabase.com/dashboard/project/qhrpgkpvwbztubnrdhya/sql/new).
-Não pedir senha/chave secreta na conversa. O script não contém dados pessoais
-ou exclusões e pode ser reaplicado sem apagar registros. Depois conferir RLS,
-grants e funções reais, e validar com duas contas reais, dois navegadores,
-offline/reconexão, conflitos e restauração. Testes locais não comprovam ativação.
-Publicação permanece pelo fluxo de PRs aprovado.
+O conector aplicou `personal_sync` com sucesso, na versão remota
+`20261016101143`, usando o arquivo `202610160001_personal_sync.sql`. Não
+renomear o arquivo nem aplicar novamente apenas porque a versão remota difere:
+essa diferença foi produzida pelo registro do conector. As duas RPCs foram
+inspecionadas: anon não tem EXECUTE, authenticated tem EXECUTE e o `search_path`
+está vazio. RLS está habilitada nas duas tabelas, com políticas SELECT
+authenticated restritas a `auth.uid() = owner_id`; authenticated só tem SELECT
+e anon não tem grants. A API real recusou anon nas duas tabelas com HTTP
+401/42501. Um teste SQL transacional no PostgreSQL 17 real, usando identidade
+auth sintética sem e-mail, confirmou escrita por RPC, idempotência (uma versão
+após repetição), proteção do dono no relógio, leitura de outro dono sem linhas
+e recusa 42501 ao informar outro dono. Identidade e documento de teste foram
+integralmente revertidos por ROLLBACK; nenhum dado pessoal foi consultado.
+
+Ainda é necessário validar com duas contas reais, dois navegadores,
+offline/reconexão, conflitos e restauração. O teste SQL não comprova esse fluxo
+real no navegador. Publicação permanece pelo fluxo de PRs aprovado.
+
+Antes de qualquer alteração futura, conferir o identificador do projeto e os
+objetos já existentes. Não pedir senha/chave secreta na conversa. O script não
+contém dados pessoais ou exclusões e pode ser reaplicado sem apagar registros.
+
+## Alertas do serviço para revisão
+
+A inspeção do projeto real encontrou a função preexistente
+`public.rls_auto_enable` executável por anon/authenticated. Revisar sua origem,
+necessidade e privilégios antes de alterar; ela não foi criada pela migração
+pessoal. Orientação do [linter de funções expostas](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable).
+
+A proteção contra senhas vazadas está desabilitada e precisa de revisão na
+configuração de autenticação: [proteção de senhas](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection).
+
+`critcall_save_document` usa SECURITY DEFINER de forma intencional para a
+escrita transacional por RPC. EXECUTE é restrito a authenticated, a função
+confere `auth.uid()` e o dono esperado e fixa `search_path` vazio. Essa decisão
+não dispensa a validação da autoria nem concede escrita direta nas tabelas.
+Nenhum desses alertas foi apresentado como corrigido nesta etapa.
 
 ## Testes
 
