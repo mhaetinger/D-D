@@ -63,8 +63,9 @@ credenciais inexistentes, sem cadastrar ou enviar e-mails. O usuário confirmou
 cadastro, confirmação e entrada reais. Os dois retornos locais em 5174 foram
 aceitos pelo endpoint real após o ajuste de localhost. O usuário confirmou que
 abriu o link de recuperação em outro navegador/dispositivo, embora o retorno
-fosse localhost. O fluxo PKCE atual exige o navegador/dispositivo de origem;
-recuperação e troca reais nesse navegador ainda precisam ser conferidas.
+fosse localhost. O fluxo PKCE atual exige o navegador/dispositivo de origem.
+Após essa orientação, em 16/10/2026 o usuário relatou sucesso no teste local de
+recuperação/troca. Isso não é validação da publicação, SMTP próprio ou duas contas.
 Orbyt é outro projeto do responsável e permanece separado. O
 aplicativo tem os identificadores públicos do CritCall incluídos; o modo local
 pode ser escolhido com `VITE_AUTH_ENABLED=false`. O bootstrap valida a identidade

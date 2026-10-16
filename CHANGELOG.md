@@ -2,6 +2,18 @@
 
 ## Não lançado
 
+### Recuperação local relatada como bem-sucedida — 2026-10-16
+
+- Após a orientação de repetir no navegador/dispositivo de origem, o usuário
+  relatou que a recuperação/troca, a princípio, deu certo. Atualizado o estado
+  no README e na documentação, sem atribuir essa operação às ferramentas.
+- Esclarecido que o retorno do link exige o navegador/dispositivo que o pediu;
+  entrada normal por e-mail/senha funciona em outros navegadores. Fichas seguem
+  locais, sem sincronização. Nenhum fluxo ou configuração remota foi alterado.
+- CI anterior de `a09f46d` conferida: push/PR concluídos com sucesso. Alteração
+  somente documental, com diff conferido e sem repetir testes de comportamento.
+  Reenvio real, duas contas, SMTP próprio e ativação pública continuam pendentes.
+
 ### Recuperação: abertura em outro navegador confirmada — 2026-10-15
 
 - Usuário confirmou retorno a `http://localhost:5174/`, abrindo o link em outro

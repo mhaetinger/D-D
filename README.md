@@ -6,9 +6,10 @@ do CritCall foi identificado e configurado localmente. A conexão com a API foi
 conferida. O build já inclui a configuração pública, sem variables do GitHub;
 o usuário confirmou cadastro, confirmação de e-mail e entrada no teste local.
 Os retornos locais foram corrigidos e conferidos. O link de recuperação foi
-aberto em outro navegador/dispositivo, incompatível com o fluxo atual. O teste
-no mesmo navegador, a troca de senha e a ativação pública ainda dependem da
-validação final. Consulte [docs/LOGIN.md](docs/LOGIN.md).
+aberto em outro navegador/dispositivo, incompatível com o fluxo atual. Após a
+orientação, o usuário relatou sucesso na recuperação/troca no teste local em
+16/10/2026. Ativação pública e SMTP próprio continuam pendentes.
+Consulte [docs/LOGIN.md](docs/LOGIN.md).
 
 Aplicação de fichas individuais de D&D 5e, com criador, evolução, multiclasse,
 grimório, inventário, anotações pessoais e consulta aos livros da mesa.
@@ -92,6 +93,9 @@ Não é necessário configurar variables no GitHub para esse build. Senhas não 
 guardadas pela ficha nem incluídas em backups. **Reenviar confirmação de e-mail**
 atende cadastros pendentes; **Esqueci a senha** inicia a recuperação. Quem já
 entrou pode usar **Enviar link para trocar senha**, sem sair da conta.
+E-mail/senha permitem entrar em outros navegadores e dispositivos. Os links de
+confirmação/recuperação exigem o mesmo navegador/dispositivo que os solicitou;
+isso não sincroniza as fichas, que permanecem no navegador usado.
 
 Cada conta abre seu próprio espaço de fichas neste navegador; entrar não adota
 as fichas anteriores do modo local. Ao sair, as cópias são preservadas. Isso não

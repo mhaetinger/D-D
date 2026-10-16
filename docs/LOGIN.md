@@ -31,8 +31,10 @@ genérica de link expirado/outro navegador e retorno ao formulário de entrada.
 Depois, confirmou retorno a `http://localhost:5174/` e abertura em outro navegador
 ou dispositivo. Esse cenário não atende ao fluxo PKCE atual: o verificador fica
 no navegador/dispositivo que iniciou a solicitação. A confirmação explica a
-recusa relatada, sem concluir a troca. Recuperação/troca no mesmo navegador e
-reenvio reais continuam sem validação concluída.
+recusa relatada. Após a orientação de repetir no navegador de origem, em
+16/10/2026 o usuário relatou que, a princípio, deu certo. Registrado como sucesso
+relatado pelo usuário no teste local; não houve operação de senha real por
+ferramenta. Reenvio real, duas contas e ativação publicada continuam pendentes.
 
 Fichas e anotações continuam neste navegador. Autenticação e sincronização são
 etapas distintas: não há tabelas remotas de personagens, fila de envio ou
@@ -122,6 +124,9 @@ Os três envios usam o retorno da origem/pasta atual. Pedir outro e-mail antes d
 concluir o anterior substitui o verificador usado pelo SDK neste navegador:
 usar somente o link mais recente. Não alternar localhost/127.0.0.1, dispositivo,
 perfil do navegador ou janela privada durante a solicitação.
+Essa exigência pertence ao retorno do link. É possível iniciar a recuperação em
+qualquer navegador/dispositivo e concluí-la nele. Entrada normal com e-mail/senha
+funciona em outros navegadores; cada um mantém suas fichas locais, sem sincronização.
 
 O provedor simulado dos testes passou a conferir o código emitido e o desafio
 PKCE, com prazo e uso único. Antes, aceitava qualquer código e não comprovava
@@ -149,8 +154,9 @@ relato. O usuário acrescentou `http://localhost:5174/` em **Redirect URLs** e
 confirmou o salvamento. Nova consulta com tokens aleatórios inválidos retornou
 303 para localhost tanto em `signup` quanto em `recovery`; 127.0.0.1 continuou
 aceito. Não houve envio de e-mail, criação de usuário ou troca real de senha
-nessas consultas, que conferem o destino do retorno. A conclusão da recuperação
-real pelo usuário ainda está pendente. Não forçar um
+nessas consultas, que conferem o destino do retorno. Em teste posterior, o usuário
+relatou sucesso na recuperação/troca após a orientação sobre navegador/dispositivo.
+Não forçar um
 retorno cruzado pelo código: as origens têm armazenamento e verificadores PKCE
 separados. Se o usuário começou em 127.0.0.1 e também foi para o endereço público,
 conferir o template do e-mail e o destino solicitado, sem registrar tokens ou
