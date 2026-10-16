@@ -1,6 +1,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const os = require("node:os");
 const { chromium } = require(process.env.DND_PLAYWRIGHT_MODULE || "playwright");
 const { serve } = require("./serve.cjs");
 const { warrior } = require("./fixture.cjs");
@@ -233,6 +234,61 @@ async function importBackup(page, value) {
         await visitor.close();
         await clean.close();
       }
+    }
+    // O Pages mantém HTML no cache HTTP por dez minutos. O worker novo precisa
+    // buscar o HTML da entrega, mesmo quando o navegador ainda tem o anterior.
+    const updateDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "critcall-update-test-"));
+    const build = process.env.DND_TEST_ROOT || path.join(__dirname, "../dist");
+    const updateManifest = JSON.parse(fs.readFileSync(path.join(build, "offline-manifest.json"), "utf8"));
+    for (const file of [...updateManifest.files, "sw.js"]) {
+      const destination = path.join(updateDirectory, file);
+      fs.mkdirSync(path.dirname(destination), { recursive: true });
+      fs.copyFileSync(path.join(build, file), destination);
+    }
+    const indexFile = path.join(updateDirectory, "index.html");
+    const currentHTML = fs.readFileSync(indexFile, "utf8");
+    fs.writeFileSync(indexFile, '<!doctype html><title>Entrega anterior</title><p id="previousRelease">Página anterior</p>');
+    const updatedServer = await serve(updateDirectory, "/", { cacheControl: "public, max-age=600" });
+    const updater = await browser.newContext();
+    try {
+      await updater.addInitScript(({ old, id }) => {
+        if (!localStorage.getItem("testSeeded")) {
+          localStorage.setItem("dnd_sheet_public_v1", old);
+          localStorage.setItem("dnd_player_private_notes_v1", JSON.stringify({ [id]: "Nota preservada na atualização" }));
+          localStorage.setItem("dnd_sheet_theme", "obsidiana");
+          localStorage.setItem("dnd_backdrop_style", "textured");
+          localStorage.setItem("testSeeded", "true");
+        }
+      }, { old, id: char.id });
+      const previous = await updater.newPage();
+      await previous.goto(updatedServer.url + "index.html", { waitUntil: "networkidle" });
+      fs.writeFileSync(indexFile, currentHTML);
+      assert.ok((await previous.evaluate(() => fetch("index.html").then(response => response.text()))).includes('id="previousRelease"'), "cache HTTP ainda entrega HTML anterior");
+      await previous.evaluate(async () => {
+        await navigator.serviceWorker.register("sw.js", { scope: "./" });
+        await navigator.serviceWorker.ready;
+      });
+      await previous.waitForFunction(() => !!navigator.serviceWorker.controller);
+      const installedHTML = await previous.evaluate(async () => {
+        const cache = await caches.open((await caches.keys())[0]);
+        return (await cache.match(new URL("index.html", location.href))).text();
+      });
+      assert.ok(installedHTML.includes('id="accessScreen"'), "cache offline novo contém HTML novo, sem reutilizar o cache HTTP antigo");
+      assert.equal(await previous.locator("#previousRelease").isVisible(), true, "instalar não recarrega uma edição aberta");
+      await previous.close();
+      await updater.setOffline(true);
+      const updated = await updater.newPage();
+      updated.on("pageerror", error => errors.push(error.message));
+      await updated.goto(updatedServer.url + "index.html", { waitUntil: "networkidle" });
+      await updated.locator("#accessContinueLocal").click();
+      assert.equal(await updated.evaluate(() => getChar().name), char.name);
+      assert.equal(await updated.locator("body").getAttribute("data-theme"), "obsidiana");
+      assert.equal(await updated.locator("body").getAttribute("data-backdrop"), "textured");
+      assert.equal(await updated.evaluate(id => JSON.parse(localStorage.getItem("dnd_player_private_notes_v1"))[id], char.id), "Nota preservada na atualização");
+    } finally {
+      await updater.close();
+      await updatedServer.close();
+      fs.rmSync(updateDirectory, { recursive: true, force: true });
     }
     assert.deepEqual(errors, []);
     console.log("PASS: build sem CDN, migração preservando legado, backups com notas opcionais, importação de cópias, texto não executável, recarga/evolução offline, perfis isolados, recuperação com cancelamento/confirmação e storage bloqueado.");

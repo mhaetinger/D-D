@@ -12,7 +12,7 @@ if (JSON.stringify(pdfs) !== JSON.stringify(["books/livro-jogador-2014.pdf", "bo
 if (all.some((name) => /(?:^|\/)(?:\.env(?:\.|$)|node_modules|tests|src|AGENTS\.md)/.test(name))) throw new Error("Arquivo de desenvolvimento na saída pública.");
 const hash = crypto.createHash("sha256");
 // Mudanças na política do worker também precisam de uma revisão de cache própria.
-hash.update("offline-policy-v2");
+hash.update("offline-policy-v3");
 for (const file of core) hash.update(file).update(fs.readFileSync(path.join(directory, file)));
 const version = hash.digest("hex").slice(0, 16);
 const source = `/* Gerado pelo build. Atualizações aguardam as abas anteriores fecharem.
@@ -21,7 +21,10 @@ const PREFIX = 'orbyt-offline:' + new URL(self.registration.scope).pathname + ':
 const CACHE = PREFIX + '${version}';
 const CORE = ${JSON.stringify(core)}.map(file => new URL(file, self.registration.scope).href);
 self.addEventListener('install', event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(CORE)).catch(async error => { await caches.delete(CACHE); throw error; }));
+  // O cache HTTP pode conter HTML da entrega anterior por vários minutos.
+  // Cada instalação busca os arquivos atuais, sem reutilizar essa cópia antiga.
+  const requests = CORE.map(url => new Request(url, { cache: 'reload' }));
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(requests)).catch(async error => { await caches.delete(CACHE); throw error; }));
 });
 self.addEventListener('activate', event => {
   event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith(PREFIX) && key !== CACHE).map(key => caches.delete(key)))).then(() => self.clients.claim()));

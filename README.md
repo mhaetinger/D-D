@@ -10,8 +10,8 @@ aberto em outro navegador/dispositivo, incompatível com o fluxo atual. Após a
 orientação, o usuário relatou sucesso na recuperação/troca no teste local em
 16/10/2026. Salvamento pessoal e sincronização estão implementados/testados nesta
 branch; a migração foi aplicada ao Supabase real em 16/10/2026. A validação
-entre dispositivos reais e SMTP próprio ainda aguardam. O responsável autorizou
-a entrega em **https://criticall.art/** em 16/10/2026; o estado da implantação
+entre dispositivos reais e SMTP próprio ainda aguardam. A entrega foi autorizada
+e publicada em **https://criticall.art/** em 16/10/2026; o estado da implantação
 está nos [workflows](https://github.com/mhaetinger/D-D/actions).
 Consulte [docs/LOGIN.md](docs/LOGIN.md). Para continuar em outro computador,
 siga [docs/RETOMADA.md](docs/RETOMADA.md).
