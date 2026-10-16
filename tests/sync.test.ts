@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { IDBFactory } from "fake-indexeddb";
-import { BrowserJournal, type Pending, type RemoteDocument } from "../src/sync/journal";
+import { BrowserJournal, type JournalPort, type Pending, type RemoteDocument } from "../src/sync/journal";
 import { SyncEngine, type RemotePort, type PushResult } from "../src/sync/engine";
 import { canonical, documentKey, readDocuments, projectDocuments, type Documents } from "../src/sync/documents";
 import { SupabaseDocuments } from "../src/sync/supabase-port";
@@ -30,7 +30,7 @@ class Remote implements RemotePort {
     return structuredClone(result);
   }
 }
-function setup(remote = new Remote(), journal = new BrowserJournal(new IDBFactory()), scope = "conta-a") {
+function setup(remote = new Remote(), journal: JournalPort = new BrowserJournal(new IDBFactory()), scope = "conta-a") {
   let docs: Documents = {}, editing = false;
   const engine = new SyncEngine(scope, journal, remote, { read: () => structuredClone(docs), apply: values => { docs = structuredClone(Object.fromEntries(Object.entries(values).filter(([, doc]) => doc.value !== null))); }, canApply: () => !editing });
   return { engine, journal, remote, get docs() { return docs; }, set docs(next: Documents) { docs = next; }, edit(value: boolean) { editing = value; } };
@@ -63,6 +63,64 @@ test("perda da resposta após commit repete o mesmo identificador sem duplicar a
   assert.equal(a.engine.pending, 0);
   assert.equal(a.remote.sent[0].operationId, a.remote.sent[1].operationId);
   assert.equal(a.remote.accepted.size, 1);
+});
+test("falha temporária da fila não faz a tentativa seguinte perder a edição local", async () => {
+  const stored = new BrowserJournal(new IDBFactory());
+  let fail = false;
+  const journal: JournalPort = {
+    change: (scope, action) => fail ? Promise.reject(new DOMException("Quota", "QuotaExceededError")) : stored.change(scope, action),
+  };
+  const a = setup(new Remote(), journal);
+  await a.engine.capture(true);
+  a.docs = name("Versão já enviada"); await a.engine.capture(); await a.engine.run();
+  a.docs = name("Edição que precisa ser preservada");
+  fail = true; await assert.rejects(a.engine.capture());
+  assert.equal(Object.values(a.docs)[0].value, "Edição que precisa ser preservada");
+  fail = false; await a.engine.capture(); await a.engine.run();
+  assert.equal(Object.values(a.docs)[0].value, "Edição que precisa ser preservada");
+  assert.equal(Object.values(a.remote.rows)[0].value, "Edição que precisa ser preservada");
+  assert.equal(a.engine.pending, 0);
+});
+test("nova captura já agendada repete a edição após a transação anterior falhar", async () => {
+  const stored = new BrowserJournal(new IDBFactory());
+  let rejectNext = false;
+  const journal: JournalPort = {
+    change: (scope, action) => {
+      if (rejectNext) { rejectNext = false; return Promise.reject(new DOMException("Quota", "QuotaExceededError")); }
+      return stored.change(scope, action);
+    },
+  };
+  const a = setup(new Remote(), journal);
+  await a.engine.capture(true);
+  a.docs = name("Versão anterior"); await a.engine.capture(); await a.engine.run();
+  a.docs = name("Edição repetida enquanto a fila estava ocupada");
+  rejectNext = true;
+  const failed = a.engine.capture();
+  const retry = a.engine.capture();
+  await assert.rejects(failed); await retry; await a.engine.run();
+  assert.equal(Object.values(a.docs)[0].value, "Edição repetida enquanto a fila estava ocupada");
+  assert.equal(Object.values(a.remote.rows)[0].value, "Edição repetida enquanto a fila estava ocupada");
+  assert.equal(a.engine.pending, 0);
+});
+test("captura sem edição durante a projeção não transforma o cache antigo em nova alteração", async () => {
+  const remote = new Remote(), journal = new BrowserJournal(new IDBFactory());
+  let docs = name("Nome anterior"), captureDuringApply = false, captured: Promise<void> | undefined;
+  const engine = new SyncEngine("conta-a", journal, remote, {
+    read: () => structuredClone(docs),
+    apply: values => { docs = structuredClone(values); },
+    canApply: () => {
+      if (captureDuringApply) { captureDuringApply = false; captured = engine.capture(); }
+      return true;
+    },
+  });
+  await engine.capture(true); await engine.run();
+  const other = setup(remote);
+  await other.engine.capture(true); await other.engine.run();
+  other.docs = name("Nome atualizado no outro computador"); await other.engine.capture(); await other.engine.run();
+  captureDuringApply = true;
+  await engine.run(); await captured; await engine.run();
+  assert.equal(Object.values(docs)[0].value, "Nome atualizado no outro computador");
+  assert.equal(Object.values(remote.rows)[0].value, "Nome atualizado no outro computador");
 });
 test("uma edição durante a requisição permanece na fila e não é sobrescrita pela resposta", async () => {
   const a = setup(); await a.engine.capture(true);

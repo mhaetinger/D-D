@@ -1,3 +1,4 @@
+import { isAvatarRef } from "../media/avatar";
 import { SHEET_KEY, LEGACY_KEY, NOTES_KEY, RECOVERY_KEY } from "../storage/character-store";
 import { PERSONAL_KEYS } from "../storage/preferences";
 import { validateCharacters } from "../storage/validation";
@@ -22,6 +23,7 @@ export function validateDocument(doc: DocumentValue): DocumentValue {
     if (typeof doc.value !== "string" || doc.value.length > 2_000_000) throw new Error("Anotação inválida");
   } else if (doc.kind === "preference") {
     if (!PERSONAL_KEYS.includes(doc.id) || typeof doc.value !== "string" || doc.value.length > 15_000_000) throw new Error("Preferência inválida");
+    if (doc.id === "dnd_profile_avatar" && doc.value !== "null" && !isAvatarRef(JSON.parse(doc.value))) throw new Error("Imagem de perfil inválida");
     if (doc.id === "dnd_history_v1") {
       const history = JSON.parse(doc.value);
       if (!Array.isArray(history.stack) || !Number.isInteger(history.pointer) || history.pointer < 0 || history.pointer >= history.stack.length) throw new Error("Histórico inválido");

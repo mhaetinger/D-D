@@ -6,13 +6,39 @@
     <meta name="referrer" content="same-origin" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="icon" type="image/svg+xml" href="/icons/dnd.svg" />
+    <link rel="icon" type="image/png" href="/icons/icon.png" />
     <meta name="theme-color" content="#8b1e1e" />
     <title>CritCall</title>
     <link rel="stylesheet" href="/rules/character-wizard.css" />
 
   </head>
-  <body class="min-h-screen pb-24" data-theme="pergaminho_claro">
+  <body class="min-h-screen pb-24" data-theme="pergaminho_claro" data-access="entry">
+    <!-- Entrada visível antes do bootstrap; nenhuma ficha aparece durante a validação. -->
+    <section id="accessScreen" class="access-screen" role="main" aria-labelledby="accessTitle">
+      <div class="access-layout">
+        <div class="access-brand">
+          <img class="access-logo" src="/icons/icon.png" alt="" width="1254" height="1254" fetchpriority="high" />
+          <p class="access-wordmark">Crit<span>Call</span></p>
+          <p class="access-eyebrow">Sua próxima aventura começa aqui</p>
+          <p class="access-intro">O personagem é seu.<br />A história está por vir.</p>
+          <p class="access-description">Crie sua ficha, prepare seus dados e leve cada detalhe para a mesa.</p>
+        </div>
+        <div class="access-card">
+          <p class="access-eyebrow">Bem-vindo à mesa</p>
+          <h1 id="accessTitle" tabindex="-1">Entre no CritCall</h1>
+          <p id="accessDescription" class="access-description">Acesse sua conta para continuar suas aventuras.</p>
+          <p id="accessLoading" role="status">Preparando sua entrada…</p>
+          <div id="accessFormSlot"></div>
+          <div id="accessLocalOption" class="access-local" hidden>
+            <button id="accessContinueLocal" type="button">Continuar sem conta <span aria-hidden="true">→</span></button>
+            <p>Fichas salvas apenas neste navegador.</p>
+          </div>
+        </div>
+        <p class="access-footer">Uma ficha para cada personagem. Um lugar para todas as suas histórias.</p>
+      </div>
+      <noscript>Ative o JavaScript para entrar ou abrir suas fichas neste navegador.</noscript>
+    </section>
+    <div id="sheetApp" hidden inert>
     <!-- TOOLTIP FLUTUANTE DO LIVRO -->
     <div
       id="bookTooltip"
@@ -95,13 +121,19 @@
       class="fixed bottom-4 left-4 z-40 t-card-accent shadow-2xl"
       role="region" aria-label="Bandeja de dados"
     >
+      <button id="diceDock" type="button" class="dice-dock" title="Clique para abrir. Arraste para mover; arremesse para rolar d20. Tecla R também rola." aria-controls="diceTrayBody">
+        <svg viewBox="0 0 80 88" aria-hidden="true"><path d="M40 2 76 23 76 65 40 86 4 65 4 23Z"/><path d="M40 2 18 32 4 65M40 2 62 32 76 65M4 23 18 32 62 32 76 23M18 32 40 72 62 32M4 65 40 72 76 65M40 72 40 86"/></svg>
+        <span id="diceDockValue">20</span>
+      </button>
       <div class="dice-tray-header">
+        <button id="diceTrayDrag" type="button" class="dice-tray-tool" aria-label="Arrastar bandeja" title="Arraste para mover a bandeja">⠿</button>
         <i data-lucide="dices" class="w-5 h-5 shrink-0 t-text-accent" aria-hidden="true"></i>
-        <output id="diceTrayTotal" class="dice-tray-total" aria-label="Último total">—</output>
+        <output id="diceTrayTotal" class="dice-tray-total" aria-label="Último total">20</output>
         <button type="button" id="diceTrayMinimizeButton" class="dice-tray-tool" onclick="toggleDiceTrayMinimized()" aria-label="Minimizar bandeja de dados" title="Minimizar bandeja de dados" aria-controls="diceTrayBody" aria-expanded="true">−</button>
       </div>
       <div class="dice-tray-resize" onpointerdown="startDiceTrayResize(event)" role="separator" tabindex="0" aria-label="Redimensionar bandeja de dados" title="Arraste para ajustar o tamanho; use as setas com o teclado" onkeydown="resizeDiceTrayByKeyboard(event)"></div>
-      <div id="diceTrayBody" data-scroll-content class="dice-tray-body">
+      <div id="diceTrayBody" data-scroll-content class="dice-tray-body" hidden>
+        <button type="button" onclick="rollQuickD20()" class="t-inset rounded py-1 text-xs font-bold">Rolar d20 normal</button>
         <!-- Uma linha própria mantém os três botões do mesmo tamanho inclusive no celular. -->
         <div class="dice-roll-modes" role="group" aria-label="Modo da rolagem de d20">
           <button
@@ -257,9 +289,9 @@
           <button
             onclick="openAuthAccountModal()"
             class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-rpg font-bold badge-feiticeiro hover:opacity-90 transition"
-            title="Abrir Tela Inicial de Login e Meus Personagens"
+            title="Abrir perfil e personagens"
           >
-            <i data-lucide="user-Check" class="w-4 h-4"></i>
+            <span class="portrait portrait-small" data-avatar-profile><i data-lucide="user-check" aria-hidden="true"></i></span>
             <span id="currentUserBadge">Jogador</span>
           </button>
 
@@ -314,9 +346,9 @@
           </div>
         </div>
 
-        <!-- Tema + Layout (2014/2024) + Fonte (Aa) + Seletor dos 3 Modos de Dados -->
+        <!-- Preferências do usuário: cores, textura, fonte e dados. -->
         <div class="flex flex-wrap items-center gap-1.5">
-          <div class="flex items-center t-inset p-0.5 rounded-lg text-[11px]">
+          <div class="flex items-center t-inset p-0.5 rounded-lg text-[11px]" role="group" aria-label="Cores da ficha">
             <button
               id="themeBtn-pergaminho_claro"
               onclick="setTheme('pergaminho_claro')"
@@ -344,24 +376,6 @@
             <button id="backdropBtn-clean" onclick="setBackdropStyle('clean')" class="px-2 py-1 rounded font-bold">Limpo</button>
             <button id="backdropBtn-textured" onclick="setBackdropStyle('textured')" class="px-2 py-1 rounded font-bold">Textura</button>
           </div>
-
-          <div class="flex items-center t-inset p-0.5 rounded-lg text-[11px]">
-            <button
-              id="btnClassic"
-              onclick="setLayout('classic_2014')"
-              class="px-2 py-1 rounded font-bold"
-            >
-              2014
-            </button>
-            <button
-              id="btnModern"
-              onclick="setLayout('modern_2024')"
-              class="px-2 py-1 rounded font-bold"
-            >
-              2024
-            </button>
-          </div>
-
           <div class="flex items-center t-inset p-0.5 rounded-lg text-[11px]">
             <span class="px-1 font-serif font-bold t-text-muted">Aa</span>
             <button
@@ -456,6 +470,25 @@
     <main class="max-w-7xl mx-auto px-4 mt-5">
       <div data-size-motion><div data-size-content class="space-y-5">
       <section id="headerSection"></section>
+      <div id="sheetDisplay" class="flex flex-wrap items-center justify-between gap-2 text-xs" hidden>
+        <span class="t-text-muted" title="A troca muda a apresentação. As regras continuam sendo de 2014, com as adaptações da mesa.">Exibição da ficha · regras 2014</span>
+          <div class="flex items-center t-inset p-0.5 rounded-lg text-[11px]" role="group" aria-label="Exibição desta ficha">
+            <button
+              id="btnClassic"
+              onclick="setLayout('classic_2014')"
+              class="px-2 py-1 rounded font-bold"
+            >
+              Clássica (2014)
+            </button>
+            <button
+              id="btnModern"
+              onclick="setLayout('modern_2024')"
+              class="px-2 py-1 rounded font-bold"
+            >
+              Moderna (2024)
+            </button>
+          </div>
+      </div>
 
       <div
         class="flex flex-wrap items-center justify-between pb-2 gap-2"
@@ -506,13 +539,13 @@
     <section data-scroll-window class="t-card-accent max-w-lg w-full p-5 space-y-4 max-h-[92dvh] overflow-y-auto">
       <div class="flex justify-between gap-3"><h2 class="font-rpg font-bold">Perfil e personagens</h2><button onclick="closeAuthAccountModal()" aria-label="Fechar perfil">×</button></div>
       <p id="workspaceDescription" class="text-sm">Suas fichas e anotações ficam neste navegador. Use um backup para levá-las a outro dispositivo.</p>
+      <div id="accountAccessSlot">
       <section id="accountAccess" class="space-y-3 border-b t-border pb-3" aria-label="Acesso à conta" hidden>
         <p id="accountIdentity" class="text-sm font-bold break-words"></p>
         <div id="accountSignedOut" class="space-y-3">
           <div class="flex flex-wrap gap-2" aria-label="Opções de acesso">
             <button type="button" data-auth-mode="login" class="t-inset px-3 py-1.5 rounded text-xs" aria-pressed="true">Entrar</button>
             <button type="button" data-auth-mode="signup" class="t-inset px-3 py-1.5 rounded text-xs" aria-pressed="false">Criar conta</button>
-            <button type="button" data-auth-mode="reset" class="underline text-xs" aria-pressed="false">Esqueci a senha</button>
           </div>
           <form id="accountForm" class="space-y-3">
             <div id="accountEmailField"><label for="accountEmail" class="block text-xs mb-1">E-mail</label><input id="accountEmail" type="email" autocomplete="username" required maxlength="254" class="t-inset w-full p-2 rounded" /></div>
@@ -521,7 +554,11 @@
             <p id="accountPasswordHint" class="text-xs t-text-muted" hidden>Use pelo menos 12 caracteres. Abra os links de confirmação e recuperação neste mesmo navegador e dispositivo.</p>
             <button id="accountSubmit" type="submit" class="t-btn-primary px-3 py-2 rounded">Entrar</button>
           </form>
-          <button id="accountResend" type="button" class="underline text-xs">Reenviar confirmação de e-mail</button>
+          <div class="flex flex-wrap gap-x-3 gap-y-2">
+            <button type="button" data-auth-mode="reset" class="underline text-xs" aria-pressed="false">Esqueci a senha</button>
+            <button id="accountResend" type="button" class="underline text-xs">Reenviar confirmação de e-mail</button>
+          </div>
+          <button id="accountCancelRecovery" type="button" class="underline text-xs" hidden>Continuar sem alterar a senha</button>
         </div>
         <div id="accountSignedIn" class="space-y-2" hidden>
           <div class="flex flex-wrap gap-2">
@@ -532,6 +569,9 @@
         </div>
         <p id="accountAccessStatus" class="text-sm" role="status" aria-live="polite"></p>
       </section>
+      </div>
+      <button type="button" data-avatar-edit="" class="flex items-center gap-3 text-xs font-bold t-text-accent"><span class="portrait" data-avatar-profile><i data-lucide="user-check" aria-hidden="true"></i></span> Alterar imagem do perfil</button>
+      <p id="avatarSyncStatus" class="text-xs" role="status"></p><button id="avatarRetry" type="button" class="underline text-xs">Atualizar imagens / tentar envio</button>
       <label for="accPlayerName">Nome do jogador</label><input id="accPlayerName" value="Jogador" class="t-inset w-full p-2 rounded">
       <button onclick="saveAccountProfile()" class="t-btn-primary px-3 py-2 rounded">Salvar nome local</button>
       <div id="accountCharactersList" class="space-y-2"></div>
@@ -552,6 +592,12 @@
         <p id="backupStatus" class="text-xs" role="status"></p>
       </section>
     </section></div>
+    <dialog id="avatarDialog" class="t-card-accent rounded-lg p-5 w-[min(28rem,92vw)] space-y-3" data-scroll-window aria-labelledby="avatarTitle">
+      <div class="flex justify-between items-center gap-3"><h2 id="avatarTitle" class="font-rpg font-bold">Imagem do perfil</h2><button id="avatarClose" type="button" aria-label="Fechar imagem">×</button></div>
+      <p class="text-sm">Escolha JPG, PNG ou WebP de até 5 MB. Usaremos um recorte central, reduzido para até 256 × 256 pixels e 32 KB. O original não é enviado.</p>
+      <input id="avatarFile" type="file" accept="image/jpeg,image/png,image/webp" class="text-sm w-full" aria-label="Escolher imagem" />
+      <p id="avatarStatus" class="text-sm" role="status" aria-live="polite"></p>
+    </dialog>
     <dialog id="syncVersionsDialog" class="t-card-accent rounded-lg p-4 w-[min(32rem,92vw)] max-h-[85dvh] overflow-y-auto" data-scroll-window>
       <div class="flex justify-between gap-3"><h2 class="font-rpg font-bold">Versões salvas na nuvem</h2><button id="syncVersionsClose" type="button" aria-label="Fechar versões">×</button></div>
       <p id="syncVersionsStatus" class="text-xs my-3" role="status">Carregando…</p>
@@ -665,6 +711,8 @@
       id="toast"
       class="fixed bottom-5 right-5 t-card-accent px-4 py-3 rounded-xl font-bold text-xs shadow-2xl hidden transition-all z-50"
     ></div>
+
+    </div><!-- sheetApp -->
 
     <script src="/rules/phb2014-data.js"></script>
     <script src="/rules/phb2014-options.js"></script>

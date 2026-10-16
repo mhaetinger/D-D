@@ -2,6 +2,7 @@ import { AccountSession, authErrorMessage } from "./session";
 import { currentWorkspaceKey, workspaceKey } from "../storage/account-scope";
 import { sheetStore } from "../storage/character-store";
 import type { CharacterRecord } from "../storage/validation";
+import { setupEntryScreen } from "./entry";
 
 interface SheetHost {
   characters: CharacterRecord[];
@@ -23,6 +24,7 @@ export function setupAccountUI(account: AccountSession) {
   const switchDialog = document.getElementById("accountWorkspaceChanged") as HTMLDialogElement;
   const signedOut = document.getElementById("accountSignedOut")!;
   const signedIn = document.getElementById("accountSignedIn")!;
+  const entry = setupEntryScreen(account, panel);
   let mode: AccessMode = account.recovery ? "password" : "login";
   let busy = false;
   const message = (text: string, error = false) => {
@@ -44,10 +46,11 @@ export function setupAccountUI(account: AccountSession) {
     confirm.required = newPassword;
     submit.textContent = ({ login: "Entrar", signup: "Criar conta", reset: "Enviar recuperação", password: "Salvar nova senha" })[mode];
     for (const button of panel.querySelectorAll<HTMLButtonElement>("[data-auth-mode]")) {
-      button.hidden = changing;
+      button.hidden = changing || button.dataset.authMode === "reset" && mode !== "login";
       button.setAttribute("aria-pressed", String(button.dataset.authMode === mode));
     }
     (document.getElementById("accountResend") as HTMLButtonElement).hidden = changing;
+    document.getElementById("accountCancelRecovery")!.hidden = !changing;
     render();
   }
   function render() {
@@ -68,6 +71,8 @@ export function setupAccountUI(account: AccountSession) {
     else if (account.offline) message("Sem conexão. A cópia já disponível continua neste navegador; entrar, cadastrar e recuperar senha exigem internet.");
     for (const control of panel.querySelectorAll<HTMLInputElement | HTMLButtonElement>("input, button")) control.disabled = busy;
     panel.setAttribute("aria-busy", String(busy));
+    entry.setBusy(busy);
+    entry.render(mode);
   }
   function adoptIdentity() {
     host.activateAccountWorkspace(account.identity);
@@ -90,7 +95,7 @@ export function setupAccountUI(account: AccountSession) {
       adoptIdentity();
     }
     if (switchDialog.open) switchDialog.close();
-    if (account.recovery && account.identity && mode !== "password") { setMode("password"); host.openAuthAccountModal(); }
+    if (account.recovery && account.identity && mode !== "password") setMode("password");
     render();
   }
   switchDialog.addEventListener("cancel", (event) => event.preventDefault());
@@ -150,9 +155,16 @@ export function setupAccountUI(account: AccountSession) {
         if (!account.identity || !account.recovery) throw new Error("Sessão de recuperação ausente");
         const { error } = await auth.updateUser({ password: password.value });
         if (error) throw error;
-        account.recovery = false; setMode("login"); message("Senha atualizada.");
+        account.recovery = false; setMode("login"); message("Senha atualizada."); host.openAuthAccountModal();
       }
     });
+  });
+  document.getElementById("accountCancelRecovery")!.addEventListener("click", () => {
+    if (busy) return;
+    account.recovery = false;
+    setMode("login");
+    message("Sua senha não foi alterada.");
+    host.openAuthAccountModal();
   });
   document.getElementById("accountResend")!.addEventListener("click", () => {
     if (!email.reportValidity() || !email.value.trim()) { email.focus(); return; }
@@ -181,5 +193,5 @@ export function setupAccountUI(account: AccountSession) {
   });
   account.addEventListener("change", changed);
   setMode(mode);
-  if (account.recovery || account.message) host.openAuthAccountModal();
+  if (account.message && account.identity && !account.recovery) host.openAuthAccountModal();
 }

@@ -27,6 +27,13 @@ removem somente operações confirmadas. IDs tornam repetições idempotentes,
 inclusive quando o commit ocorreu e sua resposta caiu. Uma recusa não bloqueia
 o envio dos demais documentos; o item recusado permanece na fila.
 
+Se o cache local foi salvo, mas uma transação da fila falhou, a tentativa seguinte
+compara a edição com a última projeção persistida. Ter observado o texto na tela
+não significa que ele entrou na fila. Essa recuperação também cobre tentativas
+já agendadas, impedindo que a cópia anterior da nuvem substitua a edição local.
+No fluxo normal, a comparação conserva o estado observado no instante da captura
+para não transformar uma projeção remota posterior em uma edição local antiga.
+
 O bootstrap busca dados antes da ficha; há tentativas após edições, reconexão,
 foco/visibilidade e periodicamente com a página visível. Atualizações aguardam
 campos/editores abertos. Troca de conta cancela a projeção anterior e fecha a
@@ -113,6 +120,9 @@ Nenhum desses alertas foi apresentado como corrigido nesta etapa.
 
 `npm test` cobre fila IndexedDB simulada, repetição, escrita durante envio, duas
 abas, contas, tombstones, editor, relógio, rollback, dados inválidos e paginação.
+Inclui recuperação de transação recusada, nova tentativa já agendada e captura
+sem edição durante a projeção remota. O Chromium também recusa temporariamente
+as transações da fila e confere a preservação/envio do perfil após restabelecê-las.
 `fake-indexeddb` é somente desenvolvimento e não entra no site.
 `npm run test:database` usa PostgreSQL 16 descartável em Docker, sem publicar
 portas nem consultar bancos existentes. Confere migração/reaplicação, RLS/grants
@@ -124,3 +134,23 @@ notas. Não usa usuários/senhas reais nem envia e-mails reais.
 
 Referências: [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security)
 e [funções/privilégios](https://supabase.com/docs/guides/database/functions).
+
+## Retratos privados
+
+A migração `20261016184740_private_avatars.sql` foi aplicada ao projeto CritCall
+`qhrpgkpvwbztubnrdhya` em 16/10/2026 (remota `20261016184938`). Bucket privado
+`critcall-avatars`, WebP de até 32768 bytes, pasta por dono e políticas separadas
+para leitura, inserção, atualização e exclusão. Metadados/configuração conferidos
+sem consultar arquivos pessoais. Advisors mantêm somente os avisos já registrados.
+
+Perfil e ficha sincronizam referências UUID/revisão. Os pixels ficam no Storage,
+sem duplicação no histórico do banco. Upload tem fila própria em IndexedDB; o
+estado de envio das imagens aparece separado do estado da ficha. Imagens já
+abertas podem ser vistas offline; arquivos ainda não recebidos mostram o ícone
+padrão. O backup JSON conserva referências e não transfere arquivos entre contas.
+
+O teste de banco agora inclui a estrutura mínima do Storage e as políticas reais.
+Além do Docker/PostgreSQL 16 da CI, é possível usar binários locais com
+`CRITCALL_TEST_POSTGRES_BIN`: o teste cria outra instância temporária, sem TCP,
+e a remove no final; nunca usa uma URL/banco existente. Nesta máquina passou com
+PostgreSQL 18.6 extraído em `/tmp`, sem instalar serviço global.

@@ -2,6 +2,146 @@
 
 ## Não lançado
 
+### Entrega autorizada — 2026-10-16
+
+- Responsável solicitou publicar a versão com entrada, sincronização pessoal,
+  dado compacto e retratos. Entrega pelo GitHub Pages existente em `criticall.art`,
+  mantendo PRs para `develop` e `main` e o artefato verificado pela CI.
+- Cloudflare já atende o DNS; a transferência da hospedagem e a mudança do
+  repositório para privado dependem da configuração de Pages/credenciais.
+
+### Dado arrastável e imagens de perfil/personagem — 2026-10-16
+
+- Dado começa recolhido, mostrando 20 antes de rolar e depois o último total da
+  conta/aba. Ícone com textura e facetas, arraste com limites, posição restaurada,
+  arremesso rápido para d20 normal, clique/Enter para abrir e R/setas no teclado.
+  O arremesso preserva o pool, modificador e vantagem/desvantagem da bandeja.
+- Retratos no perfil e em cada ficha/lista de personagens. Imagens de até 5 MB são
+  recortadas e reduzidas para WebP de até 256 px/32 KiB antes do envio. Originais,
+  metadados, SVG e GIF não são enviados. Pixels ficam em Storage privado e cache
+  IndexedDB por conta; documentos/histórico recebem só referências compactas.
+- Migração de bucket/RLS aplicada ao CritCall exclusivo, remota `20261016184938`.
+  Configuração conferida e advisors sem novos avisos. Teste de banco ampliado para
+  políticas de imagens, com opção de PostgreSQL local descartável sem Docker.
+- Passaram 175 testes Node, tipos/build e os seis roteiros Chromium, incluindo
+  arremesso/teclado/posição do dado, imagens entre dois navegadores, fila offline,
+  SVG recusado, cópias com retratos independentes e download atrasado na troca de
+  conta. O check completo passou com 174 testes; o caso adicional de MIME
+  disfarçado, build e dado foram conferidos depois. Banco/RLS passaram em
+  PostgreSQL 18.6 descartável e a revisão visual cobriu celular/três temas/GG.
+
+
+- Link “Esqueci a senha” aparece somente no modo Entrar, sem ocupar a tela de
+  cadastro ou repetir a ação no formulário de recuperação. Conferidos build,
+  171 testes Node e alternância dos três modos no Chromium.
+
+### Entrada com tema de grimório e DNS conferido — 2026-10-16
+
+- Entrada recebeu paleta escura de carvão/couro, textura leve, tipografia de
+  livro e detalhes em dourado envelhecido. Símbolo original acompanhado do nome
+  em texto para conservar contraste. Cores da ficha e lógica de acesso preservadas.
+- Usuário confirmou OK no GitHub DNS check e Cloudflare. Conferidos nameservers
+  Cloudflare, HTTPS 200 na raiz e `www` com 301 → 200, certificado aceito. O site
+  continua servido pelo GitHub Pages; transferência para Pages Cloudflare pendente.
+- Passaram `npm test` (171 testes), `npm run build` e o roteiro Chromium de auth
+  em `/` e `/D-D/`. Revisados desktop/celular, 320px/fonte GG, modos de acesso
+  sem transbordamento e contraste dos textos/botão/bordas. Os outros roteiros de
+  navegador não foram repetidos para esta alteração de apresentação.
+
+
+### Entrada principal do CritCall e exibição da ficha — 2026-10-16
+
+- Nova entrada com logo fornecida pelo responsável, login/cadastro/recuperação,
+  adaptação para celular e foco de teclado. O formulário existente é reutilizado
+  entre entrada e perfil. A ficha começa oculta/inativa até escolher o espaço;
+  conta validada abre suas fichas ou a ação de criar a primeira.
+- Uso local preservado por escolha explícita; saída retorna à entrada. Recuperação
+  de senha tem tela própria antes de voltar às fichas. Avisos e backups de dados
+  ilegíveis permanecem disponíveis, sem apagar armazenamento ou adotar fichas locais.
+- Seletor Clássica (2014)/Moderna (2024) movido da barra global para dentro da ficha,
+  com estado acessível e indicação das regras 2014. Layout continua por personagem;
+  cores/texturas/fontes continuam por conta, sem alterar os contratos da fila.
+- Ícone fornecido passa a identificar a barra, favicon e manifest. Logo/ícone
+  entram no build/cache; PDFs continuam fora do download offline automático.
+- `npm run check` passou: **171 testes**, tipos/build e os cinco roteiros Chromium.
+  Incluídas entrada antes da ficha, recuperação/cancelamento, preferências após
+  recarga/contas A-B e entrega visual em dois navegadores com HTTP simulado.
+  Conferidos três temas/320px/fonte GG e imagens da entrada em desktop/celular.
+  Sem alteração de SQL/RLS/RPC, serviço remoto, visibilidade ou publicação.
+
+
+### Publicação Cloudflare preparada e compatibilidade offline — 2026-10-16
+
+- Workflow recebe destino opcional `DEPLOY_TARGET=cloudflare`, mantendo GitHub
+  Pages como padrão. O job Cloudflare aguarda a verificação da `main`, baixa e
+  extrai o mesmo artefato testado e envia com Wrangler fixado, sem recompilar.
+  Configuração de projeto/Secrets documentada; nenhuma entrega foi publicada.
+- Corrigida recarga offline quando o host redireciona `.html` para caminhos sem
+  extensão. Respostas redirecionadas são reconstruídas ao servir o cache; `/book`
+  e fragmentos são normalizados. A revisão do cache inclui a política do worker.
+  Não há recarga forçada nem alteração do armazenamento de fichas/anotações.
+- Regressão Chromium cobre navegação offline com redirecionamentos, persistência,
+  leitor e retorno à ficha em `/` e `/D-D/`. Nameservers atribuídos à zona foram
+  registrados; ativação, projeto Pages, credenciais e teste público permanecem pendentes.
+- Verificados: actionlint 1.7.12, `git diff --check`, 171 testes Node, tipos/build,
+  os cinco roteiros Chromium e smoke offline no emulador Wrangler 4.151.1. O teste
+  de aplicativo foi repetido após ajustar as asserções de cache. Docker continua
+  ausente; não houve alteração SQL/RLS/RPC nem repetição local do teste de banco.
+
+### Roteiro de migração para Cloudflare — 2026-10-16
+
+- Usuário confirmou conta Cloudflare criada e intenção de manter fontes privadas,
+  com crescimento por planos dos serviços. Preparado `docs/CLOUDFLARE.md` com
+  importação de DNS, publicação de `dist/` pelo GitHub Actions, conferência da
+  transição e limites do que pode crescer sem alteração no aplicativo.
+- `www` corrigido pelo usuário e conferido; HTTP respondeu, mas HTTPS ainda
+  apresentou certificado incompatível durante a checagem no GitHub. Zona/projeto
+  Cloudflare, mudança de nameservers e adaptação do workflow seguem pendentes.
+- Mudança documental, conferida por revisão de diff e `git diff --check`.
+  Sem alteração de dependências, licença, visibilidade ou serviços externos;
+  testes funcionais anteriores não repetidos.
+
+### Recuperação após falha temporária da fila offline — 2026-10-16
+
+- Corrigida a tentativa de captura após transação recusada do IndexedDB. A edição
+  salva no cache local podia ser ignorada e substituída pela cópia anterior da
+  nuvem. A recuperação usa a projeção persistida, mantendo a comparação original
+  durante atualizações remotas. Nenhum dado ou formato de armazenamento foi apagado.
+- Regressão reproduziu o problema antes da correção. Acrescentados três casos
+  Node e um cenário Chromium com falha/restabelecimento da fila. `npm run check`
+  passou com **171 testes**, tipos/build e os cinco roteiros de navegador, usando
+  o override de plataforma documentado nesta máquina. SQL/RLS/RPC não alterados.
+- DNS autoritativo já contém os quatro A corretos; `www` ainda precisa apontar
+  diretamente para `mhaetinger.github.io`. Usuário confirmou compra só do domínio.
+  Registrado roteiro SMTP com proposta de Resend, sem criar conta/ativar serviço.
+
+### Retomada local e domínio em verificação — 2026-10-16
+
+- Usuário informou as configurações do domínio feitas, com DNS em verificação
+  no GitHub. Consulta pública ainda recebeu estacionamento da Hostinger, sem
+  confirmar ativação do site/HTTPS. Atualizado o estado no guia e na retomada.
+- Retorno novo e os dois retornos locais aceitos pela API real do Supabase (303);
+  retorno não permitido recaiu no domínio novo. Tokens aleatórios inválidos,
+  sem cadastro, envio de e-mail ou alteração de senha. Isso não valida login completo.
+- Após `npm ci`, passaram **168 testes Node**, tipos/build e os cinco roteiros
+  Chromium. Usado o build Ubuntu 24.04 do Playwright no Ubuntu 26.04 desta máquina,
+  sem alterar dependências. Auditoria de produção sem alertas. Docker ausente:
+  o teste de banco não foi repetido. Nenhuma alteração em SQL/RLS/RPC.
+- Projeto Supabase correto confirmado ativo; avisos do serviço anteriores
+  permanecem documentados. Servidor local iniciado em 5174 para a conferência
+  manual. Sincronização com contas reais, SMTP e publicação ainda pendentes.
+
+### Domínio comprado e roteiro de ativação — 2026-10-16
+
+- Usuário confirmou a compra de `criticall.art` na Hostinger. Atualizados guia,
+  README e retomada, substituindo a proposta anterior pelo domínio comprado.
+- Documentados os apontamentos para o GitHub Pages, HTTPS, retornos do Supabase
+  e preservação dos dados ao trocar de origem. DNS público ainda aponta fora
+  do Pages; nenhuma configuração externa foi alterada ou publicação executada.
+- Verificação documental: consulta pública de DNS, documentação oficial de
+  Hostinger/GitHub/Supabase e revisão do diff. Sem mudança funcional ou repetição
+  dos testes de comportamento.
+
 ### Banco ativado e retomada em outro PC — 2026-10-16
 
 - Após o usuário confirmar conexão/autorização, ferramentas Supabase ficaram

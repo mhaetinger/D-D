@@ -22,6 +22,7 @@ export class SyncEngine extends EventTarget {
   private queue: Promise<unknown> = Promise.resolve();
   private running: Promise<void> | null = null;
   private observed: Documents | null = null;
+  private recaptureAfterFailure = false;
   constructor(readonly scope: string, private journal: JournalPort, private remote: RemotePort, private view: SyncView) { super(); }
   private emit() { this.dispatchEvent(new Event("change")); }
   capture(initial = false) {
@@ -32,7 +33,10 @@ export class SyncEngine extends EventTarget {
     this.observed = snapshot;
     const capturedAt = Date.now();
     const work = this.queue.catch(() => {}).then(() => this.journal.change(this.scope, state => {
-      const baseline = before ?? state.projected;
+      // Uma transação recusada não pode virar referência da próxima tentativa.
+      // Fora da recuperação, mantém a observação feita no instante da captura
+      // para não interpretar uma projeção remota posterior como edição local.
+      const baseline = this.recaptureAfterFailure ? state.projected : before ?? state.projected;
       const keys = new Set([...Object.keys(snapshot), ...(!initial ? Object.keys(baseline) : [])]);
       for (const key of keys) {
         const previous = baseline[key];
@@ -51,7 +55,8 @@ export class SyncEngine extends EventTarget {
       this.pending = state.pending.length;
       if (this.pending) this.status = "Alterações salvas neste dispositivo, aguardando envio.";
       this.emit();
-    })).catch(() => { this.status = "A fila offline não pôde ser salva. Os dados locais foram mantidos; baixe um backup antes de fechar."; this.emit(); throw new Error("Fila indisponível"); });
+    })).then(() => { this.recaptureAfterFailure = false; })
+      .catch(() => { this.recaptureAfterFailure = true; this.status = "A fila offline não pôde ser salva. Os dados locais foram mantidos; baixe um backup antes de fechar."; this.emit(); throw new Error("Fila indisponível"); });
     this.queue = work;
     return work;
   }

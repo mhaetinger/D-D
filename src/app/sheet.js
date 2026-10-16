@@ -1,6 +1,8 @@
 import { sheetStore, selectCharacterWorkspace } from "../storage/character-store";
 import { currentWorkspaceKey, workspaceStorage } from "../storage/account-scope";
 import { ACTIVE_CHARACTER_KEY, readPreference, writePreference } from "../storage/preferences";
+import { setupDiceDock } from "./dice-dock";
+import { avatarMarkup } from "../media/avatar";
 import { canonical, validateDocument } from "../sync/documents";
 
 // =========================================================================
@@ -475,7 +477,8 @@ let currentRollMode = "normal"; // 'normal' | 'adv' | 'dis'
 let diceRollSequence = 0; // Impede uma animação antiga de sobrescrever o último lançamento.
 // Migra somente a preferência visual antiga; fichas e resultados não mudam.
 let diceTrayDimensions = readDiceTrayDimensions();
-let diceTrayMinimized = readPreference("dnd_dice_tray_minimized") === "true";
+let diceTrayMinimized = true;
+let diceDock;
 // Pool combinado de dados: ex: { 20: 1, 4: 1 } = 1d20 + 1d4
 let dicePoolCounts = { 20: 1, 4: 1 };
 
@@ -864,8 +867,8 @@ function setDiceTrayDimensions(width, height) {
 }
 function toggleDiceTrayMinimized() {
   diceTrayMinimized = !diceTrayMinimized;
-  writePreference("dnd_dice_tray_minimized", String(diceTrayMinimized));
   renderDiceTrayState();
+  document.getElementById(diceTrayMinimized ? "diceDock" : "diceTrayMinimizeButton").focus({preventScroll: true});
 }
 // A bandeja fica ancorada embaixo à esquerda: arrastar para cima/direita
 // aumenta altura/largura, mantendo o último resultado e a montagem do pool.
@@ -915,6 +918,9 @@ function renderDiceTrayState() {
     minimizeButton.title = diceTrayMinimized ? "Abrir bandeja de dados" : "Minimizar bandeja de dados";
     minimizeButton.setAttribute("aria-expanded", String(!diceTrayMinimized));
   }
+  document.getElementById("diceDock").hidden = !diceTrayMinimized;
+  document.getElementById("diceDock").setAttribute("aria-expanded", String(!diceTrayMinimized));
+  diceDock?.reflow();
 }
 
 function addDieToPool(sides) {
@@ -1030,13 +1036,25 @@ function rollCurrentPool(customLabel = "", allowFixed = false) {
   // Resolve tudo no clique. Trocar modo, limpar ou editar a bandeja durante a
   // animação só vale para o próximo lançamento, nunca para o que já foi feito.
   const result = evaluateDicePool(dicePoolCounts, modVal, currentRollMode);
+  presentDiceResult(result, customLabel);
+}
+function rollQuickD20() {
+  if (diceMode === "off") return;
+  presentDiceResult(evaluateDicePool({20: 1}, 0, "normal"), "d20 normal");
+}
+function presentDiceResult(result, customLabel) {
+  const cube = document.getElementById("dice3dCube");
+  const resultBox = document.getElementById("dice3dResultText");
   const rollSequence = ++diceRollSequence;
   cube.classList.add("dice-3d-rolling");
+  document.getElementById("diceDock").classList.add("dice-dock-rolling");
 
   setTimeout(() => {
     if (rollSequence !== diceRollSequence) return;
     cube.classList.remove("dice-3d-rolling");
     cube.textContent = result.total;
+    document.getElementById("diceDock").classList.remove("dice-dock-rolling");
+    diceDock?.result(result.total);
     const trayTotal = document.getElementById("diceTrayTotal");
     if (trayTotal) {
       trayTotal.textContent = result.total;
@@ -1097,6 +1115,7 @@ function closeAuthAccountModal() {
 
 const workspaceDrafts = new Map();
 function hasOpenAccountEditor() {
+  if (document.getElementById('avatarDialog')?.open) return true;
   if (document.getElementById('confirmationDialog').open) return true;
   if (document.getElementById('accPlayerName').value !== (readPreference('dnd_public_player_name') || 'Jogador')) return true;
   return ['characterWizard', 'homebrewModal'].some(id => {
@@ -1119,10 +1138,13 @@ function activateAccountWorkspace(identity) {
   document.getElementById('hbModalBody').replaceChildren();
   document.getElementById('historyDrawer').classList.add('translate-x-full');
   diceRollSequence++;
+  document.getElementById('dice3dCube').classList.remove('dice-3d-rolling');
+  document.getElementById('diceDock').classList.remove('dice-dock-rolling');
   clearDicePool();
   document.getElementById('dice3dResultText').textContent = '';
   document.getElementById('dice3dCube').textContent = '20';
   document.getElementById('diceTrayTotal').textContent = '—';
+  diceTrayMinimized = true;
   selectCharacterWorkspace(identity);
   const saved = sheetStore.read();
   characters = workspaceDrafts.get(currentWorkspaceKey()) || saved;
@@ -1176,7 +1198,7 @@ function restoreDisplayPreferences() {
   currentFontScale = parseInt(readPreference('dnd_font_scale') || '100', 10);
   diceMode = readPreference('dnd_dice_mode') || 'auto';
   diceTrayDimensions = readDiceTrayDimensions();
-  diceTrayMinimized = readPreference('dnd_dice_tray_minimized') === 'true';
+
 }
 window.refreshSyncedWorkspace = refreshSyncedWorkspace;
 
@@ -1191,9 +1213,12 @@ function renderAccountCharactersList() {
       const isCurrent = idx === activeCharIndex;
       return `
     <div class="t-inset p-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div class="min-w-0 flex-1 flex items-center gap-2">
+      <button type="button" class="portrait-edit account-character-avatar shrink-0" data-avatar-edit="${escapeHTML(c.id)}" aria-label="Alterar imagem de ${escapeHTML(c.name)}">${avatarMarkup(c.avatar)}</button>
       <div class="min-w-0">
         <div class="font-rpg font-bold text-sm t-text-main break-words">${escapeHTML(c.name)} ${isCurrent ? '<span class="px-1.5 py-0.5 rounded badge-utilidade text-[9px] ml-1">Ativo</span>' : ""}</div>
         <div class="text-[11px] t-text-muted">${escapeHTML(c.race)} • ${clsStr} • PV: ${c.hpCurrent}/${c.hpMax}</div>
+      </div>
       </div>
       <div class="flex items-center justify-end gap-1.5 shrink-0">
         <button onclick="switchCharacter(${idx}); closeAuthAccountModal();" class="t-btn-primary px-3 py-1 rounded-lg font-bold text-xs">Abrir Ficha</button>
@@ -2000,11 +2025,13 @@ function renderAll() {
 
   ["pergaminho_claro", "pergaminho_escuro", "obsidiana"].forEach((th) => {
     const btn = document.getElementById(`themeBtn-${th}`);
-    if (btn)
+    if (btn) {
+      btn.setAttribute("aria-pressed", String(currentTheme === th));
       btn.className =
         currentTheme === th
-          ? "px-2 py-1 rounded font-bold t-btn-primary shadow-sm"
-          : "px-2 py-1 rounded font-semibold t-text-muted";
+          ? "display-choice px-2 py-1 rounded font-bold t-btn-primary shadow-sm"
+          : "display-choice px-2 py-1 rounded font-semibold t-text-muted";
+    }
   });
 
   [90, 100, 112, 125].forEach((sz) => {
@@ -2035,21 +2062,24 @@ function renderAll() {
   // ações de combate/evolução antes da primeira criação pelo assistente.
   document.querySelectorAll('[onclick="shortRest()"], [onclick="longRest()"], [onclick="openLevelUpModal()"], [onclick="openShopModal()"], #btnClassic, #btnModern').forEach(button => button.disabled = !char);
   document.getElementById('charSelect').disabled = !char;
+  document.getElementById('sheetDisplay').hidden = !char;
   if (!char) {
     const header = document.getElementById('headerSection');
     header.className = 't-card p-5 space-y-3';
-    header.innerHTML = '<h1 class="font-rpg text-xl font-bold t-text-accent">Crie sua primeira ficha</h1><p>Suas fichas ficam neste navegador. A sincronização entre dispositivos ainda não está disponível.</p><button class="t-btn-primary px-4 py-2 rounded font-bold" onclick="openNewCharacterModal()">Criar personagem</button>';
+    header.innerHTML = '<h1 class="font-rpg text-xl font-bold t-text-accent">Crie sua primeira ficha</h1><p>Comece pelo personagem que vai levar para a mesa. Confira o estado do salvamento no perfil.</p><button class="t-btn-primary px-4 py-2 rounded font-bold" onclick="openNewCharacterModal()">Criar personagem</button>';
     document.getElementById('sheetViewport').innerHTML = '';
     window.SizeMotion?.refresh();
     return;
   }
   const isModern = char.preferredLayout === "modern_2024";
+  document.getElementById("btnClassic").setAttribute("aria-pressed", String(!isModern));
+  document.getElementById("btnModern").setAttribute("aria-pressed", String(isModern));
   document.getElementById("btnClassic").className = !isModern
-    ? "px-2 py-1 rounded font-bold t-btn-primary"
-    : "px-2 py-1 rounded font-semibold t-text-muted";
+    ? "display-choice px-2 py-1 rounded font-bold t-btn-primary"
+    : "display-choice px-2 py-1 rounded font-semibold t-text-muted";
   document.getElementById("btnModern").className = isModern
-    ? "px-2 py-1 rounded font-bold t-btn-primary"
-    : "px-2 py-1 rounded font-semibold t-text-muted";
+    ? "display-choice px-2 py-1 rounded font-bold t-btn-primary"
+    : "display-choice px-2 py-1 rounded font-semibold t-text-muted";
 
   const tabConfigs = [
     { id: "main", label: "1. Atributos & Combate", icon: "shield" },
@@ -2100,9 +2130,7 @@ function renderHeader(char, isModern) {
   headerEl.innerHTML = `
   <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
     <div class="md:col-span-5 flex items-center gap-3">
-      <div class="w-12 h-12 rounded-xl t-inset flex items-center justify-center shrink-0">
-        <i data-lucide="scroll-text" class="w-6 h-6 t-text-accent"></i>
-      </div>
+      <button type="button" class="portrait-edit shrink-0" data-avatar-edit="${escapeHTML(char.id)}" aria-label="Alterar imagem de ${escapeHTML(char.name)}" title="Alterar imagem do personagem">${avatarMarkup(char.avatar)}</button>
       <div class="w-full">
         <div class="text-[10px] uppercase tracking-widest t-text-muted">D&D 5e • Jogador: ${escapeHTML(char.playerName)}${getSpellcastingHeader(char) ? ` • ${getSpellcastingHeader(char)}` : ""}</div>
         <input type="text" value="${escapeHTML(char.name)}" onchange="updateField('name', this.value)" class="bg-transparent text-2xl font-rpg font-bold t-text-main border-b t-border focus:outline-none w-full" />
@@ -2546,6 +2574,7 @@ function toggleSpellTwinned(name) {
 }
 function setLayout(mode) {
   // O seletor 2014/2024 troca o visual; não troca o conjunto de regras.
+  if (!["classic_2014", "modern_2024"].includes(mode) || !getChar() || getChar().preferredLayout === mode) return;
   getChar().preferredLayout = mode;
   recordStepAndSave(
     `Alternou layout para ${mode === "modern_2024" ? "2024" : "2014"}`,
@@ -2944,6 +2973,7 @@ Object.assign(window, {
   updatePoolDisplay,
   evaluateDicePool,
   rollCurrentPool,
+  rollQuickD20,
   triggerSheetRoll,
   openAuthAccountModal,
   closeAuthAccountModal,
@@ -3055,6 +3085,7 @@ document.addEventListener("keydown", (event) => {
   if (!document.getElementById("homebrewModal").classList.contains("hidden")) closeHomebrewModal();
 });
 
+diceDock = setupDiceDock(rollQuickD20, toggleDiceTrayMinimized);
 window.addEventListener("resize", renderDiceTrayState);
 const savedPlayer = readPreference('dnd_public_player_name') || 'Jogador';
 document.getElementById('currentUserBadge').textContent = savedPlayer;

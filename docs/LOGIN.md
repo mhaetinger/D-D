@@ -1,5 +1,25 @@
 # Login por e-mail e senha
 
+## Tela de entrada
+
+A página começa pela entrada principal do CritCall quando não há conta validada.
+Login, cadastro e recuperação compartilham o formulário já existente. O link
+**Esqueci a senha** aparece somente em **Entrar**. Ao validar
+a entrada, a interface abre as fichas da conta, ou a ação de criar a primeira.
+Sessão conhecida e cópia offline anteriormente validada reabrem esse espaço.
+Um retorno de recuperação mostra a nova senha na entrada antes de liberar a ficha.
+**Continuar sem alterar a senha** permite cancelar esse formulário sem enviar
+uma alteração ao serviço.
+
+A opção **Continuar sem conta** abre explicitamente o espaço local anterior.
+Ela fica mantida só nesta aba/caminho; sair da conta retorna à tela de entrada.
+Não há adoção automática de fichas sem login. Os avisos de dados ilegíveis e a
+recuperação com confirmação continuam disponíveis ao abrir o espaço local.
+
+O perfil mantém informações da conta, troca de senha, saída, personagens,
+backups e estado do salvamento. A entrada não substitui RLS ou validação da
+identidade, nem altera os retornos já configurados no serviço.
+
 ## Estado desta branch
 
 O responsável confirmou e-mail/senha em 15/10/2026 e pediu um projeto Supabase
@@ -168,7 +188,12 @@ códigos da mensagem. Documentação de
 
 ## Domínio próprio
 
-O usuário propôs `critcall.com.br`; registro e DNS ainda não foram configurados.
+O usuário confirmou a compra de `criticall.art` na Hostinger em 16/10/2026.
+Informou configurações feitas e DNS em verificação no GitHub. A API real aceitou
+o retorno `https://criticall.art/` e os dois retornos locais em 5174; um retorno
+não permitido recaiu no domínio novo (303). Usados tokens aleatórios inválidos,
+sem e-mails ou mudanças de senha. Site/HTTPS no Pages e login completo no domínio
+novo ainda não foram conferidos.
 O mesmo build usa caminhos relativos e é conferido tanto em `/D-D/` quanto em `/`.
 O retorno acompanha a origem/pasta em que o jogador iniciou o fluxo; o Supabase
 precisa autorizar a nova URL antes do teste real no domínio. A troca de origem

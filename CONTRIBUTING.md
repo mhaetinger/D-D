@@ -4,7 +4,7 @@
 
 | Branch | Uso |
 | --- | --- |
-| `main` | Versão pronta para publicação no GitHub Pages. |
+| `main` | Versão pronta para publicação no destino configurado. |
 | `develop` | Integração das mudanças antes da próxima entrega. |
 | `feature/<nome>` ou `fix/<nome>` | Uma funcionalidade ou correção, criada a partir de `develop`. |
 
@@ -74,6 +74,9 @@ build e `DND_TEST_ARTIFACTS` permite capturas opcionais.
 `public/rules/`; novos módulos ficam em `src/`. Fonte do Pages: **GitHub Actions**,
 com publicação de `dist/` somente após integração aprovada na `main`. Não publicar
 os fontes diretamente nem regenerar a exportação do protótipo sobre esta base.
+Cloudflare Pages pode ser selecionado com `DEPLOY_TARGET=cloudflare` após configurar
+o projeto e os Secrets conforme [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md). O job usa
+o mesmo artefato testado; sem essa variável, mantém GitHub Pages.
 PDF.js está fixado em `public/vendor/pdfjs/`; preservar seus avisos ao atualizar.
 
 ## Dados e manutenção
@@ -96,6 +99,9 @@ PDF.js está fixado em `public/vendor/pdfjs/`; preservar seus avisos ao atualiza
   dispositivos reais e publicação ainda pendentes.
   Salas não estão implementadas. PDFs não entram no download automático.
 
-O teste `npm run test:database` usa Docker com PostgreSQL 16 descartável, sem
-publicar portas ou consultar bancos existentes. Executá-lo ao alterar SQL/RLS/RPC.
+O teste `npm run test:database` usa Docker com PostgreSQL 16 descartável por padrão,
+sem publicar portas ou consultar bancos existentes. Também aceita
+`CRITCALL_TEST_POSTGRES_BIN` para criar outra instância descartável com binários
+locais, conforme o README. Inclui RPCs e políticas do Storage de imagens.
+Executá-lo ao alterar SQL/RLS/RPC.
 A CI também o exige. Não aplicar migrações ao Orbyt; conferir projeto CritCall.

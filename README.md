@@ -10,7 +10,9 @@ aberto em outro navegador/dispositivo, incompatível com o fluxo atual. Após a
 orientação, o usuário relatou sucesso na recuperação/troca no teste local em
 16/10/2026. Salvamento pessoal e sincronização estão implementados/testados nesta
 branch; a migração foi aplicada ao Supabase real em 16/10/2026. A validação
-entre dispositivos reais, ativação pública e SMTP próprio ainda aguardam.
+entre dispositivos reais e SMTP próprio ainda aguardam. O responsável autorizou
+a entrega em **https://criticall.art/** em 16/10/2026; o estado da implantação
+está nos [workflows](https://github.com/mhaetinger/D-D/actions).
 Consulte [docs/LOGIN.md](docs/LOGIN.md). Para continuar em outro computador,
 siga [docs/RETOMADA.md](docs/RETOMADA.md).
 
@@ -40,6 +42,50 @@ npm run preview
 
 Somente `dist/` é o artefato de publicação. Abrir `index.html` por `file://` não
 executa a aplicação; use o servidor de desenvolvimento ou o build via HTTP/HTTPS.
+
+## Entrada e aparência
+
+Sem uma sessão, a página abre a entrada do CritCall com login, cadastro e
+recuperação de senha. Depois de validar a conta, abre suas fichas ou a ação de
+criar a primeira. Uma sessão já conhecida reabre o espaço correspondente,
+inclusive a cópia offline validada anteriormente. A recuperação de senha usa a
+tela de entrada antes de voltar às fichas. A entrada usa um tema escuro de grimório, com textura discreta, letras claras e
+detalhes em dourado envelhecido. O símbolo enviado pelo responsável identifica
+a entrada, a barra da ficha e o ícone do aplicativo.
+
+**Continuar sem conta** mantém o acesso às fichas locais. A escolha dura nesta
+aba; ao sair de uma conta, a tela de entrada volta a aparecer. Nenhuma ficha do
+modo local é adotada automaticamente pela conta.
+
+Cores, textura, tamanho de fonte e dados são preferências do usuário. No modo
+local ficam neste navegador; na conta entram também na fila de sincronização.
+A exibição **Clássica (2014) / Moderna (2024)** fica dentro da ficha e é salva por
+personagem. As regras continuam sendo de 2014 com as adaptações da mesa. Trocar
+a exibição não converte regras, classes ou escolhas.
+
+## Dado flutuante e retratos
+
+O dado começa recolhido ao abrir a aplicação ou trocar de conta. Mostra **20**
+antes da primeira rolagem e depois o último total desta conta/aba. Clique para
+abrir a bandeja; arraste para reposicionar. Um arremesso rápido do ícone rola
+**um d20 normal**, sem bônus, vantagem ou alteração do pool já montado. A tecla
+**R** faz a mesma rolagem; as setas movem o ícone. A bandeja também oferece
+**Rolar d20 normal**. O modo OFF continua ocultando os dados.
+
+No perfil, use **Alterar imagem do perfil**. Em cada ficha, clique no retrato ao
+lado do nome, ou no retrato da lista de personagens. JPG/PNG/WebP de até **5 MB**
+são recortados no centro e convertidos no navegador para WebP de até **256 × 256**
+e **32 KB**; imagens acima de 32 MP/8192 px por lado são recusadas. O arquivo
+original e seus metadados não são enviados. SVG/GIF não são aceitos.
+
+As imagens usam Storage privado da conta; documentos/histórico guardam somente
+referências. O navegador mantém cópias em IndexedDB por espaço e pode enviar
+imagens escolhidas offline ao reconectar. Confira o envio no perfil. Uma imagem
+não disponível sem rede mantém o ícone padrão. Fotos locais sem login continuam
+separadas das contas. Os retratos não são embutidos no JSON do backup: as
+referências funcionam na mesma conta, mas não levam os arquivos a outra conta.
+A substituição usa o mesmo arquivo quando a referência não está compartilhada;
+a recuperação de uma versão da ficha não restaura pixels antigos no servidor.
 
 ## Salvamento e backups
 
@@ -126,10 +172,19 @@ aceita instalação externa por `DND_PLAYWRIGHT_MODULE`. Os testes de navegador 
 O teste de login compila um artefato temporário com projeto fictício e respostas
 HTTP controladas, sem criar usuários reais ou depender das credenciais do ambiente.
 
-`npm run test:database` requer Docker e usa PostgreSQL 16 descartável para
-verificar RLS, RPC e concorrência. A CI executa essa verificação adicional.
+`npm run test:database` usa PostgreSQL 16 descartável em Docker por padrão,
+verificando RLS/RPC, concorrência e as políticas de imagens. Sem Docker,
+`CRITCALL_TEST_POSTGRES_BIN=/caminho/dos/binarios npm run test:database` cria uma
+instância descartável com `initdb`/`pg_ctl`, sem TCP ou banco existente. Essa
+alternativa passou também com PostgreSQL 18.6. A CI mantém Docker/PostgreSQL 16.
 
 ## Desenvolvimento e publicação
+
+Migração para Cloudflare em preparação, após o usuário criar a conta. O roteiro
+está em [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md); a configuração de publicação
+descrita abaixo continua sendo a atual até a transição revisada. O workflow já
+aceita o destino opcional Cloudflare pelo mesmo artefato verificado; as variáveis
+e os Secrets necessários estão no roteiro. Nenhuma publicação foi ativada.
 
 Branches por tarefa seguem para `develop`; uma entrega revisada segue para
 `main`. Não fazer push direto à `main`. A pipeline verifica tipos, testes,
@@ -139,8 +194,11 @@ a raiz com os arquivos de desenvolvimento. A primeira versão já está em
 [mhaetinger.github.io/D-D](https://mhaetinger.github.io/D-D/), integrada pelas
 PRs #1/#2 e verificada em 15/10/2026. O login desta branch ainda aguarda ativação.
 
-O usuário propôs `critcall.com.br` para o acesso. Registro, DNS e ativação ainda
-estão pendentes; o procedimento está em [docs/DOMINIO.md](docs/DOMINIO.md).
+O usuário confirmou a compra de `criticall.art` na Hostinger em 16/10/2026.
+Confirmou OK no DNS check do GitHub e na Cloudflare. Consulta pública confirmou
+nameservers Cloudflare, HTTPS na raiz e retorno de `www`. A hospedagem ainda é
+GitHub Pages; migração para Cloudflare Pages e login no domínio aguardam validação.
+O retorno novo já foi aceito pelo Supabase. O procedimento está em [docs/DOMINIO.md](docs/DOMINIO.md).
 
 Veja [CONTRIBUTING.md](CONTRIBUTING.md) e [docs/ARQUITETURA.md](docs/ARQUITETURA.md)
 para os módulos, contratos, decisões e próximas etapas.

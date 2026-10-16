@@ -32,6 +32,7 @@ async function importBackup(page, value) {
     page.on("pageerror", (e) => errors.push(e.message));
     page.on("request", (r) => { if (/^https?:/.test(r.url()) && !r.url().startsWith(new URL(server.url).origin)) external.push(r.url()); });
     await page.goto(server.url, { waitUntil: "networkidle" });
+    await page.locator("#accessContinueLocal").click();
     assert.equal(await page.evaluate(() => getChar().name), char.name);
     assert.equal(await page.evaluate((key) => localStorage.getItem(key), LEGACY), old);
     assert.equal(await page.evaluate((key) => JSON.parse(localStorage.getItem(key)).schemaVersion, KEY), 1);
@@ -172,6 +173,7 @@ async function importBackup(page, value) {
     const damaged = await recovery.newPage();
     damaged.on("pageerror", (e) => errors.push(e.message));
     await damaged.goto(server.url, { waitUntil: "networkidle" });
+    await damaged.locator("#accessContinueLocal").click();
     assert.equal(await damaged.locator("#storageIssue").isVisible(), true);
     assert.equal(await damaged.evaluate((key) => localStorage.getItem(key), KEY), "{danificado");
     const recoveryDownload = damaged.waitForEvent("download");
@@ -192,9 +194,46 @@ async function importBackup(page, value) {
     const limited = await blocked.newPage();
     limited.on("pageerror", (e) => errors.push(e.message));
     await limited.goto(server.url, { waitUntil: "networkidle" });
+    await limited.locator("#accessContinueLocal").click();
     assert.equal(await limited.locator("#storageIssue").isVisible(), true);
     assert.equal(await limited.evaluate(() => characters.length), 0);
     await blocked.close();
+    // Regressão real de navegação: respostas .html redirecionadas eram guardadas,
+    // mas o Chromium recusava sua reutilização ao recarregar sem rede.
+    for (const prefix of ["/", "/D-D/"]) {
+      const clean = await serve(process.env.DND_TEST_ROOT || path.join(__dirname, "../dist"), prefix, { cleanHtml: true });
+      const visitor = await browser.newContext();
+      try {
+        await visitor.addInitScript((old) => {
+          if (!localStorage.getItem("testSeeded")) {
+            localStorage.setItem("dnd_sheet_public_v1", old);
+            localStorage.setItem("testSeeded", "true");
+          }
+        }, old);
+        const offline = await visitor.newPage();
+        await offline.goto(clean.url, { waitUntil: "networkidle" });
+        await offline.locator("#accessContinueLocal").click();
+        await offline.waitForFunction(() => !!navigator.serviceWorker.controller);
+        const entries = await offline.evaluate(async () => {
+          const cache = await caches.open((await caches.keys())[0]);
+          const response = await cache.match(new URL("index.html", location.href));
+          return { redirected: response.redirected, urls: (await cache.keys()).map((request) => request.url) };
+        });
+        assert.equal(entries.redirected, true, "servidor reproduz redirecionamento do Pages");
+        assert.ok(entries.urls.every((url) => !new URL(url).pathname.endsWith(".pdf") && new URL(url).origin === new URL(clean.url).origin));
+        await offline.evaluate(() => updateField("name", "Ficha offline na Cloudflare"));
+        await visitor.setOffline(true);
+        await offline.reload({ waitUntil: "networkidle" });
+        assert.equal(await offline.evaluate(() => getChar().name), "Ficha offline na Cloudflare");
+        await offline.goto(clean.url + "book#page=58", { waitUntil: "domcontentloaded" });
+        assert.equal(await offline.locator("#bookSelect").count(), 1, "estrutura do leitor abre sem baixar PDF");
+        await offline.goto(clean.url + "index.html", { waitUntil: "networkidle" });
+        assert.equal(await offline.evaluate(() => getChar().name), "Ficha offline na Cloudflare");
+      } finally {
+        await visitor.close();
+        await clean.close();
+      }
+    }
     assert.deepEqual(errors, []);
     console.log("PASS: build sem CDN, migração preservando legado, backups com notas opcionais, importação de cópias, texto não executável, recarga/evolução offline, perfis isolados, recuperação com cancelamento/confirmação e storage bloqueado.");
   } finally {

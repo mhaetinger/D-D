@@ -3,13 +3,10 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { randomUUID } = require('node:crypto');
-const { spawnSync, spawn } = require('node:child_process');
-const container = `critcall-sync-test-${randomUUID()}`;
-const image = process.env.CRITCALL_TEST_POSTGRES_IMAGE || 'postgres:16-alpine';
+const database = require('./postgres.cjs').postgres();
 const a = '11111111-1111-4111-8111-111111111111', b = '22222222-2222-4222-8222-222222222222';
-const run = (args, input) => spawnSync('docker', args, { input, encoding: 'utf8', maxBuffer: 1024 * 1024 });
 function sql(text, ok = true) {
-  const result = run(['exec','-i',container,'psql','-h','127.0.0.1','-U','postgres','-At','-v','ON_ERROR_STOP=1'], text);
+  const result = database.sql(text);
   if (ok) assert.equal(result.status, 0, result.stderr);
   else assert.notEqual(result.status, 0, 'operação proibida deveria falhar');
   return result.stdout.trim().split('\n').at(-1);
@@ -19,21 +16,14 @@ function save(owner, key, value, base, date, op = randomUUID(), kind = 'preferen
   return `select public.critcall_save_document('${owner}', '${key}', '${kind}', '${id}', '${JSON.stringify(value).replaceAll("'","''")}'::jsonb, ${base}, '${op}', '${date}');`;
 }
 const past = (seconds) => new Date(Date.now() - seconds * 1000).toISOString();
-async function concurrent(text) {
-  return new Promise((resolve,reject) => {
-    const child = spawn('docker',['exec','-i',container,'psql','-h','127.0.0.1','-U','postgres','-At','-v','ON_ERROR_STOP=1']);
-    let out='', err=''; child.stdout.on('data',part=>{out+=part;}); child.stderr.on('data',part=>{err+=part;});
-    child.on('error',reject); child.on('exit',code=>code === 0 ? resolve(out) : reject(new Error(err)));
-    child.stdin.end(text);
-  });
-}
+const concurrent = text => database.concurrent(text);
 (async () => {
   try {
-    const started = run(['run','--rm','--detach','--network','none','--name',container,'-e','POSTGRES_HOST_AUTH_METHOD=trust',image]);
+    const started = database.start();
     assert.equal(started.status,0,started.stderr);
     let ready = false;
     for (let n=0; n<80; n++) {
-      if (run(['exec',container,'pg_isready','-h','127.0.0.1','-U','postgres']).status === 0) { ready=true; break; }
+      if (database.ready().status === 0) { ready=true; break; }
       await new Promise(resolve=>setTimeout(resolve,250));
     }
     assert.equal(ready,true,'PostgreSQL não iniciou');
@@ -79,6 +69,33 @@ async function concurrent(text) {
     assert.equal(sql(as(a,"select count(*) from public.critcall_versions where document_key='note:concorrente';")),'3');
     sql(migration);
     assert.equal(sql(as(a,"select count(*) from public.critcall_versions where document_key='note:concorrente';")),'3','reaplicar migração preserva dados');
-    console.log('PASS PostgreSQL 16 real: RPC transacional/idempotente, datas, concorrência, tombstones, histórico de conflitos, notas separadas, RLS de duas contas e recusa de anon/escrita direta; migração reaplicável.');
-  } finally { run(['rm','--force',container]); }
+    // Estrutura mínima do serviço Storage para testar as políticas reais em Postgres.
+    sql(`create schema storage;
+      create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
+      create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text references storage.buckets,name text,metadata jsonb,unique(bucket_id,name));
+      create function storage.foldername(name text) returns text[] language sql immutable as $$select (string_to_array(name,'/'))[1:array_length(string_to_array(name,'/'),1)-1]$$;
+      alter table storage.objects enable row level security;
+      grant usage on schema storage to anon,authenticated;
+      grant select,insert,update,delete on storage.objects to anon,authenticated;`);
+    const avatars = fs.readFileSync(path.join(__dirname,'../supabase/migrations/20261016184740_private_avatars.sql'),'utf8');
+    sql(avatars);
+    assert.equal(sql("select (not public and file_size_limit=32768 and allowed_mime_types=array['image/webp'])::text from storage.buckets where id='critcall-avatars';"),'true');
+    const object = `${a}/33333333-3333-4333-8333-333333333333.webp`;
+    sql(as(a,`insert into storage.objects(bucket_id,name) values ('critcall-avatars','${object}');`));
+    assert.equal(sql(as(b,'select count(*) from storage.objects;')),'0');
+    assert.equal(sql('set role anon; select count(*) from storage.objects;'),'0');
+    sql(as(b,`insert into storage.objects(bucket_id,name) values ('critcall-avatars','${a}/44444444-4444-4444-8444-444444444444.webp');`),false);
+    sql(`set role anon; insert into storage.objects(bucket_id,name) values ('critcall-avatars','${a}/44444444-4444-4444-8444-444444444444.webp');`,false);
+    sql(as(a,`insert into storage.objects(bucket_id,name) values ('critcall-avatars','${a}/arquivo.svg');`),false);
+    sql(as(a,`update storage.objects set name='${b}/33333333-3333-4333-8333-333333333333.webp';`),false);
+    sql(as(a,`insert into storage.objects(bucket_id,name,metadata) values ('critcall-avatars','${object}','{"size":1234}') on conflict(bucket_id,name) do update set metadata=excluded.metadata;`));
+    sql(as(b,'delete from storage.objects;'));
+    assert.equal(sql(as(a,'select count(*) from storage.objects;')),'1');
+    sql(avatars);
+    assert.equal(sql(as(a,'select count(*) from storage.objects;')),'1','reaplicar não apaga imagens');
+    sql(as(a,'delete from storage.objects;'));
+    assert.equal(sql(as(a,'select count(*) from storage.objects;')),'0');
+    console.log('PASS Storage: bucket privado 32KB/WebP, duas contas isoladas, anon negado, upsert do dono, bloqueio de caminhos/extensões/mudança de dono e exclusão própria.');
+    console.log('PASS PostgreSQL descartável real: RPC transacional/idempotente, datas, concorrência, tombstones, histórico de conflitos, notas separadas, RLS de duas contas e recusa de anon/escrita direta; migração reaplicável.');
+  } finally { database.stop(); }
 })().catch(error=>{console.error(error);process.exitCode=1;});

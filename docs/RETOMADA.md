@@ -8,8 +8,13 @@ histórico da conversa. Leia também `AGENTS.md`, `README.md`, `CHANGELOG.md` e
 
 Repositório: https://github.com/mhaetinger/D-D.
 Branch em andamento: **`feature/login-email`**.
-[PR #3](https://github.com/mhaetinger/D-D/pull/3), em rascunho, para `develop`.
-`main` e `develop` ainda não contêm o login e a sincronização desta branch.
+[PR #3](https://github.com/mhaetinger/D-D/pull/3) reúne esta entrega para `develop`.
+Em 16/10/2026, o responsável autorizou publicar esta versão. A integração segue
+por PR para `develop` e depois para `main`, após as verificações. Consultar os
+[workflows](https://github.com/mhaetinger/D-D/actions) para o estado da publicação.
+Destino desta entrega: **https://criticall.art/**, no GitHub Pages existente.
+Cloudflare está ativa no DNS; hospedagem Pages e repositório privado continuam
+dependentes da configuração descrita em [CLOUDFLARE.md](CLOUDFLARE.md).
 
 Em uma pasta nova, com Node.js **22.12 ou superior** e Git:
 
@@ -96,19 +101,25 @@ links com tokens ou chaves secretas na conversa/Git.
    fichas/notas, offline/reconexão, conflito e restauração. Conferir isolamento
    com outra conta real. Não solicitar credenciais do usuário para fazer isso.
 2. Configurar SMTP próprio antes de liberar cadastro aos jogadores. O envio
-   padrão do Supabase ainda tem restrições. Revisar os avisos do serviço
+   padrão do Supabase ainda tem restrições. Usuário confirmou compra só do domínio,
+   sem e-mail; proposta de provedor em [DOMINIO.md](DOMINIO.md). Revisar os avisos do serviço
    registrados em [SINCRONIZACAO.md](SINCRONIZACAO.md).
-3. Após revisão/aprovação, integrar PR para `develop` e depois PR para `main`.
-   O pedido de salvar andamento no Git não autoriza merge/publicação. Não
-   fazer push direto à `main`. O site publicado ainda é a primeira versão,
-   https://mhaetinger.github.io/D-D/, sem login/sincronização desta branch.
-4. Domínio sugerido pelo usuário: **critcall.com.br**, ainda **não registrado**.
-   Compra, DNS, Pages e HTTPS pendentes; roteiro em [DOMINIO.md](DOMINIO.md).
-   Não comprar ou configurar um domínio ainda não pertencente ao usuário.
-5. Priorizar a base individual; mesas, permissões de mestre, retratos e voz/vídeo
+3. Acompanhar a entrega autorizada pelo responsável por PR para `develop` e
+   depois para `main`. Não fazer push direto à `main`. Conferir o workflow e a
+   entrada nova em https://criticall.art/ após a implantação.
+4. Domínio **criticall.art**, comprado pelo usuário na **Hostinger**, conforme
+   confirmação em 16/10/2026. Usuário informou configurações feitas e DNS em
+   verificação no GitHub. Os quatro A da raiz já estão corretos no servidor DNS;
+   o CNAME de `www` também foi corrigido para `mhaetinger.github.io`. Supabase
+   aceita o retorno novo. Usuário criou conta Cloudflare e quer preparar a
+   migração com código privado e crescimento por planos. Próximos passos em
+   [CLOUDFLARE.md](CLOUDFLARE.md). DNS e HTTPS já conferidos após o usuário confirmar
+   OK no GitHub/Cloudflare; a hospedagem continua GitHub Pages. Publicação nova pendente.
+   Preservar/exportar dados da origem anterior antes de ativar redirecionamentos.
+5. Priorizar a base individual; mesas, permissões de mestre e voz/vídeo
    são etapas seguintes. Nenhuma ficha individual depende de mesa.
 
-Site URL: `https://mhaetinger.github.io/D-D/`. Usuário confirmou retornos
+Site URL atual: `https://criticall.art/`. Usuário confirmou retornos
 permitidos `http://localhost:5174/` e `http://127.0.0.1:5174/`. Na máquina anterior,
 5173 é de outro aplicativo. As configurações administrativas de Auth/SMTP não
 foram alteradas por esta ativação do banco.
@@ -139,6 +150,113 @@ npm run test:database
 O último comando é separado de `check` e requer Docker. Não é requisito para
 abrir a aplicação. Não repetir toda a bateria apenas por mudanças documentais.
 
+### Verificação nesta máquina — 16/10/2026
+
+Após instalação limpa com `npm ci` e correção da recuperação da fila, passou
+`npm run check`: **171 testes**, tipos/build, configuração pública, cache offline
+e os cinco roteiros Chromium. Login e sincronização usam HTTP controlado nos testes;
+isso não substitui a conferência com contas/dispositivos reais.
+
+A falha foi reproduzida antes da correção: uma transação recusada podia fazer a
+tentativa seguinte ignorar a edição e carregar a versão anterior. A recuperação
+agora parte da projeção persistida. Três regressões Node e o roteiro Chromium
+cobrem a falha, inclusive uma tentativa já agendada e a preservação da atualização
+remota concorrente. Não foram apagados dados nem alterado o formato da fila.
+
+O Playwright fixado não reconheceu Ubuntu 26.04. A instalação do Chromium e os
+roteiros passaram usando `PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=ubuntu24.04-x64`
+nesses comandos, sem alterar as dependências do projeto. A CI continua no Ubuntu
+24.04. Docker não está instalado nesta máquina: `test:database` não foi repetido.
+Não houve alteração de SQL/RLS/RPC.
+
+Auditoria de produção sem alertas; os avisos da cadeia de desenvolvimento seguem
+documentados. O projeto Supabase correto foi confirmado ativo, com os avisos do
+serviço já registrados em SINCRONIZACAO.md. O destino de recuperação foi conferido
+no serviço real para domínio novo e retornos locais, sem usuários/e-mails envolvidos.
+Servidor de desenvolvimento iniciado em `http://localhost:5174/` para a conferência
+manual. Sincronização real, SMTP, HTTPS do site e publicação seguem pendentes.
+
 Texto para iniciar outra conversa: “Continue o CritCall na branch
 feature/login-email; leia AGENTS.md e docs/RETOMADA.md e confira o estado real
 antes de alterar. A migração Supabase personal_sync já foi aplicada.”
+
+### Preparação da publicação Cloudflare
+
+Workflow opcional implementado e ainda não ativado. Zona criada com nameservers
+`noel.ns.cloudflare.com` e `raegan.ns.cloudflare.com`; ativação confirmada pelo
+usuário e nameservers conferidos por consulta. Criar Pages Direct Upload com produção `main` e configurar os Secrets e
+Variables listados em [CLOUDFLARE.md](CLOUDFLARE.md). Preservar revisão por PR.
+Corrigida recarga offline com redirecionamentos HTML do Pages, incluindo `/book`.
+Não houve publicação, mudança de visibilidade ou envio de fontes nesta preparação.
+
+Verificação desta preparação: actionlint, diff, 171 testes Node, tipos/build,
+cinco roteiros Chromium e emulador local do Pages passaram. Teste de banco não
+repetido nesta máquina sem Docker; SQL/RLS/RPC permaneceram iguais.
+
+### Entrada principal e preferências visuais
+
+Pedido seguinte do usuário: abrir primeiro a tela de login com a marca enviada,
+antes de criar/abrir fichas; deixar 2014/2024 apenas como exibição dentro da ficha
+e conservar cores/texturas ao retornar. Implementação local em `src/auth/entry.ts`
+e `src/styles/access.css`; reutiliza o formulário existente de login/recuperação.
+`public/icons/logo.png` e `icon.png` foram enviados pelo responsável para uso aqui.
+Sem conta, a página agora mostra a entrada: escolher **Continuar sem conta** para
+acessar as fichas locais anteriores. Saída volta à entrada; sessão conhecida abre
+a ficha diretamente. Preferências continuam por conta, e exibição por personagem.
+Não houve mudança de banco, serviço de autenticação ou publicação nesta etapa.
+Repositório privado continua dependente da transição da hospedagem para Pages.
+
+Verificação da entrada: `npm run check` passou com 171 testes, tipos/build e os
+cinco roteiros Chromium. Os testes de auth cobrem `/` e `/D-D/`, entrada antes da
+ficha, recuperação/cancelamento e restauração visual por conta. A sincronização
+com HTTP simulado conferiu tema, textura, fonte e exibição em dois navegadores.
+Revisão visual da entrada em desktop/celular e ficha com textura concluída.
+Servidor local em 5174 continua respondendo; janela anônima mostra a nova entrada.
+
+### Tema escuro e DNS aprovado
+
+Usuário pediu entrada com aspecto de grimório antigo e paleta discreta/escura.
+Ajustados somente a apresentação da entrada e os registros desta retomada:
+textura procedural leve, tons de carvão/couro, texto em marfim e dourado envelhecido.
+Símbolo original preservado; nome CritCall em texto legível sobre fundo escuro.
+
+Usuário confirmou DNS check OK no GitHub e Cloudflare. Consulta pública confirmou
+nameservers Cloudflare; HTTPS 200 com certificado aceito em `criticall.art` e
+301 → 200 de `www` para a raiz. A hospedagem ainda responde como GitHub Pages.
+Criar/configurar Cloudflare Pages e concluir a transferência antes de tornar o
+repositório privado. Nenhuma mudança de DNS, hospedagem ou visibilidade nesta etapa.
+
+Verificação do tema: 171 testes Node, tipos/build e Chromium de auth em `/` e
+`/D-D/` passaram. Revisão visual desktop/celular e smoke 320px/fonte GG nos três
+modos de acesso, sem transbordamento. Conferidos contraste dos pares principais e
+preferências da ficha preservadas. Nenhuma alteração SQL/RLS/RPC nesta etapa.
+
+### Dado compacto e retratos — 16/10/2026
+
+Implementados dado fechado ao abrir/logar, último total (20 inicialmente), textura,
+arraste, arremesso rápido para d20 normal, clique para abrir e R/setas no teclado.
+O pool existente não é alterado pelo arremesso. Posição normalizada por espaço e
+limites do viewport; resultado só na aba. Código novo em `src/app/dice-dock.ts`.
+
+Usuário escolheu enviar imagens próprias com redução. Perfil e cada personagem
+aceitam JPG/PNG/WebP até 5 MB, limitados a 32 MP/8192 px. Conversão central para
+WebP de até 256 px/32 KiB antes do envio. `src/media/` mantém cache/fila IndexedDB
+por conta e arquivos no Storage privado; documentos guardam só referências.
+O JSON de backup não embute pixels; referências não transferem fotos a outra conta.
+Substituir não restaura versões binárias antigas ao recuperar histórico da ficha.
+
+Supabase CritCall `qhrpgkpvwbztubnrdhya` confirmado antes de alterar. Aplicada
+`private_avatars` (local `20261016184740_private_avatars.sql`, remota
+`20261016184938`), com bucket/limites/RLS conferidos. Não reaplicar para reconciliar
+os timestamps. Advisors anteriores permanecem; nenhuma mudança em outro projeto.
+Teste de banco passou em PostgreSQL 18.6 local descartável, pois Docker continua
+ausente. A CI mantém PostgreSQL 16/Docker. Instruções no README.
+
+Verificação final: 175 testes Node e tipos/build passaram. Os seis roteiros
+Chromium passaram (check completo com 174 testes, seguido do novo caso de arquivo
+com MIME disfarçado e build/dado). Imagens testadas com SDK real e HTTP simulado:
+dois navegadores, fila offline, conta B isolada, download atrasado após troca e
+cópia de ficha sem sobrescrever a foto original. Banco/RLS/storage passaram em
+PostgreSQL 18.6 local descartável. Revisão visual em celular/três temas/GG e dado
+compacto. Configuração do bucket real conferida; upload com conta/dispositivo real
+e publicação ainda aguardam validação do usuário. Servidor local segue em 5174.

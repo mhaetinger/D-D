@@ -54,3 +54,10 @@
   Consultar `docs/SINCRONIZACAO.md` e `docs/RETOMADA.md`; nunca aplicar ao Orbyt.
   Ao alterar SQL/RLS/RPC, executar `npm run test:database` (PostgreSQL descartável
   em Docker). Não anunciar salvamento remoto antes da confirmação do envio.
+
+- Retratos usam `src/media/`, cache privado IndexedDB e Storage `critcall-avatars`.
+  Migração `20261016184740_private_avatars.sql` aplicada somente ao CritCall em
+  16/10/2026 (remota `20261016184938`). Limites: entrada 5 MB/32 MP/8192 px;
+  WebP final até 256 px/32 KiB, bucket privado/RLS por dono. Não embutir pixels nos
+  documentos/histórico. JSON de backup guarda referências, não arquivos; preservar
+  isolamento e cópias. Não limpar imagens/caches automaticamente para corrigir falhas.

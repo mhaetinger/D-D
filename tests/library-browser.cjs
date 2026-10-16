@@ -118,6 +118,7 @@ const { serve } = require("./serve.cjs");
     const fresh = await browser.newPage();
     fresh.on("pageerror", (error) => errors.push(error.message));
     await fresh.goto(server.url, { waitUntil: "networkidle" });
+    await fresh.locator("#accessContinueLocal").click();
     assert.equal(await fresh.evaluate(() => characters.length), 0);
     await fresh.getByRole("button", { name: "Criar personagem", exact: true }).click();
     const wizard = fresh.locator("#characterWizard");

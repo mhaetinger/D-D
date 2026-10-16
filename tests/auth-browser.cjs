@@ -93,15 +93,25 @@ async function verify(prefix) {
     await page.goto(server.url, { waitUntil: 'networkidle' });
     await page.waitForFunction(() => typeof window.getChar === 'function');
     assert.equal(await page.evaluate(() => getChar().id), guest.id);
-    await page.evaluate(() => openAuthAccountModal());
+    assert.equal(await page.locator("#accessScreen").isVisible(), true);
+    assert.equal(await page.locator("#sheetApp").isVisible(), false);
+    assert.equal(await page.locator("#accountEmail").isVisible(), true);
+    assert.equal(await page.locator(".access-logo").evaluate(img => img.complete && img.naturalWidth > 0), true);
     async function login(email, pass = currentPasswords[email] || password) {
       await page.locator('[data-auth-mode="login"]').click();
       await page.locator('#accountEmail').fill(email);
       await page.locator('#accountPassword').fill(pass);
       await page.locator('#accountForm').getByRole('button', { name: 'Entrar', exact: true }).click();
+      await page.waitForFunction(() => document.querySelector('#accountAccess').getAttribute('aria-busy') === 'false');
+      if (await page.locator('#sheetApp').isVisible()) {
+        assert.equal(await page.locator('#accessScreen').isVisible(), false);
+        assert.equal(await page.locator('#dice3dTray').getAttribute('data-minimized'), 'true');
+        await page.evaluate(() => openAuthAccountModal());
+      }
     }
     await login('a@example.test', 'incorreta');
     await page.waitForFunction(() => document.querySelector('#accountAccessStatus').textContent.includes('inválidos'));
+    assert.equal(await page.locator('#sheetApp').isVisible(), false);
     assert.equal(await page.evaluate(() => getChar().id), guest.id);
     await login('confirmar@example.test');
     await page.waitForFunction(() => document.querySelector('#accountAccessStatus').textContent.includes('Confirme'));
@@ -123,6 +133,13 @@ async function verify(prefix) {
     await page.locator('#backupFile').setInputFiles({ name: 'teste.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(imported)) });
     await page.waitForFunction(() => characters.length === 1);
     const idA = await page.evaluate(() => getChar().id);
+    await page.evaluate(() => closeAuthAccountModal());
+    assert.equal(await page.locator('header #btnModern').count(), 0, 'exibição fica dentro da ficha');
+    await page.locator('#btnModern').click();
+    await page.locator('#themeBtn-pergaminho_escuro').click();
+    await page.locator('#backdropBtn-textured').click();
+    await page.locator('#fontBtn-112').click();
+    await page.evaluate(() => openAuthAccountModal());
     assert.notEqual(idA, guest.id);
     await page.locator('#accPlayerName').fill('Jogador A');
     await page.getByRole('button', { name: 'Salvar nome local', exact: true }).click();
@@ -130,6 +147,11 @@ async function verify(prefix) {
     await page.waitForFunction(() => typeof window.getChar === 'function');
     assert.equal(await page.evaluate(() => getChar().id), idA);
     assert.equal(await page.locator('#currentUserBadge').textContent(), 'Jogador A');
+    assert.equal(await page.locator('body').getAttribute('data-theme'), 'pergaminho_escuro');
+    assert.equal(await page.locator('body').getAttribute('data-backdrop'), 'textured');
+    assert.equal(await page.locator('#btnModern').getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.evaluate(() => getChar().preferredLayout), 'modern_2024');
+    assert.equal(await page.evaluate(() => document.documentElement.style.fontSize), '17.92px');
     await page.goto(server.url + 'index.html', { waitUntil: 'networkidle' });
     await page.waitForFunction(() => typeof window.getChar === 'function');
     assert.equal(await page.evaluate(() => getChar().id), idA, 'raiz e index.html compartilham a sessão');
@@ -139,12 +161,17 @@ async function verify(prefix) {
     assert.equal(await page.evaluate(() => readPrivateNotes(getChar().id)), 'Nota do espaço sem login');
     await login('b@example.test');
     await page.waitForFunction(() => characters.length === 0);
+    assert.equal(await page.locator('body').getAttribute('data-theme'), 'pergaminho_claro');
+    assert.equal(await page.locator('body').getAttribute('data-backdrop'), 'clean');
     assert.ok(!(await page.locator('#accountCharactersList').textContent()).includes('Ficha da conta A'));
     await page.locator('#accountSignOut').click();
     await page.waitForFunction((id) => getChar()?.id === id, guest.id);
     await login('a@example.test');
     await page.waitForFunction((id) => getChar()?.id === id, idA);
     assert.equal(await page.evaluate(() => readPrivateNotes(getChar().id)), 'Nota da conta A');
+    assert.equal(await page.locator('body').getAttribute('data-theme'), 'pergaminho_escuro');
+    assert.equal(await page.locator('body').getAttribute('data-backdrop'), 'textured');
+    assert.equal(await page.locator('#btnModern').getAttribute('aria-pressed'), 'true');
     await page.waitForFunction(() => !!navigator.serviceWorker.controller);
     await context.setOffline(true);
     await page.reload({ waitUntil: 'networkidle' });
@@ -156,13 +183,14 @@ async function verify(prefix) {
     await page.waitForFunction((id) => getChar()?.id === id, guest.id);
     await context.setOffline(false);
     await page.locator('[data-auth-mode="signup"]').click();
+    assert.equal(await page.locator('[data-auth-mode="reset"]').isVisible(), false);
     await page.locator('#accountEmail').fill('cadastro@example.test');
     await page.locator('#accountPassword').fill(password);
     await page.locator('#accountPasswordConfirm').fill('outra senha longa');
     for (const theme of ['pergaminho_claro', 'pergaminho_escuro', 'obsidiana']) {
       await page.setViewportSize({ width: 320, height: 800 });
       await page.evaluate((theme) => { setTheme(theme); setFontScale(125); }, theme);
-      const panel = page.locator('#authAccountModal > section');
+      const panel = page.locator('#accessScreen .access-card');
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
       assert.ok(await panel.evaluate((el) => el.scrollWidth <= el.clientWidth));
       await panel.evaluate((el) => { el.scrollTop = 0; });
@@ -170,13 +198,8 @@ async function verify(prefix) {
         fs.mkdirSync(process.env.DND_TEST_ARTIFACTS, { recursive: true });
         await page.screenshot({ path: path.join(process.env.DND_TEST_ARTIFACTS, `login-${theme}-320.png`) });
       }
-      await panel.evaluate((el) => { el.scrollTop = el.scrollHeight; });
-      const bounds = await panel.boundingBox();
-      const before = await page.evaluate(() => scrollY);
-      await page.mouse.move(bounds.x + bounds.width / 2, bounds.y + bounds.height - 15);
-      await page.mouse.wheel(0, 700);
-      await page.waitForTimeout(100);
-      assert.equal(await page.evaluate(() => scrollY), before, 'rodinha no limite do perfil não alcança a página');
+      await page.locator('#accountSubmit').scrollIntoViewIfNeeded();
+      assert.equal(await page.locator('#accountSubmit').isVisible(), true);
     }
     await page.setViewportSize({ width: 1440, height: 1000 });
     await page.evaluate(() => { setTheme('pergaminho_claro'); setFontScale(100); });
@@ -191,6 +214,7 @@ async function verify(prefix) {
     await page.locator('#accountSubmit').click();
     await page.waitForFunction(() => document.querySelector('#accountAccessStatus').textContent.includes('Confira seu e-mail'));
     assert.equal(await page.evaluate(() => getChar().id), guest.id, 'cadastro sem confirmação não entra na conta');
+    await page.locator('[data-auth-mode="login"]').click();
     await page.locator('[data-auth-mode="reset"]').click();
     await page.locator('#accountSubmit').click();
     await page.waitForFunction(() => document.querySelector('#accountAccessStatus').textContent.includes('Se o endereço'));
@@ -291,6 +315,7 @@ async function verify(prefix) {
     assert.equal(backup.privateNotes, undefined);
     await page.locator('#accountSwitchContinue').click();
     assert.equal(await page.evaluate(() => getChar().id), guest.id);
+    await page.locator('#accessContinueLocal').click();
     await page.evaluate(() => openNewCharacterModal());
     assert.equal(await page.locator('#characterWizard').isVisible(), true, 'o editor pode abrir depois da troca');
     await page.evaluate(() => CharacterWizard.close(true));
@@ -318,19 +343,29 @@ async function verify(prefix) {
     assert.ok((await page.locator('#accountAccessStatus').textContent()).includes('Este link expirou'));
     assert.equal(await page.evaluate(() => characters.length), 2, 'link expirado preserva a conta válida e suas fichas');
     assert.ok(!page.url().includes('error_'));
+    const passwordWrites = calls.filter(call => call.path.endsWith('/user') && call.method === 'PUT').length;
+    const canceledChange = await requestChange();
+    await page.goto(emailURL(canceledChange), { waitUntil: 'networkidle' });
+    assert.equal(await page.locator('#sheetApp').isVisible(), false, 'recuperação precede as fichas');
+    await page.locator('#accountCancelRecovery').click();
+    assert.equal(await page.locator('#sheetApp').isVisible(), true);
+    assert.equal(await page.locator('#accountAccessStatus').textContent(), 'Sua senha não foi alterada.');
+    assert.equal(calls.filter(call => call.path.endsWith('/user') && call.method === 'PUT').length, passwordWrites);
+    assert.equal(await page.evaluate(() => characters.length), 2);
     const fresh = await browser.newContext();
     await fresh.route(`${endpoint}/**`, route => route.abort());
     const wrongBrowser = await fresh.newPage();
     wrongBrowser.on('pageerror', error => errors.push(error.message));
     await wrongBrowser.goto(server.url + '?code=sem-verificador', { waitUntil: 'networkidle' });
-    await wrongBrowser.locator('#authAccountModal').waitFor({ state: 'visible' });
+    await wrongBrowser.locator('#accountAccessStatus').waitFor({ state: 'visible' });
+    assert.equal(await wrongBrowser.locator('#sheetApp').isVisible(), false);
     assert.ok((await wrongBrowser.locator('#accountAccessStatus').textContent()).includes('não foi encontrada neste navegador e endereço'));
     assert.ok(!(await wrongBrowser.locator('#accountAccessStatus').textContent()).includes('expirou'));
     assert.ok(!wrongBrowser.url().includes('code='));
     assert.equal(await wrongBrowser.evaluate(() => characters.length), 0);
     await fresh.close();
     assert.deepEqual(errors, []);
-    console.log(`PASS ${prefix}: SDK real com HTTP simulado; cadastro/confirmação, PKCE/recuperação, contas A/B/local, offline, editores, links expirados/outro navegador, SMTP restrito e três temas/320px/GG; sem erros JS.`);
+    console.log(`PASS ${prefix}: entrada principal, logo, cadastro/confirmação, PKCE/recuperação/cancelamento, contas A/B/local, preferências por conta e layout por ficha após recarga, offline, editores, links expirados/outro navegador, SMTP restrito e três temas/320px/GG; SDK real com HTTP simulado, sem erros JS.`);
   } catch (error) {
     if (page && !page.isClosed()) {
       console.error('Estado do formulário:', await page.locator('#accountAccessStatus').textContent());
