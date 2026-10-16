@@ -61,8 +61,8 @@ configuração pública revisada `src/auth/public-project.ts`, incluída no buil
 Os fluxos usam Supabase JS 2.118.0. Ferramentas conferiram API real e recusa de
 credenciais inexistentes, sem cadastrar ou enviar e-mails. O usuário confirmou
 cadastro, confirmação e entrada reais. Os dois retornos locais em 5174 foram
-aceitos pelo endpoint real após o ajuste de localhost; recuperação/troca reais
-ainda não foram confirmadas.
+aceitos pelo endpoint real após o ajuste de localhost. O usuário relatou recusa
+do link de recuperação; a causa real segue em investigação, sem conclusão da troca.
 Orbyt é outro projeto do responsável e permanece separado. O
 aplicativo tem os identificadores públicos do CritCall incluídos; o modo local
 pode ser escolhido com `VITE_AUTH_ENABLED=false`. O bootstrap valida a identidade
@@ -91,6 +91,9 @@ usuários. Links inválidos não encerram uma conta válida já aberta; a mensag
 entrada depende da conferência da identidade, além da resposta de token. A conta
 conectada pode solicitar um link de troca de senha para seu próprio e-mail
 validado; a conclusão usa o mesmo retorno PKCE da recuperação.
+Erros do retorno distinguem expiração no serviço, solicitação indisponível,
+verificador incompatível e ausência da solicitação no navegador/endereço. Nenhum
+desses avisos expõe o código de acesso, token ou texto bruto vindo da URL.
 
 O domínio próprio proposto é `critcall.com.br`, ainda sem registro/DNS configurados.
 Caminhos relativos e retornos pela origem atual funcionam sob `/D-D/` e `/` nos

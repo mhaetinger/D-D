@@ -26,8 +26,10 @@ automatizada. Depois, o usuário confirmou que criou a conta, recebeu/abriu a
 confirmação e conseguiu entrar. Confirmou que iniciou em `http://localhost:5174/`
 e foi levado a `https://mhaetinger.github.io/D-D/`. Após acrescentar localhost à
 lista permitida, o endpoint real voltou a aceitar essa origem local para
-confirmação e recuperação. Entrega/troca reais da recuperação continuam pendentes. Reenvio e recuperação/troca de senha reais ainda não
-foram confirmados pelo usuário.
+confirmação e recuperação. No teste seguinte, o usuário relatou a mensagem
+genérica de link expirado/outro navegador e retorno ao formulário de entrada.
+Essa mensagem antiga reunia causas diferentes e não identifica a falha real.
+Recuperação/troca e reenvio reais continuam sem validação concluída.
 
 Fichas e anotações continuam neste navegador. Autenticação e sincronização são
 etapas distintas: não há tabelas remotas de personagens, fila de envio ou
@@ -95,8 +97,10 @@ Para usar o retorno local configurado, iniciar com
 `npm run dev -- --port 5174 --strictPort`. A opção impede trocar silenciosamente
 de porta e invalidar o retorno de confirmação/recuperação.
 
-Um link expirado ou aberto sem o verificador PKCE deste navegador mostra uma
-mensagem e limpa os parâmetros do retorno. A falha do link preserva uma sessão
+O retorno diferencia expiração/uso do link, solicitação indisponível no serviço,
+verificador incompatível e solicitação ausente neste navegador/endereço. Ausência
+local não é tratada como prova de expiração. Os parâmetros são limpos, sem
+exibir erros brutos, códigos de acesso ou tokens. A falha do link preserva uma sessão
 válida que já esteja aberta. A interface só confirma entrada depois de validar
 a identidade no serviço. A restrição de envio de e-mail do Supabase tem mensagem
 própria, sem mostrar erros brutos ou credenciais ao jogador.
@@ -111,10 +115,20 @@ própria, sem mostrar erros brutos ou credenciais ao jogador.
   identidade validada, independentemente do que ficou digitado no formulário.
   Não exige sair; o link abre o mesmo formulário de recuperação/troca.
 
-Os três envios usam o retorno da origem/pasta atual. Os testes com SDK real e
-HTTP controlado conferem reenvio com PKCE, recuperação, troca por quem já entrou,
-recusa da senha anterior e entrada com a nova no provedor simulado. Isso não
-substitui a conferência de entrega e troca de senha no serviço real.
+Os três envios usam o retorno da origem/pasta atual. Pedir outro e-mail antes de
+concluir o anterior substitui o verificador usado pelo SDK neste navegador:
+usar somente o link mais recente. Não alternar localhost/127.0.0.1, dispositivo,
+perfil do navegador ou janela privada durante a solicitação.
+
+O provedor simulado dos testes passou a conferir o código emitido e o desafio
+PKCE, com prazo e uso único. Antes, aceitava qualquer código e não comprovava
+essas recusas. Isso não substitui a conferência de entrega e troca de senha no
+serviço real. Se um link recém-emitido falhar no endereço/navegador correto,
+conferir o código de erro no serviço sem registrar o link: o Supabase também
+documenta consumo antecipado por verificadores de e-mail em
+[limitações dos templates](https://supabase.com/docs/guides/auth/auth-email-templates#email-prefetching).
+Essa possibilidade não foi confirmada neste caso; não alterar templates ou
+desativar confirmação com base apenas no aviso genérico.
 
 ### Diferença entre localhost e 127.0.0.1
 

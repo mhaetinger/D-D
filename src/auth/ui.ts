@@ -109,12 +109,15 @@ export function setupAccountUI(account: AccountSession) {
     } catch { result.textContent = "Não foi possível gerar o backup. Os dados anteriores continuam preservados nesta aba."; }
   });
   for (const button of panel.querySelectorAll<HTMLButtonElement>("[data-auth-mode]")) button.addEventListener("click", () => {
-    if (!busy) { message(""); setMode(button.dataset.authMode as AccessMode); }
+    if (!busy) { account.message = ""; message(""); setMode(button.dataset.authMode as AccessMode); }
   });
   const redirectTo = () => new URL("./", document.baseURI).href;
   async function run(action: () => Promise<void>, allowOffline = false) {
     if (busy || !account.client) return;
     if (!navigator.onLine && !allowOffline) { message("Conecte-se à internet para continuar.", true); return; }
+    // O erro do retorno já foi apresentado. Uma nova tentativa deve mostrar
+    // seu próprio resultado, sem o render restaurar o aviso do link anterior.
+    account.message = "";
     busy = true; render(); message("");
     try { await action(); }
     catch (error) { message(authErrorMessage(error), true); }

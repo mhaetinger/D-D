@@ -70,7 +70,7 @@ export class AccountSession extends EventTarget {
       // Erros do retorno são mostrados sem invalidar uma conta já conectada.
       const unhandledCode = returned.searchParams.has("code");
       if (error || unhandledCode) {
-        this.message = authErrorMessage(error || { code: "bad_code_verifier" });
+        this.message = authErrorMessage(error || { code: "pkce_verifier_not_found" });
         for (const key of ["code", "error", "error_code", "error_description"]) returned.searchParams.delete(key);
         const hash = new URLSearchParams(returned.hash.slice(1));
         if (["error", "error_code", "error_description"].some(key => hash.has(key))) returned.hash = "";
@@ -159,7 +159,13 @@ export function authErrorMessage(error: unknown): string {
   if (code === "email_not_confirmed") return "Confirme seu e-mail antes de entrar. Você pode solicitar outra mensagem abaixo.";
   if (code === "weak_password") return "A senha não atende aos requisitos. Use uma senha longa e diferente de outras contas.";
   if (["over_request_rate_limit", "over_email_send_rate_limit", "email_rate_limit_exceeded"].includes(code || "")) return "Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.";
-  if (["otp_expired", "flow_state_expired", "flow_state_not_found", "bad_code_verifier", "pkce_verifier_not_found"].includes(code || "")) return "O link expirou ou foi aberto em outro navegador. Solicite um novo link e abra-o neste navegador.";
+  // Expiração vem do serviço. A ausência local do verificador não prova que
+  // o link venceu: localhost, 127.0.0.1 e outros navegadores têm dados separados.
+  if (code === "otp_expired") return "Este link expirou ou já foi usado. Solicite um novo e-mail e abra o link mais recente.";
+  if (code === "flow_state_expired") return "O prazo para concluir este acesso expirou. Solicite um novo link.";
+  if (code === "flow_state_not_found") return "Esta solicitação de acesso não está mais disponível. Ela pode ter sido concluída ou expirado. Solicite um novo link.";
+  if (code === "bad_code_verifier") return "Este link não corresponde à solicitação guardada neste navegador. Use o e-mail mais recente e o mesmo navegador e endereço onde pediu o link.";
+  if (code === "pkce_verifier_not_found") return "A solicitação deste link não foi encontrada neste navegador e endereço. Volte ao endereço onde pediu o e-mail ou solicite outro link aqui e abra-o no mesmo navegador.";
   if (code === "email_address_not_authorized") return "O envio de e-mails para este endereço ainda não está disponível. Avise o responsável pelo CritCall.";
   return "Não foi possível concluir. Confira a conexão e os dados informados e tente novamente.";
 }

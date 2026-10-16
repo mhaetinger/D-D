@@ -2,6 +2,30 @@
 
 ## Não lançado
 
+### Recuperação: causas distintas e resultado de novas tentativas — 2026-10-15
+
+- Usuário relatou recusa do link real após autorizar localhost, com o aviso
+  genérico de expiração/outro navegador. O texto antigo reunia causas distintas;
+  não permite identificar a causa deste relato. Troca real continua pendente.
+- Retorno agora diferencia link expirado/usado, prazo encerrado, solicitação
+  indisponível no serviço, verificador incompatível e solicitação ausente neste
+  navegador/endereço. Falta local do verificador não é chamada de expiração.
+  Mantidas limpeza do retorno e preservação de sessões/fichas existentes.
+- Corrigido aviso antigo que reaparecia ao renderizar o perfil e escondia o
+  resultado de novas tentativas de entrada/envio. Falha reproduzida no roteiro
+  ampliado e corrigida ao iniciar outra ação ou mudar o modo do formulário.
+- Provedor simulado passa a conferir códigos emitidos, desafio SHA-256 do PKCE,
+  prazo e uso único. Antes, aceitava qualquer código. Acrescentadas verificações
+  de outra aba no mesmo navegador, link reaberto, solicitações sobrepostas,
+  prazo encerrado e código desconhecido, preservando a conta já validada.
+- Verificação desta alteração: **155 testes Node**, tipos/build e roteiro
+  Chromium de login em `/D-D/` e `/` passaram, com três temas em 320 px/GG e
+  sem erros JS. Diff conferido. Outros três roteiros completos de navegador
+  permanecem validação anterior; não foram repetidos por esta correção de login.
+- Nenhum e-mail real enviado ou senha alterada por ferramenta. Origem final e
+  navegador usados no link real ainda não foram confirmados pelo usuário nesta
+  investigação. Sem mudança administrativa, merge ou publicação.
+
 ### Retorno de localhost autorizado e conferido — 2026-10-15
 
 - Usuário adicionou `http://localhost:5174/` em Redirect URLs do Supabase e

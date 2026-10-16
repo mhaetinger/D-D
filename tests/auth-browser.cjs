@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { createHash } = require('node:crypto');
 const { chromium } = require(process.env.DND_PLAYWRIGHT_MODULE || 'playwright');
 const { serve } = require('./serve.cjs');
 const { warrior } = require('./fixture.cjs');
@@ -33,7 +34,14 @@ async function verify(prefix) {
     server = await serve(directory, prefix);
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
-    const calls = [], errors = [];
+    const calls = [], errors = [], emailLinks = [];
+    // Cada e-mail simulado pertence ao desafio enviado pelo SDK. Código
+    // inventado, expirado, reutilizado ou com outro verificador deve falhar.
+    const emailURL = (link) => {
+      const url = new URL(link.redirectTo);
+      url.searchParams.set('code', link.code);
+      return url.href;
+    };
     const currentPasswords = { 'a@example.test': password, 'b@example.test': password };
     let revoked = false;
     await context.route(`${endpoint}/**`, async (route) => {
@@ -44,7 +52,15 @@ async function verify(prefix) {
       const respond = (value, status = 200) => route.fulfill({ status, contentType: 'application/json', headers, body: JSON.stringify(value) });
       if (request.method() === 'OPTIONS') return route.fulfill({ status: 204, headers });
       if (url.pathname.endsWith('/token')) {
-        if (url.searchParams.get('grant_type') === 'pkce') return respond(session('a'));
+        if (url.searchParams.get('grant_type') === 'pkce') {
+          const link = emailLinks.find(link => link.code === body.auth_code);
+          if (!link || link.used) return respond({ code: 'flow_state_not_found', msg: 'Flow not found' }, 400);
+          link.used = true;
+          if (link.expired) return respond({ code: 'flow_state_expired', msg: 'Flow expired' }, 400);
+          const challenge = link.method === 's256' ? createHash('sha256').update(body.code_verifier || '').digest('base64url') : body.code_verifier;
+          if (challenge !== link.challenge) return respond({ code: 'bad_code_verifier', msg: 'Code verifier mismatch' }, 400);
+          return respond(session(link.email === 'b@example.test' ? 'b' : 'a'));
+        }
         if (body.email === 'confirmar@example.test') return respond({ code: 'email_not_confirmed', msg: 'Email not confirmed' }, 400);
         const key = body.email === 'a@example.test' ? 'a' : body.email === 'b@example.test' ? 'b' : null;
         return key && body.password === currentPasswords[body.email] ? respond(session(key)) : respond({ code: 'invalid_credentials', msg: 'Invalid login credentials' }, 400);
@@ -56,7 +72,11 @@ async function verify(prefix) {
       }
       if (url.pathname.endsWith('/signup')) return body.email === 'smtp@example.test'
         ? respond({ code: 'email_address_not_authorized', msg: 'Email address not authorized' }, 403) : respond(user('a'));
-      if (/\/(recover|resend)$/.test(url.pathname)) return respond({});
+      if (/\/(recover|resend)$/.test(url.pathname)) {
+        assert.ok(body.code_challenge, 'o envio precisa guardar um desafio PKCE');
+        emailLinks.push({ code: `email-de-teste-${emailLinks.length}`, email: body.email, challenge: body.code_challenge, method: body.code_challenge_method, redirectTo: url.searchParams.get('redirect_to'), used: false, expired: false });
+        return respond({});
+      }
       if (url.pathname.endsWith('/logout')) return route.fulfill({ status: 204, headers });
       return respond({ message: 'Rota inesperada no teste' }, 500);
     });
@@ -74,12 +94,11 @@ async function verify(prefix) {
     await page.waitForFunction(() => typeof window.getChar === 'function');
     assert.equal(await page.evaluate(() => getChar().id), guest.id);
     await page.evaluate(() => openAuthAccountModal());
-    const form = page.locator('#accountForm');
     async function login(email, pass = currentPasswords[email] || password) {
       await page.locator('[data-auth-mode="login"]').click();
       await page.locator('#accountEmail').fill(email);
       await page.locator('#accountPassword').fill(pass);
-      await form.getByRole('button', { name: 'Entrar', exact: true }).click();
+      await page.locator('#accountForm').getByRole('button', { name: 'Entrar', exact: true }).click();
     }
     await login('a@example.test', 'incorreta');
     await page.waitForFunction(() => document.querySelector('#accountAccessStatus').textContent.includes('inválidos'));
@@ -175,7 +194,13 @@ async function verify(prefix) {
     await page.locator('[data-auth-mode="reset"]').click();
     await page.locator('#accountSubmit').click();
     await page.waitForFunction(() => document.querySelector('#accountAccessStatus').textContent.includes('Se o endereço'));
-    await page.goto(server.url + '?code=recuperacao-de-teste', { waitUntil: 'networkidle' });
+    const firstRecovery = emailLinks.at(-1);
+    // Clientes de e-mail normalmente abrem outra aba do mesmo navegador.
+    const original = page;
+    page = await context.newPage();
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto(emailURL(firstRecovery), { waitUntil: 'networkidle' });
+    await original.close();
     await page.waitForFunction(() => typeof window.getChar === 'function');
     await page.locator('#accountSubmit').waitFor({ state: 'visible' });
     assert.equal(await page.locator('#accountSubmit').textContent(), 'Salvar nova senha');
@@ -190,13 +215,50 @@ async function verify(prefix) {
     const changeRequest = calls.filter(call => call.path.endsWith('/recover')).at(-1);
     assert.equal(changeRequest.body.email, 'a@example.test', 'troca usa o endereço da identidade, não um campo antigo do formulário');
     assert.ok(changeRequest.body.code_challenge);
-    await page.goto(server.url + '?code=troca-de-senha-de-teste', { waitUntil: 'networkidle' });
+    const changeLink = emailLinks.at(-1);
+    await page.goto(emailURL(changeLink), { waitUntil: 'networkidle' });
     await page.locator('#accountSubmit').waitFor({ state: 'visible' });
     assert.equal(await page.locator('#accountSubmit').textContent(), 'Salvar nova senha');
     await page.locator('#accountPassword').fill('Outra senha de teste 456!');
     await page.locator('#accountPasswordConfirm').fill('Outra senha de teste 456!');
     await page.locator('#accountSubmit').click();
     await page.waitForFunction(() => document.querySelector('#accountAccessStatus').textContent.includes('Senha atualizada'));
+    assert.equal(changeLink.used, true);
+    // Reabrir o mesmo e-mail não deve invalidar a conta que acabou de trocar.
+    await page.goto(emailURL(changeLink), { waitUntil: 'networkidle' });
+    await page.locator('#authAccountModal').waitFor({ state: 'visible' });
+    assert.ok((await page.locator('#accountAccessStatus').textContent()).includes('não foi encontrada'));
+    assert.ok(!(await page.locator('#accountAccessStatus').textContent()).includes('expirou'));
+    assert.equal(await page.evaluate(() => getChar()?.id), idA);
+
+    // Duas solicitações sem concluir sobrescrevem o verificador legado do SDK.
+    // A falha de correspondência é diferente de uma expiração no serviço.
+    async function requestChange() {
+      const previous = emailLinks.length;
+      await page.locator('#accountChangePassword').click();
+      await page.waitForFunction(() => document.querySelector('#accountAccess').getAttribute('aria-busy') === 'false');
+      assert.equal(emailLinks.length, previous + 1);
+      assert.ok((await page.locator('#accountAccessStatus').textContent()).includes('Confira seu e-mail para trocar'), 'aviso do link anterior não esconde o resultado da nova solicitação');
+      return emailLinks.at(-1);
+    }
+    const superseded = await requestChange();
+    await requestChange();
+    await page.goto(emailURL(superseded), { waitUntil: 'networkidle' });
+    await page.locator('#authAccountModal').waitFor({ state: 'visible' });
+    assert.ok((await page.locator('#accountAccessStatus').textContent()).includes('não corresponde'));
+    assert.equal(await page.evaluate(() => getChar()?.id), idA, 'verificador incompatível não encerra a conta');
+
+    const expired = await requestChange(); expired.expired = true;
+    await page.goto(emailURL(expired), { waitUntil: 'networkidle' });
+    await page.locator('#authAccountModal').waitFor({ state: 'visible' });
+    assert.ok((await page.locator('#accountAccessStatus').textContent()).includes('prazo'));
+    assert.equal(await page.evaluate(() => getChar()?.id), idA, 'prazo do link não invalida a sessão aberta');
+
+    const unknown = await requestChange();
+    await page.goto(emailURL({ ...unknown, code: 'codigo-que-nao-foi-emitido' }), { waitUntil: 'networkidle' });
+    await page.locator('#authAccountModal').waitFor({ state: 'visible' });
+    assert.ok((await page.locator('#accountAccessStatus').textContent()).includes('não está mais disponível'));
+    assert.equal(await page.evaluate(() => getChar()?.id), idA);
     await page.locator('#accountSignOut').click();
     await page.waitForFunction((id) => getChar()?.id === id, guest.id);
     await login('a@example.test', password);
@@ -253,7 +315,7 @@ async function verify(prefix) {
     assert.equal(await page.evaluate((pass) => Object.values(localStorage).some((value) => value.includes(pass)), password), false);
     await page.goto(server.url + '?error=access_denied&error_code=otp_expired&error_description=texto-nao-confiavel', { waitUntil: 'networkidle' });
     await page.locator('#authAccountModal').waitFor({ state: 'visible' });
-    assert.ok((await page.locator('#accountAccessStatus').textContent()).includes('O link expirou'));
+    assert.ok((await page.locator('#accountAccessStatus').textContent()).includes('Este link expirou'));
     assert.equal(await page.evaluate(() => characters.length), 2, 'link expirado preserva a conta válida e suas fichas');
     assert.ok(!page.url().includes('error_'));
     const fresh = await browser.newContext();
@@ -262,7 +324,8 @@ async function verify(prefix) {
     wrongBrowser.on('pageerror', error => errors.push(error.message));
     await wrongBrowser.goto(server.url + '?code=sem-verificador', { waitUntil: 'networkidle' });
     await wrongBrowser.locator('#authAccountModal').waitFor({ state: 'visible' });
-    assert.ok((await wrongBrowser.locator('#accountAccessStatus').textContent()).includes('outro navegador'));
+    assert.ok((await wrongBrowser.locator('#accountAccessStatus').textContent()).includes('não foi encontrada neste navegador e endereço'));
+    assert.ok(!(await wrongBrowser.locator('#accountAccessStatus').textContent()).includes('expirou'));
     assert.ok(!wrongBrowser.url().includes('code='));
     assert.equal(await wrongBrowser.evaluate(() => characters.length), 0);
     await fresh.close();
