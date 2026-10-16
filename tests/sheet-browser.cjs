@@ -15,6 +15,9 @@ const { serve } = require("./serve.cjs");
     page.on("pageerror", (e) => errors.push(e.message));
     const url = server.url;
     await page.goto(url, { waitUntil: "networkidle" });
+    assert.equal(await page.locator("#accessScreen").isVisible(), true);
+    assert.equal(await page.locator("#sheetApp").isVisible(), false);
+    await page.locator("#accessContinueLocal").click();
     assert.equal(await page.evaluate(() => characters.length), 0);
     await page
       .getByRole("button", { name: "Criar personagem", exact: true })

@@ -1,5 +1,11 @@
 # Orientações para manutenção
 
+- Este é o projeto **CritCall**. **Orbyt** é outro projeto do responsável:
+  não usar esse nome, banco ou configuração de autenticação nesta aplicação.
+  O usuário informou que já criou um projeto Supabase novo para CritCall; conferir
+  sua URL/identificador antes de conectar ou alterar o serviço.
+  Chaves/formato de backup publicados com `orbyt` são legados da nomeação
+  equivocada; preservar compatibilidade até uma migração testada.
 - Ler `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md` e `docs/ARQUITETURA.md` antes de alterar.
 - Trabalhar em `feature/*` ou `fix/*` a partir de `develop`. Usar pull requests
   para `develop` e, depois de verificar a entrega, para `main`. Não fazer push
@@ -40,3 +46,18 @@
 - Não declarar autenticação, privacidade por conta ou sincronização
   enquanto esses recursos não existirem. Tratar textos inseridos como dados não
   confiáveis e manter credenciais fora do código publicado.
+
+- Sincronização pessoal foi implementada em `src/sync/`, com migração em
+  `supabase/migrations/`. A migração foi aplicada ao projeto exclusivo CritCall
+  `qhrpgkpvwbztubnrdhya` em 16/10/2026 (versão remota `20261016101143`);
+  sincronização entre dispositivos reais e publicação ainda não validadas.
+  Consultar `docs/SINCRONIZACAO.md` e `docs/RETOMADA.md`; nunca aplicar ao Orbyt.
+  Ao alterar SQL/RLS/RPC, executar `npm run test:database` (PostgreSQL descartável
+  em Docker). Não anunciar salvamento remoto antes da confirmação do envio.
+
+- Retratos usam `src/media/`, cache privado IndexedDB e Storage `critcall-avatars`.
+  Migração `20261016184740_private_avatars.sql` aplicada somente ao CritCall em
+  16/10/2026 (remota `20261016184938`). Limites: entrada 5 MB/32 MP/8192 px;
+  WebP final até 256 px/32 KiB, bucket privado/RLS por dono. Não embutir pixels nos
+  documentos/histórico. JSON de backup guarda referências, não arquivos; preservar
+  isolamento e cópias. Não limpar imagens/caches automaticamente para corrigir falhas.

@@ -1,4 +1,20 @@
-# Orbyt · Fichas D&D
+# CritCall
+
+Este aplicativo se chama CritCall e é dedicado às fichas de D&D. Orbyt é outro
+projeto do responsável e usa infraestrutura separada. O projeto Supabase novo
+do CritCall foi identificado e configurado localmente. A conexão com a API foi
+conferida. O build já inclui a configuração pública, sem variables do GitHub;
+o usuário confirmou cadastro, confirmação de e-mail e entrada no teste local.
+Os retornos locais foram corrigidos e conferidos. O link de recuperação foi
+aberto em outro navegador/dispositivo, incompatível com o fluxo atual. Após a
+orientação, o usuário relatou sucesso na recuperação/troca no teste local em
+16/10/2026. Salvamento pessoal e sincronização estão implementados/testados nesta
+branch; a migração foi aplicada ao Supabase real em 16/10/2026. A validação
+entre dispositivos reais e SMTP próprio ainda aguardam. O responsável autorizou
+a entrega em **https://criticall.art/** em 16/10/2026; o estado da implantação
+está nos [workflows](https://github.com/mhaetinger/D-D/actions).
+Consulte [docs/LOGIN.md](docs/LOGIN.md). Para continuar em outro computador,
+siga [docs/RETOMADA.md](docs/RETOMADA.md).
 
 Aplicação de fichas individuais de D&D 5e, com criador, evolução, multiclasse,
 grimório, inventário, anotações pessoais e consulta aos livros da mesa.
@@ -10,10 +26,11 @@ Use Node.js 22.12 ou superior (a série 22 está em `.nvmrc`) e npm:
 
 ```sh
 npm ci
-npm run dev
+npm run dev -- --port 5174 --strictPort
 ```
 
-Abra o endereço local mostrado pelo Vite, normalmente `http://127.0.0.1:5173`.
+Abra `http://localhost:5174/`, retorno já autorizado no Supabase. A porta 5173
+pertence a outro aplicativo no ambiente original.
 O aplicativo usa fontes, ícones e leitor locais, sem CDNs durante o uso.
 
 Para conferir o que será publicado:
@@ -26,10 +43,58 @@ npm run preview
 Somente `dist/` é o artefato de publicação. Abrir `index.html` por `file://` não
 executa a aplicação; use o servidor de desenvolvimento ou o build via HTTP/HTTPS.
 
+## Entrada e aparência
+
+Sem uma sessão, a página abre a entrada do CritCall com login, cadastro e
+recuperação de senha. Depois de validar a conta, abre suas fichas ou a ação de
+criar a primeira. Uma sessão já conhecida reabre o espaço correspondente,
+inclusive a cópia offline validada anteriormente. A recuperação de senha usa a
+tela de entrada antes de voltar às fichas. A entrada usa um tema escuro de grimório, com textura discreta, letras claras e
+detalhes em dourado envelhecido. O símbolo enviado pelo responsável identifica
+a entrada, a barra da ficha e o ícone do aplicativo.
+
+**Continuar sem conta** mantém o acesso às fichas locais. A escolha dura nesta
+aba; ao sair de uma conta, a tela de entrada volta a aparecer. Nenhuma ficha do
+modo local é adotada automaticamente pela conta.
+
+Cores, textura, tamanho de fonte e dados são preferências do usuário. No modo
+local ficam neste navegador; na conta entram também na fila de sincronização.
+A exibição **Clássica (2014) / Moderna (2024)** fica dentro da ficha e é salva por
+personagem. As regras continuam sendo de 2014 com as adaptações da mesa. Trocar
+a exibição não converte regras, classes ou escolhas.
+
+## Dado flutuante e retratos
+
+O dado começa recolhido ao abrir a aplicação ou trocar de conta. Mostra **20**
+antes da primeira rolagem e depois o último total desta conta/aba. Clique para
+abrir a bandeja; arraste para reposicionar. Um arremesso rápido do ícone rola
+**um d20 normal**, sem bônus, vantagem ou alteração do pool já montado. A tecla
+**R** faz a mesma rolagem; as setas movem o ícone. A bandeja também oferece
+**Rolar d20 normal**. O modo OFF continua ocultando os dados.
+
+No perfil, use **Alterar imagem do perfil**. Em cada ficha, clique no retrato ao
+lado do nome, ou no retrato da lista de personagens. JPG/PNG/WebP de até **5 MB**
+são recortados no centro e convertidos no navegador para WebP de até **256 × 256**
+e **32 KB**; imagens acima de 32 MP/8192 px por lado são recusadas. O arquivo
+original e seus metadados não são enviados. SVG/GIF não são aceitos.
+
+As imagens usam Storage privado da conta; documentos/histórico guardam somente
+referências. O navegador mantém cópias em IndexedDB por espaço e pode enviar
+imagens escolhidas offline ao reconectar. Confira o envio no perfil. Uma imagem
+não disponível sem rede mantém o ícone padrão. Fotos locais sem login continuam
+separadas das contas. Os retratos não são embutidos no JSON do backup: as
+referências funcionam na mesma conta, mas não levam os arquivos a outra conta.
+A substituição usa o mesmo arquivo quando a referência não está compartilhada;
+a recuperação de uma versão da ficha não restaura pixels antigos no servidor.
+
 ## Salvamento e backups
 
-As fichas e notas ficam neste navegador. Ainda não há login, banco remoto ou
-sincronização. Abrir outro dispositivo/endereço não transfere seus dados.
+Fichas e notas mantêm uma cópia neste navegador. A branch inclui salvamento por
+conta no Supabase com fila offline, perfil, preferências e versões recuperáveis;
+**migração aplicada no projeto real; validação entre dispositivos reais pendente**.
+Confira o estado de envio no perfil. Estar conectado não significa que tudo já
+chegou à nuvem. `VITE_AUTH_ENABLED=false` permite uma edição apenas local.
+Veja [docs/SINCRONIZACAO.md](docs/SINCRONIZACAO.md).
 Ao reabrir a aplicação, a última ficha selecionada é restaurada. Se ela tiver
 sido removida, abre a primeira ficha disponível.
 
@@ -54,8 +119,9 @@ O servidor de desenvolvimento não instala o cache offline.
 
 O aplicativo guarda seu código, regras, estilos, fontes e ícones. Os PDFs não são
 baixados automaticamente: a consulta aos livros exige conexão, ou você pode abrir
-uma cópia previamente baixada fora do leitor integrado. Não há sincronização com
-outros dispositivos nesta etapa.
+uma cópia previamente baixada fora do leitor integrado. A fila da branch envia
+alterações ao reconectar; o banco real já recebeu a migração. Outro PC só recebe edições
+offline depois de seu envio.
 
 Atualizações aguardam as abas anteriores fecharem, sem recarregar uma edição em
 curso. O cache do aplicativo não contém as fichas nem apaga o armazenamento do jogador.
@@ -70,6 +136,26 @@ responsável pelo projeto; veja [public/books/README.md](public/books/README.md)
 O leitor PDF.js é hospedado junto do aplicativo e tem texto selecionável. Os
 balões e consultas do criador também oferecem as descrições das regras.
 
+## Login em desenvolvimento
+
+O fluxo escolhido é e-mail/senha no Supabase, em um projeto separado do outro
+aplicativo do responsável. Consulte [docs/LOGIN.md](docs/LOGIN.md) para cadastro,
+confirmação, recuperação, configuração pública incluída e overrides locais.
+Não é necessário configurar variables no GitHub para esse build. Senhas não são
+guardadas pela ficha nem incluídas em backups. **Reenviar confirmação de e-mail**
+atende cadastros pendentes; **Esqueci a senha** inicia a recuperação. Quem já
+entrou pode usar **Enviar link para trocar senha**, sem sair da conta.
+E-mail/senha permitem entrar em outros navegadores e dispositivos. Os links de
+confirmação/recuperação exigem o mesmo navegador/dispositivo que os solicitou;
+o envio de fichas usa a fila própria, com migração aplicada e teste real entre
+dispositivos ainda pendente.
+
+Cada conta abre seu próprio espaço de fichas neste navegador; entrar não adota
+as fichas anteriores do modo local. Ao sair, as cópias são preservadas. Isso não
+criptografa o dispositivo. A migração do banco foi aplicada; conferir a
+confirmação de envio no perfil antes de trocar de computador. Login e
+sincronização publicados e SMTP próprio ainda não foram ativados.
+
 ## Verificar
 
 ```sh
@@ -83,15 +169,36 @@ npm run test:browser
 aceita instalação externa por `DND_PLAYWRIGHT_MODULE`. Os testes de navegador usam
 `dist/` sob `/D-D/`; `DND_TEST_ROOT` permite indicar outro artefato e
 `DND_TEST_ARTIFACTS` ativa capturas opcionais.
+O teste de login compila um artefato temporário com projeto fictício e respostas
+HTTP controladas, sem criar usuários reais ou depender das credenciais do ambiente.
+
+`npm run test:database` usa PostgreSQL 16 descartável em Docker por padrão,
+verificando RLS/RPC, concorrência e as políticas de imagens. Sem Docker,
+`CRITCALL_TEST_POSTGRES_BIN=/caminho/dos/binarios npm run test:database` cria uma
+instância descartável com `initdb`/`pg_ctl`, sem TCP ou banco existente. Essa
+alternativa passou também com PostgreSQL 18.6. A CI mantém Docker/PostgreSQL 16.
 
 ## Desenvolvimento e publicação
+
+Migração para Cloudflare em preparação, após o usuário criar a conta. O roteiro
+está em [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md); a configuração de publicação
+descrita abaixo continua sendo a atual até a transição revisada. O workflow já
+aceita o destino opcional Cloudflare pelo mesmo artefato verificado; as variáveis
+e os Secrets necessários estão no roteiro. Nenhuma publicação foi ativada.
 
 Branches por tarefa seguem para `develop`; uma entrega revisada segue para
 `main`. Não fazer push direto à `main`. A pipeline verifica tipos, testes,
 build e navegador; somente um push na `main` pode publicar `dist/` no Pages.
 Para essa nova estrutura, a fonte do Pages deve ser **GitHub Actions**. Não publicar
-a raiz com os arquivos de desenvolvimento. A configuração e o site ativo ainda
-precisam ser conferidos na conta antes da primeira entrega dessa estrutura.
+a raiz com os arquivos de desenvolvimento. A primeira versão já está em
+[mhaetinger.github.io/D-D](https://mhaetinger.github.io/D-D/), integrada pelas
+PRs #1/#2 e verificada em 15/10/2026. O login desta branch ainda aguarda ativação.
+
+O usuário confirmou a compra de `criticall.art` na Hostinger em 16/10/2026.
+Confirmou OK no DNS check do GitHub e na Cloudflare. Consulta pública confirmou
+nameservers Cloudflare, HTTPS na raiz e retorno de `www`. A hospedagem ainda é
+GitHub Pages; migração para Cloudflare Pages e login no domínio aguardam validação.
+O retorno novo já foi aceito pelo Supabase. O procedimento está em [docs/DOMINIO.md](docs/DOMINIO.md).
 
 Veja [CONTRIBUTING.md](CONTRIBUTING.md) e [docs/ARQUITETURA.md](docs/ARQUITETURA.md)
 para os módulos, contratos, decisões e próximas etapas.
@@ -100,7 +207,8 @@ as verificações, o pacote de revisão no GitHub e os passos para ativar o site
 
 O site é acessível a qualquer pessoa com o endereço. `noindex` orienta mecanismos
 de busca e não restringe acesso. Histórico/checkpoints da interface ainda são da
-sessão atual; contas, sincronização e salas continuam nas próximas etapas.
+cache pessoal e entram na fila da branch; validação real entre dispositivos,
+publicação e salas seguem pendentes.
 
 Código próprio sob MIT. Fontes/ícones e demais componentes conservam suas licenças
 em [public/licenses](public/licenses/README.md); PDF.js e seus avisos ficam em

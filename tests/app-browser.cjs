@@ -32,6 +32,7 @@ async function importBackup(page, value) {
     page.on("pageerror", (e) => errors.push(e.message));
     page.on("request", (r) => { if (/^https?:/.test(r.url()) && !r.url().startsWith(new URL(server.url).origin)) external.push(r.url()); });
     await page.goto(server.url, { waitUntil: "networkidle" });
+    await page.locator("#accessContinueLocal").click();
     assert.equal(await page.evaluate(() => getChar().name), char.name);
     assert.equal(await page.evaluate((key) => localStorage.getItem(key), LEGACY), old);
     assert.equal(await page.evaluate((key) => JSON.parse(localStorage.getItem(key)).schemaVersion, KEY), 1);
@@ -77,12 +78,34 @@ async function importBackup(page, value) {
     const hostile = structuredClone(plain);
     hostile.characters[0].name = '<img src=x onerror="window.importExecuted=1">';
     hostile.characters[0].lore.backstory = '<svg onload="window.importExecuted=1">';
+    const resourceMarkup = '<img src=x onerror="window.importExecuted=1">';
+    const importedResources = hostile.characters[0];
+    importedResources.sorceryPoints = { current: 2, max: 2 };
+    importedResources.standardSlots[resourceMarkup] = { used: 0, total: 1 };
+    importedResources.standardSlots[1] = { used: 0, total: 1 };
+    importedResources.coins[resourceMarkup] = resourceMarkup;
+    importedResources.spells = [
+      { name: 'Usos importados', circle: 1, classId: 'feiticeiro', limitedUse: resourceMarkup },
+      { name: 'Custo importado', circle: 1, classId: 'feiticeiro', limitedUse: 1, canTwin: true, castLevel: resourceMarkup },
+    ];
+    importedResources.rules.history.push({ classId: 'feiticeiro', level: 3, answers: { metamagic: ['Magia Duplicada'] } });
     await importBackup(page, hostile);
     await page.waitForFunction(() => characters.length === 3);
     await page.evaluate(() => { closeAuthAccountModal(); setTab("lore"); });
     assert.equal(await page.evaluate(() => window.importExecuted), undefined);
     assert.equal(await page.locator('#sheetViewport img').count(), 0);
     assert.equal(await page.locator('textarea[aria-label="Anotações pessoais do jogador"]').inputValue(), "");
+    // Chaves e recursos opcionais também vêm do arquivo; não são marcação nem
+    // código confiáveis apenas porque os campos obrigatórios foram validados.
+    for (const layout of ['classic_2014', 'modern_2024']) {
+      await page.evaluate((layout) => { getChar().preferredLayout = layout; setTab('spells'); }, layout);
+      assert.equal(await page.locator('#sheetViewport img').count(), 0);
+      assert.equal(await page.getByRole('button', { name: 'Converter 1º (+1 pt)', exact: true }).count(), 1);
+      await page.evaluate(() => setTab('lore'));
+      assert.equal(await page.locator('#sheetViewport img').count(), 0);
+    }
+    assert.equal(await page.evaluate(() => window.importExecuted), undefined);
+    assert.equal(await page.evaluate((key) => getChar().standardSlots[key].total, resourceMarkup), 1, 'o conteúdo original continua preservado');
     for (const theme of ["pergaminho_claro", "pergaminho_escuro", "obsidiana"]) {
       await page.setViewportSize({ width: 320, height: 800 });
       await page.evaluate((theme) => { setTheme(theme); setFontScale(125); openAuthAccountModal(); }, theme);
@@ -150,6 +173,7 @@ async function importBackup(page, value) {
     const damaged = await recovery.newPage();
     damaged.on("pageerror", (e) => errors.push(e.message));
     await damaged.goto(server.url, { waitUntil: "networkidle" });
+    await damaged.locator("#accessContinueLocal").click();
     assert.equal(await damaged.locator("#storageIssue").isVisible(), true);
     assert.equal(await damaged.evaluate((key) => localStorage.getItem(key), KEY), "{danificado");
     const recoveryDownload = damaged.waitForEvent("download");
@@ -170,9 +194,46 @@ async function importBackup(page, value) {
     const limited = await blocked.newPage();
     limited.on("pageerror", (e) => errors.push(e.message));
     await limited.goto(server.url, { waitUntil: "networkidle" });
+    await limited.locator("#accessContinueLocal").click();
     assert.equal(await limited.locator("#storageIssue").isVisible(), true);
     assert.equal(await limited.evaluate(() => characters.length), 0);
     await blocked.close();
+    // Regressão real de navegação: respostas .html redirecionadas eram guardadas,
+    // mas o Chromium recusava sua reutilização ao recarregar sem rede.
+    for (const prefix of ["/", "/D-D/"]) {
+      const clean = await serve(process.env.DND_TEST_ROOT || path.join(__dirname, "../dist"), prefix, { cleanHtml: true });
+      const visitor = await browser.newContext();
+      try {
+        await visitor.addInitScript((old) => {
+          if (!localStorage.getItem("testSeeded")) {
+            localStorage.setItem("dnd_sheet_public_v1", old);
+            localStorage.setItem("testSeeded", "true");
+          }
+        }, old);
+        const offline = await visitor.newPage();
+        await offline.goto(clean.url, { waitUntil: "networkidle" });
+        await offline.locator("#accessContinueLocal").click();
+        await offline.waitForFunction(() => !!navigator.serviceWorker.controller);
+        const entries = await offline.evaluate(async () => {
+          const cache = await caches.open((await caches.keys())[0]);
+          const response = await cache.match(new URL("index.html", location.href));
+          return { redirected: response.redirected, urls: (await cache.keys()).map((request) => request.url) };
+        });
+        assert.equal(entries.redirected, true, "servidor reproduz redirecionamento do Pages");
+        assert.ok(entries.urls.every((url) => !new URL(url).pathname.endsWith(".pdf") && new URL(url).origin === new URL(clean.url).origin));
+        await offline.evaluate(() => updateField("name", "Ficha offline na Cloudflare"));
+        await visitor.setOffline(true);
+        await offline.reload({ waitUntil: "networkidle" });
+        assert.equal(await offline.evaluate(() => getChar().name), "Ficha offline na Cloudflare");
+        await offline.goto(clean.url + "book#page=58", { waitUntil: "domcontentloaded" });
+        assert.equal(await offline.locator("#bookSelect").count(), 1, "estrutura do leitor abre sem baixar PDF");
+        await offline.goto(clean.url + "index.html", { waitUntil: "networkidle" });
+        assert.equal(await offline.evaluate(() => getChar().name), "Ficha offline na Cloudflare");
+      } finally {
+        await visitor.close();
+        await clean.close();
+      }
+    }
     assert.deepEqual(errors, []);
     console.log("PASS: build sem CDN, migração preservando legado, backups com notas opcionais, importação de cópias, texto não executável, recarga/evolução offline, perfis isolados, recuperação com cancelamento/confirmação e storage bloqueado.");
   } finally {

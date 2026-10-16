@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "Orbyt · Fichas D&D",
-  "short_name": "Orbyt",
+  "name": "CritCall",
+  "short_name": "CritCall",
   "lang": "pt-BR",
   "description": "Suas fichas de personagem, regras e dados da mesa.",
   "start_url": "./",
@@ -9,5 +9,5 @@
   "display": "standalone",
   "background_color": "#efe4ce",
   "theme_color": "#8b1e1e",
-  "icons": [{ "src": "icons/orbyt.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+  "icons": [{ "src": "icons/icon.png", "sizes": "1254x1254", "type": "image/png", "purpose": "any" }]
 }

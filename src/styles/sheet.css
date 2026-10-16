@@ -181,7 +181,18 @@ body[data-backdrop="textured"][data-theme="obsidiana"] main {
 /* Tamanho e recolhimento são preferências da bandeja, separados da ficha. */
 #dice3dTray { --tray-width: 460px; --tray-height: auto; display: flex; flex-direction: column; width: min(var(--tray-width), calc(100vw - 2rem)); height: var(--tray-height); max-height: calc(100dvh - 2rem); padding: 0.75rem; z-index: 45; }
 #dice3dTray.hidden { display: none; }
-#dice3dTray[data-minimized="true"] { width: min(14rem, calc(100vw - 2rem)); height: auto; }
+#dice3dTray[data-minimized="true"] { width: 4.5rem; height: 5rem; padding: 0; border: 0; background: none; box-shadow: none; }
+#dice3dTray[data-minimized="true"] .dice-tray-header { display: none; }
+.dice-dock { position: relative; display: grid; place-items: center; width: 4.5rem; height: 5rem; padding: 0; touch-action: none; user-select: none; cursor: grab; color: #fff0ce; background: radial-gradient(ellipse at 25% 15%, #64758466, transparent 70%), repeating-conic-gradient(from 10deg at 65% 40%, #c8ad7322 0deg 1deg, transparent 1deg 29deg), linear-gradient(135deg, #323b47, #151c26 65%, #3e3029); clip-path: polygon(50% 0, 96% 24%, 96% 76%, 50% 100%, 4% 76%, 4% 24%); filter: drop-shadow(0 3px 5px #0008); }
+.dice-dock[hidden] { display: none; }
+.dice-dock svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: #d3bb86; stroke-width: 1.4; opacity: .7; pointer-events: none; }
+.dice-dock span { z-index: 1; font-family: "Cinzel", serif; font-size: 1.45rem; font-weight: 800; text-shadow: 0 1px 3px #000; pointer-events: none; }
+.dice-dock:focus-visible { outline: none; background-color: #c6a777; box-shadow: inset 0 0 0 5px #f1d7a0; }
+.dice-dock-rolling { animation: diceDockThrow .38s ease-out; }
+#diceTrayDrag { touch-action: none; cursor: grab; }
+#dice3dTray[data-dragging="true"] :is(.dice-dock, #diceTrayDrag) { cursor: grabbing; }
+@keyframes diceDockThrow { 0% { transform: rotate(-20deg) scale(.85); } 60% { transform: rotate(200deg) scale(1.08); } 100% { transform: rotate(360deg) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .dice-dock-rolling, .dice-3d-rolling { animation: none !important; } }
 .dice-tray-header { display: flex; align-items: center; gap: 0.5rem; flex: 0 0 auto; }
 .dice-tray-total { font-size: 0.85rem; font-weight: 800; margin-right: auto; min-width: 2rem; }
 .dice-tray-tool { display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border: 1px solid var(--text-muted); border-radius: 0.35rem; color: var(--text-main); background: var(--bg-inset); font-size: 1.2rem; font-weight: 700; }
@@ -206,6 +217,12 @@ body.dice-tray-resizing { user-select: none; cursor: ne-resize; }
   box-shadow: var(--shadow-card);
   border-radius: 0.75rem;
 }
+
+#accountWorkspaceChanged::backdrop { background: var(--bg-page, #14100d); }
+#accountWorkspaceChanged { width: min(32rem, calc(100vw - 2rem)); max-height: 92dvh; overflow-y: auto; color: var(--text-main); }
+#accountAccess [data-auth-mode][aria-pressed="true"] { outline: 2px solid currentColor; outline-offset: 1px; font-weight: 800; }
+#accountAccess input { min-width: 0; }
+#accountAccess button:disabled { opacity: .65; cursor: wait; }
 
 .t-card-accent {
   background-color: var(--bg-card);
@@ -421,3 +438,17 @@ body.dice-tray-resizing { user-select: none; cursor: ne-resize; }
 #confirmationDialog::backdrop { background: rgba(0, 0, 0, 0.75); }
 #confirmationDialog { color: var(--text-main); width: min(28rem, calc(100vw - 2rem)); }
 #charSelect { min-width: 0; max-width: min(28rem, calc(100vw - 2rem)); text-overflow: ellipsis; }
+
+/* Retratos são arquivos privados separados, não conteúdo HTML da ficha. */
+.portrait { width: 3rem; height: 3rem; flex: 0 0 auto; display: inline-grid; place-items: center; position: relative; overflow: hidden; border: 1px solid var(--text-muted); border-radius: .7rem; background: var(--bg-inset); color: var(--text-accent); }
+.portrait-small { width: 1.75rem; height: 1.75rem; border-radius: 50%; }
+.account-character-avatar .portrait { width: 2rem; height: 2rem; }
+#avatarSyncStatus:empty { display: none; }
+#avatarDialog { color: var(--text-main); max-height: 85dvh; overflow-y: auto; }
+#avatarDialog::backdrop { background: #0009; }
+[data-theme="pergaminho_escuro"] #avatarDialog, [data-theme="obsidiana"] #avatarDialog { color-scheme: dark; }
+.portrait svg { width: 55%; height: 55%; }
+.portrait svg[hidden] { display: none; }
+.portrait:has(img) svg { display: none; }
+.portrait img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+.portrait-edit:focus-visible, [data-avatar-edit]:focus-visible { outline: 2px solid var(--text-accent); outline-offset: 3px; border-radius: .7rem; }

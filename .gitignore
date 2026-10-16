@@ -16,3 +16,4 @@ playwright-report/
 .DS_Store
 __pycache__/
 *.py[cod]
+supabase/.temp/

@@ -1,5 +1,9 @@
-import { sheetStore } from "../storage/character-store";
+import { sheetStore, selectCharacterWorkspace } from "../storage/character-store";
+import { currentWorkspaceKey, workspaceStorage } from "../storage/account-scope";
 import { ACTIVE_CHARACTER_KEY, readPreference, writePreference } from "../storage/preferences";
+import { setupDiceDock } from "./dice-dock";
+import { avatarMarkup } from "../media/avatar";
+import { canonical, validateDocument } from "../sync/documents";
 
 // =========================================================================
 // 1. METADADOS E CATÁLOGOS
@@ -473,7 +477,8 @@ let currentRollMode = "normal"; // 'normal' | 'adv' | 'dis'
 let diceRollSequence = 0; // Impede uma animação antiga de sobrescrever o último lançamento.
 // Migra somente a preferência visual antiga; fichas e resultados não mudam.
 let diceTrayDimensions = readDiceTrayDimensions();
-let diceTrayMinimized = readPreference("dnd_dice_tray_minimized") === "true";
+let diceTrayMinimized = true;
+let diceDock;
 // Pool combinado de dados: ex: { 20: 1, 4: 1 } = 1d20 + 1d4
 let dicePoolCounts = { 20: 1, 4: 1 };
 
@@ -492,8 +497,7 @@ const COIN_LABELS = { pc: "Cobre", pp: "Prata", pe: "Electro", po: "Ouro", pl: "
 const LORE_LABELS = { traits: "Personalidade", ideals: "Ideais", bonds: "Ligações", flaws: "Defeitos", backstory: "História do personagem", appearance: "Aparência", allies: "Aliados", treasure: "Tesouros narrativos" };
 const PHYSICAL_LABELS = { age: "Idade", height: "Altura", weight: "Peso", eyes: "Olhos", skin: "Pele", hair: "Cabelo" };
 
-// Histórico apenas desta sessão: checkpoints não sobrevivem à recarga.
-// O localStorage guarda a ficha atual, não esta pilha de ações.
+// Histórico pessoal persistido separadamente; snapshots contêm apenas fichas.
 let historyStack = [
   {
     timestamp: new Date().toLocaleTimeString([], {
@@ -507,6 +511,29 @@ let historyStack = [
   },
 ];
 let historyPointer = 0;
+let historyWritable = true;
+function restoreSavedHistory() {
+  historyWritable = true;
+  const raw = readPreference('dnd_history_v1');
+  if (!raw) return;
+  try {
+    validateDocument({ kind: 'preference', id: 'dnd_history_v1', value: raw });
+    const saved = JSON.parse(raw);
+    historyStack = saved.stack; historyPointer = saved.pointer;
+    if (canonical(JSON.parse(historyStack[historyPointer].stateJson)) !== canonical(characters)) {
+      historyStack.push({ timestamp: new Date().toISOString(), action: 'Estado mais recente carregado', isCheckpoint: true, stateJson: JSON.stringify(characters) });
+      historyPointer = historyStack.length - 1;
+    }
+  } catch {
+    try { workspaceStorage(() => localStorage).setItem(`orbyt_recovery_v1_history_${crypto.randomUUID()}`, raw); }
+    catch { historyWritable = false; }
+    showToast('O histórico não pôde ser lido. O conteúdo anterior foi preservado para recuperação.');
+  }
+}
+function persistHistory() {
+  if (!historyWritable) { showToast('O histórico anterior está ilegível e foi preservado. Baixe um backup antes de fechar.'); return; }
+  if (!writePreference('dnd_history_v1', JSON.stringify({ stack: historyStack, pointer: historyPointer }))) showToast('O histórico não pôde ser salvo. Baixe um backup antes de fechar.');
+}
 
 const COIN_RATES_IN_PC = { pc: 1, pp: 10, pe: 50, po: 100, pl: 1000 };
 
@@ -710,11 +737,13 @@ function recordStepAndSave(
   });
   historyPointer = historyStack.length - 1;
   if (!sheetStore.write(characters)) showToast(sheetStore.issue?.message || "Não foi possível salvar. Baixe um backup antes de fechar.");
+  persistHistory();
   renderAll();
 }
 
 function saveStateQuiet() {
   if (!sheetStore.write(characters)) showToast(sheetStore.issue?.message || "Não foi possível salvar. Baixe um backup antes de fechar.");
+  persistHistory();
   renderAll();
 }
 
@@ -781,7 +810,7 @@ function renderHistoryDrawerList() {
     <div onclick="jumpToHistoryStep(${idx})" class="p-2.5 rounded-lg border cursor-pointer transition flex items-center justify-between gap-2 ${isCurrent ? "t-btn-primary font-extrabold shadow" : item.isCheckpoint ? "badge-feiticeiro font-semibold" : "t-inset t-hover"}">
       <div>
         <div class="flex items-center gap-1.5">
-          <span class="text-[10px] opacity-75">#${idx} • ${item.timestamp}</span>
+          <span class="text-[10px] opacity-75">#${idx} • ${escapeHTML(item.timestamp)}</span>
           ${isCurrent ? '<span class="px-1.5 py-0.2 bg-black/20 rounded text-[9px] uppercase">Atual</span>' : ""}
         </div>
         <div class="mt-0.5">${escapeHTML(item.action)}</div>
@@ -838,8 +867,8 @@ function setDiceTrayDimensions(width, height) {
 }
 function toggleDiceTrayMinimized() {
   diceTrayMinimized = !diceTrayMinimized;
-  writePreference("dnd_dice_tray_minimized", String(diceTrayMinimized));
   renderDiceTrayState();
+  document.getElementById(diceTrayMinimized ? "diceDock" : "diceTrayMinimizeButton").focus({preventScroll: true});
 }
 // A bandeja fica ancorada embaixo à esquerda: arrastar para cima/direita
 // aumenta altura/largura, mantendo o último resultado e a montagem do pool.
@@ -889,6 +918,9 @@ function renderDiceTrayState() {
     minimizeButton.title = diceTrayMinimized ? "Abrir bandeja de dados" : "Minimizar bandeja de dados";
     minimizeButton.setAttribute("aria-expanded", String(!diceTrayMinimized));
   }
+  document.getElementById("diceDock").hidden = !diceTrayMinimized;
+  document.getElementById("diceDock").setAttribute("aria-expanded", String(!diceTrayMinimized));
+  diceDock?.reflow();
 }
 
 function addDieToPool(sides) {
@@ -1004,13 +1036,25 @@ function rollCurrentPool(customLabel = "", allowFixed = false) {
   // Resolve tudo no clique. Trocar modo, limpar ou editar a bandeja durante a
   // animação só vale para o próximo lançamento, nunca para o que já foi feito.
   const result = evaluateDicePool(dicePoolCounts, modVal, currentRollMode);
+  presentDiceResult(result, customLabel);
+}
+function rollQuickD20() {
+  if (diceMode === "off") return;
+  presentDiceResult(evaluateDicePool({20: 1}, 0, "normal"), "d20 normal");
+}
+function presentDiceResult(result, customLabel) {
+  const cube = document.getElementById("dice3dCube");
+  const resultBox = document.getElementById("dice3dResultText");
   const rollSequence = ++diceRollSequence;
   cube.classList.add("dice-3d-rolling");
+  document.getElementById("diceDock").classList.add("dice-dock-rolling");
 
   setTimeout(() => {
     if (rollSequence !== diceRollSequence) return;
     cube.classList.remove("dice-3d-rolling");
     cube.textContent = result.total;
+    document.getElementById("diceDock").classList.remove("dice-dock-rolling");
+    diceDock?.result(result.total);
     const trayTotal = document.getElementById("diceTrayTotal");
     if (trayTotal) {
       trayTotal.textContent = result.total;
@@ -1069,16 +1113,94 @@ function closeAuthAccountModal() {
   document.getElementById("authAccountModal").classList.add("hidden");
 }
 
-function saveAccountProfile() {
+const workspaceDrafts = new Map();
+function hasOpenAccountEditor() {
+  if (document.getElementById('avatarDialog')?.open) return true;
+  if (document.getElementById('confirmationDialog').open) return true;
+  if (document.getElementById('accPlayerName').value !== (readPreference('dnd_public_player_name') || 'Jogador')) return true;
+  return ['characterWizard', 'homebrewModal'].some(id => {
+    const el = document.getElementById(id);
+    return el && !el.hidden && !el.classList.contains('hidden');
+  });
+}
+function activateAccountWorkspace(identity) {
+  // Um erro de quota não joga fora a ficha em memória ao trocar de conta.
+  // Ela só poderá reaparecer ao voltar ao mesmo espaço, nesta aba.
+  if (sheetStore.issue?.kind === 'write' || sheetStore.issue?.kind === 'unavailable') workspaceDrafts.set(currentWorkspaceKey(), characters);
+  else workspaceDrafts.delete(currentWorkspaceKey());
+  hideBookTooltip();
+  const confirmation = document.getElementById('confirmationDialog');
+  if (confirmation.open) confirmation.close('cancel');
+  CharacterWizard.close(true);
+  closeHomebrewModal(true);
+  closeShopModal();
+  document.getElementById('characterWizard')?.replaceChildren();
+  document.getElementById('hbModalBody').replaceChildren();
+  document.getElementById('historyDrawer').classList.add('translate-x-full');
+  diceRollSequence++;
+  document.getElementById('dice3dCube').classList.remove('dice-3d-rolling');
+  document.getElementById('diceDock').classList.remove('dice-dock-rolling');
+  clearDicePool();
+  document.getElementById('dice3dResultText').textContent = '';
+  document.getElementById('dice3dCube').textContent = '20';
+  document.getElementById('diceTrayTotal').textContent = '—';
+  diceTrayMinimized = true;
+  selectCharacterWorkspace(identity);
+  const saved = sheetStore.read();
+  characters = workspaceDrafts.get(currentWorkspaceKey()) || saved;
+  activeCharIndex = Math.max(0, characters.findIndex(char => char.id === readPreference(ACTIVE_CHARACTER_KEY)));
+  historyStack = [{ timestamp: new Date().toLocaleTimeString(), action: 'Abriu este espaço de fichas', isCheckpoint: true, stateJson: JSON.stringify(characters) }];
+  historyPointer = 0;
+  restoreSavedHistory();
+  spellFilterClass = 'all';
+  selectedCastLevelBySpell = {};
+  twinnedActiveBySpell = {};
+  expandedSingleSpells = {};
+  const player = readPreference('dnd_public_player_name') || 'Jogador';
+  document.getElementById('accPlayerName').value = player;
+  document.getElementById('currentUserBadge').textContent = player;
+  document.getElementById('backupIncludeNotes').checked = false;
+  document.getElementById('backupStatus').textContent = '';
+  restoreDisplayPreferences();
+  renderAll();
+  renderAccountCharactersList();
+  window.dispatchEvent(new Event('dnd-workspace-changed'));
+}
+
+function saveAccountProfile(quiet = false) {
   const newName =
     document.getElementById("accPlayerName").value || "Jogador";
-  document.getElementById("currentUserBadge").textContent = newName; writePreference("dnd_public_player_name",newName);
+  if (!writePreference("dnd_public_player_name",newName)) {
+    showToast('O nome não pôde ser salvo. O texto digitado foi mantido; confira o armazenamento.');
+    return;
+  }
+  document.getElementById("currentUserBadge").textContent = newName;
   characters.forEach((c) => {
     c.playerName = newName;
   });
   saveStateQuiet();
-  showToast(`Perfil da conta atualizado para ${newName}!`);
+  if (!quiet) showToast(`Nome salvo neste dispositivo. Confira o estado da sincronização no perfil.`);
 }
+
+function refreshSyncedWorkspace() {
+  characters = sheetStore.read();
+  activeCharIndex = Math.max(0, characters.findIndex(char => char.id === readPreference(ACTIVE_CHARACTER_KEY)));
+  const player = readPreference('dnd_public_player_name') || 'Jogador';
+  document.getElementById('accPlayerName').value = player;
+  document.getElementById('currentUserBadge').textContent = player;
+  restoreDisplayPreferences();
+  restoreSavedHistory();
+  renderAll(); renderAccountCharactersList();
+}
+function restoreDisplayPreferences() {
+  currentTheme = readPreference('dnd_sheet_theme') || 'pergaminho_claro';
+  currentBackdrop = readPreference('dnd_backdrop_style') === 'textured' ? 'textured' : 'clean';
+  currentFontScale = parseInt(readPreference('dnd_font_scale') || '100', 10);
+  diceMode = readPreference('dnd_dice_mode') || 'auto';
+  diceTrayDimensions = readDiceTrayDimensions();
+
+}
+window.refreshSyncedWorkspace = refreshSyncedWorkspace;
 
 function renderAccountCharactersList() {
   const container = document.getElementById("accountCharactersList");
@@ -1091,9 +1213,12 @@ function renderAccountCharactersList() {
       const isCurrent = idx === activeCharIndex;
       return `
     <div class="t-inset p-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div class="min-w-0 flex-1 flex items-center gap-2">
+      <button type="button" class="portrait-edit account-character-avatar shrink-0" data-avatar-edit="${escapeHTML(c.id)}" aria-label="Alterar imagem de ${escapeHTML(c.name)}">${avatarMarkup(c.avatar)}</button>
       <div class="min-w-0">
         <div class="font-rpg font-bold text-sm t-text-main break-words">${escapeHTML(c.name)} ${isCurrent ? '<span class="px-1.5 py-0.5 rounded badge-utilidade text-[9px] ml-1">Ativo</span>' : ""}</div>
         <div class="text-[11px] t-text-muted">${escapeHTML(c.race)} • ${clsStr} • PV: ${c.hpCurrent}/${c.hpMax}</div>
+      </div>
       </div>
       <div class="flex items-center justify-end gap-1.5 shrink-0">
         <button onclick="switchCharacter(${idx}); closeAuthAccountModal();" class="t-btn-primary px-3 py-1 rounded-lg font-bold text-xs">Abrir Ficha</button>
@@ -1143,9 +1268,14 @@ function commitLeveledCharacter(char, action) {
 // =========================================================================
 // 7. RENDERIZADOR DE MAGIAS COM COLUNAS INDEPENDENTES (SEM BURACO!)
 // =========================================================================
+function standardSlotEntries(char) {
+  // As chaves do backup também são dados não confiáveis. Só círculos de 1 a 9
+  // viram controles; entradas desconhecidas continuam preservadas no armazenamento.
+  return Object.entries(char.standardSlots).filter(([level]) => /^[1-9]$/.test(level));
+}
 function getSpellSlotOptions(char, spell) {
   if (spell.circle === 0 || spell.ritual || spell.limitedUse || spell.atWill) return [];
-  const options = Object.entries(char.standardSlots)
+  const options = standardSlotEntries(char)
     .filter(([level, slot]) => Number(level) >= spell.circle && slot.total > 0)
     .map(([level, slot]) => ({ value: Number(level), level: Number(level), remaining: slot.total - slot.used, total: slot.total, source: "Conjuração" }));
   if (char.pactMagic.total > 0 && char.pactMagic.level >= spell.circle) {
@@ -1173,11 +1303,11 @@ function renderSpellCastControls(char, spell, index) {
   const unavailable = (usesSlot && (!selected || selected.remaining <= 0)) || (spell.limitedUse && (spell.usesUsed || 0) >= spell.limitedUse);
   const canNormal = spell.prepared !== false || spell.ritual || spell.limitedUse || spell.atWill;
   return `
-    ${spell.canTwin && characterHasTwinned(char) ? `<button type="button" onclick="toggleSpellTwinnedByIndex(${index})" class="spell-action-button spell-twin-control" aria-label="${detail.twin ? "Desativar" : "Ativar"} Magia Gêmea para ${escapeHTML(spell.name)}" aria-pressed="${detail.twin}">Gêmea (${detail.cost ?? spell.circle}pt)</button>` : ""}
+    ${spell.canTwin && characterHasTwinned(char) ? `<button type="button" onclick="toggleSpellTwinnedByIndex(${index})" class="spell-action-button spell-twin-control" aria-label="${detail.twin ? "Desativar" : "Ativar"} Magia Gêmea para ${escapeHTML(spell.name)}" aria-pressed="${detail.twin}">Gêmea (${escapeHTML(detail.cost ?? spell.circle)}pt)</button>` : ""}
     ${usesSlot && canNormal ? `<select data-spell-slot="${index}" aria-label="Espaço para ${escapeHTML(spell.name)}" onchange="setSpellCastLevelByIndex(${index}, this.value)" class="spell-slot-select">
       ${options.length ? options.map((option) => `<option value="${option.value}" ${option.value === chosen ? "selected" : ""}>${option.source} · ${option.level}º · ${Math.max(0, option.remaining)}/${option.total}${option.remaining <= 0 ? " (esgotado)" : ""}</option>`).join("") : '<option value="">Sem espaços compatíveis</option>'}
     </select>` : ""}
-    ${spell.limitedUse ? `<span class="text-[11px]">Usos: ${Math.max(0, spell.limitedUse - (spell.usesUsed || 0))}/${spell.limitedUse}</span>` : ''}
+    ${spell.limitedUse ? `<span class="text-[11px]">Usos: ${Math.max(0, spell.limitedUse - (spell.usesUsed || 0))}/${escapeHTML(spell.limitedUse)}</span>` : ''}
     ${canNormal ? `<button data-cast-spell="${index}" onclick="castSpellByIndex(${index})" ${unavailable ? "disabled" : ""} class="spell-action-button spell-cast-button t-btn-primary" title="${usesSlot ? "Gasta apenas o espaço selecionado. Para trocar a origem, use o seletor." : "Não gasta espaços de magia."}">${spell.ritual ? "Ritual" : spell.circle === 0 ? "Truque" : unavailable ? "Esgotado" : "Conjurar"}</button>` : ''}
     ${!spell.ritual && canCastRitual(char, spell) ? `<button onclick="castRitualByIndex(${index})" class="spell-action-button spell-cast-button t-inset" title="Acrescenta 10 minutos ao tempo de conjuração e não gasta espaço.">Ritual</button>` : ''}
   `;
@@ -1416,7 +1546,7 @@ function renderSorceryCollapsiblePanel(char) {
         <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] pt-1">
           <span class="t-text-muted font-semibold">Conjuração Flexível (Converter Slots ⇄ Pontos):</span>
           <div class="flex flex-wrap gap-1.5">
-            ${Object.entries(char.standardSlots).filter(([, slot]) => slot.total > 0).map(([level]) => `<button onclick="convertSlotToSorceryPoints(${Number(level)})" class="px-2 py-1 t-inset rounded font-semibold">Converter ${level}º (+${level} pt)</button>`).join('')}
+            ${standardSlotEntries(char).filter(([, slot]) => slot.total > 0).map(([level]) => `<button onclick="convertSlotToSorceryPoints(${Number(level)})" class="px-2 py-1 t-inset rounded font-semibold">Converter ${Number(level)}º (+${Number(level)} pt)</button>`).join('')}
             ${[2,3,5,6,7].map((cost,index) => `<button onclick="createSlotWithSorceryPoints(${index+1}, ${cost})" class="px-2 py-1 t-inset rounded font-semibold">Criar ${index+1}º (-${cost} pt)</button>`).join('')}
           </div>
         </div>
@@ -1772,20 +1902,14 @@ function renderFeaturesCollapsible(char, wide = false) {
     </div>${isCollapsed ? '' : `<div data-size-motion><div data-size-content class="p-3 feature-list${wide ? ' feature-list-wide' : ''} text-xs">${content}</div></div>`}</div>`;
 }
 
-// Notas pessoais ficam fora da ficha e de seus snapshots. Este protótipo
-// não autentica: isolamento real por jogador será responsabilidade do servidor.
-const PRIVATE_NOTES_KEY = 'dnd_player_private_notes_v1';
+// Notas ficam fora da ficha/snapshots, no mesmo espaço local da conta atual.
+// O cache não é criptografado. O sincronizador usa documentos privados separados.
 function readPrivateNotes(id) {
-  try { return JSON.parse(localStorage.getItem(PRIVATE_NOTES_KEY) || '{}')[id] || ''; }
-  catch { return ''; }
+  return sheetStore.note(id);
 }
 function savePrivateNotes(value) {
-  try {
-    const all = JSON.parse(localStorage.getItem(PRIVATE_NOTES_KEY) || '{}');
-    all[getChar().id] = String(value);
-    localStorage.setItem(PRIVATE_NOTES_KEY, JSON.stringify(all));
-    document.getElementById('privateNotesStatus').textContent = 'Salvas neste navegador';
-  } catch { document.getElementById('privateNotesStatus').textContent = 'Não foi possível salvar; copie o texto antes de sair.'; }
+  const saved = sheetStore.writeNote(getChar().id, String(value));
+  document.getElementById('privateNotesStatus').textContent = saved ? 'Salvas neste navegador' : 'Não foi possível salvar; baixe um backup com notas antes de fechar.';
 }
 async function clearPrivateNotes() {
   if (!readPrivateNotes(getChar().id)) return;
@@ -1793,7 +1917,7 @@ async function clearPrivateNotes() {
   savePrivateNotes(''); renderAll();
 }
 function renderPrivateNotes(char) {
-  return `<section class="player-private-notes t-card-accent p-4 space-y-2 text-xs"><div class="flex justify-between items-center gap-2"><h3 class="font-rpg font-bold uppercase t-text-accent">Anotações pessoais do jogador</h3><button class="underline" onclick="clearPrivateNotes()">Apagar</button></div><p class="t-text-muted">Salvas separadamente neste navegador. Não acompanham a ficha. Este protótipo ainda não tem login.</p><textarea aria-label="Anotações pessoais do jogador" rows="7" class="w-full t-inset p-3 rounded-lg" oninput="savePrivateNotes(this.value)">${escapeHTML(readPrivateNotes(char.id))}</textarea><p id="privateNotesStatus" class="t-text-muted" aria-live="polite">Salvas neste navegador</p></section>`;
+  return `<section class="player-private-notes t-card-accent p-4 space-y-2 text-xs"><div class="flex justify-between items-center gap-2"><h3 class="font-rpg font-bold uppercase t-text-accent">Anotações pessoais do jogador</h3><button class="underline" onclick="clearPrivateNotes()">Apagar</button></div><p class="t-text-muted">Privadas e separadas da ficha. Com login, entram na fila de sincronização da sua conta; confira o estado no perfil.</p><textarea aria-label="Anotações pessoais do jogador" rows="7" class="w-full t-inset p-3 rounded-lg" oninput="savePrivateNotes(this.value)">${escapeHTML(readPrivateNotes(char.id))}</textarea><p id="privateNotesStatus" class="t-text-muted" aria-live="polite">Salvas neste navegador</p></section>`;
 }
 
 function toggleWornArmor(index) {
@@ -1901,11 +2025,13 @@ function renderAll() {
 
   ["pergaminho_claro", "pergaminho_escuro", "obsidiana"].forEach((th) => {
     const btn = document.getElementById(`themeBtn-${th}`);
-    if (btn)
+    if (btn) {
+      btn.setAttribute("aria-pressed", String(currentTheme === th));
       btn.className =
         currentTheme === th
-          ? "px-2 py-1 rounded font-bold t-btn-primary shadow-sm"
-          : "px-2 py-1 rounded font-semibold t-text-muted";
+          ? "display-choice px-2 py-1 rounded font-bold t-btn-primary shadow-sm"
+          : "display-choice px-2 py-1 rounded font-semibold t-text-muted";
+    }
   });
 
   [90, 100, 112, 125].forEach((sz) => {
@@ -1936,21 +2062,24 @@ function renderAll() {
   // ações de combate/evolução antes da primeira criação pelo assistente.
   document.querySelectorAll('[onclick="shortRest()"], [onclick="longRest()"], [onclick="openLevelUpModal()"], [onclick="openShopModal()"], #btnClassic, #btnModern').forEach(button => button.disabled = !char);
   document.getElementById('charSelect').disabled = !char;
+  document.getElementById('sheetDisplay').hidden = !char;
   if (!char) {
     const header = document.getElementById('headerSection');
     header.className = 't-card p-5 space-y-3';
-    header.innerHTML = '<h1 class="font-rpg text-xl font-bold t-text-accent">Crie sua primeira ficha</h1><p>Suas fichas ficam neste navegador. Esta versão ainda não tem login ou sincronização.</p><button class="t-btn-primary px-4 py-2 rounded font-bold" onclick="openNewCharacterModal()">Criar personagem</button>';
+    header.innerHTML = '<h1 class="font-rpg text-xl font-bold t-text-accent">Crie sua primeira ficha</h1><p>Comece pelo personagem que vai levar para a mesa. Confira o estado do salvamento no perfil.</p><button class="t-btn-primary px-4 py-2 rounded font-bold" onclick="openNewCharacterModal()">Criar personagem</button>';
     document.getElementById('sheetViewport').innerHTML = '';
     window.SizeMotion?.refresh();
     return;
   }
   const isModern = char.preferredLayout === "modern_2024";
+  document.getElementById("btnClassic").setAttribute("aria-pressed", String(!isModern));
+  document.getElementById("btnModern").setAttribute("aria-pressed", String(isModern));
   document.getElementById("btnClassic").className = !isModern
-    ? "px-2 py-1 rounded font-bold t-btn-primary"
-    : "px-2 py-1 rounded font-semibold t-text-muted";
+    ? "display-choice px-2 py-1 rounded font-bold t-btn-primary"
+    : "display-choice px-2 py-1 rounded font-semibold t-text-muted";
   document.getElementById("btnModern").className = isModern
-    ? "px-2 py-1 rounded font-bold t-btn-primary"
-    : "px-2 py-1 rounded font-semibold t-text-muted";
+    ? "display-choice px-2 py-1 rounded font-bold t-btn-primary"
+    : "display-choice px-2 py-1 rounded font-semibold t-text-muted";
 
   const tabConfigs = [
     { id: "main", label: "1. Atributos & Combate", icon: "shield" },
@@ -2001,9 +2130,7 @@ function renderHeader(char, isModern) {
   headerEl.innerHTML = `
   <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
     <div class="md:col-span-5 flex items-center gap-3">
-      <div class="w-12 h-12 rounded-xl t-inset flex items-center justify-center shrink-0">
-        <i data-lucide="scroll-text" class="w-6 h-6 t-text-accent"></i>
-      </div>
+      <button type="button" class="portrait-edit shrink-0" data-avatar-edit="${escapeHTML(char.id)}" aria-label="Alterar imagem de ${escapeHTML(char.name)}" title="Alterar imagem do personagem">${avatarMarkup(char.avatar)}</button>
       <div class="w-full">
         <div class="text-[10px] uppercase tracking-widest t-text-muted">D&D 5e • Jogador: ${escapeHTML(char.playerName)}${getSpellcastingHeader(char) ? ` • ${getSpellcastingHeader(char)}` : ""}</div>
         <input type="text" value="${escapeHTML(char.name)}" onchange="updateField('name', this.value)" class="bg-transparent text-2xl font-rpg font-bold t-text-main border-b t-border focus:outline-none w-full" />
@@ -2447,6 +2574,7 @@ function toggleSpellTwinned(name) {
 }
 function setLayout(mode) {
   // O seletor 2014/2024 troca o visual; não troca o conjunto de regras.
+  if (!["classic_2014", "modern_2024"].includes(mode) || !getChar() || getChar().preferredLayout === mode) return;
   getChar().preferredLayout = mode;
   recordStepAndSave(
     `Alternou layout para ${mode === "modern_2024" ? "2024" : "2014"}`,
@@ -2746,7 +2874,7 @@ function renderShopItems() {
   )
     .map(
       ([k, v]) =>
-        `<span class="px-2 py-0.5 rounded t-card t-text-accent">${v} ${k.toUpperCase()}</span>`,
+        `<span class="px-2 py-0.5 rounded t-card t-text-accent">${escapeHTML(v)} ${escapeHTML(k.toUpperCase())}</span>`,
     )
     .join("");
 
@@ -2845,9 +2973,12 @@ Object.assign(window, {
   updatePoolDisplay,
   evaluateDicePool,
   rollCurrentPool,
+  rollQuickD20,
   triggerSheetRoll,
   openAuthAccountModal,
   closeAuthAccountModal,
+  hasOpenAccountEditor,
+  activateAccountWorkspace,
   saveAccountProfile,
   renderAccountCharactersList,
   deleteCharacter,
@@ -2954,8 +3085,11 @@ document.addEventListener("keydown", (event) => {
   if (!document.getElementById("homebrewModal").classList.contains("hidden")) closeHomebrewModal();
 });
 
+diceDock = setupDiceDock(rollQuickD20, toggleDiceTrayMinimized);
 window.addEventListener("resize", renderDiceTrayState);
 const savedPlayer = readPreference('dnd_public_player_name') || 'Jogador';
 document.getElementById('currentUserBadge').textContent = savedPlayer;
 document.getElementById('accPlayerName').value = savedPlayer;
+document.getElementById('accPlayerName').addEventListener('input', () => saveAccountProfile(true));
+restoreSavedHistory();
 renderAll();
