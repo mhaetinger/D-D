@@ -2,6 +2,20 @@
 
 ## Não lançado
 
+### Atualização preserva a versão correta do HTML — 2026-10-16
+
+- A entrega inicial chegou a `criticall.art` pelas PRs #3/#4 e a CI da `main`
+  passou. A conferência pública identificou HTML anterior no cache novo de uma
+  instalação existente: o navegador reutilizava o cache HTTP válido por 600 s.
+- Instalação offline agora busca os arquivos com `cache: reload`, e a revisão
+  da política mudou para evitar reutilizar o cache incorreto já instalado.
+  Atualizações continuam aguardando o fechamento das abas, sem recarga forçada
+  ou limpeza do armazenamento de fichas/notas/imagens.
+- Regressão Chromium com cache HTTP de 600 s reproduziu a falha antes do ajuste
+  e passou depois. O teste exige HTML novo no cache e preservação de ficha, nota
+  e aparência ao abrir a entrega nova sem rede, sem recarregar uma edição aberta.
+  Passaram 175 testes Node, tipos/build e o roteiro de aplicativo em Chromium.
+
 ### Entrega autorizada — 2026-10-16
 
 - Responsável solicitou publicar a versão com entrada, sincronização pessoal,

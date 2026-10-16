@@ -7,19 +7,23 @@ histórico da conversa. Leia também `AGENTS.md`, `README.md`, `CHANGELOG.md` e
 ## Abrir a versão em desenvolvimento
 
 Repositório: https://github.com/mhaetinger/D-D.
-Branch em andamento: **`feature/login-email`**.
-[PR #3](https://github.com/mhaetinger/D-D/pull/3) reúne esta entrega para `develop`.
-Em 16/10/2026, o responsável autorizou publicar esta versão. A integração segue
-por PR para `develop` e depois para `main`, após as verificações. Consultar os
-[workflows](https://github.com/mhaetinger/D-D/actions) para o estado da publicação.
-Destino desta entrega: **https://criticall.art/**, no GitHub Pages existente.
+Branch do ajuste atual: **`fix/atualizacao-cache`**, criada de `develop`.
+As PRs [#3](https://github.com/mhaetinger/D-D/pull/3) e
+[#4](https://github.com/mhaetinger/D-D/pull/4) foram integradas após autorização do
+responsável. A entrega foi publicada em **https://criticall.art/** no GitHub Pages;
+[CI e implantação passaram](https://github.com/mhaetinger/D-D/actions/runs/38953333030).
+Entrada, dado, preferências e offline conferidos no domínio com dados fictícios.
+Na atualização de uma instalação antiga, foi encontrado HTML anterior no cache
+novo por reutilização do cache HTTP. Esta branch corrige a instalação para buscar
+os arquivos atuais, com regressão reproduzida antes da correção. Conferir os
+[workflows](https://github.com/mhaetinger/D-D/actions) para a implantação do ajuste.
 Cloudflare está ativa no DNS; hospedagem Pages e repositório privado continuam
 dependentes da configuração descrita em [CLOUDFLARE.md](CLOUDFLARE.md).
 
 Em uma pasta nova, com Node.js **22.12 ou superior** e Git:
 
 ```sh
-git clone --branch feature/login-email --single-branch https://github.com/mhaetinger/D-D.git CritCall
+git clone --branch fix/atualizacao-cache --single-branch https://github.com/mhaetinger/D-D.git CritCall
 cd CritCall
 npm ci
 npm run dev -- --port 5174 --strictPort
@@ -28,7 +32,7 @@ npm run dev -- --port 5174 --strictPort
 Abra **http://localhost:5174/**. A configuração pública do Supabase acompanha
 o código; não é necessário copiar `.env.local` nem criar variables no GitHub.
 Se já houver clone, preserve alterações locais, faça `git fetch origin`,
-selecione `feature/login-email` e atualize com `git pull --ff-only`.
+selecione a branch atual e atualize com `git pull --ff-only`.
 Não usar `reset --hard` para atualizar uma pasta com trabalho pendente.
 
 O outro PC não precisa da pasta `.public-worktree`: o clone público já é a

@@ -197,6 +197,9 @@ ou interferir em outros projetos no mesmo domínio. O worker normaliza a raiz do
 projeto para `index.html` e `/book` para `book.html`. Respostas guardadas após
 redirecionamentos HTML são reconstruídas para permitir navegação offline também
 no Cloudflare Pages. A revisão inclui a política do worker além dos arquivos.
+Na instalação, as requisições usam `cache: reload` para buscar o conteúdo atual
+e atualizar o cache HTTP. Sem isso, o Pages pode fornecer HTML da entrega anterior
+a partir do cache do navegador e prendê-lo no cache offline da revisão nova.
 
 Uma versão ativa entrega HTML, regras e assets do seu próprio cache. A nova versão
 aguarda as abas antigas fecharem; não usa `skipWaiting` ou recarga forçada. Cache
