@@ -1,4 +1,6 @@
 import { validateCharacters, type Backup, type CharacterRecord } from "./validation";
+import { selectWorkspace, workspaceKey, workspaceStorage, type WorkspaceIdentity } from "./account-scope";
+import { announceStorageChange } from "./mutations";
 export const SHEET_KEY = "orbyt_characters_v1";
 export const LEGACY_KEY = "dnd_sheet_public_v1";
 export const NOTES_KEY = "dnd_player_private_notes_v1";
@@ -11,7 +13,9 @@ export class CharacterStore extends EventTarget {
   issue: Issue | null = null;
   raw: string | null = null;
   private readSucceeded = false;
-  constructor(private storage: () => StoragePort) { super(); }
+  private noteDrafts = new Map<string, string>();
+  get hasPendingNotes() { return this.noteDrafts.size > 0; }
+  constructor(private storage: () => StoragePort, private scope = "") { super(); }
   private report(issue: Issue | null) {
     this.issue = issue;
     this.dispatchEvent(new Event("change"));
@@ -48,6 +52,7 @@ export class CharacterStore extends EventTarget {
       this.storage().setItem(SHEET_KEY, text);
       this.raw = text;
       this.report(null);
+      announceStorageChange(this.scope);
       return true;
     } catch {
       this.report({ kind: "write", message: "As alterações ainda não foram salvas neste navegador. Baixe um backup antes de fechar e confira o espaço disponível ou a permissão de armazenamento." });
@@ -56,10 +61,23 @@ export class CharacterStore extends EventTarget {
   }
   notes(): Record<string, string> {
     const raw = this.storage().getItem(NOTES_KEY);
-    if (raw === null) return {};
+    if (raw === null) return Object.fromEntries(this.noteDrafts);
     const data: unknown = JSON.parse(raw);
     if (!data || typeof data !== "object" || Array.isArray(data) || !Object.values(data).every((v) => typeof v === "string")) throw new Error("Não foi possível ler as anotações pessoais. Os dados foram preservados.");
-    return data as Record<string, string>;
+    return { ...data as Record<string, string>, ...Object.fromEntries(this.noteDrafts) };
+  }
+  writeNote(id: string, value: string): boolean {
+    this.noteDrafts.set(id, value);
+    try {
+      this.storage().setItem(NOTES_KEY, JSON.stringify(this.notes()));
+      this.noteDrafts.clear();
+      announceStorageChange(this.scope);
+      return true;
+    } catch { this.dispatchEvent(new Event("change")); return false; }
+  }
+  note(id: string): string {
+    if (this.noteDrafts.has(id)) return this.noteDrafts.get(id)!;
+    try { return this.notes()[id] || ""; } catch { return ""; }
   }
   backup(characters: CharacterRecord[], includeNotes = false): Backup {
     const copy = structuredClone(validateCharacters(characters));
@@ -103,6 +121,7 @@ export class CharacterStore extends EventTarget {
       storage.setItem(SHEET_KEY, text);
       this.raw = text;
       this.report(null);
+      announceStorageChange(this.scope);
       return combined;
     } catch {
       if (changedNotes) {
@@ -112,4 +131,15 @@ export class CharacterStore extends EventTarget {
     }
   }
 }
-export const sheetStore = new CharacterStore(() => localStorage);
+const workspaceStores = new Map<string, CharacterStore>();
+export let sheetStore = new CharacterStore(() => localStorage);
+workspaceStores.set("", sheetStore);
+export function selectCharacterWorkspace(identity: WorkspaceIdentity | null) {
+  selectWorkspace(identity);
+  const key = workspaceKey(identity);
+  if (!workspaceStores.has(key)) {
+    const storage = workspaceStorage(() => localStorage, key);
+    workspaceStores.set(key, new CharacterStore(() => storage, key));
+  }
+  sheetStore = workspaceStores.get(key)!;
+}

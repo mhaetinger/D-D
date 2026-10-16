@@ -13,6 +13,11 @@ fichas locais. Não foi adotado um novo framework de interface nesta etapa.
 | `src/app/sheet.js` | Interface anterior extraída, ainda com ponte global para eventos dos cartões/assistentes. |
 | `src/styles/` | Tailwind compilado e estilos/temas preservados. |
 | `src/storage/` | Formato/validação de fichas, migração local, backup, importação e recuperação. |
+| `src/auth/` | Configuração pública, sessão Supabase, entrada principal e interface de cadastro/recuperação/perfil. |
+| `src/sync/` | Documentos pessoais, fila IndexedDB, cliente Supabase, datas e recuperação de versões. |
+| `supabase/migrations/` | Tabelas/RLS/RPC de salvamento pessoal; migração aplicada ao CritCall real em 16/10/2026. |
+| `src/media/` | Redução/validação de imagens, cache IndexedDB por conta e upload/download autenticado no Storage privado. |
+| `src/app/dice-dock.ts` | Gestos, posição e último total do dado compacto; rolagem reutiliza o motor da bandeja. |
 | `src/pwa/` | Registro do service worker e informação de disponibilidade offline. |
 | `public/rules/` | Motor sem DOM, catálogos, assistente, balões, rolagem e animações. |
 | `public/book.html`, `public/books/`, `public/vendor/pdfjs/` | Biblioteca, dois PDFs e leitor com suas licenças. |
@@ -24,6 +29,30 @@ Os scripts clássicos de regras permanecem compatíveis com Node para seus teste
 A ponte em `sheet.js` conserva os eventos existentes durante a extração; novos
 módulos devem usar APIs explícitas e listeners, reduzindo essa ponte aos poucos.
 Regras não devem depender de DOM, armazenamento ou rede.
+
+## Entrada e apresentação
+
+O HTML inicial mantém `sheetApp` oculto e inerte até o bootstrap selecionar o
+espaço correto. `src/auth/entry.ts` alterna entrada e ficha sem reload. O mesmo
+`accountAccess` é movido entre a entrada e o perfil, preservando seus eventos e
+o fluxo PKCE, sem duplicar IDs/formulários. A entrada tem estilos próprios em
+`src/styles/access.css`: paleta escura de grimório, textura procedural leve e
+detalhes em dourado discreto. O símbolo usa o PNG original; o nome em texto
+conserva contraste sobre o fundo escuro. As preferências da ficha não são sobrescritas.
+
+Sem sessão, mostrar a entrada; com identidade validada ou cópia offline
+anteriormente validada, abrir a ficha. Recuperação de senha permanece na entrada
+até concluir. O uso local é uma escolha explícita, mantida em sessionStorage
+por caminho/aba; sair da conta revoga essa escolha. Avisos de armazenamento e
+recuperação permanecem visíveis no perfil ao abrir um espaço com falha.
+A tela organiza a navegação; a autorização remota continua nas políticas RLS,
+sem considerar a visibilidade do HTML como uma barreira de segurança.
+
+`dnd_sheet_theme`, `dnd_backdrop_style` e `dnd_font_scale` já pertencem ao espaço
+do usuário e entram na fila como preferências. `preferredLayout` continua dentro
+da ficha. Os seletores exibem estado por texto/símbolo e `aria-pressed`.
+Os arquivos `public/icons/logo.png` e `icon.png` foram fornecidos pelo responsável;
+são distribuídos no build e no cache do aplicativo, sem alterar os livros.
 
 ## Dados locais e backup
 
@@ -47,12 +76,94 @@ com `privateNotes` opcional e separado. Importar cria novos IDs e remapeia as
 notas correspondentes; não substitui personagens com o mesmo ID ou nome.
 Arquivos de até 20 MB são aceitos; versões desconhecidas são rejeitadas.
 
-O adaptador atual é síncrono com localStorage para preservar os fluxos existentes.
-A migração para IndexedDB, revisões atômicas entre abas, histórico por personagem e sincronização terá uma API
-assíncrona própria; não foi simulada com gravações remotas fictícias. Checkpoints
-atuais da interface ainda ficam somente na sessão e não incluem notas pessoais.
+O adaptador da interface conserva localStorage e o formato legado. A fila nova
+usa transações IndexedDB por projeto/usuário, com IDs de operação idempotentes,
+revisões remotas e projeção que aguarda editores. Histórico/checkpoints passam a
+ser persistidos separadamente e entram na fila; seus snapshots não incluem notas.
+
+## Login preparado, ativação pendente
+
+Confirmados e-mail/senha e projeto exclusivo do CritCall em 15/10/2026. O usuário
+identificou o projeto novo `qhrpgkpvwbztubnrdhya`. URL/chave publicável estão na
+configuração pública revisada `src/auth/public-project.ts`, incluída no build.
+Os fluxos usam Supabase JS 2.118.0. Ferramentas conferiram API real e recusa de
+credenciais inexistentes, sem cadastrar ou enviar e-mails. O usuário confirmou
+cadastro, confirmação e entrada reais. Os dois retornos locais em 5174 foram
+aceitos pelo endpoint real após o ajuste de localhost. O usuário confirmou que
+abriu o link de recuperação em outro navegador/dispositivo, embora o retorno
+fosse localhost. O fluxo PKCE atual exige o navegador/dispositivo de origem.
+Após essa orientação, em 16/10/2026 o usuário relatou sucesso no teste local de
+recuperação/troca. Isso não é validação da publicação, SMTP próprio ou duas contas.
+Orbyt é outro projeto do responsável e permanece separado. O
+aplicativo tem os identificadores públicos do CritCall incluídos; o modo local
+pode ser escolhido com `VITE_AUTH_ENABLED=false`. O bootstrap valida a identidade
+antes de importar `sheet.js`; chaves de armazenamento pessoais recebem prefixo por projeto/usuário.
+As chaves originais permanecem no modo sem login, sem adoção automática.
+O título, a instalação e os downloads usam CritCall. Identificadores legados
+com `orbyt` são mantidos apenas para compatibilidade de fichas/backups publicados;
+novos espaços de login/conta usam `dnd_auth_v1`/`dnd_account_v1`.
+
+Sessões online passam por `getUser`; uma identidade previamente validada só
+seleciona sua cópia local offline. Esse cache não é criptografado nem representa
+autorização remota. Trocas limpam histórico/interface e cancelam confirmações
+pendentes; editores abertos exigem decisão antes do fechamento. Rascunhos com
+falha de quota são preservados por espaço em memória, sem gravar na conta nova.
+
+A branch implementa sincronização pessoal: fichas, notas privadas separadas,
+perfil, preferências, histórico/checkpoints e recuperação. A migração define
+critcall_documents/critcall_versions, RLS do dono e RPCs restritas. Em 16/10/2026,
+o conector confirmou o projeto exclusivo `qhrpgkpvwbztubnrdhya`, ativo em
+PostgreSQL 17.11 e identificado como D-D no painel. Antes da aplicação, não havia
+tabelas públicas nem migrações. A migração `personal_sync` foi aplicada com a
+versão remota `20261016101143`, a partir do arquivo
+`202610160001_personal_sync.sql`. Conferidas RLS, leitura apenas do dono e
+grants restritos; a API recusou anon nas duas tabelas. As RPCs negam EXECUTE
+a anon, permitem authenticated e têm `search_path` vazio. Teste SQL real com
+identidade sintética, integralmente revertido, confirmou escrita/idempotência
+e isolamento do dono, sem dados pessoais. Cliente e SQL também foram testados
+com HTTP controlado e PostgreSQL 16 descartável, respectivamente. Ainda faltam
+sincronização real entre dispositivos, publicação, SMTP próprio e revisão dos
+alertas descritos em SINCRONIZACAO.md. Contratos em [LOGIN.md](LOGIN.md) e [SINCRONIZACAO.md](SINCRONIZACAO.md).
+
+Documentos têm revisão crescente e datas de edição/recebimento, com calibração
+do relógio. Se edições simultâneas disputam a mesma revisão, vence a data mais
+recente e ambas ficam no histórico; não há mesclagem automática campo a campo.
+Exclusões usam tombstones, e restaurar cria nova operação após confirmação.
+Outro PC só recebe edições offline depois da reconexão/envio do dispositivo
+de origem. A cópia local anterior sem data não se apresenta como edição nova.
+O nome passa a ser salvo ao digitar, com aviso de erro em vez de falso sucesso.
+
+O preflight e o navegador usam o mesmo resolvedor: o projeto público é o padrão,
+um override exige URL/chave completos, e chaves privilegiadas são recusadas mesmo
+com login desligado. O workflow não depende de repository variables para essa
+configuração. O arquivo público não contém capacidade administrativa ou dados de
+usuários. Links inválidos não encerram uma conta válida já aberta; a mensagem de
+entrada depende da conferência da identidade, além da resposta de token. A conta
+conectada pode solicitar um link de troca de senha para seu próprio e-mail
+validado; a conclusão usa o mesmo retorno PKCE da recuperação.
+Erros do retorno distinguem expiração no serviço, solicitação indisponível,
+verificador incompatível e ausência da solicitação no navegador/endereço. Nenhum
+desses avisos expõe o código de acesso, token ou texto bruto vindo da URL.
+
+O domínio próprio é `criticall.art`, com compra na Hostinger confirmada pelo
+usuário em 16/10/2026. O usuário confirmou OK nas verificações GitHub/Cloudflare.
+Consultas confirmaram nameservers Cloudflare, HTTPS 200 na raiz e redirecionamento
+de `www`; hospedagem ainda no GitHub Pages. O Supabase aceitou o
+retorno novo em uma consulta com token inválido, sem testar o login completo.
+Caminhos relativos e retornos pela origem atual funcionam sob `/D-D/` e `/` nos
+testes. Antes de mudar a origem, exportar dados locais e configurar Pages, DNS,
+HTTPS e retornos no Supabase conforme [DOMINIO.md](DOMINIO.md). Não há migração
+entre origens ou sincronização remota simulada nessa mudança.
 
 ## Dependências, build e publicação
+
+O próximo destino proposto é Cloudflare com fontes privadas, mantendo verificações
+e entrega pelo GitHub Actions. Usuário confirmou a criação da conta em 16/10/2026;
+zona com ativação confirmada pelo usuário e nameservers conferidos; projeto
+Pages Cloudflare e credenciais ainda não configurados.
+O workflow novo está preparado como destino opcional. A estrutura
+abaixo descreve a publicação atual no GitHub Pages. O roteiro de transição e os
+limites de crescimento por planos estão em [CLOUDFLARE.md](CLOUDFLARE.md).
 
 Dependências e lockfile fixados; fontes e ícones são compilados/hospedados com o
 aplicativo. O build mantém apenas os ícones usados. Licenças acompanham os arquivos.
@@ -68,7 +179,9 @@ O gerador confere isso e recusa arquivos de desenvolvimento inesperados.
 
 A pipeline testa branches e pull requests, com permissões de leitura. O job de
 publicação só existe para push na `main`, após o job de verificação, usando o
-ambiente `github-pages`. Publicar exige configurar a fonte do Pages como GitHub
+ambiente `github-pages` por padrão ou `cloudflare-pages` quando
+`DEPLOY_TARGET=cloudflare`. Os dois destinos recebem o mesmo pacote verificado;
+o job Cloudflare o extrai e envia sem novo build. Publicar no GitHub exige configurar a fonte do Pages como GitHub
 Actions na conta; preparar o workflow não afirma que o site já foi ativado.
 Proteção de branches/aprovações automáticas ainda dependem das configurações do
 repositório; o fluxo convencionado continua em `CONTRIBUTING.md`.
@@ -81,7 +194,9 @@ faz parte da verificação; somente o job da `main` tem permissão de publicaç�
 O build calcula uma revisão pelo conteúdo dos arquivos e gera `sw.js` com a lista
 dos recursos da ficha e do leitor. Cache por revisão e escopo evita misturar builds
 ou interferir em outros projetos no mesmo domínio. O worker normaliza a raiz do
-projeto para `index.html`, mantendo a entrada pelo endereço do Pages offline.
+projeto para `index.html` e `/book` para `book.html`. Respostas guardadas após
+redirecionamentos HTML são reconstruídas para permitir navegação offline também
+no Cloudflare Pages. A revisão inclui a política do worker além dos arquivos.
 
 Uma versão ativa entrega HTML, regras e assets do seu próprio cache. A nova versão
 aguarda as abas antigas fecharem; não usa `skipWaiting` ou recarga forçada. Cache
@@ -94,15 +209,54 @@ O indicador no perfil informa quando o primeiro preparo offline terminou.
 
 1. **Concluído nesta etapa:** estrutura de aplicação, build, dependências locais,
    backup, recuperação, migração preservando legado e funcionamento offline da ficha.
-2. **Próxima etapa individual:** armazenamento assíncrono com revisões entre abas, histórico/checkpoints
-   por personagem e preparação da sincronização; manter migração e exportação.
-3. **Contas e sincronização:** implementar autenticação real, propriedade da ficha,
-   notas exclusivas do dono, fila offline e conflitos entre dispositivos. Supabase
-   Auth/PostgreSQL é a proposta técnica; não há projeto, sessão ou banco conectado.
-   Confirmar os dados do serviço e opções de login antes da conexão pública.
+2. **Implementado na branch:** fila IndexedDB, histórico/checkpoints persistidos,
+   nome automático, sincronização pessoal e versões recuperáveis.
+3. **Validação de contas/dados:** migração aplicada e RLS conferida no CritCall;
+   conferir sincronização com duas contas/dispositivos reais,
+   SMTP próprio e publicação por PR. Conta e recuperação locais foram relatadas
+   como bem-sucedidas; isso não valida a sincronização real.
 4. **Depois da base individual:** retrato, salas, participantes, resumo do grupo e
    turnos do mestre; voz/vídeo por último. Não implementar permissões de mesa só
    escondendo botões nem compartilhar notas pessoais.
 
 Os layouts 2014/2024 continuam sobre o mesmo conjunto de regras de 2014. Regras
 da mesa são identificadas, incluindo recuperação integral ao dormir nesta campanha.
+
+## Dado e imagens pessoais
+
+O dado recolhido é transitório, sempre fechado ao abrir/trocar espaço. A posição
+normalizada usa `dnd_dice_tray_position` e é limitada ao viewport/tamanho atual.
+`ResizeObserver` reposiciona após sair da entrada oculta, além de rotação e resize.
+O resultado fica em sessionStorage por espaço; não gera documentos remotos.
+Arrastar exige mais de 8 px; arremessar exige pelo menos 48 px e velocidade final
+mínima de 0,85 px/ms na janela recente. Cancelar/interromper o gesto não rola.
+Clique/Enter abre a bandeja, R rola d20 normal, setas movem. O d20 rápido usa
+`evaluateDicePool({20:1},0,'normal')` sem modificar pool, modificador ou modo atual.
+A sequência de rolagens descarta callbacks antigos e trocas de espaço cancelam
+animações. Movimento reduzido desativa o giro decorativo.
+
+Retratos usam `avatar: {id, revision}` por personagem e `dnd_profile_avatar` por
+perfil. UUIDs são validados antes de entrar em marcação/caminhos; URLs externas,
+SVG e HTML de backups não viram imagens. O PNG da marca não é uma foto de usuário.
+`prepareAvatar` valida entrada de até 5 MB/32 MP/8192 px, recorta no centro e
+recodifica até 256 px/32 KiB em WebP, sem metadados do original. O cache privado
+`critcall-avatars-v1` usa escopo + UUID + revisão; não vai para Cache Storage.
+
+Storage `critcall-avatars` é privado, limita WebP a 32768 bytes e só permite
+SELECT/INSERT/UPDATE/DELETE na pasta do `auth.uid()`. Cada imagem usa caminho
+`<userId>/<id>.webp`. Substituições reutilizam o arquivo; referências compartilhadas
+por cópias ganham novo UUID ao mudar, preservando o retrato original. Não existe
+limpeza automática de arquivos antigos ou fichas. Históricos guardam referências,
+não pixels; a substituição remota não mantém uma versão binária do arquivo.
+Backups JSON não embutem imagens; outra conta não obtém acesso aos arquivos.
+
+O envio captura o dono/espaço e só confirma depois da resposta do Storage. Falhas
+mantêm a cópia local e o aviso de pendência. Download é autenticado, só para
+retratos visíveis, e URLs Blob são revogadas/retiradas ao trocar de conta. Nenhuma
+resposta de outra sessão é aplicada a um espaço novo. Documentos e imagens têm
+filas distintas; um retrato pode aparecer depois da ficha num segundo dispositivo.
+
+Migração `20261016184740_private_avatars.sql` aplicada ao CritCall exclusivo em
+16/10/2026 como versão remota `20261016184938`. Bucket/limites/políticas conferidos.
+Os avisos anteriores do advisor não mudaram. Não houve alteração das RPCs ou do
+projeto de outro aplicativo.

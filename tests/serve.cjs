@@ -2,13 +2,20 @@
 const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
-async function serve(base, prefix = "/D-D/") {
+async function serve(base, prefix = "/D-D/", { cleanHtml = false } = {}) {
   base = path.resolve(base);
   const server = http.createServer((req, res) => {
     try {
       const pathname = decodeURIComponent(new URL(req.url, "http://localhost").pathname);
       if (!pathname.startsWith(prefix)) { res.writeHead(404); return res.end(); }
-      const file = path.resolve(base, pathname.slice(prefix.length) || "index.html");
+      let relative = pathname.slice(prefix.length);
+      // Reproduz os endereços canônicos do Cloudflare Pages sem depender da rede.
+      if (cleanHtml && ["index.html", "book.html"].includes(relative)) {
+        res.writeHead(308, { Location: prefix + (relative === "index.html" ? "" : "book") });
+        return res.end();
+      }
+      if (cleanHtml && relative === "book") relative = "book.html";
+      const file = path.resolve(base, relative || "index.html");
       if (!file.startsWith(base + path.sep)) { res.writeHead(403); return res.end(); }
       const stat = fs.statSync(file);
       if (!stat.isFile()) { res.writeHead(404); return res.end(); }

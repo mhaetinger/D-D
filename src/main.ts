@@ -11,10 +11,23 @@ import "@fontsource/inter/latin-600.css";
 import "@fontsource/inter/latin-700.css";
 import "./styles/tailwind.css";
 import "./styles/sheet.css";
+import "./styles/access.css";
 import "./app/icons";
-import "./app/sheet.js";
 import { setupBackups } from "./storage/backup-ui";
 import { registerOffline } from "./pwa/register";
+import { initializeAccount } from "./auth/session";
+import { setupAccountUI } from "./auth/ui";
+import { initializeSync } from "./sync/controller";
+import { setupAvatars } from "./media/ui";
 
-setupBackups();
-registerOffline();
+// A identidade define o armazenamento antes da primeira leitura da ficha.
+async function start() {
+  const account = await initializeAccount();
+  await initializeSync(account);
+  await import("./app/sheet.js");
+  setupBackups();
+  setupAccountUI(account);
+  setupAvatars(account);
+  registerOffline();
+}
+void start();

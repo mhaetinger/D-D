@@ -4,7 +4,7 @@
 
 | Branch | Uso |
 | --- | --- |
-| `main` | Versão pronta para publicação no GitHub Pages. |
+| `main` | Versão pronta para publicação no destino configurado. |
 | `develop` | Integração das mudanças antes da próxima entrega. |
 | `feature/<nome>` ou `fix/<nome>` | Uma funcionalidade ou correção, criada a partir de `develop`. |
 
@@ -42,8 +42,13 @@ Use Node.js 22.12+ e as dependências do lockfile:
 
 ```sh
 npm ci
-npm run dev
+npm run dev -- --port 5174 --strictPort
 ```
+
+Para continuar esta entrega, selecionar `feature/login-email` e ler
+[docs/RETOMADA.md](docs/RETOMADA.md) antes de iniciar uma nova branch. Abrir
+`http://localhost:5174/`, retorno autorizado no Supabase. A configuração pública
+do CritCall já acompanha o código; não é necessário copiar `.env.local`.
 
 Para validar uma alteração funcional:
 
@@ -69,6 +74,9 @@ build e `DND_TEST_ARTIFACTS` permite capturas opcionais.
 `public/rules/`; novos módulos ficam em `src/`. Fonte do Pages: **GitHub Actions**,
 com publicação de `dist/` somente após integração aprovada na `main`. Não publicar
 os fontes diretamente nem regenerar a exportação do protótipo sobre esta base.
+Cloudflare Pages pode ser selecionado com `DEPLOY_TARGET=cloudflare` após configurar
+o projeto e os Secrets conforme [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md). O job usa
+o mesmo artefato testado; sem essa variável, mantém GitHub Pages.
 PDF.js está fixado em `public/vendor/pdfjs/`; preservar seus avisos ao atualizar.
 
 ## Dados e manutenção
@@ -77,12 +85,23 @@ PDF.js está fixado em `public/vendor/pdfjs/`; preservar seus avisos ao atualiza
   README quando mudarem execução ou recursos disponíveis.
 - Preservar as fichas e anotações já salvas. Não limpar o armazenamento para
   contornar problemas; usar dados fictícios em verificações compartilhadas.
-- Manter fichas reais e credenciais fora dos commits. Os dois livros em `public/books/`
+- Manter fichas reais e credenciais privadas fora dos commits. URL e chave
+  publicável do projeto são configuração pública revisada em
+  `src/auth/public-project.ts`, destinada ao navegador; nunca usar chaves
+  secretas/service_role nesse arquivo. Os dois livros em `public/books/`
   e os catálogos de consulta foram autorizados pelo responsável; outros PDFs não
   entram automaticamente. A licença do código não cobre os livros.
 - Esta branch pública é a base do desenvolvimento. Uma cópia local de referência
   não deve ser mesclada nem enviada com seu histórico. Qualquer reaproveitamento
   de código exige revisão dos arquivos e do conteúdo antes do commit.
-- O seletor 2014/2024 muda o layout; autenticação, sincronização e salas ainda
-  não estão implementadas. O modo offline é local, após preparo do cache; PDFs
-  não entram no download automático.
+- O seletor 2014/2024 muda o layout. Login e sincronização pessoal estão na
+  branch de tarefa; migração aplicada ao Supabase real, com validação entre
+  dispositivos reais e publicação ainda pendentes.
+  Salas não estão implementadas. PDFs não entram no download automático.
+
+O teste `npm run test:database` usa Docker com PostgreSQL 16 descartável por padrão,
+sem publicar portas ou consultar bancos existentes. Também aceita
+`CRITCALL_TEST_POSTGRES_BIN` para criar outra instância descartável com binários
+locais, conforme o README. Inclui RPCs e políticas do Storage de imagens.
+Executá-lo ao alterar SQL/RLS/RPC.
+A CI também o exige. Não aplicar migrações ao Orbyt; conferir projeto CritCall.

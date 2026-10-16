@@ -1,3 +1,4 @@
+import { isAvatarRef } from "../media/avatar";
 export interface CharacterRecord extends Record<string, unknown> {
   id: string;
   name: string;
@@ -30,6 +31,7 @@ export function validateCharacters(value: unknown): CharacterRecord[] {
     expect(object(item), "personagem");
     expect(string(item.id) && item.id.length > 0 && item.id.length < 200 && !ids.has(item.id), "identificador repetido ou ausente");
     ids.add(item.id);
+    if (item.avatar !== undefined && item.avatar !== null) expect(isAvatarRef(item.avatar), "referência de imagem");
     expect(string(item.name) && string(item.playerName) && string(item.race) && string(item.background) && string(item.alignment), "identidade");
     expect(!Object.hasOwn(item, "privateNotes") && !Object.hasOwn(item, "playerNotes"), "anotações pessoais devem ficar separadas");
     expect(object(item.abilities), "atributos");

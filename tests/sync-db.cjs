@@ -1,0 +1,101 @@
+// PostgreSQL real e descartável: nenhum endereço/usuário do Supabase é utilizado.
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const { randomUUID } = require('node:crypto');
+const database = require('./postgres.cjs').postgres();
+const a = '11111111-1111-4111-8111-111111111111', b = '22222222-2222-4222-8222-222222222222';
+function sql(text, ok = true) {
+  const result = database.sql(text);
+  if (ok) assert.equal(result.status, 0, result.stderr);
+  else assert.notEqual(result.status, 0, 'operação proibida deveria falhar');
+  return result.stdout.trim().split('\n').at(-1);
+}
+const as = (owner, query) => `set role authenticated; set request.jwt.claim.sub = '${owner}'; ${query}`;
+function save(owner, key, value, base, date, op = randomUUID(), kind = 'preference', id = 'dnd_public_player_name') {
+  return `select public.critcall_save_document('${owner}', '${key}', '${kind}', '${id}', '${JSON.stringify(value).replaceAll("'","''")}'::jsonb, ${base}, '${op}', '${date}');`;
+}
+const past = (seconds) => new Date(Date.now() - seconds * 1000).toISOString();
+const concurrent = text => database.concurrent(text);
+(async () => {
+  try {
+    const started = database.start();
+    assert.equal(started.status,0,started.stderr);
+    let ready = false;
+    for (let n=0; n<80; n++) {
+      if (database.ready().status === 0) { ready=true; break; }
+      await new Promise(resolve=>setTimeout(resolve,250));
+    }
+    assert.equal(ready,true,'PostgreSQL não iniciou');
+    sql(`create role anon; create role authenticated; create schema auth;
+      create table auth.users(id uuid primary key);
+      insert into auth.users values ('${a}'),('${b}');
+      create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+      grant usage on schema auth to authenticated,anon;`);
+    const migration = fs.readFileSync(path.join(__dirname,'../supabase/migrations/202610160001_personal_sync.sql'),'utf8');
+    sql(migration);
+    sql(`set role anon; select public.critcall_sync_clock('${a}');`,false);
+    sql(as(a,`select public.critcall_sync_clock('${b}');`),false);
+    assert.ok(Number.isFinite(Date.parse(sql(as(a,`select public.critcall_sync_clock('${a}');`)))));
+    sql('set role anon; select * from public.critcall_documents;', false);
+    sql('set role anon; select * from public.critcall_versions;', false);
+    sql(`set role anon; ${save(a,'preference:dnd_public_player_name','Proibido',0,past(20))}`, false);
+    sql(as(a,save(b,'preference:dnd_public_player_name','Invadir B',0,past(20))), false);
+    const operation = randomUUID();
+    const first = JSON.parse(sql(as(a,save(a,'preference:dnd_public_player_name','Pessoa A',0,past(60),operation))));
+    assert.equal(first.document.revision,1); assert.equal(first.conflict,false);
+    sql(as(a,save(a,'preference:dnd_public_player_name','Pessoa A',0,past(60),operation)));
+    assert.equal(sql(as(a,'select count(*) from public.critcall_versions;')),'1','repetição de resposta não duplica versão');
+    sql(as(a,save(a,'preference:dnd_public_player_name','Alterar operação',0,past(60),operation)),false);
+    assert.equal(sql(as(b,'select count(*) from public.critcall_documents;')),'0');
+    assert.equal(sql(as(b,'select count(*) from public.critcall_versions;')),'0');
+    sql(as(a,"update public.critcall_documents set value='\"Inválido\"';"),false);
+    sql(as(a,'delete from public.critcall_versions;'),false);
+    const newer = JSON.parse(sql(as(a,save(a,'preference:dnd_public_player_name','Mais recente offline',0,past(10)))));
+    assert.equal(newer.conflict,true); assert.equal(newer.document.value,'Mais recente offline');
+    const older = JSON.parse(sql(as(a,save(a,'preference:dnd_public_player_name','Cópia antiga',0,past(100)))));
+    assert.equal(older.document.value,'Mais recente offline');
+    assert.equal(sql(as(a,'select count(*) from public.critcall_versions;')),'3','inclusive versão perdedora é preservada');
+    const deleted = JSON.parse(sql(as(a,save(a,'preference:dnd_public_player_name',null,2,past(5)))));
+    assert.equal(deleted.document.value,null);
+    const stale = JSON.parse(sql(as(a,save(a,'preference:dnd_public_player_name','Não ressuscitar',1,past(20)))));
+    assert.equal(stale.document.value,null);
+    sql(as(a,save(a,'note:char1','Nota privada',0,past(5),randomUUID(),'note','char1')));
+    assert.equal(sql(as(b,"select count(*) from public.critcall_documents where kind='note';")),'0');
+    sql(as(a,save(a,'character:char1',{id:'char1',privateNotes:'Não embutir'},0,past(5),randomUUID(),'character','char1')),false);
+    sql(as(a,save(a,'preference:futuro','Relógio errado',0,new Date(Date.now()+86400000).toISOString())),false);
+    await Promise.all([100,80,60].map((age,n)=>concurrent(as(a,save(a,'note:concorrente',`Concorrente ${n}`,0,past(age),randomUUID(),'note','concorrente')))));
+    assert.equal(sql(as(a,"select value #>> '{}' from public.critcall_documents where document_key='note:concorrente';")),'Concorrente 2');
+    assert.equal(sql(as(a,"select count(*) from public.critcall_versions where document_key='note:concorrente';")),'3');
+    sql(migration);
+    assert.equal(sql(as(a,"select count(*) from public.critcall_versions where document_key='note:concorrente';")),'3','reaplicar migração preserva dados');
+    // Estrutura mínima do serviço Storage para testar as políticas reais em Postgres.
+    sql(`create schema storage;
+      create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);
+      create table storage.objects(id uuid primary key default gen_random_uuid(),bucket_id text references storage.buckets,name text,metadata jsonb,unique(bucket_id,name));
+      create function storage.foldername(name text) returns text[] language sql immutable as $$select (string_to_array(name,'/'))[1:array_length(string_to_array(name,'/'),1)-1]$$;
+      alter table storage.objects enable row level security;
+      grant usage on schema storage to anon,authenticated;
+      grant select,insert,update,delete on storage.objects to anon,authenticated;`);
+    const avatars = fs.readFileSync(path.join(__dirname,'../supabase/migrations/20261016184740_private_avatars.sql'),'utf8');
+    sql(avatars);
+    assert.equal(sql("select (not public and file_size_limit=32768 and allowed_mime_types=array['image/webp'])::text from storage.buckets where id='critcall-avatars';"),'true');
+    const object = `${a}/33333333-3333-4333-8333-333333333333.webp`;
+    sql(as(a,`insert into storage.objects(bucket_id,name) values ('critcall-avatars','${object}');`));
+    assert.equal(sql(as(b,'select count(*) from storage.objects;')),'0');
+    assert.equal(sql('set role anon; select count(*) from storage.objects;'),'0');
+    sql(as(b,`insert into storage.objects(bucket_id,name) values ('critcall-avatars','${a}/44444444-4444-4444-8444-444444444444.webp');`),false);
+    sql(`set role anon; insert into storage.objects(bucket_id,name) values ('critcall-avatars','${a}/44444444-4444-4444-8444-444444444444.webp');`,false);
+    sql(as(a,`insert into storage.objects(bucket_id,name) values ('critcall-avatars','${a}/arquivo.svg');`),false);
+    sql(as(a,`update storage.objects set name='${b}/33333333-3333-4333-8333-333333333333.webp';`),false);
+    sql(as(a,`insert into storage.objects(bucket_id,name,metadata) values ('critcall-avatars','${object}','{"size":1234}') on conflict(bucket_id,name) do update set metadata=excluded.metadata;`));
+    sql(as(b,'delete from storage.objects;'));
+    assert.equal(sql(as(a,'select count(*) from storage.objects;')),'1');
+    sql(avatars);
+    assert.equal(sql(as(a,'select count(*) from storage.objects;')),'1','reaplicar não apaga imagens');
+    sql(as(a,'delete from storage.objects;'));
+    assert.equal(sql(as(a,'select count(*) from storage.objects;')),'0');
+    console.log('PASS Storage: bucket privado 32KB/WebP, duas contas isoladas, anon negado, upsert do dono, bloqueio de caminhos/extensões/mudança de dono e exclusão própria.');
+    console.log('PASS PostgreSQL descartável real: RPC transacional/idempotente, datas, concorrência, tombstones, histórico de conflitos, notas separadas, RLS de duas contas e recusa de anon/escrita direta; migração reaplicável.');
+  } finally { database.stop(); }
+})().catch(error=>{console.error(error);process.exitCode=1;});

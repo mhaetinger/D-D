@@ -2,6 +2,436 @@
 
 ## Não lançado
 
+### Entrega autorizada — 2026-10-16
+
+- Responsável solicitou publicar a versão com entrada, sincronização pessoal,
+  dado compacto e retratos. Entrega pelo GitHub Pages existente em `criticall.art`,
+  mantendo PRs para `develop` e `main` e o artefato verificado pela CI.
+- Cloudflare já atende o DNS; a transferência da hospedagem e a mudança do
+  repositório para privado dependem da configuração de Pages/credenciais.
+
+### Dado arrastável e imagens de perfil/personagem — 2026-10-16
+
+- Dado começa recolhido, mostrando 20 antes de rolar e depois o último total da
+  conta/aba. Ícone com textura e facetas, arraste com limites, posição restaurada,
+  arremesso rápido para d20 normal, clique/Enter para abrir e R/setas no teclado.
+  O arremesso preserva o pool, modificador e vantagem/desvantagem da bandeja.
+- Retratos no perfil e em cada ficha/lista de personagens. Imagens de até 5 MB são
+  recortadas e reduzidas para WebP de até 256 px/32 KiB antes do envio. Originais,
+  metadados, SVG e GIF não são enviados. Pixels ficam em Storage privado e cache
+  IndexedDB por conta; documentos/histórico recebem só referências compactas.
+- Migração de bucket/RLS aplicada ao CritCall exclusivo, remota `20261016184938`.
+  Configuração conferida e advisors sem novos avisos. Teste de banco ampliado para
+  políticas de imagens, com opção de PostgreSQL local descartável sem Docker.
+- Passaram 175 testes Node, tipos/build e os seis roteiros Chromium, incluindo
+  arremesso/teclado/posição do dado, imagens entre dois navegadores, fila offline,
+  SVG recusado, cópias com retratos independentes e download atrasado na troca de
+  conta. O check completo passou com 174 testes; o caso adicional de MIME
+  disfarçado, build e dado foram conferidos depois. Banco/RLS passaram em
+  PostgreSQL 18.6 descartável e a revisão visual cobriu celular/três temas/GG.
+
+
+- Link “Esqueci a senha” aparece somente no modo Entrar, sem ocupar a tela de
+  cadastro ou repetir a ação no formulário de recuperação. Conferidos build,
+  171 testes Node e alternância dos três modos no Chromium.
+
+### Entrada com tema de grimório e DNS conferido — 2026-10-16
+
+- Entrada recebeu paleta escura de carvão/couro, textura leve, tipografia de
+  livro e detalhes em dourado envelhecido. Símbolo original acompanhado do nome
+  em texto para conservar contraste. Cores da ficha e lógica de acesso preservadas.
+- Usuário confirmou OK no GitHub DNS check e Cloudflare. Conferidos nameservers
+  Cloudflare, HTTPS 200 na raiz e `www` com 301 → 200, certificado aceito. O site
+  continua servido pelo GitHub Pages; transferência para Pages Cloudflare pendente.
+- Passaram `npm test` (171 testes), `npm run build` e o roteiro Chromium de auth
+  em `/` e `/D-D/`. Revisados desktop/celular, 320px/fonte GG, modos de acesso
+  sem transbordamento e contraste dos textos/botão/bordas. Os outros roteiros de
+  navegador não foram repetidos para esta alteração de apresentação.
+
+
+### Entrada principal do CritCall e exibição da ficha — 2026-10-16
+
+- Nova entrada com logo fornecida pelo responsável, login/cadastro/recuperação,
+  adaptação para celular e foco de teclado. O formulário existente é reutilizado
+  entre entrada e perfil. A ficha começa oculta/inativa até escolher o espaço;
+  conta validada abre suas fichas ou a ação de criar a primeira.
+- Uso local preservado por escolha explícita; saída retorna à entrada. Recuperação
+  de senha tem tela própria antes de voltar às fichas. Avisos e backups de dados
+  ilegíveis permanecem disponíveis, sem apagar armazenamento ou adotar fichas locais.
+- Seletor Clássica (2014)/Moderna (2024) movido da barra global para dentro da ficha,
+  com estado acessível e indicação das regras 2014. Layout continua por personagem;
+  cores/texturas/fontes continuam por conta, sem alterar os contratos da fila.
+- Ícone fornecido passa a identificar a barra, favicon e manifest. Logo/ícone
+  entram no build/cache; PDFs continuam fora do download offline automático.
+- `npm run check` passou: **171 testes**, tipos/build e os cinco roteiros Chromium.
+  Incluídas entrada antes da ficha, recuperação/cancelamento, preferências após
+  recarga/contas A-B e entrega visual em dois navegadores com HTTP simulado.
+  Conferidos três temas/320px/fonte GG e imagens da entrada em desktop/celular.
+  Sem alteração de SQL/RLS/RPC, serviço remoto, visibilidade ou publicação.
+
+
+### Publicação Cloudflare preparada e compatibilidade offline — 2026-10-16
+
+- Workflow recebe destino opcional `DEPLOY_TARGET=cloudflare`, mantendo GitHub
+  Pages como padrão. O job Cloudflare aguarda a verificação da `main`, baixa e
+  extrai o mesmo artefato testado e envia com Wrangler fixado, sem recompilar.
+  Configuração de projeto/Secrets documentada; nenhuma entrega foi publicada.
+- Corrigida recarga offline quando o host redireciona `.html` para caminhos sem
+  extensão. Respostas redirecionadas são reconstruídas ao servir o cache; `/book`
+  e fragmentos são normalizados. A revisão do cache inclui a política do worker.
+  Não há recarga forçada nem alteração do armazenamento de fichas/anotações.
+- Regressão Chromium cobre navegação offline com redirecionamentos, persistência,
+  leitor e retorno à ficha em `/` e `/D-D/`. Nameservers atribuídos à zona foram
+  registrados; ativação, projeto Pages, credenciais e teste público permanecem pendentes.
+- Verificados: actionlint 1.7.12, `git diff --check`, 171 testes Node, tipos/build,
+  os cinco roteiros Chromium e smoke offline no emulador Wrangler 4.151.1. O teste
+  de aplicativo foi repetido após ajustar as asserções de cache. Docker continua
+  ausente; não houve alteração SQL/RLS/RPC nem repetição local do teste de banco.
+
+### Roteiro de migração para Cloudflare — 2026-10-16
+
+- Usuário confirmou conta Cloudflare criada e intenção de manter fontes privadas,
+  com crescimento por planos dos serviços. Preparado `docs/CLOUDFLARE.md` com
+  importação de DNS, publicação de `dist/` pelo GitHub Actions, conferência da
+  transição e limites do que pode crescer sem alteração no aplicativo.
+- `www` corrigido pelo usuário e conferido; HTTP respondeu, mas HTTPS ainda
+  apresentou certificado incompatível durante a checagem no GitHub. Zona/projeto
+  Cloudflare, mudança de nameservers e adaptação do workflow seguem pendentes.
+- Mudança documental, conferida por revisão de diff e `git diff --check`.
+  Sem alteração de dependências, licença, visibilidade ou serviços externos;
+  testes funcionais anteriores não repetidos.
+
+### Recuperação após falha temporária da fila offline — 2026-10-16
+
+- Corrigida a tentativa de captura após transação recusada do IndexedDB. A edição
+  salva no cache local podia ser ignorada e substituída pela cópia anterior da
+  nuvem. A recuperação usa a projeção persistida, mantendo a comparação original
+  durante atualizações remotas. Nenhum dado ou formato de armazenamento foi apagado.
+- Regressão reproduziu o problema antes da correção. Acrescentados três casos
+  Node e um cenário Chromium com falha/restabelecimento da fila. `npm run check`
+  passou com **171 testes**, tipos/build e os cinco roteiros de navegador, usando
+  o override de plataforma documentado nesta máquina. SQL/RLS/RPC não alterados.
+- DNS autoritativo já contém os quatro A corretos; `www` ainda precisa apontar
+  diretamente para `mhaetinger.github.io`. Usuário confirmou compra só do domínio.
+  Registrado roteiro SMTP com proposta de Resend, sem criar conta/ativar serviço.
+
+### Retomada local e domínio em verificação — 2026-10-16
+
+- Usuário informou as configurações do domínio feitas, com DNS em verificação
+  no GitHub. Consulta pública ainda recebeu estacionamento da Hostinger, sem
+  confirmar ativação do site/HTTPS. Atualizado o estado no guia e na retomada.
+- Retorno novo e os dois retornos locais aceitos pela API real do Supabase (303);
+  retorno não permitido recaiu no domínio novo. Tokens aleatórios inválidos,
+  sem cadastro, envio de e-mail ou alteração de senha. Isso não valida login completo.
+- Após `npm ci`, passaram **168 testes Node**, tipos/build e os cinco roteiros
+  Chromium. Usado o build Ubuntu 24.04 do Playwright no Ubuntu 26.04 desta máquina,
+  sem alterar dependências. Auditoria de produção sem alertas. Docker ausente:
+  o teste de banco não foi repetido. Nenhuma alteração em SQL/RLS/RPC.
+- Projeto Supabase correto confirmado ativo; avisos do serviço anteriores
+  permanecem documentados. Servidor local iniciado em 5174 para a conferência
+  manual. Sincronização com contas reais, SMTP e publicação ainda pendentes.
+
+### Domínio comprado e roteiro de ativação — 2026-10-16
+
+- Usuário confirmou a compra de `criticall.art` na Hostinger. Atualizados guia,
+  README e retomada, substituindo a proposta anterior pelo domínio comprado.
+- Documentados os apontamentos para o GitHub Pages, HTTPS, retornos do Supabase
+  e preservação dos dados ao trocar de origem. DNS público ainda aponta fora
+  do Pages; nenhuma configuração externa foi alterada ou publicação executada.
+- Verificação documental: consulta pública de DNS, documentação oficial de
+  Hostinger/GitHub/Supabase e revisão do diff. Sem mudança funcional ou repetição
+  dos testes de comportamento.
+
+### Banco ativado e retomada em outro PC — 2026-10-16
+
+- Após o usuário confirmar conexão/autorização, ferramentas Supabase ficaram
+  disponíveis. Projeto exclusivo `qhrpgkpvwbztubnrdhya` conferido, sem tabelas
+  públicas/migrações/RPCs de sincronização antes da alteração. Aplicado o script
+  preparado como `personal_sync`, versão remota `20261016101143`, sem alterar
+  outro projeto. RLS, políticas do dono, grants e execução das RPCs conferidos.
+- API anônima das duas tabelas recusou acesso (401/42501). Smoke SQL real em
+  PostgreSQL 17 passou escrita/idempotência, bloqueio entre identidades e dono
+  incorreto no relógio. Fixtures sintéticas sem e-mail foram revertidas com
+  ROLLBACK; nenhuma ficha/nota real foi lida. Fluxo real entre PCs ainda pendente.
+- Criado `docs/RETOMADA.md` com branch, comandos para outro PC, contratos,
+  estado remoto e próximos passos. README e demais documentos passam a refletir
+  o banco aplicado. Fichas/filas locais não entram no Git: confirmar envio na
+  origem ou levar backup privado. Histórico privado do protótipo fica separado.
+- CI de `8e94a9e` conferida: push/PR concluídos com sucesso, incluindo o teste
+  PostgreSQL. Testes locais de 168 casos/build/Chromium são da implementação
+  anterior, sem repetição por esta documentação. Diff revisado. Advisories do
+  serviço registrados em SINCRONIZACAO.md; revisão integral de segurança, SMTP,
+  teste real entre dispositivos, merge/publicação e domínio seguem pendentes.
+
+### Salvamento pessoal, nome automático e fila offline — 2026-10-16
+
+- Usuário autorizou salvar dados pessoais no Supabase e receber a versão mais
+  recente em outro PC. Nome passa a salvar ao digitar; falha mantém o texto,
+  informa o problema e não anuncia sucesso. Falhas locais têm prioridade sobre
+  uma confirmação de envio anterior. Dados existentes continuam preservados.
+- Cliente sincroniza fichas completas, notas privadas separadas, nome, ficha
+  ativa, preferências persistidas, histórico/checkpoints e dados de recuperação.
+  A fila usa transações IndexedDB por projeto/usuário, IDs idempotentes e
+  confirmação de cada documento. Edições durante o envio ficam pendentes;
+  documento recusado não bloqueia os demais. Leitura remota é paginada.
+- Revisões/datas e relógio calibrado definem atualização. Edições concorrentes
+  mantêm a mais recente e preservam ambas no histórico; cache legado sem data
+  não se apresenta como novo. Exclusões usam tombstones. Consulta/restauração
+  privada de versões exige confirmação; restaurar ficha não restaura notas.
+- Histórico/checkpoints sobrevivem à recarga, fora das anotações. Preservados
+  bytes de histórico ilegível, cache legado, backups e dados do modo sem login.
+  Atualizações aguardam editores; troca de conta encerra a projeção anterior.
+  Outra máquina só recebe edições offline após reconexão/envio da origem.
+- Preparada migração transacional com duas tabelas, RLS exclusiva do dono,
+  escrita somente por RPC e verificação da identidade esperada. Script testado
+  em PostgreSQL 16 descartável, incluindo duas identidades/anon, concorrência,
+  idempotência, datas, tombstones e reaplicação sem perder dados; entrou na CI.
+- Verificação: `npm run check` passou com **168 testes Node**, tipos/build e
+  cinco roteiros Chromium, incluindo conta em duas instalações, conta diferente,
+  nome automático/recarga/quota, edição/recarga offline, reconexão, conflitos e
+  restauração sem alterar notas. Três temas em 320 px/GG e demais regressões
+  passaram, sem erros JS. `npm run test:database` passou em PostgreSQL 16 real
+  descartável. Auditoria de produção sem vulnerabilidades; diff conferido.
+  Caso adicional do modal de versões: três temas em 320 px/GG, texto hostil
+  sem execução e rodinha contida no limite passaram no Chromium.
+- Supabase passou a instalado/habilitado, mas ferramentas de banco ainda não
+  ficaram disponíveis. Consulta real sem dados (`limit=0`) no projeto CritCall
+  retornou 404/PGRST205 para a nova tabela. **Migração ainda não aplicada e
+  sincronização real ainda não validada.** Sem e-mail real, merge/publicação,
+  mudança no Orbyt ou compra/ativação de domínio. Detalhes em SINCRONIZACAO.md.
+
+### Recuperação local relatada como bem-sucedida — 2026-10-16
+
+- Após a orientação de repetir no navegador/dispositivo de origem, o usuário
+  relatou que a recuperação/troca, a princípio, deu certo. Atualizado o estado
+  no README e na documentação, sem atribuir essa operação às ferramentas.
+- Esclarecido que o retorno do link exige o navegador/dispositivo que o pediu;
+  entrada normal por e-mail/senha funciona em outros navegadores. Fichas seguem
+  locais, sem sincronização. Nenhum fluxo ou configuração remota foi alterado.
+- CI anterior de `a09f46d` conferida: push/PR concluídos com sucesso. Alteração
+  somente documental, com diff conferido e sem repetir testes de comportamento.
+  Reenvio real, duas contas, SMTP próprio e ativação pública continuam pendentes.
+
+### Recuperação: abertura em outro navegador confirmada — 2026-10-15
+
+- Usuário confirmou retorno a `http://localhost:5174/`, abrindo o link em outro
+  navegador/dispositivo. O verificador PKCE permanece no navegador de origem;
+  esse cenário explica a recusa sem comprovar expiração. Solicitado novo teste
+  no mesmo navegador/dispositivo/endereço, ainda sem conclusão real da troca.
+- Mensagens de envio, reenvio e dica de senha agora explicitam o mesmo navegador
+  **e dispositivo**, com preferência pelo e-mail mais recente. Preservados o
+  fluxo, a apresentação compacta e todos os dados locais. Estado atualizado no
+  README e na documentação, sem alterar templates ou configurações do Supabase.
+- CI de `4de49ec` conferida: push/PR concluídos com sucesso. Os 155 testes Node
+  são da etapa anterior; esta alteração apenas esclarece textos existentes.
+- Verificação desta alteração: tipos/build e roteiro de login Chromium em
+  `/D-D/` e `/` passaram, incluindo três temas em 320 px/GG, sem erros JS.
+  Diff conferido; sem repetir os demais roteiros de navegador.
+- Nenhum e-mail real enviado por ferramenta, alteração de senha remota, merge
+  ou publicação. Conclusão real da recuperação e do reenvio continua pendente.
+
+### Recuperação: causas distintas e resultado de novas tentativas — 2026-10-15
+
+- Usuário relatou recusa do link real após autorizar localhost, com o aviso
+  genérico de expiração/outro navegador. O texto antigo reunia causas distintas;
+  não permite identificar a causa deste relato. Troca real continua pendente.
+- Retorno agora diferencia link expirado/usado, prazo encerrado, solicitação
+  indisponível no serviço, verificador incompatível e solicitação ausente neste
+  navegador/endereço. Falta local do verificador não é chamada de expiração.
+  Mantidas limpeza do retorno e preservação de sessões/fichas existentes.
+- Corrigido aviso antigo que reaparecia ao renderizar o perfil e escondia o
+  resultado de novas tentativas de entrada/envio. Falha reproduzida no roteiro
+  ampliado e corrigida ao iniciar outra ação ou mudar o modo do formulário.
+- Provedor simulado passa a conferir códigos emitidos, desafio SHA-256 do PKCE,
+  prazo e uso único. Antes, aceitava qualquer código. Acrescentadas verificações
+  de outra aba no mesmo navegador, link reaberto, solicitações sobrepostas,
+  prazo encerrado e código desconhecido, preservando a conta já validada.
+- Verificação desta alteração: **155 testes Node**, tipos/build e roteiro
+  Chromium de login em `/D-D/` e `/` passaram, com três temas em 320 px/GG e
+  sem erros JS. Diff conferido. Outros três roteiros completos de navegador
+  permanecem validação anterior; não foram repetidos por esta correção de login.
+- Nenhum e-mail real enviado ou senha alterada por ferramenta. Origem final e
+  navegador usados no link real ainda não foram confirmados pelo usuário nesta
+  investigação. Sem mudança administrativa, merge ou publicação.
+
+### Retorno de localhost autorizado e conferido — 2026-10-15
+
+- Usuário adicionou `http://localhost:5174/` em Redirect URLs do Supabase e
+  confirmou o salvamento, preservando os endereços existentes. Não foi necessário
+  mudar o código, que já solicita retorno na origem/pasta atual.
+- Verificação real após o ajuste: consultas com tokens aleatórios inválidos em
+  signup/recovery retornaram 303 para localhost:5174; 127.0.0.1:5174 continuou
+  aceito. Sem cadastro, e-mail ou troca de senha por ferramenta; o teste confere
+  o destino, sem substituir conclusão real da recuperação pelo usuário.
+- Solicitado ao usuário testar um novo link de troca pelo perfil já conectado,
+  no mesmo navegador/origem. Resultado ainda pendente. Alteração documental,
+  com diff conferido e sem repetição dos testes funcionais anteriores.
+
+### Retorno local do cadastro identificado — 2026-10-15
+
+- Usuário confirmou origem `http://localhost:5174/` e destino no Pages após a
+  confirmação. A conferência real anterior mostrou localhost recaindo no Site
+  URL, enquanto 127.0.0.1:5174 é aceito; causa do relato identificada.
+- Solicitado acrescentar o retorno exato de localhost em Redirect URLs do projeto
+  exclusivo, preservando os existentes. Conector continua sem instalação; chave
+  pública não permite alterar essa configuração administrativa. Não forçar troca
+  de origem no cliente, preservando armazenamento e verificador PKCE.
+- Alteração apenas documental: diff conferido, sem repetir testes funcionais.
+  Nova consulta real confirmou localhost ainda recaindo no Pages (303), sem
+  e-mails ou usuários envolvidos. Salvamento no painel continua pendente. CI da
+  etapa anterior f0e2e3b conferida: push/PR concluídos com sucesso.
+
+### Cadastro real confirmado e troca de senha no perfil — 2026-10-15
+
+- Usuário confirmou cadastro, recebimento/abertura da confirmação e entrada no
+  serviço real. Relatou retorno para outro endereço, ainda a identificar; não
+  tratar o sucesso da entrada como validação desse destino ou da recuperação real.
+- Acrescentado **Enviar link para trocar senha** na conta conectada, sem exigir
+  saída. Usa o e-mail da identidade validada e o mesmo retorno PKCE da recuperação;
+  nunca um endereço remanescente do formulário de entrada. Mantido o perfil compacto.
+- Conferido retorno real com tokens aleatórios inválidos, sem cadastro/envio de
+  e-mail: 127.0.0.1:5174 recebeu retorno local, enquanto localhost:5174 recaiu no
+  Pages (303). Documentada a diferença de origens e a possível causa do relato,
+  sem alterar o Supabase ou forçar retorno cruzado no código.
+- Verificação desta alteração: tipos/build e roteiro Chromium de login sob
+  `/D-D/` e `/` passaram, incluindo reenvio com PKCE, recuperação, troca na conta
+  conectada, recusa da senha antiga/entrada com a nova no provedor simulado e
+  três temas em 320 px/GG. Sem erros JS. Dados/fichas preservados; diff conferido.
+  Os 155 testes completos são validação da etapa anterior, não repetidos aqui.
+- Entrega e troca reais da recuperação/reenvio continuam pendentes. Ferramentas
+  não enviaram e-mails reais nem alteraram senha de usuários. Login publicado,
+  SMTP próprio e integração por PR continuam pendentes.
+
+### Configuração do login incluída no build e domínio proposto — 2026-10-15
+
+- URL e chave publicável do projeto exclusivo do CritCall passam a acompanhar o
+  build em `src/auth/public-project.ts`, como configuração pública destinada ao
+  navegador. O workflow não depende mais das variables do GitHub que o usuário
+  não encontrou. Nenhuma chave administrativa ou senha entrou nesse arquivo.
+- Mesmo resolvedor no preflight e no cliente: override exige o par completo,
+  configuração privilegiada é recusada e `VITE_AUTH_ENABLED=false` permite uma
+  edição apenas local. Dados e espaços de conta existentes permanecem preservados.
+- Entrada só mostra sucesso depois da validação da identidade. Links expirados
+  e códigos PKCE sem verificador exibem orientação, limpam o retorno e preservam
+  uma conta válida já aberta. Restrição de envio de e-mail tem mensagem própria.
+- Usuário propôs `critcall.com.br`. RDAP do Registro.br retornou 404, sem registro
+  encontrado, sem reserva/compra. Preparado guia de registro, Pages/DNS/HTTPS,
+  retornos e transporte de backups entre origens em `docs/DOMINIO.md`.
+  Um CNAME no código não configura o domínio no fluxo de GitHub Actions.
+- Verificação desta alteração: `npm run check` com URL/chave de ambiente vazias
+  passou em **155 testes Node**, tipos/build e quatro roteiros Chromium; o login
+  foi executado sob `/D-D/` e `/`, incluindo casos novos de retorno, validação
+  recusada e envio restrito, sem erros JavaScript. Configuração pública incluída
+  aceita pelo projeto real, com e-mail/cadastro ativos e confirmação obrigatória.
+- Caso adicional: build recusou chave secreta fictícia mesmo com login desligado,
+  antes do Vite; edição local explícita abriu sem formulário/chamadas ao Supabase
+  ou erros JS. Diff conferido. Essas verificações não criaram usuários nem
+  enviaram e-mails reais. SMTP próprio, configuração administrativa, teste real
+  de confirmação/entrada/recuperação e ativação pública continuam pendentes.
+- CI da etapa anterior `2ff912e` conferida nesta retomada: push e PR concluídos
+  com sucesso. Isso não substitui a CI desta alteração. Sem merge/publicação,
+  registro de domínio ou alteração em bancos remotos nesta etapa.
+
+### Supabase do CritCall identificado e conexão local conferida — 2026-10-15
+
+- Projeto exclusivo informado pelo usuário: `qhrpgkpvwbztubnrdhya`. URL/chave
+  publicável configuradas em `.env.local`, ignorado pelo Git; a chave não foi
+  adicionada ao código/documentação. API real respondeu 200 em settings/health,
+  com cadastro por e-mail habilitado e confirmação obrigatória.
+- Build configurado e Chromium contra a API real: tentativa de entrada com
+  conta inexistente recusada com 400 e mensagem em português, sem erro JS.
+  Nenhum usuário criado, e-mail enviado ou login bem-sucedido real nessa verificação.
+- Usuário confirmou retornos salvos e uso do envio padrão. Porta 5173 do exemplo
+  está ocupada por outro aplicativo; CritCall iniciado em 5174 com porta estrita,
+  e usuário confirmou a troca do retorno local para 5174. Caminho de criação das
+  variables do Actions detalhado após dificuldade para localizar; ainda sem
+  confirmação da criação. Entrega de e-mail/SMTP próprio para jogadores,
+  configuração administrativa e duas contas reais continuam pendentes.
+- Corrigida execução de HTML por campos de recurso de backups importados:
+  somente círculos de 1 a 9 viram controles; usos/custos opcionais e carteira
+  antiga exibem texto escapado. Dados originais preservados, sem alteração
+  de regras ou reativação da loja incompleta. A revisão integral permanece pendente.
+- Verificação: regressão reproduziu a falha antes da correção; depois passaram
+  **154 testes Node**, tipos/build e quatro roteiros Chromium. Regressão ampliada
+  cobre campos adulterados nos dois layouts e preservação dos dados. Servidor
+  local 5174 conferido no Chromium: cadastro visível, mínimo de 12 caracteres
+  e nenhum erro JS. Diff sem erros de whitespace. O site publicado e bancos
+  remotos não foram alterados.
+
+### Nome confirmado: CritCall — 2026-10-15
+
+- Usuário definiu **CritCall** como nome do aplicativo de fichas de D&D.
+  Atualizados título, instalação, pacote, nomes de downloads, documentação e
+  instruções de manutenção. Orbyt continua identificado como outro projeto.
+- Chaves de armazenamento, formato dos backups e endereço publicado preservados.
+  O projeto Supabase novo já foi criado pelo usuário e ainda aguarda identificação/conexão.
+- Verificação: tipos/build e conferência Chromium de título, manifest, ícone,
+  download `critcall-fichas` e formato de backup legado passaram. Diff sem erros
+  de whitespace; os testes funcionais da etapa anterior não foram repetidos
+  por esta alteração de nome. Sem merge ou publicação nesta etapa.
+
+### Identidade correta: Fichas D&D — 2026-10-15
+
+- Usuário esclareceu que **Orbyt é outro projeto** e informou que já criou o
+  Supabase novo do D&D. Corrigidos título, nome de instalação, pacote, ícone,
+  downloads e documentação para Fichas D&D; registrada a separação no AGENTS.md.
+  Falta identificar/conectar o projeto novo; não criar outro por repetição.
+- Novos espaços de autenticação/conta usam prefixos `dnd_auth_v1` e
+  `dnd_account_v1`. As chaves de fichas publicadas e o formato de backup legado
+  são preservados para não interromper a leitura dos dados existentes; não
+  representam vínculo com a aplicação Orbyt.
+- Verificação desta correção: 18 testes de armazenamento/contas, tipos/build e
+  roteiros Chromium de armazenamento e login passaram. Conferidos título,
+  manifest, ícone e nome do download no navegador, com formato legado legível.
+  Corrigido o relógio dos tokens fictícios no teste de login: a conta simulada
+  não muda ao atravessar a virada de um segundo. Diff sem erros de whitespace.
+  A validação de 154 testes e dos quatro roteiros completos é da etapa anterior.
+- Site publicado e bancos remotos não foram alterados por esta correção.
+
+### Login por e-mail/senha preparado — 2026-10-15
+
+- Confirmados e-mail/senha e projeto Supabase exclusivo do D&D, separado do
+  projeto já existente na mesma conta administrativa. Implementados cadastro,
+  entrada, reenvio de confirmação, recuperação/troca de senha por PKCE e saída
+  com o SDK oficial 2.118.0. Configuração ausente conserva o modo local.
+- Identidade online conferida no serviço antes de carregar a ficha. Espaços
+  locais separados por projeto/usuário para fichas, notas, recuperação e
+  preferências pessoais. Dados anteriores continuam no espaço sem login;
+  entrar não os envia nem os adota automaticamente. Backups continuam sem
+  notas por padrão, e a importação cria cópias no espaço escolhido.
+- Troca de conta reinicia histórico/interface e limpa rolagens. Com editor ou
+  confirmação abertos, o jogador decide o fechamento e pode baixar backup;
+  exclusões pendentes são canceladas. Importações assíncronas não terminam em
+  outra conta. Rascunhos com falha de gravação permanecem no espaço anterior
+  em memória, inclusive notas para backup explícito.
+- Cópia de uma identidade previamente validada abre offline. Saída offline
+  remove a sessão deste aplicativo sem declarar revogação no servidor; fichas
+  e notas são preservadas. O cache não é criptografado e continua acessível a
+  quem controla o navegador. Nenhuma tabela remota ou sincronização adicionada.
+- Preflight de desenvolvimento/build recusa chave secreta/service_role e
+  configuração incompleta. URL/chave publicável podem vir de `.env.local` ou
+  das variables públicas do workflow. Licenças das novas dependências preservadas.
+- Verificação: **154 testes Node**, tipos/build e os três testes anteriores de
+  navegador passaram. O novo teste Chromium usa o SDK real com respostas HTTP
+  controladas: erros, cadastro/confirmação, retorno PKCE/recuperação, duas contas
+  e espaço local com notas distintas, histórico, recarga/offline/saída offline,
+  sessão revogada com editor/exclusão pendentes e backup. Raiz e index.html
+  compartilham a sessão. Três temas em 320 px/GG
+  sem rolagem horizontal; rodinha no limite do perfil não alcança a página;
+  capturas inspecionadas. Roteiros sem erros JavaScript. Auditoria de produção
+  sem alertas. O aviso anterior da cadeia de desenvolvimento permanece documentado.
+- Limites: projeto exclusivo ainda não criado/conectado nesta sessão; nenhum
+  usuário real cadastrado ou e-mail real enviado nos testes. Ativação no site,
+  SMTP/retornos, revisão integral de segurança e validação real ainda pendentes.
+  Guia em `docs/LOGIN.md`; autenticação não significa sincronização de fichas.
+
+### Primeira publicação concluída — etapa anterior
+
+- Integradas as PRs #1/#2 até `8520bd4`, com deploy aprovado no GitHub Actions.
+  Site e roteiro online conferidos em 15/10/2026:
+  [mhaetinger.github.io/D-D](https://mhaetinger.github.io/D-D/). Essa validação é
+  da entrega anterior, sem o login agora preparado nesta branch.
+
 ### Preparação da primeira publicação — 2026-10-15
 
 - Reunidas as tarefas anteriores em `feature/primeira-versao`, com guia de

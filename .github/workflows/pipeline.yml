@@ -17,6 +17,14 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
+      - name: Conferir o destino de publicação
+        env:
+          DEPLOY_TARGET: ${{ vars.DEPLOY_TARGET }}
+        run: |
+          case "$DEPLOY_TARGET" in
+            ""|github-pages|cloudflare) ;;
+            *) echo "DEPLOY_TARGET deve ser github-pages ou cloudflare." >&2; exit 1 ;;
+          esac
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
         with:
           node-version: '22'
@@ -25,6 +33,7 @@ jobs:
       - name: Conferir dependências distribuídas
         run: npm audit --omit=dev --audit-level=moderate
       - run: npm test
+      - run: npm run test:database
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser
@@ -34,7 +43,7 @@ jobs:
           path: dist
           retention-days: 3
   publicar:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && (vars.DEPLOY_TARGET == '' || vars.DEPLOY_TARGET == 'github-pages')
     needs: verificar
     runs-on: ubuntu-24.04
     permissions:
@@ -50,3 +59,62 @@ jobs:
       - name: Publicar o artefato verificado
         id: deployment
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+  publicar-cloudflare:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_TARGET == 'cloudflare'
+    needs: verificar
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: cloudflare-pages
+      url: ${{ steps.cloudflare.outputs.deployment-url }}
+    steps:
+      - name: Conferir a configuração da Cloudflare
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+        run: |
+          if [[ ! "$CLOUDFLARE_ACCOUNT_ID" =~ ^[a-fA-F0-9]{32}$ ]]; then
+            echo "Configure o Secret CLOUDFLARE_ACCOUNT_ID com o identificador da conta." >&2
+            exit 1
+          fi
+          if [[ -z "$CLOUDFLARE_API_TOKEN" ]]; then
+            echo "Configure o Secret CLOUDFLARE_API_TOKEN com acesso ao Pages desta conta." >&2
+            exit 1
+          fi
+          if [[ ! "$CLOUDFLARE_PAGES_PROJECT" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]]; then
+            echo "Configure a Variable CLOUDFLARE_PAGES_PROJECT com o nome real do projeto Pages." >&2
+            exit 1
+          fi
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '22'
+      - name: Baixar o pacote aprovado pelas verificações
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: github-pages
+          path: ${{ runner.temp }}/critcall-pages
+      - name: Extrair somente o site verificado
+        run: |
+          mkdir -p "$RUNNER_TEMP/critcall-site"
+          tar -xf "$RUNNER_TEMP/critcall-pages/artifact.tar" -C "$RUNNER_TEMP/critcall-site"
+          test -f "$RUNNER_TEMP/critcall-site/index.html"
+          test -f "$RUNNER_TEMP/critcall-site/sw.js"
+      # O pacote já foi testado. Wrangler é usado só para enviá-lo, sem novo build.
+      - name: Publicar o pacote na Cloudflare
+        id: cloudflare
+        uses: cloudflare/wrangler-action@953926a2e2182532811c01a25e53647d93bf07c0 # v4.1.3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '4.151.1'
+          packageManager: npm
+          command: pages deploy ${{ runner.temp }}/critcall-site --project-name=${{ vars.CLOUDFLARE_PAGES_PROJECT }} --branch=main --commit-hash=${{ github.sha }} --commit-dirty=false

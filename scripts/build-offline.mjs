@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
-const directory = path.resolve("dist");
+const directory = path.resolve(process.argv[2] || "dist");
 const walk = (folder) => fs.readdirSync(folder, { withFileTypes: true }).flatMap((entry) => entry.isDirectory() ? walk(path.join(folder, entry.name)) : [path.join(folder, entry.name)]);
 const all = walk(directory).map((file) => path.relative(directory, file).split(path.sep).join("/"));
 // PDFs são consultas online/downloads explícitos, não uma transferência automática
@@ -11,6 +11,8 @@ const pdfs = all.filter((name) => name.toLowerCase().endsWith(".pdf")).sort();
 if (JSON.stringify(pdfs) !== JSON.stringify(["books/livro-jogador-2014.pdf", "books/livro-mestre-2014.pdf"])) throw new Error("A saída deve conter somente os dois livros autorizados.");
 if (all.some((name) => /(?:^|\/)(?:\.env(?:\.|$)|node_modules|tests|src|AGENTS\.md)/.test(name))) throw new Error("Arquivo de desenvolvimento na saída pública.");
 const hash = crypto.createHash("sha256");
+// Mudanças na política do worker também precisam de uma revisão de cache própria.
+hash.update("offline-policy-v2");
 for (const file of core) hash.update(file).update(fs.readFileSync(path.join(directory, file)));
 const version = hash.digest("hex").slice(0, 16);
 const source = `/* Gerado pelo build. Atualizações aguardam as abas anteriores fecharem.
@@ -28,11 +30,18 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   url.search = '';
+  url.hash = '';
   if (url.href === self.registration.scope) url.pathname += 'index.html';
+  if (url.href === new URL('book', self.registration.scope).href) url.pathname += '.html';
   if (!CORE.includes(url.href)) return;
   // A versão ativa entrega HTML, regras e assets do mesmo build, inclusive online.
   // Um worker novo só assume após fechar as abas; não recarrega uma edição em curso.
-  event.respondWith(caches.open(CACHE).then(cache => cache.match(url.href)).then(cached => cached || fetch(event.request)));
+  // Pages remove .html por redirecionamento. Uma resposta guardada após esse
+  // redirecionamento não pode ser reutilizada diretamente numa navegação.
+  event.respondWith(caches.open(CACHE).then(cache => cache.match(url.href)).then(cached => {
+    if (!cached) return fetch(event.request);
+    return cached.redirected ? new Response(cached.body, { status: cached.status, statusText: cached.statusText, headers: cached.headers }) : cached;
+  }));
 });
 `;
 fs.writeFileSync(path.join(directory, "sw.js"), source);
