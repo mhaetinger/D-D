@@ -5,8 +5,8 @@ projeto do responsável e usa infraestrutura separada. O projeto Supabase novo
 do CritCall foi identificado e configurado localmente. A conexão com a API foi
 conferida. O build já inclui a configuração pública, sem variables do GitHub;
 o usuário confirmou cadastro, confirmação de e-mail e entrada no teste local.
-Recuperação/troca reais, destino do retorno e ativação pública ainda dependem
-da validação final. Consulte [docs/LOGIN.md](docs/LOGIN.md).
+Os retornos locais foram corrigidos e conferidos; recuperação/troca reais e
+ativação pública ainda dependem da validação final. Consulte [docs/LOGIN.md](docs/LOGIN.md).
 
 Aplicação de fichas individuais de D&D 5e, com criador, evolução, multiclasse,
 grimório, inventário, anotações pessoais e consulta aos livros da mesa.

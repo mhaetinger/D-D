@@ -60,8 +60,9 @@ identificou o projeto novo `qhrpgkpvwbztubnrdhya`. URL/chave publicável estão 
 configuração pública revisada `src/auth/public-project.ts`, incluída no build.
 Os fluxos usam Supabase JS 2.118.0. Ferramentas conferiram API real e recusa de
 credenciais inexistentes, sem cadastrar ou enviar e-mails. O usuário confirmou
-cadastro, confirmação e entrada reais; recuperação/troca e destino do retorno
-ainda não foram confirmados.
+cadastro, confirmação e entrada reais. Os dois retornos locais em 5174 foram
+aceitos pelo endpoint real após o ajuste de localhost; recuperação/troca reais
+ainda não foram confirmadas.
 Orbyt é outro projeto do responsável e permanece separado. O
 aplicativo tem os identificadores públicos do CritCall incluídos; o modo local
 pode ser escolhido com `VITE_AUTH_ENABLED=false`. O bootstrap valida a identidade

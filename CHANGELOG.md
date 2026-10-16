@@ -2,6 +2,19 @@
 
 ## Não lançado
 
+### Retorno de localhost autorizado e conferido — 2026-10-15
+
+- Usuário adicionou `http://localhost:5174/` em Redirect URLs do Supabase e
+  confirmou o salvamento, preservando os endereços existentes. Não foi necessário
+  mudar o código, que já solicita retorno na origem/pasta atual.
+- Verificação real após o ajuste: consultas com tokens aleatórios inválidos em
+  signup/recovery retornaram 303 para localhost:5174; 127.0.0.1:5174 continuou
+  aceito. Sem cadastro, e-mail ou troca de senha por ferramenta; o teste confere
+  o destino, sem substituir conclusão real da recuperação pelo usuário.
+- Solicitado ao usuário testar um novo link de troca pelo perfil já conectado,
+  no mesmo navegador/origem. Resultado ainda pendente. Alteração documental,
+  com diff conferido e sem repetição dos testes funcionais anteriores.
+
 ### Retorno local do cadastro identificado — 2026-10-15
 
 - Usuário confirmou origem `http://localhost:5174/` e destino no Pages após a

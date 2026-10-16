@@ -24,8 +24,9 @@ projeto real: HTTP 400, mensagem correta e nenhum erro JavaScript. Não houve
 cadastro, envio de e-mail ou entrada bem-sucedida em conta real nessa verificação
 automatizada. Depois, o usuário confirmou que criou a conta, recebeu/abriu a
 confirmação e conseguiu entrar. Confirmou que iniciou em `http://localhost:5174/`
-e foi levado a `https://mhaetinger.github.io/D-D/`; essa origem local recaiu no
-Site URL por não estar aceita na lista de retornos. Reenvio e recuperação/troca de senha reais ainda não
+e foi levado a `https://mhaetinger.github.io/D-D/`. Após acrescentar localhost à
+lista permitida, o endpoint real voltou a aceitar essa origem local para
+confirmação e recuperação. Entrega/troca reais da recuperação continuam pendentes. Reenvio e recuperação/troca de senha reais ainda não
 foram confirmados pelo usuário.
 
 Fichas e anotações continuam neste navegador. Autenticação e sincronização são
@@ -42,10 +43,9 @@ como autorização de dados no servidor ou proteção contra quem controla o dis
    de e-mail. Configurar senha mínima de 12 caracteres, compatível com a interface.
 3. Usar `https://mhaetinger.github.io/D-D/` como Site URL e retorno permitido.
    Para desenvolvimento, acrescentar somente os endereços locais usados, por
-   exemplo `http://127.0.0.1:5174/`. O retorno é sempre a raiz do aplicativo;
+   exemplo `http://127.0.0.1:5174/` e `http://localhost:5174/`. O retorno é sempre a raiz do aplicativo;
    nenhuma rota de callback exige configuração extra no Pages. O usuário confirmou
-   Site URL/retorno do Pages e a substituição do retorno local por 5174 em
-   15/10/2026. A porta 5173 pertence a outro aplicativo. A configuração
+   Site URL/retorno do Pages e os dois retornos locais em 5174 em 15/10/2026. A porta 5173 pertence a outro aplicativo. A configuração
    administrativa não foi lida pelo conector nesta sessão.
 4. Conferir entrega de confirmação e recuperação. O SMTP padrão do Supabase
    serve apenas a endereços pré-autorizados da equipe e tem limites restritos;
@@ -54,7 +54,8 @@ como autorização de dados no servidor ou proteção contra quem controla o dis
    O usuário confirmou que ainda usa o envio padrão. Para a conferência inicial,
    usar o próprio endereço autorizado da conta administrativa do Supabase;
    o usuário confirmou a entrega da confirmação de cadastro. Entrega do reenvio,
-   recuperação/troca e destino correto do retorno continuam em validação.
+   recuperação/troca continuam em validação. A aceitação dos dois retornos
+   locais foi conferida no endpoint real após o ajuste de localhost.
 5. Conferir limites de autenticação e proteção contra abuso no serviço antes de
    ativar cadastro público. Não desabilitar confirmação para contornar falhas de entrega.
 
@@ -117,7 +118,7 @@ substitui a conferência de entrega e troca de senha no serviço real.
 
 ### Diferença entre localhost e 127.0.0.1
 
-Em 15/10/2026, uma consulta de retorno ao endpoint real de verificação com token
+Antes do ajuste em 15/10/2026, uma consulta ao endpoint real de verificação com token
 aleatório inválido, sem e-mail/usuário e sem seguir o redirecionamento, retornou:
 
 | Retorno solicitado | Destino efetivo (HTTP 303) |
@@ -127,8 +128,12 @@ aleatório inválido, sem e-mail/usuário e sem seguir o redirecionamento, retor
 
 O primeiro endereço está aceito; o segundo recai no Site URL. O usuário confirmou
 que iniciou em `localhost:5174` e foi levado ao Pages, identificando a origem do
-relato. Foi solicitado acrescentar `http://localhost:5174/` em **Redirect URLs**
-e manter os endereços existentes; salvamento e nova verificação ainda pendentes. Não forçar um
+relato. O usuário acrescentou `http://localhost:5174/` em **Redirect URLs** e
+confirmou o salvamento. Nova consulta com tokens aleatórios inválidos retornou
+303 para localhost tanto em `signup` quanto em `recovery`; 127.0.0.1 continuou
+aceito. Não houve envio de e-mail, criação de usuário ou troca real de senha
+nessas consultas, que conferem o destino do retorno. A conclusão da recuperação
+real pelo usuário ainda está pendente. Não forçar um
 retorno cruzado pelo código: as origens têm armazenamento e verificadores PKCE
 separados. Se o usuário começou em 127.0.0.1 e também foi para o endereço público,
 conferir o template do e-mail e o destino solicitado, sem registrar tokens ou
