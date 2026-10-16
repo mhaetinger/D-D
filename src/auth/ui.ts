@@ -141,11 +141,11 @@ export function setupAccountUI(account: AccountSession) {
         if (error) throw error;
         password.value = ""; confirm.value = "";
         if (data.session) await account.validate();
-        message("Confira seu e-mail para confirmar o cadastro, se uma confirmação for necessária. Abra o link neste navegador.");
+        message("Confira seu e-mail para confirmar o cadastro, se uma confirmação for necessária. Abra o link neste mesmo navegador e dispositivo.");
       } else if (mode === "reset") {
         const { error } = await auth.resetPasswordForEmail(email.value.trim(), { redirectTo: redirectTo() });
         if (error) throw error;
-        message("Se o endereço puder receber a recuperação, você receberá um e-mail. Abra o link neste navegador.");
+        message("Se o endereço puder receber a recuperação, você receberá um e-mail. Abra o link mais recente neste mesmo navegador e dispositivo.");
       } else {
         if (!account.identity || !account.recovery) throw new Error("Sessão de recuperação ausente");
         const { error } = await auth.updateUser({ password: password.value });
@@ -159,7 +159,7 @@ export function setupAccountUI(account: AccountSession) {
     void run(async () => {
       const { error } = await account.client!.auth.resend({ type: "signup", email: email.value.trim(), options: { emailRedirectTo: redirectTo() } });
       if (error) throw error;
-      message("Se o cadastro precisar de confirmação, você receberá outra mensagem.");
+      message("Se o cadastro precisar de confirmação, você receberá outra mensagem. Abra o link mais recente neste mesmo navegador e dispositivo.");
     });
   });
   document.getElementById("accountChangePassword")!.addEventListener("click", () => {
@@ -170,7 +170,7 @@ export function setupAccountUI(account: AccountSession) {
       // de entrada nem enviar o link para um endereço digitado em outro modo.
       const { error } = await account.client!.auth.resetPasswordForEmail(address, { redirectTo: redirectTo() });
       if (error) throw error;
-      message("Confira seu e-mail para trocar a senha. Abra o link neste navegador.");
+      message("Confira seu e-mail para trocar a senha. Abra o link mais recente neste mesmo navegador e dispositivo.");
     });
   });
   document.getElementById("accountSignOut")!.addEventListener("click", () => {

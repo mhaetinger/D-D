@@ -28,8 +28,11 @@ e foi levado a `https://mhaetinger.github.io/D-D/`. Após acrescentar localhost 
 lista permitida, o endpoint real voltou a aceitar essa origem local para
 confirmação e recuperação. No teste seguinte, o usuário relatou a mensagem
 genérica de link expirado/outro navegador e retorno ao formulário de entrada.
-Essa mensagem antiga reunia causas diferentes e não identifica a falha real.
-Recuperação/troca e reenvio reais continuam sem validação concluída.
+Depois, confirmou retorno a `http://localhost:5174/` e abertura em outro navegador
+ou dispositivo. Esse cenário não atende ao fluxo PKCE atual: o verificador fica
+no navegador/dispositivo que iniciou a solicitação. A confirmação explica a
+recusa relatada, sem concluir a troca. Recuperação/troca no mesmo navegador e
+reenvio reais continuam sem validação concluída.
 
 Fichas e anotações continuam neste navegador. Autenticação e sincronização são
 etapas distintas: não há tabelas remotas de personagens, fila de envio ou

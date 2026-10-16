@@ -2,6 +2,24 @@
 
 ## Não lançado
 
+### Recuperação: abertura em outro navegador confirmada — 2026-10-15
+
+- Usuário confirmou retorno a `http://localhost:5174/`, abrindo o link em outro
+  navegador/dispositivo. O verificador PKCE permanece no navegador de origem;
+  esse cenário explica a recusa sem comprovar expiração. Solicitado novo teste
+  no mesmo navegador/dispositivo/endereço, ainda sem conclusão real da troca.
+- Mensagens de envio, reenvio e dica de senha agora explicitam o mesmo navegador
+  **e dispositivo**, com preferência pelo e-mail mais recente. Preservados o
+  fluxo, a apresentação compacta e todos os dados locais. Estado atualizado no
+  README e na documentação, sem alterar templates ou configurações do Supabase.
+- CI de `4de49ec` conferida: push/PR concluídos com sucesso. Os 155 testes Node
+  são da etapa anterior; esta alteração apenas esclarece textos existentes.
+- Verificação desta alteração: tipos/build e roteiro de login Chromium em
+  `/D-D/` e `/` passaram, incluindo três temas em 320 px/GG, sem erros JS.
+  Diff conferido; sem repetir os demais roteiros de navegador.
+- Nenhum e-mail real enviado por ferramenta, alteração de senha remota, merge
+  ou publicação. Conclusão real da recuperação e do reenvio continua pendente.
+
 ### Recuperação: causas distintas e resultado de novas tentativas — 2026-10-15
 
 - Usuário relatou recusa do link real após autorizar localhost, com o aviso

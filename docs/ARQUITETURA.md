@@ -61,8 +61,10 @@ configuração pública revisada `src/auth/public-project.ts`, incluída no buil
 Os fluxos usam Supabase JS 2.118.0. Ferramentas conferiram API real e recusa de
 credenciais inexistentes, sem cadastrar ou enviar e-mails. O usuário confirmou
 cadastro, confirmação e entrada reais. Os dois retornos locais em 5174 foram
-aceitos pelo endpoint real após o ajuste de localhost. O usuário relatou recusa
-do link de recuperação; a causa real segue em investigação, sem conclusão da troca.
+aceitos pelo endpoint real após o ajuste de localhost. O usuário confirmou que
+abriu o link de recuperação em outro navegador/dispositivo, embora o retorno
+fosse localhost. O fluxo PKCE atual exige o navegador/dispositivo de origem;
+recuperação e troca reais nesse navegador ainda precisam ser conferidas.
 Orbyt é outro projeto do responsável e permanece separado. O
 aplicativo tem os identificadores públicos do CritCall incluídos; o modo local
 pode ser escolhido com `VITE_AUTH_ENABLED=false`. O bootstrap valida a identidade
