@@ -50,7 +50,8 @@
 - Sincronização pessoal foi implementada em `src/sync/`, com migração em
   `supabase/migrations/`. A migração foi aplicada ao projeto exclusivo CritCall
   `qhrpgkpvwbztubnrdhya` em 16/10/2026 (versão remota `20261016101143`);
-  sincronização entre dispositivos reais e publicação ainda não validadas.
+  publicação no GitHub Pages validada em 16/10/2026; sincronização entre
+  dispositivos reais ainda não validada.
   Consultar `docs/SINCRONIZACAO.md` e `docs/RETOMADA.md`; nunca aplicar ao Orbyt.
   Ao alterar SQL/RLS/RPC, executar `npm run test:database` (PostgreSQL descartável
   em Docker). Não anunciar salvamento remoto antes da confirmação do envio.

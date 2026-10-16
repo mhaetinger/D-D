@@ -2,7 +2,7 @@
 const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
-async function serve(base, prefix = "/D-D/", { cleanHtml = false } = {}) {
+async function serve(base, prefix = "/D-D/", { cleanHtml = false, cacheControl = null } = {}) {
   base = path.resolve(base);
   const server = http.createServer((req, res) => {
     try {
@@ -20,7 +20,7 @@ async function serve(base, prefix = "/D-D/", { cleanHtml = false } = {}) {
       const stat = fs.statSync(file);
       if (!stat.isFile()) { res.writeHead(404); return res.end(); }
       const type = { ".js": "application/javascript", ".mjs": "application/javascript", ".wasm": "application/wasm", ".css": "text/css", ".pdf": "application/pdf", ".html": "text/html; charset=utf-8", ".json": "application/json", ".webmanifest": "application/manifest+json", ".svg": "image/svg+xml", ".woff2": "font/woff2", ".woff": "font/woff" };
-      res.writeHead(200, { "Content-Type": type[path.extname(file)] || "application/octet-stream", "Content-Length": stat.size });
+      res.writeHead(200, { "Content-Type": type[path.extname(file)] || "application/octet-stream", "Content-Length": stat.size, ...(cacheControl ? { "Cache-Control": cacheControl } : {}) });
       fs.createReadStream(file).pipe(res);
     } catch {
       res.writeHead(404);
