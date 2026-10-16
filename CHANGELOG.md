@@ -2,6 +2,27 @@
 
 ## Não lançado
 
+### Cadastro real confirmado e troca de senha no perfil — 2026-10-15
+
+- Usuário confirmou cadastro, recebimento/abertura da confirmação e entrada no
+  serviço real. Relatou retorno para outro endereço, ainda a identificar; não
+  tratar o sucesso da entrada como validação desse destino ou da recuperação real.
+- Acrescentado **Enviar link para trocar senha** na conta conectada, sem exigir
+  saída. Usa o e-mail da identidade validada e o mesmo retorno PKCE da recuperação;
+  nunca um endereço remanescente do formulário de entrada. Mantido o perfil compacto.
+- Conferido retorno real com tokens aleatórios inválidos, sem cadastro/envio de
+  e-mail: 127.0.0.1:5174 recebeu retorno local, enquanto localhost:5174 recaiu no
+  Pages (303). Documentada a diferença de origens e a possível causa do relato,
+  sem alterar o Supabase ou forçar retorno cruzado no código.
+- Verificação desta alteração: tipos/build e roteiro Chromium de login sob
+  `/D-D/` e `/` passaram, incluindo reenvio com PKCE, recuperação, troca na conta
+  conectada, recusa da senha antiga/entrada com a nova no provedor simulado e
+  três temas em 320 px/GG. Sem erros JS. Dados/fichas preservados; diff conferido.
+  Os 155 testes completos são validação da etapa anterior, não repetidos aqui.
+- Entrega e troca reais da recuperação/reenvio continuam pendentes. Ferramentas
+  não enviaram e-mails reais nem alteraram senha de usuários. Login publicado,
+  SMTP próprio e integração por PR continuam pendentes.
+
 ### Configuração do login incluída no build e domínio proposto — 2026-10-15
 
 - URL e chave publicável do projeto exclusivo do CritCall passam a acompanhar o

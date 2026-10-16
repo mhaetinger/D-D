@@ -34,6 +34,7 @@ async function verify(prefix) {
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     const calls = [], errors = [];
+    const currentPasswords = { 'a@example.test': password, 'b@example.test': password };
     let revoked = false;
     await context.route(`${endpoint}/**`, async (route) => {
       const request = route.request(), url = new URL(request.url());
@@ -46,10 +47,11 @@ async function verify(prefix) {
         if (url.searchParams.get('grant_type') === 'pkce') return respond(session('a'));
         if (body.email === 'confirmar@example.test') return respond({ code: 'email_not_confirmed', msg: 'Email not confirmed' }, 400);
         const key = body.email === 'a@example.test' ? 'a' : body.email === 'b@example.test' ? 'b' : null;
-        return key && body.password === password ? respond(session(key)) : respond({ code: 'invalid_credentials', msg: 'Invalid login credentials' }, 400);
+        return key && body.password === currentPasswords[body.email] ? respond(session(key)) : respond({ code: 'invalid_credentials', msg: 'Invalid login credentials' }, 400);
       }
       if (url.pathname.endsWith('/user')) {
         const key = request.headers().authorization?.includes(jwt('b')) ? 'b' : 'a';
+        if (!revoked && request.method() === 'PUT' && body.password) currentPasswords[user(key).email] = body.password;
         return revoked ? respond({ code: 'bad_jwt', msg: 'Invalid JWT' }, 401) : respond(user(key));
       }
       if (url.pathname.endsWith('/signup')) return body.email === 'smtp@example.test'
@@ -73,7 +75,7 @@ async function verify(prefix) {
     assert.equal(await page.evaluate(() => getChar().id), guest.id);
     await page.evaluate(() => openAuthAccountModal());
     const form = page.locator('#accountForm');
-    async function login(email, pass = password) {
+    async function login(email, pass = currentPasswords[email] || password) {
       await page.locator('[data-auth-mode="login"]').click();
       await page.locator('#accountEmail').fill(email);
       await page.locator('#accountPassword').fill(pass);
@@ -86,6 +88,7 @@ async function verify(prefix) {
     await page.waitForFunction(() => document.querySelector('#accountAccessStatus').textContent.includes('Confirme'));
     await page.locator('#accountResend').click();
     await page.waitForFunction(() => document.querySelector('#accountAccessStatus').textContent.includes('outra mensagem'));
+    assert.ok(calls.some(call => call.path.endsWith('/resend') && call.body.type === 'signup' && call.body.email === 'confirmar@example.test' && call.body.code_challenge));
     revoked = true;
     await login('a@example.test');
     await page.waitForFunction(() => document.querySelector('#accountAccessStatus').textContent.includes('Não foi possível concluir'));
@@ -182,6 +185,24 @@ async function verify(prefix) {
     await page.waitForFunction(() => document.querySelector('#accountAccessStatus').textContent.includes('Senha atualizada'));
     assert.ok(!page.url().includes('code='));
     assert.ok(calls.some((call) => call.path.endsWith('/user') && call.method === 'PUT' && call.body.password === 'Nova senha de teste 123!'));
+    await page.locator('#accountChangePassword').click();
+    await page.waitForFunction(() => document.querySelector('#accountAccessStatus').textContent.includes('Confira seu e-mail para trocar'));
+    const changeRequest = calls.filter(call => call.path.endsWith('/recover')).at(-1);
+    assert.equal(changeRequest.body.email, 'a@example.test', 'troca usa o endereço da identidade, não um campo antigo do formulário');
+    assert.ok(changeRequest.body.code_challenge);
+    await page.goto(server.url + '?code=troca-de-senha-de-teste', { waitUntil: 'networkidle' });
+    await page.locator('#accountSubmit').waitFor({ state: 'visible' });
+    assert.equal(await page.locator('#accountSubmit').textContent(), 'Salvar nova senha');
+    await page.locator('#accountPassword').fill('Outra senha de teste 456!');
+    await page.locator('#accountPasswordConfirm').fill('Outra senha de teste 456!');
+    await page.locator('#accountSubmit').click();
+    await page.waitForFunction(() => document.querySelector('#accountAccessStatus').textContent.includes('Senha atualizada'));
+    await page.locator('#accountSignOut').click();
+    await page.waitForFunction((id) => getChar()?.id === id, guest.id);
+    await login('a@example.test', password);
+    await page.waitForFunction(() => document.querySelector('#accountAccessStatus').textContent.includes('inválidos'));
+    await login('a@example.test');
+    await page.waitForFunction((id) => getChar()?.id === id, idA);
     assert.ok(calls.filter((call) => /\/(recover|resend|signup)$/.test(call.path)).every((call) => new URLSearchParams(call.query).get('redirect_to') === server.url));
     for (const theme of ['pergaminho_claro', 'pergaminho_escuro', 'obsidiana']) {
       await page.setViewportSize({ width: 320, height: 800 });

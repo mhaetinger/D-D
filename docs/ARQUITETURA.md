@@ -58,8 +58,10 @@ atuais da interface ainda ficam somente na sessão e não incluem notas pessoais
 Confirmados e-mail/senha e projeto exclusivo do CritCall em 15/10/2026. O usuário
 identificou o projeto novo `qhrpgkpvwbztubnrdhya`. URL/chave publicável estão na
 configuração pública revisada `src/auth/public-project.ts`, incluída no build.
-Os fluxos usam Supabase JS 2.118.0; API real e recusa de credenciais inexistentes foram conferidas, sem criar usuários ou
-enviar e-mails. Confirmação, entrada e recuperação reais ainda não foram validadas.
+Os fluxos usam Supabase JS 2.118.0. Ferramentas conferiram API real e recusa de
+credenciais inexistentes, sem cadastrar ou enviar e-mails. O usuário confirmou
+cadastro, confirmação e entrada reais; recuperação/troca e destino do retorno
+ainda não foram confirmados.
 Orbyt é outro projeto do responsável e permanece separado. O
 aplicativo tem os identificadores públicos do CritCall incluídos; o modo local
 pode ser escolhido com `VITE_AUTH_ENABLED=false`. O bootstrap valida a identidade
@@ -85,7 +87,9 @@ um override exige URL/chave completos, e chaves privilegiadas são recusadas mes
 com login desligado. O workflow não depende de repository variables para essa
 configuração. O arquivo público não contém capacidade administrativa ou dados de
 usuários. Links inválidos não encerram uma conta válida já aberta; a mensagem de
-entrada depende da conferência da identidade, além da resposta de token.
+entrada depende da conferência da identidade, além da resposta de token. A conta
+conectada pode solicitar um link de troca de senha para seu próprio e-mail
+validado; a conclusão usa o mesmo retorno PKCE da recuperação.
 
 O domínio próprio proposto é `critcall.com.br`, ainda sem registro/DNS configurados.
 Caminhos relativos e retornos pela origem atual funcionam sob `/D-D/` e `/` nos

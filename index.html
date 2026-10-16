@@ -524,7 +524,10 @@
           <button id="accountResend" type="button" class="underline text-xs">Reenviar confirmação de e-mail</button>
         </div>
         <div id="accountSignedIn" class="space-y-2" hidden>
-          <button id="accountSignOut" type="button" class="t-inset px-3 py-2 rounded">Sair desta conta</button>
+          <div class="flex flex-wrap gap-2">
+            <button id="accountChangePassword" type="button" class="t-inset px-3 py-2 rounded">Enviar link para trocar senha</button>
+            <button id="accountSignOut" type="button" class="t-inset px-3 py-2 rounded">Sair desta conta</button>
+          </div>
           <p class="text-xs t-text-muted">Ao sair, a cópia local é mantida neste navegador. Em um dispositivo compartilhado, ela continua acessível a quem controla o navegador.</p>
         </div>
         <p id="accountAccessStatus" class="text-sm" role="status" aria-live="polite"></p>

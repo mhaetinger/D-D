@@ -159,6 +159,17 @@ export function setupAccountUI(account: AccountSession) {
       message("Se o cadastro precisar de confirmação, você receberá outra mensagem.");
     });
   });
+  document.getElementById("accountChangePassword")!.addEventListener("click", () => {
+    void run(async () => {
+      const address = account.identity?.email;
+      if (!address) throw new Error("Conta sem endereço validado");
+      // A troca usa o e-mail da identidade validada, sem depender do campo
+      // de entrada nem enviar o link para um endereço digitado em outro modo.
+      const { error } = await account.client!.auth.resetPasswordForEmail(address, { redirectTo: redirectTo() });
+      if (error) throw error;
+      message("Confira seu e-mail para trocar a senha. Abra o link neste navegador.");
+    });
+  });
   document.getElementById("accountSignOut")!.addEventListener("click", () => {
     void run(async () => {
       await account.signOut();

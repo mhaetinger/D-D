@@ -21,7 +21,11 @@ Esta implementação ainda não está ativada no site publicado. A API real resp
 HTTP 200 em settings/health, com e-mail e cadastro habilitados e confirmação
 obrigatória. O Chromium enviou uma tentativa com credenciais inexistentes ao
 projeto real: HTTP 400, mensagem correta e nenhum erro JavaScript. Não houve
-cadastro, envio de e-mail ou entrada bem-sucedida em conta real nessa verificação.
+cadastro, envio de e-mail ou entrada bem-sucedida em conta real nessa verificação
+automatizada. Depois, o usuário confirmou que criou a conta, recebeu/abriu a
+confirmação e conseguiu entrar. Informou retorno para outro endereço; o destino
+ainda está em apuração. Reenvio e recuperação/troca de senha reais ainda não
+foram confirmados pelo usuário.
 
 Fichas e anotações continuam neste navegador. Autenticação e sincronização são
 etapas distintas: não há tabelas remotas de personagens, fila de envio ou
@@ -48,7 +52,8 @@ como autorização de dados no servidor ou proteção contra quem controla o dis
    Credenciais de SMTP ficam no serviço, nunca no Vite, Git ou documentação.
    O usuário confirmou que ainda usa o envio padrão. Para a conferência inicial,
    usar o próprio endereço autorizado da conta administrativa do Supabase;
-   entrega/retorno do e-mail continuam sem validação real.
+   o usuário confirmou a entrega da confirmação de cadastro. Entrega do reenvio,
+   recuperação/troca e destino correto do retorno continuam em validação.
 5. Conferir limites de autenticação e proteção contra abuso no serviço antes de
    ativar cadastro público. Não desabilitar confirmação para contornar falhas de entrega.
 
@@ -93,6 +98,40 @@ mensagem e limpa os parâmetros do retorno. A falha do link preserva uma sessão
 válida que já esteja aberta. A interface só confirma entrada depois de validar
 a identidade no serviço. A restrição de envio de e-mail do Supabase tem mensagem
 própria, sem mostrar erros brutos ou credenciais ao jogador.
+
+## Reenviar confirmação e alterar senha
+
+- **Reenviar confirmação de e-mail** solicita outra confirmação para um cadastro
+  pendente. Não reenvia senha nem um login sem senha.
+- **Esqueci a senha** envia a solicitação de recuperação ao endereço informado.
+  O link abre o formulário de nova senha e confirmação neste navegador/origem.
+- **Enviar link para trocar senha**, na conta já conectada, usa o e-mail da
+  identidade validada, independentemente do que ficou digitado no formulário.
+  Não exige sair; o link abre o mesmo formulário de recuperação/troca.
+
+Os três envios usam o retorno da origem/pasta atual. Os testes com SDK real e
+HTTP controlado conferem reenvio com PKCE, recuperação, troca por quem já entrou,
+recusa da senha anterior e entrada com a nova no provedor simulado. Isso não
+substitui a conferência de entrega e troca de senha no serviço real.
+
+### Diferença entre localhost e 127.0.0.1
+
+Em 15/10/2026, uma consulta de retorno ao endpoint real de verificação com token
+aleatório inválido, sem e-mail/usuário e sem seguir o redirecionamento, retornou:
+
+| Retorno solicitado | Destino efetivo (HTTP 303) |
+| --- | --- |
+| `http://127.0.0.1:5174/` | `http://127.0.0.1:5174/` |
+| `http://localhost:5174/` | `https://mhaetinger.github.io/D-D/` |
+
+O primeiro endereço está aceito; o segundo recai no Site URL. Isso é uma possível
+causa do relato, sem presumir qual origem o usuário usou. Para testar com
+`localhost`, acrescentar o retorno exato em URL Configuration. Não forçar um
+retorno cruzado pelo código: as origens têm armazenamento e verificadores PKCE
+separados. Se o usuário começou em 127.0.0.1 e também foi para o endereço público,
+conferir o template do e-mail e o destino solicitado, sem registrar tokens ou
+códigos da mensagem. Documentação de
+[retornos e templates](https://supabase.com/docs/guides/auth/redirect-urls).
 
 ## Domínio próprio
 

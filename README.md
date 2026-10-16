@@ -4,8 +4,9 @@ Este aplicativo se chama CritCall e é dedicado às fichas de D&D. Orbyt é outr
 projeto do responsável e usa infraestrutura separada. O projeto Supabase novo
 do CritCall foi identificado e configurado localmente. A conexão com a API foi
 conferida. O build já inclui a configuração pública, sem variables do GitHub;
-cadastro confirmado, recuperação por e-mail e ativação pública ainda dependem
-da validação com o usuário. Consulte [docs/LOGIN.md](docs/LOGIN.md).
+o usuário confirmou cadastro, confirmação de e-mail e entrada no teste local.
+Recuperação/troca reais, destino do retorno e ativação pública ainda dependem
+da validação final. Consulte [docs/LOGIN.md](docs/LOGIN.md).
 
 Aplicação de fichas individuais de D&D 5e, com criador, evolução, multiclasse,
 grimório, inventário, anotações pessoais e consulta aos livros da mesa.
@@ -86,7 +87,9 @@ O fluxo escolhido é e-mail/senha no Supabase, em um projeto separado do outro
 aplicativo do responsável. Consulte [docs/LOGIN.md](docs/LOGIN.md) para cadastro,
 confirmação, recuperação, configuração pública incluída e overrides locais.
 Não é necessário configurar variables no GitHub para esse build. Senhas não são
-guardadas pela ficha nem incluídas em backups.
+guardadas pela ficha nem incluídas em backups. **Reenviar confirmação de e-mail**
+atende cadastros pendentes; **Esqueci a senha** inicia a recuperação. Quem já
+entrou pode usar **Enviar link para trocar senha**, sem sair da conta.
 
 Cada conta abre seu próprio espaço de fichas neste navegador; entrar não adota
 as fichas anteriores do modo local. Ao sair, as cópias são preservadas. Isso não
