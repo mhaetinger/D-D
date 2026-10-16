@@ -1,0 +1,95 @@
+# Salvamento pessoal e sincronização
+
+## Estado
+
+Solicitado em 16/10/2026: dados do jogador no Supabase, incluindo nome, uso
+offline e atualização em outro PC. Cliente, migração e testes estão implementados
+nesta branch. **Falta aplicar a migração no projeto real e validar a sincronização
+real/publicação.** O plugin Supabase aparece instalado; suas ferramentas de banco
+ainda não estão disponíveis na conversa. Usar somente o projeto CritCall
+`qhrpgkpvwbztubnrdhya`, URL `https://qhrpgkpvwbztubnrdhya.supabase.co`. Orbyt é outro projeto.
+
+## Dados e fila
+
+Sincronizam-se fichas completas, anotações pessoais separadas, nome, ficha ativa,
+tema/fundo/fonte, preferências de dados/bandeja, histórico/checkpoints e cópias
+de recuperação. A lista de preferências fica em `src/storage/preferences.ts`.
+Nome é salvo ao digitar; falha mantém o texto e não anuncia sucesso. Senhas e
+tokens não são documentos nem backups. Editores ainda não confirmados mantêm
+seu fluxo de salvar/descartar; pool temporário, buscas, animações e painéis
+abertos não são registros da ficha.
+
+localStorage conserva o cache legado. IndexedDB `critcall-sync-v1`, separado por
+projeto/usuário, registra fila e versões em transações entre abas. Respostas
+removem somente operações confirmadas. IDs tornam repetições idempotentes,
+inclusive quando o commit ocorreu e sua resposta caiu. Uma recusa não bloqueia
+o envio dos demais documentos; o item recusado permanece na fila.
+
+O bootstrap busca dados antes da ficha; há tentativas após edições, reconexão,
+foco/visibilidade e periodicamente com a página visível. Atualizações aguardam
+campos/editores abertos. Troca de conta cancela a projeção anterior e fecha a
+consulta de versões. A RPC compara o dono esperado com `auth.uid()`, impedindo
+enviar uma fila antiga com token que passou a pertencer a outra conta.
+
+**Outro PC só recebe uma edição offline depois que o dispositivo que a fez
+reconectar e confirmar o envio.** Antes, usa a última versão recebida na nuvem.
+Primeiro login exige rede. O perfil distingue fila, falta de configuração/rede
+e confirmação remota. Quota/armazenamento bloqueado são informados; não existe
+garantia de persistência se o navegador recusa escrever. Manter backups é necessário.
+O backup atual contém fichas e notas opcionais, não todo o diário interno.
+
+Dados sem login continuam preservados no modo local, sem adoção automática por
+qualquer conta de um dispositivo compartilhado. Para levar fichas, exportar no
+modo local, entrar e importar cópias; incluir notas somente por escolha própria.
+
+## Datas e recuperação
+
+Cada documento tem revisão crescente, data de edição e recebimento no servidor.
+O relógio é calibrado no Supabase; datas mais de cinco minutos no futuro são
+recusadas sem apagar a fila. Uma atualização da revisão atual é causal e não
+faz a data retroceder. Se outra edição mudou a revisão, vence a data mais recente;
+**ambas as versões ficam no histórico**, inclusive a candidata que não venceu.
+Empates usam o ID da operação. Não há mesclagem campo a campo da mesma ficha.
+
+Exclusões são tombstones. **Versões salvas** permite restaurar após confirmação,
+gerando nova operação e preservando o estado anterior. Restaurar ficha não altera
+notas. Não há expurgo automático: acompanhar a quota do projeto é necessário.
+Cache anterior sem data confiável tem marca de data desconhecida, exibida como
+tal; não se apresenta como edição nova para substituir uma versão remota datada.
+
+## Banco e ativação
+
+Arquivo único: `supabase/migrations/202610160001_personal_sync.sql`.
+Tabelas `critcall_documents` (estado atual) e `critcall_versions` (versões/conflitos).
+RPCs `critcall_save_document` (autoria, transação, revisão, data, idempotência)
+e `critcall_sync_clock` (relógio para a identidade autenticada esperada).
+
+RLS nas duas tabelas: anon sem acesso; authenticated só lê suas linhas e não
+recebe escrita direta. A RPC de escrita deriva autoria de `auth.uid()`, fixa
+`search_path` vazio, qualifica objetos e restringe execução. Não há acesso de
+mestre, mesa ou outro participante. Futuras permissões não devem ampliar notas.
+
+Antes de aplicar, conferir o projeto e inspecionar nomes já existentes. Usar a
+conexão administrativa do CritCall; se indisponível, o responsável pode colar o
+arquivo completo no [SQL Editor](https://supabase.com/dashboard/project/qhrpgkpvwbztubnrdhya/sql/new).
+Não pedir senha/chave secreta na conversa. O script não contém dados pessoais
+ou exclusões e pode ser reaplicado sem apagar registros. Depois conferir RLS,
+grants e funções reais, e validar com duas contas reais, dois navegadores,
+offline/reconexão, conflitos e restauração. Testes locais não comprovam ativação.
+Publicação permanece pelo fluxo de PRs aprovado.
+
+## Testes
+
+`npm test` cobre fila IndexedDB simulada, repetição, escrita durante envio, duas
+abas, contas, tombstones, editor, relógio, rollback, dados inválidos e paginação.
+`fake-indexeddb` é somente desenvolvimento e não entra no site.
+`npm run test:database` usa PostgreSQL 16 descartável em Docker, sem publicar
+portas nem consultar bancos existentes. Confere migração/reaplicação, RLS/grants
+de anon/duas identidades, RPC, concorrência, datas, conflitos e notas. Roda na CI.
+`tests/sync-browser.cjs` usa SDK real com HTTP controlado: duas instalações na
+mesma conta e outra isolada. Perfil automático/recarga/quota, fichas/notas,
+edição/recarga offline, reconexão, versão mais recente e restauração sem alterar
+notas. Não usa usuários/senhas reais nem envia e-mails reais.
+
+Referências: [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security)
+e [funções/privilégios](https://supabase.com/docs/guides/database/functions).

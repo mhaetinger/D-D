@@ -16,10 +16,12 @@ import { setupBackups } from "./storage/backup-ui";
 import { registerOffline } from "./pwa/register";
 import { initializeAccount } from "./auth/session";
 import { setupAccountUI } from "./auth/ui";
+import { initializeSync } from "./sync/controller";
 
 // A identidade define o armazenamento antes da primeira leitura da ficha.
 async function start() {
   const account = await initializeAccount();
+  await initializeSync(account);
   await import("./app/sheet.js");
   setupBackups();
   setupAccountUI(account);

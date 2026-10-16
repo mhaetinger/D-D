@@ -1,5 +1,6 @@
 import { validateCharacters, type Backup, type CharacterRecord } from "./validation";
 import { selectWorkspace, workspaceKey, workspaceStorage, type WorkspaceIdentity } from "./account-scope";
+import { announceStorageChange } from "./mutations";
 export const SHEET_KEY = "orbyt_characters_v1";
 export const LEGACY_KEY = "dnd_sheet_public_v1";
 export const NOTES_KEY = "dnd_player_private_notes_v1";
@@ -13,7 +14,8 @@ export class CharacterStore extends EventTarget {
   raw: string | null = null;
   private readSucceeded = false;
   private noteDrafts = new Map<string, string>();
-  constructor(private storage: () => StoragePort) { super(); }
+  get hasPendingNotes() { return this.noteDrafts.size > 0; }
+  constructor(private storage: () => StoragePort, private scope = "") { super(); }
   private report(issue: Issue | null) {
     this.issue = issue;
     this.dispatchEvent(new Event("change"));
@@ -50,6 +52,7 @@ export class CharacterStore extends EventTarget {
       this.storage().setItem(SHEET_KEY, text);
       this.raw = text;
       this.report(null);
+      announceStorageChange(this.scope);
       return true;
     } catch {
       this.report({ kind: "write", message: "As alterações ainda não foram salvas neste navegador. Baixe um backup antes de fechar e confira o espaço disponível ou a permissão de armazenamento." });
@@ -68,8 +71,9 @@ export class CharacterStore extends EventTarget {
     try {
       this.storage().setItem(NOTES_KEY, JSON.stringify(this.notes()));
       this.noteDrafts.clear();
+      announceStorageChange(this.scope);
       return true;
-    } catch { return false; }
+    } catch { this.dispatchEvent(new Event("change")); return false; }
   }
   note(id: string): string {
     if (this.noteDrafts.has(id)) return this.noteDrafts.get(id)!;
@@ -117,6 +121,7 @@ export class CharacterStore extends EventTarget {
       storage.setItem(SHEET_KEY, text);
       this.raw = text;
       this.report(null);
+      announceStorageChange(this.scope);
       return combined;
     } catch {
       if (changedNotes) {
@@ -134,7 +139,7 @@ export function selectCharacterWorkspace(identity: WorkspaceIdentity | null) {
   const key = workspaceKey(identity);
   if (!workspaceStores.has(key)) {
     const storage = workspaceStorage(() => localStorage, key);
-    workspaceStores.set(key, new CharacterStore(() => storage));
+    workspaceStores.set(key, new CharacterStore(() => storage, key));
   }
   sheetStore = workspaceStores.get(key)!;
 }

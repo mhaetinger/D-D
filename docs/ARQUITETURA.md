@@ -14,6 +14,8 @@ fichas locais. Não foi adotado um novo framework de interface nesta etapa.
 | `src/styles/` | Tailwind compilado e estilos/temas preservados. |
 | `src/storage/` | Formato/validação de fichas, migração local, backup, importação e recuperação. |
 | `src/auth/` | Configuração pública, sessão Supabase e interface de entrada/cadastro/recuperação. |
+| `src/sync/` | Documentos pessoais, fila IndexedDB, cliente Supabase, datas e recuperação de versões. |
+| `supabase/migrations/` | Tabelas/RLS/RPC de salvamento pessoal, ainda sem aplicação real conferida. |
 | `src/pwa/` | Registro do service worker e informação de disponibilidade offline. |
 | `public/rules/` | Motor sem DOM, catálogos, assistente, balões, rolagem e animações. |
 | `public/book.html`, `public/books/`, `public/vendor/pdfjs/` | Biblioteca, dois PDFs e leitor com suas licenças. |
@@ -48,10 +50,10 @@ com `privateNotes` opcional e separado. Importar cria novos IDs e remapeia as
 notas correspondentes; não substitui personagens com o mesmo ID ou nome.
 Arquivos de até 20 MB são aceitos; versões desconhecidas são rejeitadas.
 
-O adaptador atual é síncrono com localStorage para preservar os fluxos existentes.
-A migração para IndexedDB, revisões atômicas entre abas, histórico por personagem e sincronização terá uma API
-assíncrona própria; não foi simulada com gravações remotas fictícias. Checkpoints
-atuais da interface ainda ficam somente na sessão e não incluem notas pessoais.
+O adaptador da interface conserva localStorage e o formato legado. A fila nova
+usa transações IndexedDB por projeto/usuário, com IDs de operação idempotentes,
+revisões remotas e projeção que aguarda editores. Histórico/checkpoints passam a
+ser persistidos separadamente e entram na fila; seus snapshots não incluem notas.
 
 ## Login preparado, ativação pendente
 
@@ -81,10 +83,22 @@ autorização remota. Trocas limpam histórico/interface e cancelam confirmaçõ
 pendentes; editores abertos exigem decisão antes do fechamento. Rascunhos com
 falha de quota são preservados por espaço em memória, sem gravar na conta nova.
 
-Não há armazenamento remoto de personagens ou notas, RLS aplicada, envio
-automático ou sincronização nesta etapa. Ativação real, entrega de e-mails e
-revisão integral de segurança ainda estão pendentes. Contratos, configuração,
-limites e teste com HTTP controlado em [LOGIN.md](LOGIN.md).
+A branch implementa sincronização pessoal: fichas, notas privadas separadas,
+perfil, preferências, histórico/checkpoints e recuperação. A migração define
+critcall_documents/critcall_versions, RLS do dono e RPCs restritas; ainda não foi
+aplicada ao projeto real. Cliente e SQL foram testados com HTTP controlado e
+PostgreSQL descartável, respectivamente. Isso não comprova ativação remota.
+O plugin Supabase passou a instalado, mas ferramentas administrativas ainda não
+ficaram disponíveis. Ativação real, SMTP próprio e revisão integral de segurança
+continuam pendentes. Contratos em [LOGIN.md](LOGIN.md) e [SINCRONIZACAO.md](SINCRONIZACAO.md).
+
+Documentos têm revisão crescente e datas de edição/recebimento, com calibração
+do relógio. Se edições simultâneas disputam a mesma revisão, vence a data mais
+recente e ambas ficam no histórico; não há mesclagem automática campo a campo.
+Exclusões usam tombstones, e restaurar cria nova operação após confirmação.
+Outro PC só recebe edições offline depois da reconexão/envio do dispositivo
+de origem. A cópia local anterior sem data não se apresenta como edição nova.
+O nome passa a ser salvo ao digitar, com aviso de erro em vez de falso sucesso.
 
 O preflight e o navegador usam o mesmo resolvedor: o projeto público é o padrão,
 um override exige URL/chave completos, e chaves privilegiadas são recusadas mesmo
@@ -146,13 +160,12 @@ O indicador no perfil informa quando o primeiro preparo offline terminou.
 
 1. **Concluído nesta etapa:** estrutura de aplicação, build, dependências locais,
    backup, recuperação, migração preservando legado e funcionamento offline da ficha.
-2. **Próxima etapa individual:** armazenamento assíncrono com revisões entre abas, histórico/checkpoints
-   por personagem e preparação da sincronização; manter migração e exportação.
-3. **Contas e sincronização:** o usuário antecipou o login por e-mail/senha,
-   preparado nesta branch, com conexão local ao projeto exclusivo conferida e
-   validação de contas/e-mails reais ainda pendente. Propriedade/autorização remotas, notas exclusivas do dono,
-   fila offline e conflitos entre dispositivos continuam para a etapa de dados.
-   Não há tabelas remotas de fichas/notas ou sincronização configuradas.
+2. **Implementado na branch:** fila IndexedDB, histórico/checkpoints persistidos,
+   nome automático, sincronização pessoal e versões recuperáveis.
+3. **Ativação de contas/dados:** aplicar e inspecionar a migração no projeto
+   CritCall; conferir RLS e sincronização com duas contas/dispositivos reais,
+   SMTP próprio e publicação por PR. Conta e recuperação locais foram relatadas
+   como bem-sucedidas; isso não valida a sincronização real.
 4. **Depois da base individual:** retrato, salas, participantes, resumo do grupo e
    turnos do mestre; voz/vídeo por último. Não implementar permissões de mesa só
    escondendo botões nem compartilhar notas pessoais.

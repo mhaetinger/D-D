@@ -1,6 +1,7 @@
 import { sheetStore, selectCharacterWorkspace } from "../storage/character-store";
-import { currentWorkspaceKey } from "../storage/account-scope";
+import { currentWorkspaceKey, workspaceStorage } from "../storage/account-scope";
 import { ACTIVE_CHARACTER_KEY, readPreference, writePreference } from "../storage/preferences";
+import { canonical, validateDocument } from "../sync/documents";
 
 // =========================================================================
 // 1. METADADOS E CATÁLOGOS
@@ -493,8 +494,7 @@ const COIN_LABELS = { pc: "Cobre", pp: "Prata", pe: "Electro", po: "Ouro", pl: "
 const LORE_LABELS = { traits: "Personalidade", ideals: "Ideais", bonds: "Ligações", flaws: "Defeitos", backstory: "História do personagem", appearance: "Aparência", allies: "Aliados", treasure: "Tesouros narrativos" };
 const PHYSICAL_LABELS = { age: "Idade", height: "Altura", weight: "Peso", eyes: "Olhos", skin: "Pele", hair: "Cabelo" };
 
-// Histórico apenas desta sessão: checkpoints não sobrevivem à recarga.
-// O localStorage guarda a ficha atual, não esta pilha de ações.
+// Histórico pessoal persistido separadamente; snapshots contêm apenas fichas.
 let historyStack = [
   {
     timestamp: new Date().toLocaleTimeString([], {
@@ -508,6 +508,29 @@ let historyStack = [
   },
 ];
 let historyPointer = 0;
+let historyWritable = true;
+function restoreSavedHistory() {
+  historyWritable = true;
+  const raw = readPreference('dnd_history_v1');
+  if (!raw) return;
+  try {
+    validateDocument({ kind: 'preference', id: 'dnd_history_v1', value: raw });
+    const saved = JSON.parse(raw);
+    historyStack = saved.stack; historyPointer = saved.pointer;
+    if (canonical(JSON.parse(historyStack[historyPointer].stateJson)) !== canonical(characters)) {
+      historyStack.push({ timestamp: new Date().toISOString(), action: 'Estado mais recente carregado', isCheckpoint: true, stateJson: JSON.stringify(characters) });
+      historyPointer = historyStack.length - 1;
+    }
+  } catch {
+    try { workspaceStorage(() => localStorage).setItem(`orbyt_recovery_v1_history_${crypto.randomUUID()}`, raw); }
+    catch { historyWritable = false; }
+    showToast('O histórico não pôde ser lido. O conteúdo anterior foi preservado para recuperação.');
+  }
+}
+function persistHistory() {
+  if (!historyWritable) { showToast('O histórico anterior está ilegível e foi preservado. Baixe um backup antes de fechar.'); return; }
+  if (!writePreference('dnd_history_v1', JSON.stringify({ stack: historyStack, pointer: historyPointer }))) showToast('O histórico não pôde ser salvo. Baixe um backup antes de fechar.');
+}
 
 const COIN_RATES_IN_PC = { pc: 1, pp: 10, pe: 50, po: 100, pl: 1000 };
 
@@ -711,11 +734,13 @@ function recordStepAndSave(
   });
   historyPointer = historyStack.length - 1;
   if (!sheetStore.write(characters)) showToast(sheetStore.issue?.message || "Não foi possível salvar. Baixe um backup antes de fechar.");
+  persistHistory();
   renderAll();
 }
 
 function saveStateQuiet() {
   if (!sheetStore.write(characters)) showToast(sheetStore.issue?.message || "Não foi possível salvar. Baixe um backup antes de fechar.");
+  persistHistory();
   renderAll();
 }
 
@@ -782,7 +807,7 @@ function renderHistoryDrawerList() {
     <div onclick="jumpToHistoryStep(${idx})" class="p-2.5 rounded-lg border cursor-pointer transition flex items-center justify-between gap-2 ${isCurrent ? "t-btn-primary font-extrabold shadow" : item.isCheckpoint ? "badge-feiticeiro font-semibold" : "t-inset t-hover"}">
       <div>
         <div class="flex items-center gap-1.5">
-          <span class="text-[10px] opacity-75">#${idx} • ${item.timestamp}</span>
+          <span class="text-[10px] opacity-75">#${idx} • ${escapeHTML(item.timestamp)}</span>
           ${isCurrent ? '<span class="px-1.5 py-0.2 bg-black/20 rounded text-[9px] uppercase">Atual</span>' : ""}
         </div>
         <div class="mt-0.5">${escapeHTML(item.action)}</div>
@@ -1104,6 +1129,7 @@ function activateAccountWorkspace(identity) {
   activeCharIndex = Math.max(0, characters.findIndex(char => char.id === readPreference(ACTIVE_CHARACTER_KEY)));
   historyStack = [{ timestamp: new Date().toLocaleTimeString(), action: 'Abriu este espaço de fichas', isCheckpoint: true, stateJson: JSON.stringify(characters) }];
   historyPointer = 0;
+  restoreSavedHistory();
   spellFilterClass = 'all';
   selectedCastLevelBySpell = {};
   twinnedActiveBySpell = {};
@@ -1113,21 +1139,46 @@ function activateAccountWorkspace(identity) {
   document.getElementById('currentUserBadge').textContent = player;
   document.getElementById('backupIncludeNotes').checked = false;
   document.getElementById('backupStatus').textContent = '';
+  restoreDisplayPreferences();
   renderAll();
   renderAccountCharactersList();
   window.dispatchEvent(new Event('dnd-workspace-changed'));
 }
 
-function saveAccountProfile() {
+function saveAccountProfile(quiet = false) {
   const newName =
     document.getElementById("accPlayerName").value || "Jogador";
-  document.getElementById("currentUserBadge").textContent = newName; writePreference("dnd_public_player_name",newName);
+  if (!writePreference("dnd_public_player_name",newName)) {
+    showToast('O nome não pôde ser salvo. O texto digitado foi mantido; confira o armazenamento.');
+    return;
+  }
+  document.getElementById("currentUserBadge").textContent = newName;
   characters.forEach((c) => {
     c.playerName = newName;
   });
   saveStateQuiet();
-  showToast(`Perfil da conta atualizado para ${newName}!`);
+  if (!quiet) showToast(`Nome salvo neste dispositivo. Confira o estado da sincronização no perfil.`);
 }
+
+function refreshSyncedWorkspace() {
+  characters = sheetStore.read();
+  activeCharIndex = Math.max(0, characters.findIndex(char => char.id === readPreference(ACTIVE_CHARACTER_KEY)));
+  const player = readPreference('dnd_public_player_name') || 'Jogador';
+  document.getElementById('accPlayerName').value = player;
+  document.getElementById('currentUserBadge').textContent = player;
+  restoreDisplayPreferences();
+  restoreSavedHistory();
+  renderAll(); renderAccountCharactersList();
+}
+function restoreDisplayPreferences() {
+  currentTheme = readPreference('dnd_sheet_theme') || 'pergaminho_claro';
+  currentBackdrop = readPreference('dnd_backdrop_style') === 'textured' ? 'textured' : 'clean';
+  currentFontScale = parseInt(readPreference('dnd_font_scale') || '100', 10);
+  diceMode = readPreference('dnd_dice_mode') || 'auto';
+  diceTrayDimensions = readDiceTrayDimensions();
+  diceTrayMinimized = readPreference('dnd_dice_tray_minimized') === 'true';
+}
+window.refreshSyncedWorkspace = refreshSyncedWorkspace;
 
 function renderAccountCharactersList() {
   const container = document.getElementById("accountCharactersList");
@@ -1827,7 +1878,7 @@ function renderFeaturesCollapsible(char, wide = false) {
 }
 
 // Notas ficam fora da ficha/snapshots, no mesmo espaço local da conta atual.
-// Isso organiza o cache; não criptografa o navegador nem sincroniza com o servidor.
+// O cache não é criptografado. O sincronizador usa documentos privados separados.
 function readPrivateNotes(id) {
   return sheetStore.note(id);
 }
@@ -1841,7 +1892,7 @@ async function clearPrivateNotes() {
   savePrivateNotes(''); renderAll();
 }
 function renderPrivateNotes(char) {
-  return `<section class="player-private-notes t-card-accent p-4 space-y-2 text-xs"><div class="flex justify-between items-center gap-2"><h3 class="font-rpg font-bold uppercase t-text-accent">Anotações pessoais do jogador</h3><button class="underline" onclick="clearPrivateNotes()">Apagar</button></div><p class="t-text-muted">Salvas separadamente neste navegador. Não acompanham a ficha e não são sincronizadas.</p><textarea aria-label="Anotações pessoais do jogador" rows="7" class="w-full t-inset p-3 rounded-lg" oninput="savePrivateNotes(this.value)">${escapeHTML(readPrivateNotes(char.id))}</textarea><p id="privateNotesStatus" class="t-text-muted" aria-live="polite">Salvas neste navegador</p></section>`;
+  return `<section class="player-private-notes t-card-accent p-4 space-y-2 text-xs"><div class="flex justify-between items-center gap-2"><h3 class="font-rpg font-bold uppercase t-text-accent">Anotações pessoais do jogador</h3><button class="underline" onclick="clearPrivateNotes()">Apagar</button></div><p class="t-text-muted">Privadas e separadas da ficha. Com login, entram na fila de sincronização da sua conta; confira o estado no perfil.</p><textarea aria-label="Anotações pessoais do jogador" rows="7" class="w-full t-inset p-3 rounded-lg" oninput="savePrivateNotes(this.value)">${escapeHTML(readPrivateNotes(char.id))}</textarea><p id="privateNotesStatus" class="t-text-muted" aria-live="polite">Salvas neste navegador</p></section>`;
 }
 
 function toggleWornArmor(index) {
@@ -3008,4 +3059,6 @@ window.addEventListener("resize", renderDiceTrayState);
 const savedPlayer = readPreference('dnd_public_player_name') || 'Jogador';
 document.getElementById('currentUserBadge').textContent = savedPlayer;
 document.getElementById('accPlayerName').value = savedPlayer;
+document.getElementById('accPlayerName').addEventListener('input', () => saveAccountProfile(true));
+restoreSavedHistory();
 renderAll();

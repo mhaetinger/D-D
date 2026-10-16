@@ -537,6 +537,8 @@
       <div id="accountCharactersList" class="space-y-2"></div>
       <button onclick="closeAuthAccountModal();openNewCharacterModal()" class="t-inset px-3 py-2 rounded">Criar personagem</button>
       <section class="space-y-2 border-t t-border pt-3" aria-label="Backups e armazenamento">
+        <p id="syncStatus" class="text-xs" role="status" aria-live="polite">Preparando salvamento…</p>
+        <div class="flex flex-wrap gap-2"><button id="syncNow" type="button" class="underline text-xs" hidden>Sincronizar agora</button><button id="syncVersions" type="button" class="underline text-xs" hidden>Versões salvas</button></div>
         <p id="offlineStatus" class="text-xs t-text-muted" role="status"></p>
         <p id="storageIssue" class="text-sm font-bold t-text-accent" role="alert" hidden></p>
         <button id="downloadRecovery" type="button" class="t-inset px-3 py-2 rounded text-xs" hidden>Baixar dados para recuperação</button>
@@ -550,6 +552,12 @@
         <p id="backupStatus" class="text-xs" role="status"></p>
       </section>
     </section></div>
+    <dialog id="syncVersionsDialog" class="t-card-accent rounded-lg p-4 w-[min(32rem,92vw)] max-h-[85dvh] overflow-y-auto" data-scroll-window>
+      <div class="flex justify-between gap-3"><h2 class="font-rpg font-bold">Versões salvas na nuvem</h2><button id="syncVersionsClose" type="button" aria-label="Fechar versões">×</button></div>
+      <p id="syncVersionsStatus" class="text-xs my-3" role="status">Carregando…</p>
+      <div id="syncVersionsList" class="space-y-2"></div>
+      <button id="syncVersionsMore" type="button" class="underline text-xs mt-3" hidden>Carregar mais versões</button>
+    </dialog>
     <dialog id="accountWorkspaceChanged" data-scroll-window class="t-card-accent rounded-xl p-5 space-y-3" aria-labelledby="accountWorkspaceChangedTitle">
       <h2 id="accountWorkspaceChangedTitle" class="font-rpg font-bold">Sua sessão mudou</h2>
       <p class="text-sm">Para abrir o outro espaço, os editores da sessão anterior serão fechados. Você pode baixar um backup antes de continuar.</p>

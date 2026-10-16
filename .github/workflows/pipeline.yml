@@ -25,6 +25,7 @@ jobs:
       - name: Conferir dependências distribuídas
         run: npm audit --omit=dev --audit-level=moderate
       - run: npm test
+      - run: npm run test:database
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:browser

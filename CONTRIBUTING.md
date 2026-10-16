@@ -86,6 +86,10 @@ PDF.js está fixado em `public/vendor/pdfjs/`; preservar seus avisos ao atualiza
 - Esta branch pública é a base do desenvolvimento. Uma cópia local de referência
   não deve ser mesclada nem enviada com seu histórico. Qualquer reaproveitamento
   de código exige revisão dos arquivos e do conteúdo antes do commit.
-- O seletor 2014/2024 muda o layout; autenticação, sincronização e salas ainda
-  não estão implementadas. O modo offline é local, após preparo do cache; PDFs
-  não entram no download automático.
+- O seletor 2014/2024 muda o layout. Login e sincronização pessoal estão na
+  branch de tarefa; aplicação da migração e validação remota seguem pendentes.
+  Salas não estão implementadas. PDFs não entram no download automático.
+
+O teste `npm run test:database` usa Docker com PostgreSQL 16 descartável, sem
+publicar portas ou consultar bancos existentes. Executá-lo ao alterar SQL/RLS/RPC.
+A CI também o exige. Não aplicar migrações ao Orbyt; conferir projeto CritCall.

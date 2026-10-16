@@ -46,3 +46,9 @@
 - Não declarar autenticação, privacidade por conta ou sincronização
   enquanto esses recursos não existirem. Tratar textos inseridos como dados não
   confiáveis e manter credenciais fora do código publicado.
+
+- Sincronização pessoal foi implementada em `src/sync/`, com migração em
+  `supabase/migrations/`. Ainda sem aplicação/validação real no Supabase nesta
+  etapa. Consultar `docs/SINCRONIZACAO.md`; nunca aplicar ao projeto Orbyt.
+  Ao alterar SQL/RLS/RPC, executar `npm run test:database` (PostgreSQL descartável
+  em Docker). Não anunciar salvamento remoto antes da confirmação do envio.

@@ -2,6 +2,43 @@
 
 ## Não lançado
 
+### Salvamento pessoal, nome automático e fila offline — 2026-10-16
+
+- Usuário autorizou salvar dados pessoais no Supabase e receber a versão mais
+  recente em outro PC. Nome passa a salvar ao digitar; falha mantém o texto,
+  informa o problema e não anuncia sucesso. Falhas locais têm prioridade sobre
+  uma confirmação de envio anterior. Dados existentes continuam preservados.
+- Cliente sincroniza fichas completas, notas privadas separadas, nome, ficha
+  ativa, preferências persistidas, histórico/checkpoints e dados de recuperação.
+  A fila usa transações IndexedDB por projeto/usuário, IDs idempotentes e
+  confirmação de cada documento. Edições durante o envio ficam pendentes;
+  documento recusado não bloqueia os demais. Leitura remota é paginada.
+- Revisões/datas e relógio calibrado definem atualização. Edições concorrentes
+  mantêm a mais recente e preservam ambas no histórico; cache legado sem data
+  não se apresenta como novo. Exclusões usam tombstones. Consulta/restauração
+  privada de versões exige confirmação; restaurar ficha não restaura notas.
+- Histórico/checkpoints sobrevivem à recarga, fora das anotações. Preservados
+  bytes de histórico ilegível, cache legado, backups e dados do modo sem login.
+  Atualizações aguardam editores; troca de conta encerra a projeção anterior.
+  Outra máquina só recebe edições offline após reconexão/envio da origem.
+- Preparada migração transacional com duas tabelas, RLS exclusiva do dono,
+  escrita somente por RPC e verificação da identidade esperada. Script testado
+  em PostgreSQL 16 descartável, incluindo duas identidades/anon, concorrência,
+  idempotência, datas, tombstones e reaplicação sem perder dados; entrou na CI.
+- Verificação: `npm run check` passou com **168 testes Node**, tipos/build e
+  cinco roteiros Chromium, incluindo conta em duas instalações, conta diferente,
+  nome automático/recarga/quota, edição/recarga offline, reconexão, conflitos e
+  restauração sem alterar notas. Três temas em 320 px/GG e demais regressões
+  passaram, sem erros JS. `npm run test:database` passou em PostgreSQL 16 real
+  descartável. Auditoria de produção sem vulnerabilidades; diff conferido.
+  Caso adicional do modal de versões: três temas em 320 px/GG, texto hostil
+  sem execução e rodinha contida no limite passaram no Chromium.
+- Supabase passou a instalado/habilitado, mas ferramentas de banco ainda não
+  ficaram disponíveis. Consulta real sem dados (`limit=0`) no projeto CritCall
+  retornou 404/PGRST205 para a nova tabela. **Migração ainda não aplicada e
+  sincronização real ainda não validada.** Sem e-mail real, merge/publicação,
+  mudança no Orbyt ou compra/ativação de domínio. Detalhes em SINCRONIZACAO.md.
+
 ### Recuperação local relatada como bem-sucedida — 2026-10-16
 
 - Após a orientação de repetir no navegador/dispositivo de origem, o usuário

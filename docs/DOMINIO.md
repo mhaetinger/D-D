@@ -17,7 +17,10 @@ preparar o domínio não publica a branch nem integra a PR.
 
 As fichas e notas ainda ficam no armazenamento de cada navegador/origem.
 `mhaetinger.github.io`, o ambiente local e `critcall.com.br` têm armazenamentos
-diferentes. Login não transfere automaticamente essas cópias.
+diferentes. Enquanto a sincronização não estiver ativada, login não transfere
+essas cópias. Após a ativação, a conta poderá baixar no novo domínio os dados já
+confirmados no Supabase; alterações ainda pendentes no endereço antigo precisam
+ser enviadas ou exportadas antes da transição.
 
 Antes de ativar um redirecionamento, baixar backup no endereço antigo e conferir
 o arquivo. Notas só entram com escolha explícita, em backup privado. No endereço

@@ -36,10 +36,11 @@ recusa relatada. Após a orientação de repetir no navegador de origem, em
 relatado pelo usuário no teste local; não houve operação de senha real por
 ferramenta. Reenvio real, duas contas e ativação publicada continuam pendentes.
 
-Fichas e anotações continuam neste navegador. Autenticação e sincronização são
-etapas distintas: não há tabelas remotas de personagens, fila de envio ou
-políticas RLS aplicadas por esta branch. Não apresentar a separação do cache
-como autorização de dados no servidor ou proteção contra quem controla o dispositivo.
+Fichas e anotações mantêm cópia neste navegador. A sincronização pessoal foi
+implementada na branch, com fila IndexedDB e migração de tabelas/RLS/RPC. Essa
+migração ainda não foi aplicada ao projeto real. A separação do cache não é
+proteção contra quem controla o dispositivo. Dados, datas, conflitos, ativação
+e verificações em [SINCRONIZACAO.md](SINCRONIZACAO.md).
 
 ## Configurar o projeto exclusivo
 
@@ -126,7 +127,8 @@ usar somente o link mais recente. Não alternar localhost/127.0.0.1, dispositivo
 perfil do navegador ou janela privada durante a solicitação.
 Essa exigência pertence ao retorno do link. É possível iniciar a recuperação em
 qualquer navegador/dispositivo e concluí-la nele. Entrada normal com e-mail/senha
-funciona em outros navegadores; cada um mantém suas fichas locais, sem sincronização.
+funciona em outros navegadores; o compartilhamento das fichas usa a fila descrita
+em SINCRONIZACAO.md, ainda sem ativação real conferida.
 
 O provedor simulado dos testes passou a conferir o código emitido e o desafio
 PKCE, com prazo e uso único. Antes, aceitava qualquer código e não comprovava
@@ -216,5 +218,5 @@ não comprova entrega de e-mail, configuração do serviço ou proteção de dad
 Antes de ativar na publicação: conferir o projeto exclusivo, SMTP/retornos,
 cadastro/confirmação/recuperação reais, duas contas distintas e os caminhos de
 renderização de dados não confiáveis. A revisão integral de segurança e as
-políticas dos futuros personagens/notas remotos continuam pendentes. Integrar
+aplicação real das políticas de personagens/notas continuam pendentes. Integrar
 por PR em develop e depois em main; não habilitar o projeto anterior por engano.
