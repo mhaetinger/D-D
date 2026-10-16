@@ -23,8 +23,9 @@ obrigatória. O Chromium enviou uma tentativa com credenciais inexistentes ao
 projeto real: HTTP 400, mensagem correta e nenhum erro JavaScript. Não houve
 cadastro, envio de e-mail ou entrada bem-sucedida em conta real nessa verificação
 automatizada. Depois, o usuário confirmou que criou a conta, recebeu/abriu a
-confirmação e conseguiu entrar. Informou retorno para outro endereço; o destino
-ainda está em apuração. Reenvio e recuperação/troca de senha reais ainda não
+confirmação e conseguiu entrar. Confirmou que iniciou em `http://localhost:5174/`
+e foi levado a `https://mhaetinger.github.io/D-D/`; essa origem local recaiu no
+Site URL por não estar aceita na lista de retornos. Reenvio e recuperação/troca de senha reais ainda não
 foram confirmados pelo usuário.
 
 Fichas e anotações continuam neste navegador. Autenticação e sincronização são
@@ -124,9 +125,10 @@ aleatório inválido, sem e-mail/usuário e sem seguir o redirecionamento, retor
 | `http://127.0.0.1:5174/` | `http://127.0.0.1:5174/` |
 | `http://localhost:5174/` | `https://mhaetinger.github.io/D-D/` |
 
-O primeiro endereço está aceito; o segundo recai no Site URL. Isso é uma possível
-causa do relato, sem presumir qual origem o usuário usou. Para testar com
-`localhost`, acrescentar o retorno exato em URL Configuration. Não forçar um
+O primeiro endereço está aceito; o segundo recai no Site URL. O usuário confirmou
+que iniciou em `localhost:5174` e foi levado ao Pages, identificando a origem do
+relato. Foi solicitado acrescentar `http://localhost:5174/` em **Redirect URLs**
+e manter os endereços existentes; salvamento e nova verificação ainda pendentes. Não forçar um
 retorno cruzado pelo código: as origens têm armazenamento e verificadores PKCE
 separados. Se o usuário começou em 127.0.0.1 e também foi para o endereço público,
 conferir o template do e-mail e o destino solicitado, sem registrar tokens ou

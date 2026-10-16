@@ -2,6 +2,20 @@
 
 ## Não lançado
 
+### Retorno local do cadastro identificado — 2026-10-15
+
+- Usuário confirmou origem `http://localhost:5174/` e destino no Pages após a
+  confirmação. A conferência real anterior mostrou localhost recaindo no Site
+  URL, enquanto 127.0.0.1:5174 é aceito; causa do relato identificada.
+- Solicitado acrescentar o retorno exato de localhost em Redirect URLs do projeto
+  exclusivo, preservando os existentes. Conector continua sem instalação; chave
+  pública não permite alterar essa configuração administrativa. Não forçar troca
+  de origem no cliente, preservando armazenamento e verificador PKCE.
+- Alteração apenas documental: diff conferido, sem repetir testes funcionais.
+  Nova consulta real confirmou localhost ainda recaindo no Pages (303), sem
+  e-mails ou usuários envolvidos. Salvamento no painel continua pendente. CI da
+  etapa anterior f0e2e3b conferida: push/PR concluídos com sucesso.
+
 ### Cadastro real confirmado e troca de senha no perfil — 2026-10-15
 
 - Usuário confirmou cadastro, recebimento/abertura da confirmação e entrada no
