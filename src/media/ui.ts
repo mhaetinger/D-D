@@ -177,6 +177,7 @@ export function setupAvatars(account: AccountSession) {
     refresh(); void flush();
   });
   storageMutations.addEventListener("write", refresh);
+  window.addEventListener("critcall-avatars-imported", () => { failures.clear(); refresh(); void flush(); });
   account.addEventListener("change", () => { refresh(); void flush(); });
   window.addEventListener("online", () => { failures.clear(); refresh(); void flush(); });
   setInterval(() => { if (!document.hidden) { failures.clear(); refresh(); void flush(); } }, 60000);

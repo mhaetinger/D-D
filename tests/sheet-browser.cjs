@@ -29,6 +29,10 @@ const { serve } = require("./serve.cjs");
     await wizard.locator('[data-setup="backgroundId"]').selectOption("soldado");
     const next = () => wizard.locator('[data-action="next"]').click();
     await next();
+    for (const [i, key] of ["str", "dex", "con", "int", "wis", "cha"].entries()) {
+      await wizard.locator(`[data-token="${i}"]`).click();
+      await wizard.locator(`[data-slot="${key}"]`).click();
+    }
     await next();
     await wizard
       .locator('[data-answer="raceLanguages"]')

@@ -13,11 +13,13 @@
   display: none;
 }
 .cw-dialog {
-  width: min(54rem, 100%);
-  max-height: 94dvh;
+  width: min(72rem, 100%);
+  max-height: 96dvh;
   display: flex;
   flex-direction: column;
-  font-size: 0.875rem;
+  font-size: 0.95rem;
+  overflow: hidden;
+  clip-path: inset(0 round 0.75rem);
 }
 .cw-dialog header,
 .cw-dialog footer {
@@ -29,6 +31,12 @@
   min-width: 0;
 }
 .cw-dialog footer { flex-wrap: wrap; gap: 0.5rem; }
+.cw-footer-left { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+.cw-btn-danger {
+  border-color: var(--text-accent);
+  color: var(--text-accent);
+  background: var(--bg-inset);
+}
 .cw-dialog h2 {
   font-weight: 700;
   font-size: 1.15rem;
@@ -47,12 +55,59 @@
 }
 .cw-body {
   overflow: auto;
-  padding: 1rem;
+  padding: 1.1rem 1.25rem;
   border-block: 1px solid var(--border-main);
-  min-height: 12rem;
+  min-height: min(26rem, 60dvh);
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+.cw-origin-highlights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.65rem;
+}
+.cw-origin-card {
+  border: 1px solid var(--border-main);
+  border-radius: 0.45rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--bg-inset);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+.cw-characteristics-box {
+  border: 1px solid var(--border-main);
+  border-radius: 0.5rem;
+  padding: 1rem 1.1rem 1.15rem;
+  background: var(--bg-inset);
+}
+.cw-characteristics-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--border-main);
+  padding-bottom: 0.65rem;
+  margin-bottom: 0.75rem;
+}
+.cw-characteristics-heading h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.3;
+}
+.cw-characteristics-heading span {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.cw-characteristics-intro {
+  max-width: 72ch;
+  line-height: 1.55;
+  margin: 0 0 0.85rem;
 }
 .cw-dialog select,
 .cw-dialog input:not([type="checkbox"]),
@@ -105,6 +160,7 @@
   overflow: auto;
   border: 1px solid var(--border-main);
   border-radius: 0.4rem;
+  clip-path: inset(0 round 0.4rem);
 }
 .cw-options [data-option-row] {
   padding: 0.5rem 0.7rem;
@@ -150,12 +206,131 @@
   max-height: 20rem;
   overflow: auto;
 }
+.cw-suggestions {
+  margin-top: 0.35rem;
+  padding: 0;
+}
+.cw-suggestion-trigger {
+  width: 100%;
+  margin: 0;
+  padding: 0.45rem 0.65rem;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: left;
+}
+.cw-suggestion-trigger:hover,
+.cw-suggestion-trigger:focus-visible {
+  border-color: var(--border-strong);
+}
+.cw-picker-list .cw-suggestion-custom {
+  color: var(--text-accent);
+  font-weight: 700 !important;
+}
+.cw-physical-details {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border-main);
+  border-radius: 0.45rem;
+  background: var(--bg-surface);
+}
+.cw-physical-details > summary {
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.cw-physical-details > .cw-grid { margin-top: 0.75rem; }
 .cw-muted {
   font-size: 0.8rem;
   font-weight: 400;
 }
 .cw-review div {
   margin: 0.6rem 0;
+}
+.cw-review-intro h3,
+.cw-review-section h4 {
+  margin: 0;
+  line-height: 1.3;
+}
+.cw-review-intro {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border-main);
+}
+.cw-review-intro p {
+  margin: 0.35rem 0 0;
+  line-height: 1.5;
+}
+.cw-review-section {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border-main);
+  border-radius: 0.5rem;
+  background: var(--bg-inset);
+}
+.cw-review-section h4 {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-main);
+  font-size: 1rem;
+}
+.cw-review-section > p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin: 0.65rem 0 0;
+}
+.cw-review-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 0.5rem;
+  background: var(--bg-surface);
+}
+.cw-review-summary span {
+  padding-left: 0.65rem;
+  border-left: 1px solid var(--border-main);
+}
+.cw-review-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0.7rem 0 0;
+}
+.cw-review-stats div {
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border-main);
+  border-radius: 0.35rem;
+  background: var(--bg-surface);
+}
+.cw-review-stats dd { margin-top: 0.2rem; font-size: 1.1rem; font-weight: 700; }
+.cw-review-row {
+  display: grid;
+  grid-template-columns: minmax(11rem, 0.8fr) minmax(0, 1.5fr);
+  gap: 0.75rem;
+  align-items: start;
+  margin: 0;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--border-main);
+}
+.cw-review-row:last-child { border-bottom: 0; }
+.cw-review-row dd { margin: 0; }
+.cw-review-row ul { margin: 0; padding-left: 1.1rem; }
+.cw-review-empty { color: var(--text-muted); }
+.cw-review-character .cw-characteristics-box { margin-top: 0.75rem; background: var(--bg-surface); }
+.cw-readonly-text {
+  min-height: 2.7rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--border-main);
+  border-radius: 0.4rem;
+  background: var(--bg-surface);
+  white-space: pre-line;
+  line-height: 1.45;
 }
 .cw-review dt {
   font-weight: 700;
@@ -181,6 +356,7 @@
   max-height: min(65dvh, 34rem);
   overflow: auto;
   overscroll-behavior: contain;
+  clip-path: inset(0 round 0.65rem);
   padding: 0.9rem;
   border: 2px solid var(--border-strong);
   border-radius: 0.65rem;
@@ -200,6 +376,13 @@
 .rule-tooltip p {
   white-space: pre-line;
   margin: 0.5rem 0;
+}
+.cw-spell-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
 }
 /* As características continuam no mesmo painel, com menos espaço entre entradas. */
 .feature-list {
@@ -261,6 +444,7 @@
   z-index: 75;
   max-height: min(18rem, 45dvh);
   overflow: auto;
+  clip-path: inset(0 round 0.4rem);
   background: var(--bg-card);
   border: 1px solid var(--border-strong);
   border-radius: 0.4rem;
@@ -291,8 +475,12 @@
   .cw-overlay {
     padding: 0.4rem;
   }
-  .cw-grid {
+  .cw-grid,
+  .cw-origin-highlights {
     grid-template-columns: 1fr;
+  }
+  .cw-characteristics-box {
+    padding: 0.65rem;
   }
   .cw-dialog header,
   .cw-dialog footer,

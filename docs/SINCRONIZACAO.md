@@ -47,9 +47,28 @@ e confirmação remota. Quota/armazenamento bloqueado são informados; não exis
 garantia de persistência se o navegador recusa escrever. Manter backups é necessário.
 O backup atual contém fichas e notas opcionais, não todo o diário interno.
 
-Dados sem login continuam preservados no modo local, sem adoção automática por
-qualquer conta de um dispositivo compartilhado. Para levar fichas, exportar no
-modo local, entrar e importar cópias; incluir notas somente por escolha própria.
+Dados sem login continuam preservados no modo local. O formulário de entrada
+registra a intenção para o e-mail digitado antes de autenticar; somente a
+identidade validada correspondente pode receber as cópias. Uma consulta remota
+precisa confirmar se já há fichas: conta vazia recebe automaticamente; com
+várias fichas locais, a entrada permite selecionar quais serão copiadas e
+pré-seleciona uma ficha chamada Kael quando ela existe; conta existente exige
+escolher “Salvar como novas”. Cancelar mantém apenas a origem.
+
+`src/auth/guest-import.ts` usa uma trava Web Locks por destino, impressão SHA-256
+do conteúdo e recibos com IDs preparados antes das escritas. Recargas e
+repetições usam os mesmos IDs. Fichas, notas e retratos são copiados, sem exclusão
+dos originais. Cada retrato recebe outro arquivo para não alterar uma cópia
+anterior. Preferências/perfil só preenchem espaços ainda vazios. A fila de
+sincronização existente confirma o envio; concluir a cópia local não anuncia
+salvamento remoto. Erros de leitura, quota, imagens ausentes ou edição aberta
+mantêm a origem e oferecem nova tentativa no perfil. Notas ficam separadas.
+
+O rascunho de criação também é copiado para o espaço local da conta. Havendo
+outro rascunho, o recebido fica numa fila; não substitui o trabalho em andamento.
+Rascunhos não são documentos remotos nem integram o backup de personagens.
+O fluxo novo não muda SQL, RLS ou RPC. A importação manual de backups permanece
+independente e continua sem notas por padrão.
 
 ## Datas e recuperação
 

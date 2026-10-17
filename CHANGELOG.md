@@ -2,6 +2,95 @@
 
 ## Não lançado
 
+### PV iniciais, riqueza/mercado do Capítulo 5, balão sem bloquear clique, correções visuais e cabeçalho compacto — 2026-10-17
+
+- **Balão de consulta (`#ruleTooltip`) na criação**: mantém a rolagem pela rodinha
+  do mouse (`wheel`) com `pointer-events: none` para não interceptar cliques nas
+  opções abaixo. Ao abrir uma lista (`.cw-picker-list`), o balão posiciona-se na
+  lateral externa da lista aberta, e clicar em qualquer opção fecha o balão
+  imediatamente sem reabri-lo sobre o item selecionado.
+- **Glifos de lista do PDF (`U+F0B7`) e recorte de bordas arredondadas**:
+  `RuleTooltips.formatText` converte marcadores Private Use Area (`\uf0b7`, ex.:
+  tópicos de *Fúria* do Bárbaro) em `• `, eliminando os retângulos de glifo
+  ausente (`▯`). Modais e listas roláveis (`.t-card-accent.overflow-y-auto`,
+  `.cw-dialog`, `.cw-options`, `.cw-picker-list`) usam `clip-path: inset(0 round ...)`
+  e `outline-offset: -2px` no tema `pergaminho_claro`, impedindo que botões ou
+  barras de rolagem transpassem a linha interna da moldura.
+- **Pontos de Vida no 1º nível (`startingHpPreview`)**: a etapa de Classe da
+  criação permite escolher entre o padrão do Livro do Jogador (máximo do Dado de
+  Vida + mod. CON), sortear no dado (`1dX` + mod. CON), usar a média fixa do dado
+  ou definir um valor personalizado adaptado da mesa, somando automaticamente
+  bônus raciais (*Tenacidade Anã*), *Resiliência Dracônica* e talento *Robusto*.
+- **Equipamento Inicial por Pacotes ou Riqueza + Compras (Cap. 5, p. 145)**: a
+  etapa de Equipamento permite alternar entre os pacotes pré-definidos da classe
+  e antecedente ou a **Riqueza Inicial por Classe** (`Xd4 × 10 po`, ou `5d4 po`
+  para Monge) com sorteio dos dados, carteira em tempo real e compra de itens no
+  catálogo do Capítulo 5 (armaduras, escudos, armas simples e marciais, pacotes,
+  equipamento de aventura, munições, ferramentas, instrumentos e focos), além de
+  seção de adaptação livre para itens extras e ajuste de ouro inicial.
+- **Cabeçalho e barra de topo compactos**: reduzidos espaçamentos, altura do
+  retrato e tamanhos tipográficos de `<header>` (`.app-topbar`) e `#headerSection`,
+  e integrado o seletor de apresentação `#sheetDisplay` na mesma linha das abas
+  principais da ficha para liberar área vertical em celulares e telas menores.
+- **Características do Personagem já na 1ª etapa (`1. Identidade`)**: os cartões
+  de resumo da Classe/Raça/Antecedente (`.cw-origin-highlights`) e a seção
+  completa de **Características do Personagem, Personalidade e História**
+  (Personalidade, Ideais, Ligações, Defeitos com **Sugestões do antecedente** do
+  Livro do Jogador, História e Descrição física/aliados/tesouros) aparecem logo na
+  primeira etapa da criação para prender o jogador no conceito do personagem antes
+  das escolhas mecânicas, permanecendo também editáveis na etapa final (`7. Revisão`).
+- **Retomada automática do rascunho ao fechar/reabrir a aba e botão `Descartar rascunho`**:
+  `draft-store.ts` normaliza rascunhos salvos sem bloquear gravações futuras e
+  registra o estado aberto (`open`) inclusive em `pagehide`. Fechar ou recarregar
+  a aba durante a criação reabre automaticamente o criador na etapa exata onde o
+  jogador parou; quando fechado pelo botão `×`, a ficha exibe o cartão/faixa
+  **Personagem em andamento** com os botões **Continuar de onde parou** e
+  **Descartar rascunho** (também disponível no rodapé do criador com confirmação).
+- **Janela do criador ampliada**: `.cw-dialog` passa a usar `width: min(72rem, 100%)`
+  e `max-height: 96dvh` com `.cw-body` expansível, aproveitando melhor telas
+  maiores sem perder responsividade em `320px`.
+- Passaram 193 testes unitários Node (`npm test`), `npm run build` e os roteiros
+  de navegador (`creation-browser.cjs`, `sheet-browser.cjs`, `app-browser.cjs` e
+  `guest-import-browser.cjs`).
+
+### Aba inicial, balões na criação, ícones temáticos de magias e revisão do Kael — 2026-10-17
+
+- A ficha passa a iniciar na aba **1. Atributos & Combate** (`main`) e mantém o
+  painel de **Truques (Círculo 0)** visível ao abrir o grimório.
+- No criador de personagem, o balão de consulta (`#ruleTooltip`) aceita rolagem
+  pela rodinha do mouse e uso direto da barra de rolagem sem fechar ao mover o
+  cursor até ela. Campos e opções que já exibem a descrição logo abaixo
+  (`.cw-source`) deixam de repetir o mesmo texto no balão do mouse.
+- O motor de regras (`spellMeta` e `toSheetSpell`) e a ficha classificam
+  automaticamente o tipo de dano/efeito, ícone temático (`flame`, `skull`,
+  `snowflake`, `zap`, `sparkles`, `cloud-lightning`, `swords`, `droplets`,
+  `brain`, `sun`, `heart-pulse`, `shield`, `wand-2`), formato de alvo/área e
+  defesa/resistência das magias do catálogo, tanto na ficha quanto na etapa de
+  magias da criação.
+- O arquivo externo de backup do Kael (`critcall-kael-darkwood.json`) foi
+  atualizado com todas as 18 magias da ficha e da base HTML (incluindo 3º
+  círculo com *Bola de Fogo* e *Relâmpago* e os 2 rituais de *Conjurador de
+  Ritual*), *Magia Duplicada*, bônus de perícias e textos integrais do PDF.
+
+### Histórico visual e revisão da importação do Kael — 2026-10-17
+
+- Alternar entre as apresentações **Clássica** e **Moderna** salva a preferência
+  sem criar passos no histórico da ficha. Históricos antigos descartam entradas
+  repetitivas de layout, e desfazer outras alterações preserva a apresentação
+  escolhida.
+- O plano deixa explícito que a ficha do Kael foi transcrita para um backup
+  externo validado, mas a importação direta de PDF e a transferência real para
+  uma conta ainda dependem de revisão e confirmação do responsável.
+
+### Vinculação seletiva de ficha local — 2026-10-17
+
+- A entrada de conta permite escolher quais fichas sem login serão copiadas;
+  quando há uma ficha chamada Kael, ela fica pré-selecionada, sem levar outras
+  fichas locais por engano. A origem continua preservada e a impressão da
+  seleção mantém recargas idempotentes.
+- O roteiro Chromium cobre Kael, ficha local não selecionada, conta existente,
+  confirmação, cancelamento, quota, imagens, notas e recarga sem duplicação.
+
 ### Atualização preserva a versão correta do HTML — 2026-10-16
 
 - A entrega inicial chegou a `criticall.art` pelas PRs #3/#4 e a CI da `main`

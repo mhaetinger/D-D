@@ -1,0 +1,155 @@
+const assert = require('node:assert/strict');
+const path = require('node:path');
+const { chromium } = require('playwright');
+const { serve } = require('./serve.cjs');
+(async () => {
+  const server = await serve(path.join(__dirname,'../dist')), browser = await chromium.launch();
+  try {
+    const page = await browser.newPage({viewport:{width:1280,height:1000}}), errors=[];
+    page.on('pageerror',e=>errors.push(e.message));
+    await page.goto(server.url,{waitUntil:'networkidle'});
+    await page.locator('#accessContinueLocal').click();
+    assert.equal(await page.locator('#dice3dTray').evaluate(el=>getComputedStyle(el).outlineStyle),'none');
+    await page.locator('#diceDock').click();
+    await page.locator('#diceTrayMinimizeButton').click();
+    await page.waitForFunction(()=>document.querySelector('#dice3dTray').getAnimations().length===0);
+    assert.equal(await page.locator('#diceTrayBody').isVisible(),false);
+    await page.evaluate(()=>openNewCharacterModal());
+    const w=page.locator('#characterWizard');
+    // Testa descartar rascunho em andamento
+    await w.locator('[data-text="name"]').fill('Rascunho temporário');
+    await w.locator('[data-action="discardDraft"]').click();
+    await page.locator('#confirmationAccept').click();
+    await w.waitFor({state:'hidden'});
+    assert.ok((await page.locator('#headerSection').innerText()).includes('Crie sua primeira ficha'));
+    // Inicia nova criação e preenche Características já na Etapa 1 (Identidade)
+    await page.evaluate(()=>openNewCharacterModal());
+    await w.locator('[data-text="name"]').fill('Rascunho preservado');
+    await w.locator('[data-setup="classId"]').selectOption('guerreiro');
+    await w.locator('[data-setup="raceId"]').selectOption('humano');
+    await w.locator('[data-setup="backgroundId"]').selectOption('soldado');
+    assert.equal(await w.locator('.cw-origin-highlights').isVisible(),true);
+    assert.equal(await w.locator('.cw-characteristics-box').isVisible(),true);
+    await w.locator('[data-suggestion-trigger="traits"]').click();
+    await w.locator('[data-pick-suggestion="0"][data-suggestion-key="traits"]').click();
+    assert.equal(await w.locator('[data-text="traits"]').isEditable(), false, 'sugestão selecionada fica somente para leitura');
+    const suggestedTraits = await w.locator('[data-text="traits"]').inputValue();
+    await w.locator('[data-suggestion-trigger="traits"]').click();
+    await w.locator('[data-pick-suggestion="1"][data-suggestion-key="traits"]').click();
+    assert.notEqual(await w.locator('[data-text="traits"]').inputValue(), suggestedTraits, 'outra sugestão substitui a anterior');
+    await w.locator('[data-suggestion-trigger="traits"]').click();
+    await w.locator('[data-pick-suggestion="custom"][data-suggestion-key="traits"]').click();
+    assert.equal(await w.locator('[data-text="traits"]').inputValue(), '', 'personalizar limpa a sugestão');
+    assert.equal(await w.locator('[data-text="traits"]').isEditable(), true, 'Personalizar libera a escrita');
+    await w.locator('[data-text="traits"]').fill('Minha personalidade personalizada.');
+    assert.equal(await w.locator('.cw-physical-details').isVisible(), true, 'descrição física fica destacada e aberta');
+    await w.locator('[data-setup="backgroundId"]').selectOption('acolito');
+    if (await page.locator('#confirmationDialog').isVisible()) await page.locator('#confirmationAccept').click();
+    for (const key of ['traits', 'ideals', 'bonds', 'flaws']) assert.equal(await w.locator(`[data-text="${key}"]`).inputValue(), '', `${key} é limpo ao trocar antecedente`);
+    await w.locator('[data-setup="backgroundId"]').selectOption('soldado');
+    await w.locator('[data-alignment]').selectOption('Caótico e Bom');
+    assert.ok((await w.innerText()).includes('Segue a consciência'));
+    await w.locator('[data-alignment]').selectOption('custom');
+    await w.locator('[data-text="alignment"]').fill('Minha escolha');
+    const summary=w.locator('.cw-source summary').first(); await summary.hover();
+    assert.equal(await summary.getAttribute('data-rule-tooltip'),null);
+    await w.locator('[data-action="close"]').click();
+    assert.ok((await page.locator('#headerSection').innerText()).includes('Personagem em andamento'));
+    await page.locator('#accessReturnHome').click();
+    assert.equal(await page.locator('#sheetApp').isVisible(),false);
+    assert.equal(await page.locator('#accessContinueLocal').textContent(),'Voltar à sua ficha em andamento');
+    await page.reload({waitUntil:'networkidle'});
+    await page.locator('#accessContinueLocal').click();
+    await page.getByRole('button',{name:'Continuar de onde parou',exact:true}).click();
+    assert.equal(await w.locator('[data-text="name"]').inputValue(),'Rascunho preservado');
+    assert.equal(await w.locator('[data-text="alignment"]').inputValue(),'Minha escolha');
+    assert.equal(await w.locator('[data-text="traits"]').inputValue(), '', 'a limpeza do antecedente persiste no rascunho');
+    await w.locator('[data-action="next"]').click();
+    await w.locator('[data-setup="abilityMethod"]').selectOption('pointBuy');
+    for(const k of ['str','dex','con']) for(let i=0;i<7;i++) await w.locator(`[data-ability-card="${k}"] [data-adjust="1"]`).click();
+    assert.equal(await w.locator('[data-ability-card="wis"] [data-adjust="1"]').isDisabled(),true);
+    assert.ok((await w.locator('.cw-ability-status').textContent()).includes('0 pontos disponíveis'));
+    await w.locator('[data-ability-card="str"] [data-adjust="-1"]').click();
+    assert.ok((await w.locator('.cw-ability-status').textContent()).includes('2 pontos disponíveis'));
+    await w.locator('[data-setup="abilityMethod"]').selectOption('standard');
+    await w.locator('[data-token="0"]').dragTo(w.locator('[data-slot="str"]'));
+    assert.equal(await w.locator('[data-ability-card="str"] [data-token]').textContent(),'15');
+    for(const [i,k] of ['dex','con','int','wis','cha'].entries()) {await w.locator(`[data-token="${i+1}"]`).focus();await page.keyboard.press('Enter');await w.locator(`[data-slot="${k}"]`).focus();await page.keyboard.press('Enter');}
+    await w.locator('[data-token="0"]').click();await w.locator('[data-slot="cha"]').click();
+    assert.equal(await w.locator('[data-ability-card="str"] [data-token]').textContent(),'8');
+    assert.equal(await w.locator('.cw-token-pool [data-token]').count(),0);
+    await w.locator('[data-setup="abilityMethod"]').selectOption('rolled');
+    await w.locator('[data-action="rollAbilities"]').click();
+    assert.equal(await w.locator('.cw-rolling').isVisible(),true);
+    await w.locator('.cw-rolling').waitFor({state:'detached'});
+    assert.equal(await w.locator('.cw-token-pool [data-token]').count(),6);
+    assert.equal(await w.locator('.cw-rolls s').count(),6);
+    await page.emulateMedia({reducedMotion:'reduce'});
+    await w.locator('[data-setup="abilityMethod"]').selectOption('standard');
+    for(const [i,k] of ['str','dex','con','int','wis','cha'].entries()){await w.locator(`[data-token="${i}"]`).click();await w.locator(`[data-slot="${k}"]`).click();}
+    await w.locator('[data-action="next"]').click();
+    // Simula fechar/reabrir a aba com o criador aberto na Etapa 3 (Proficiências): deve reabrir direto onde parou
+    await page.evaluate(()=>sessionStorage.clear());
+    await page.reload({waitUntil:'networkidle'});
+    assert.equal(await w.isVisible(),true);
+    assert.equal(await w.locator('[aria-current="step"]').textContent(),'3. Proficiências');
+    await w.locator('[data-answer="raceLanguages"]').selectOption('Abissal');
+    await w.locator('[data-answer="backgroundTools"]').selectOption('Jogo: dados');
+    await w.locator('[data-answer="classSkills"][value="acrobacia"]').check();
+    await w.locator('[data-answer="classSkills"][value="lidar_animais"]').check();
+    await w.getByText('Como usar Acrobacia',{exact:true}).click();
+    assert.ok((await w.innerText()).includes('Manter o equilíbrio'));
+    await w.locator('[data-action="next"]').click();
+    await w.locator('[data-answer="fighting"]').selectOption('Arquearia');
+    // Verifica escolha de Pontos de Vida no 1º nível (etapa class)
+    assert.equal(await w.locator('[data-setup="hpMethod"]').inputValue(),'max');
+    await w.locator('[data-setup="hpMethod"]').selectOption('rolled');
+    await w.locator('[data-action="rollStartingHp"]').click();
+    const rolledHpVal = Number(await w.locator('[data-setup="hpRoll"]').inputValue());
+    assert.ok(rolledHpVal >= 1 && rolledHpVal <= 10);
+    await w.locator('[data-setup="hpMethod"]').selectOption('max');
+    // Verifica que Fúria / textos do livro não têm glifos privados (\uf0b7)
+    const fText = await page.evaluate(() => RuleTooltips.formatText(CharacterEngine.reference('Fúria', 'barbaro').text));
+    assert.equal(fText.includes('\uf0b7'), false);
+    assert.ok(fText.includes('•'));
+    // Verifica que o balão tem pointer-events: none e fecha ao clicar numa opção da lista sem reabrir
+    await w.locator('[data-answer="fighting"]').click();
+    const pickerOption = page.locator('#cw-picker-options button[data-rule-tooltip]').first();
+    await pickerOption.hover();
+    await page.waitForTimeout(300);
+    assert.equal(await page.locator('#ruleTooltip').isVisible(), true);
+    assert.equal(await page.locator('#ruleTooltip').evaluate(el => getComputedStyle(el).pointerEvents), 'none');
+    await pickerOption.click();
+    assert.equal(await page.locator('#ruleTooltip').isVisible(), false);
+    await w.locator('[data-answer="fighting"]').selectOption('Arquearia');
+    await w.locator('[data-action="next"]').click(); await w.locator('[data-action="next"]').click();
+    // Testa o modo de Riqueza Inicial + Compras do Cap. 5 e depois volta para Pacotes
+    await w.locator('[data-setup="equipmentMethod"]').selectOption('wealth');
+    await w.locator('[data-action="rollWealth"]').click();
+    const wealthGp = Number(await w.locator('[data-setup="wealthGold"]').inputValue());
+    assert.ok(wealthGp >= 50 && wealthGp <= 200);
+    await w.locator('[data-action="buyItem"][data-item-name="Espada Longa"]').click();
+    assert.ok((await w.locator('.cw-wallet-bar').innerText()).includes('15 po'));
+    await w.locator('[data-setup="equipmentMethod"]').selectOption('packages');
+    for(const [k,v] of Object.entries({equipment0:'Cota de malha',equipment1:'Arma marcial e escudo',equipmentWeapons1:'Alabarda',equipment2:'Besta leve e 20 virotes',equipment3:'Pacote de aventureiro'})) await w.locator(`[data-answer="${k}"]`).selectOption(v);
+    assert.equal(await w.locator('[data-answer="equipment0"]').getAttribute('data-rule-tooltip'),null);
+    await w.locator('.cw-adapt-box summary').click();
+    await w.locator('[data-custom-item-name]').fill('Poção de cura');
+    await w.locator('[data-custom-item-qty]').fill('2');
+    await w.locator('[data-action="addCustomItem"]').click();
+    await w.locator('[data-setup="customGold"]').fill('10');
+    await w.locator('[data-action="next"]').click();
+    assert.ok(await w.locator('.cw-review-section').count() >= 3, 'revisão separa os setores principais');
+    assert.equal(await w.locator('.cw-review-summary').count(), 1, 'revisão mostra resumo do personagem');
+    assert.ok(await w.locator('.cw-review-stats').isVisible(), 'revisão mostra habilidades em grade');
+    assert.equal(await w.locator('.cw-review-character textarea, .cw-review-character input').count(), 0, 'revisão não edita personalidade');
+    assert.equal(await w.locator('.cw-review-character [data-suggestion-key]').count(), 0, 'revisão não oferece botões de sugestão');
+    for(const theme of ['pergaminho_claro','pergaminho_escuro','obsidiana']) {
+      await page.setViewportSize({width:320,height:740});await page.evaluate(t=>{setTheme(t);setFontScale(125);},theme);
+      assert.ok(await w.locator('.cw-dialog').evaluate(el=>el.scrollWidth<=el.clientWidth));
+    }
+    await page.screenshot({path:'/tmp/critcall-creation-mobile.png'});
+    assert.deepEqual(errors,[]);
+    console.log('PASS criação: retorno/rascunho, tendência, ponto a ponto, drag/teclado/troca, rolagem, PV inicial, riqueza/compras, balão sem bloquear clique, explicações, sugestões, 320px/GG/três temas, dado sem moldura.');
+  } finally {await browser.close();await server.close();}
+})().catch(e=>{console.error(e);process.exitCode=1;});

@@ -13,12 +13,15 @@ import "./styles/tailwind.css";
 import "./styles/sheet.css";
 import "./styles/access.css";
 import "./app/icons";
+import "./wizard/bridge";
+import "./styles/wizard-guide.css";
 import { setupBackups } from "./storage/backup-ui";
 import { registerOffline } from "./pwa/register";
 import { initializeAccount } from "./auth/session";
 import { setupAccountUI } from "./auth/ui";
 import { initializeSync } from "./sync/controller";
 import { setupAvatars } from "./media/ui";
+import { setupBookAppearance } from "./app/book-appearance";
 
 // A identidade define o armazenamento antes da primeira leitura da ficha.
 async function start() {
@@ -28,6 +31,7 @@ async function start() {
   setupBackups();
   setupAccountUI(account);
   setupAvatars(account);
+  setupBookAppearance();
   registerOffline();
 }
 void start();

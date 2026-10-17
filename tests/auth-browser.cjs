@@ -92,6 +92,7 @@ async function verify(prefix) {
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(server.url, { waitUntil: 'networkidle' });
     await page.waitForFunction(() => typeof window.getChar === 'function');
+    assert.equal(await page.locator('link[rel="manifest"]').getAttribute('href'), 'manifest.webmanifest', 'manifesto usa caminho relativo em qualquer prefixo');
     assert.equal(await page.evaluate(() => getChar().id), guest.id);
     assert.equal(await page.locator("#accessScreen").isVisible(), true);
     assert.equal(await page.locator("#sheetApp").isVisible(), false);

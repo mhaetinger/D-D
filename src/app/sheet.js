@@ -13,6 +13,7 @@ const DAMAGE_TYPES_META = {
   fogo: { label: "Fogo", icon: "flame", cls: "badge-fogo" },
   eletrico: { label: "Elétrico", icon: "zap", cls: "badge-eletrico" },
   frio: { label: "Frio/Gelo", icon: "snowflake", cls: "badge-frio" },
+  gelo: { label: "Frio/Gelo", icon: "snowflake", cls: "badge-frio" },
   necrotico: {
     label: "Necrótico",
     icon: "skull",
@@ -24,7 +25,20 @@ const DAMAGE_TYPES_META = {
     icon: "cloud-lightning",
     cls: "badge-trovejante",
   },
+  trovao: {
+    label: "Trovejante",
+    icon: "cloud-lightning",
+    cls: "badge-trovejante",
+  },
+  acido: { label: "Ácido", icon: "droplets", cls: "badge-acido" },
+  veneno: { label: "Veneno", icon: "skull", cls: "badge-veneno" },
+  psiquico: { label: "Psíquico", icon: "brain", cls: "badge-psiquico" },
+  radiante: { label: "Radiante", icon: "sun", cls: "badge-radiante" },
   cortante: { label: "Cortante", icon: "swords", cls: "badge-cortante" },
+  perfurante: { label: "Perfurante", icon: "swords", cls: "badge-cortante" },
+  concussao: { label: "Concussão", icon: "swords", cls: "badge-cortante" },
+  cura: { label: "Cura", icon: "heart-pulse", cls: "badge-utilidade" },
+  defesa: { label: "Defesa/Proteção", icon: "shield", cls: "badge-utilidade" },
   utilidade: {
     label: "Utilidade",
     icon: "wand-2",
@@ -34,18 +48,28 @@ const DAMAGE_TYPES_META = {
 
 const TARGET_TYPES_META = {
   mira: { label: "Mira", icon: "crosshair" },
+  toque: { label: "Toque", icon: "user-check" },
   multi: { label: "Teleguiado", icon: "target" },
+  auto: { label: "Teleguiado", icon: "target" },
   esfera: { label: "Área: Esfera", icon: "circle-dot" },
+  cone: { label: "Área: Cone", icon: "triangle" },
   linha: { label: "Área: Linha", icon: "move-right" },
   cubo: { label: "Área: Cubo", icon: "box" },
+  cilindro: { label: "Área: Cilindro", icon: "circle-dot" },
   pessoal: { label: "Pessoal/Buff", icon: "user-check" },
+  self: { label: "Pessoal/Toque", icon: "user-check" },
   ritual_inv: { label: "Ritual", icon: "book-open" },
+  ritual: { label: "Ritual", icon: "book-open" },
 };
 
 const DEFENSE_TYPES_META = {
   atq_magico: { label: "Ataque mágico", icon: "crosshair" },
+  tr_for: { label: "Resistência de FOR", icon: "shield-alert" },
   tr_des: { label: "Resistência de DES", icon: "shield-alert" },
   tr_con: { label: "Resistência de CON", icon: "shield-alert" },
+  tr_int: { label: "Resistência de INT", icon: "shield-alert" },
+  tr_sab: { label: "Resistência de SAB", icon: "shield-alert" },
+  tr_car: { label: "Resistência de CAR", icon: "shield-alert" },
   auto_hit: { label: "Acerto Auto", icon: "check-circle-2" },
   nenhuma: null,
 };
@@ -242,6 +266,10 @@ const BOOK_SPELLS_DB = {
     diceFormula: null,
   },
 };
+BOOK_SPELLS_DB["Bruxaria"] = BOOK_SPELLS_DB["Bruxaria (Hex)"];
+BOOK_SPELLS_DB["Nuvem de Adagas"] = BOOK_SPELLS_DB["Névoa de Adagas"];
+BOOK_SPELLS_DB["Convocar Familiar"] = BOOK_SPELLS_DB["Invocar Familiar (Ritual)"];
+BOOK_SPELLS_DB["Compreender Idiomas"] = BOOK_SPELLS_DB["Compreender Idiomas (Ritual)"];
 
 const BOOK_ITEMS_DB = {
   "Besta leve": {
@@ -461,7 +489,7 @@ let characters = sheetStore.read();
 // O ID continua válido mesmo quando a ordem das fichas muda.
 const rememberedCharacterId = readPreference(ACTIVE_CHARACTER_KEY);
 let activeCharIndex = Math.max(0, characters.findIndex(char => char.id === rememberedCharacterId));
-let currentTab = "spells";
+let currentTab = "main";
 let currentTheme =
   readPreference("dnd_sheet_theme") || "pergaminho_claro";
 let currentBackdrop = readPreference("dnd_backdrop_style") === "textured" ? "textured" : "clean";
@@ -483,8 +511,7 @@ let diceDock;
 let dicePoolCounts = { 20: 1, 4: 1 };
 
 let spellFilterClass = "all";
-// Deixa Truques fechado (collapsed) por padrão para você já ver o 2º Círculo colado embaixo dele!
-let collapsedPanels = { circle_0: true };
+let collapsedPanels = {};
 let expandedSingleSpells = {};
 let selectedCastLevelBySpell = {};
 let twinnedActiveBySpell = { "Mísseis Mágicos": true };
@@ -497,7 +524,17 @@ const COIN_LABELS = { pc: "Cobre", pp: "Prata", pe: "Electro", po: "Ouro", pl: "
 const LORE_LABELS = { traits: "Personalidade", ideals: "Ideais", bonds: "Ligações", flaws: "Defeitos", backstory: "História do personagem", appearance: "Aparência", allies: "Aliados", treasure: "Tesouros narrativos" };
 const PHYSICAL_LABELS = { age: "Idade", height: "Altura", weight: "Peso", eyes: "Olhos", skin: "Pele", hair: "Cabelo" };
 
-// Histórico pessoal persistido separadamente; snapshots contêm apenas fichas.
+// Histórico pessoal persistido separadamente; preferências visuais não são passos.
+function historySnapshot() {
+  const snapshot = structuredClone(characters);
+  for (const character of snapshot) delete character.preferredLayout;
+  return JSON.stringify(snapshot);
+}
+function historyComparable(value) {
+  const snapshot = JSON.parse(value);
+  for (const character of snapshot) delete character.preferredLayout;
+  return canonical(snapshot);
+}
 let historyStack = [
   {
     timestamp: new Date().toLocaleTimeString([], {
@@ -507,7 +544,7 @@ let historyStack = [
     }),
     action: "Marco Zero (Abriu a Ficha na Sessão)",
     isCheckpoint: true,
-    stateJson: JSON.stringify(characters),
+    stateJson: historySnapshot(),
   },
 ];
 let historyPointer = 0;
@@ -519,9 +556,12 @@ function restoreSavedHistory() {
   try {
     validateDocument({ kind: 'preference', id: 'dnd_history_v1', value: raw });
     const saved = JSON.parse(raw);
-    historyStack = saved.stack; historyPointer = saved.pointer;
-    if (canonical(JSON.parse(historyStack[historyPointer].stateJson)) !== canonical(characters)) {
-      historyStack.push({ timestamp: new Date().toISOString(), action: 'Estado mais recente carregado', isCheckpoint: true, stateJson: JSON.stringify(characters) });
+    const current = saved.stack[saved.pointer];
+    historyStack = saved.stack.filter((item) => !/^Alternou layout para /.test(item.action));
+    historyPointer = historyStack.indexOf(current);
+    if (historyPointer < 0) historyPointer = Math.min(saved.pointer, historyStack.length - 1);
+    if (historyComparable(historyStack[historyPointer].stateJson) !== canonical(JSON.parse(historySnapshot()))) {
+      historyStack.push({ timestamp: new Date().toISOString(), action: 'Estado mais recente carregado', isCheckpoint: true, stateJson: historySnapshot() });
       historyPointer = historyStack.length - 1;
     }
   } catch {
@@ -545,15 +585,23 @@ function escapeHTML(value) {
   })[char]);
 }
 
-function confirmDestructiveAction(title, message, label = "Excluir") {
+function confirmDestructiveAction(title, message, label = "Excluir", extra = null) {
   const dialog = document.getElementById("confirmationDialog");
   if (dialog.open) return Promise.resolve(false);
   document.getElementById("confirmationTitle").textContent = title;
   document.getElementById("confirmationMessage").textContent = message;
   document.getElementById("confirmationAccept").textContent = label;
+  const extraHost = document.getElementById("confirmationExtra");
+  extraHost.replaceChildren();
+  extraHost.hidden = !extra;
+  if (extra) extraHost.append(extra);
   dialog.returnValue = "cancel";
   return new Promise((resolve) => {
-    dialog.addEventListener("close", () => resolve(dialog.returnValue === "confirm"), { once: true });
+    dialog.addEventListener("close", () => {
+      extraHost.replaceChildren();
+      extraHost.hidden = true;
+      resolve(dialog.returnValue === "confirm");
+    }, { once: true });
     dialog.showModal();
   });
 }
@@ -597,7 +645,9 @@ function getChar() {
 function loadHistoryState(index) {
   // Uma exclusão/criação pode mudar índices: preserva o ID ativo, se existir.
   const activeId = getChar()?.id;
+  const layouts = new Map(characters.map((char) => [char.id, char.preferredLayout]));
   characters = JSON.parse(historyStack[index].stateJson);
+  for (const char of characters) if (layouts.has(char.id)) char.preferredLayout = layouts.get(char.id);
   activeCharIndex = Math.max(0, characters.findIndex((char) => char.id === activeId));
 }
 
@@ -647,15 +697,29 @@ function getMageArmorAC(char) {
   return 13 + getMod(char.abilities.dex.score) + (char.shieldEquipped ? 2 : 0);
 }
 
+function resolveSpellMeta(spell) {
+  const catalog = CharacterEngine.spell?.(spell?.bookId || spell?.name);
+  const catalogMeta = CharacterEngine.spellMeta?.(catalog || spell) || {};
+  const dmgType = spell?.dmgType && spell.dmgType !== "livro" ? spell.dmgType : (catalogMeta.dmgType || "utilidade");
+  const targetType = spell?.targetType || catalogMeta.targetType || null;
+  const defType = spell?.defType && spell.defType !== "nenhuma" ? spell.defType : (catalogMeta.defType || "nenhuma");
+  const canTwin = spell?.canTwin !== undefined && spell?.dmgType && spell.dmgType !== "livro" ? !!spell.canTwin : !!(spell?.canTwin || catalogMeta.canTwin);
+  const effectSummary = spell?.effectSummary && spell.effectSummary !== "Consultar descrição" && (!catalog || spell.effectSummary !== catalog.duration)
+    ? spell.effectSummary
+    : (catalogMeta.effectSummary || spell?.effectSummary || "Consultar descrição");
+  return { dmgType, targetType, defType, canTwin, effectSummary, diceFormula: catalogMeta.diceFormula || null };
+}
+
 function getSpellDefenseMeta(char, spell) {
+  const meta = resolveSpellMeta(spell);
   const stats = getSpellcastingStats(char, spell.classId, spell);
-  if (spell.defType === "atq_magico") return stats ? { icon: "crosshair", label: `Ataque ${fmtMod(stats.attack)} contra CA` } : null;
-  if (spell.defType?.startsWith("tr_")) {
-    const key = spell.defType.slice(3);
-    const ability = RULES_DB.abilities[({ for: "str", des: "dex", sab: "wis", car: "cha" })[key] || key];
+  if (meta.defType === "atq_magico") return stats ? { icon: "crosshair", label: `Ataque ${fmtMod(stats.attack)} contra CA` } : null;
+  if (meta.defType?.startsWith("tr_")) {
+    const key = meta.defType.slice(3);
+    const ability = RULES_DB.abilities[({ for: "str", des: "dex", con: "con", int: "int", sab: "wis", car: "cha" })[key] || key];
     return stats && ability ? { icon: "shield-alert", label: `Resistência de ${ability.short} · CD ${stats.dc}` } : null;
   }
-  return DEFENSE_TYPES_META[spell.defType] || null;
+  return DEFENSE_TYPES_META[meta.defType] || null;
 }
 
 function getSpellNotes(char, spell) {
@@ -733,7 +797,7 @@ function recordStepAndSave(
     }),
     action: actionDescription,
     isCheckpoint: isManualCheckpoint,
-    stateJson: JSON.stringify(characters),
+    stateJson: historySnapshot(),
   });
   historyPointer = historyStack.length - 1;
   if (!sheetStore.write(characters)) showToast(sheetStore.issue?.message || "Não foi possível salvar. Baixe um backup antes de fechar.");
@@ -866,8 +930,10 @@ function setDiceTrayDimensions(width, height) {
   renderDiceTrayState();
 }
 function toggleDiceTrayMinimized() {
-  diceTrayMinimized = !diceTrayMinimized;
-  renderDiceTrayState();
+  diceDock.transition(() => {
+    diceTrayMinimized = !diceTrayMinimized;
+    renderDiceTrayState();
+  });
   document.getElementById(diceTrayMinimized ? "diceDock" : "diceTrayMinimizeButton").focus({preventScroll: true});
 }
 // A bandeja fica ancorada embaixo à esquerda: arrastar para cima/direita
@@ -1152,6 +1218,7 @@ function activateAccountWorkspace(identity) {
   historyStack = [{ timestamp: new Date().toLocaleTimeString(), action: 'Abriu este espaço de fichas', isCheckpoint: true, stateJson: JSON.stringify(characters) }];
   historyPointer = 0;
   restoreSavedHistory();
+  currentTab = 'main';
   spellFilterClass = 'all';
   selectedCastLevelBySpell = {};
   twinnedActiveBySpell = {};
@@ -1295,6 +1362,7 @@ function getSelectedSpellCastLevel(char, spell, index) {
 }
 
 function renderSpellCastControls(char, spell, index) {
+  const meta = resolveSpellMeta(spell);
   const chosen = getSelectedSpellCastLevel(char, spell, index);
   const detail = getSpellEffectDetails(char, spell, index);
   const options = getSpellSlotOptions(char, spell);
@@ -1303,7 +1371,7 @@ function renderSpellCastControls(char, spell, index) {
   const unavailable = (usesSlot && (!selected || selected.remaining <= 0)) || (spell.limitedUse && (spell.usesUsed || 0) >= spell.limitedUse);
   const canNormal = spell.prepared !== false || spell.ritual || spell.limitedUse || spell.atWill;
   return `
-    ${spell.canTwin && characterHasTwinned(char) ? `<button type="button" onclick="toggleSpellTwinnedByIndex(${index})" class="spell-action-button spell-twin-control" aria-label="${detail.twin ? "Desativar" : "Ativar"} Magia Gêmea para ${escapeHTML(spell.name)}" aria-pressed="${detail.twin}">Gêmea (${escapeHTML(detail.cost ?? spell.circle)}pt)</button>` : ""}
+    ${meta.canTwin && characterHasTwinned(char) ? `<button type="button" onclick="toggleSpellTwinnedByIndex(${index})" class="spell-action-button spell-twin-control" aria-label="${detail.twin ? "Desativar" : "Ativar"} Magia Gêmea para ${escapeHTML(spell.name)}" aria-pressed="${detail.twin}">Gêmea (${escapeHTML(detail.cost ?? spell.circle)}pt)</button>` : ""}
     ${usesSlot && canNormal ? `<select data-spell-slot="${index}" aria-label="Espaço para ${escapeHTML(spell.name)}" onchange="setSpellCastLevelByIndex(${index}, this.value)" class="spell-slot-select">
       ${options.length ? options.map((option) => `<option value="${option.value}" ${option.value === chosen ? "selected" : ""}>${option.source} · ${option.level}º · ${Math.max(0, option.remaining)}/${option.total}${option.remaining <= 0 ? " (esgotado)" : ""}</option>`).join("") : '<option value="">Sem espaços compatíveis</option>'}
     </select>` : ""}
@@ -1314,23 +1382,31 @@ function renderSpellCastControls(char, spell, index) {
 }
 
 function getSpellEffectDetails(char, spell, index) {
+  const meta = resolveSpellMeta(spell);
   const chosen = getSelectedSpellCastLevel(char, spell, index);
   const level = chosen === "pact" ? char.pactMagic.level : chosen ?? spell.circle;
   const book = BOOK_SPELLS_DB[spell.name];
-  const twin = !!twinnedActiveBySpell[spell.name] && !!spell.canTwin;
+  const twin = !!twinnedActiveBySpell[spell.name] && !!meta.canTwin;
   // Calcula a versão normal e a versão com Gêmea sem duplicar textos na ficha.
   // A fórmula personalizada continua tendo a precedência já usada pelo rolador.
-  const effect = active => spell.customRoll || (book?.calcEffect
-    ? book.calcEffect(level, active, char, spell).replace(/ ⚡ GÊMEA!$/, "")
-    : spell.effectSummary || getSpellNotes(char, spell));
+  const effect = active => {
+    if (spell.customRoll) return spell.customRoll;
+    if (book?.calcEffect) return book.calcEffect(level, active, char, spell).replace(/ ⚡ GÊMEA!$/, "");
+    let baseText = meta.effectSummary || getSpellNotes(char, spell);
+    if (spell.circle === 0 && meta.diceFormula) {
+      baseText = baseText.replace(/^\d+d/, `${getCantripDiceCount(char)}d`);
+    }
+    return `${active ? "2 alvos × " : ""}${baseText}`;
+  };
   return { base: effect(false), enhanced: twin ? effect(true) : null, twin,
     cost: spell.circle === 0 ? 1 : level };
 }
 
 function renderSpellEffectDetails(char, spell, index) {
+  const meta = resolveSpellMeta(spell);
   const detail = getSpellEffectDetails(char, spell, index);
-  const damage = DAMAGE_TYPES_META[spell.dmgType] || DAMAGE_TYPES_META.utilidade;
-  return `<span class="spell-effect-badge" data-spell-effect="${index}" title="${escapeHTML(damage.label)}">
+  const damage = DAMAGE_TYPES_META[meta.dmgType] || DAMAGE_TYPES_META.utilidade;
+  return `<span class="spell-effect-badge ${damage.cls || ""}" data-spell-effect="${index}" title="${escapeHTML(damage.label)}">
     <i data-lucide="${damage.icon}" class="w-3.5 h-3.5" aria-hidden="true"></i>
     ${escapeHTML(detail.twin ? detail.enhanced : detail.base)}
   </span>`;
@@ -1373,10 +1449,11 @@ function showSpellTooltipByIndex(event, index) {
 }
 
 function renderExpandedSpellCard(char, sp, globalSpellIdx) {
+  const meta = resolveSpellMeta(sp);
   const clsMeta =
     RULES_DB.classes[sp.classId] || RULES_DB.classes.feiticeiro;
   const targetMeta =
-    TARGET_TYPES_META[sp.targetType] || TARGET_TYPES_META.mira;
+    TARGET_TYPES_META[meta.targetType] || TARGET_TYPES_META.mira;
   const defMeta = getSpellDefenseMeta(char, sp);
   return `
   <div class="spell-card" data-spell-card="${globalSpellIdx}" onmouseenter="showSpellTooltipByIndex(event, ${globalSpellIdx})" onmousemove="positionTooltip(event)" onmouseleave="hideBookTooltip()">
@@ -1390,7 +1467,7 @@ function renderExpandedSpellCard(char, sp, globalSpellIdx) {
           <div class="text-[11px] t-text-muted">Tempo: <strong>${escapeHTML(sp.time)}</strong> • Alcance: <strong>${escapeHTML(sp.range)}</strong></div>
       <div class="flex flex-wrap items-center gap-1.5 text-[11px] font-bold">
         ${renderSpellEffectDetails(char, sp, globalSpellIdx)}
-        ${sp.targetType ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded t-card"><i data-lucide="${targetMeta.icon}" class="w-3.5 h-3.5 t-text-accent" aria-hidden="true"></i> ${escapeHTML(sp.range)} · ${escapeHTML(targetMeta.label)}</span>` : ''}
+        ${meta.targetType ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded t-card"><i data-lucide="${targetMeta.icon}" class="w-3.5 h-3.5 t-text-accent" aria-hidden="true"></i> ${escapeHTML(sp.range)} · ${escapeHTML(targetMeta.label)}</span>` : ''}
         ${defMeta ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded t-card"><i data-lucide="${defMeta.icon}" class="w-3.5 h-3.5 t-text-accent" aria-hidden="true"></i> ${escapeHTML(defMeta.label)}</span>` : ""}
       </div>
       <p class="text-xs t-text-muted">${escapeHTML(getSpellNotes(char, sp))}</p>
@@ -1998,7 +2075,7 @@ function renderAll() {
   ["clean", "textured"].forEach((style) => {
     const button = document.getElementById(`backdropBtn-${style}`);
     button.setAttribute("aria-pressed", String(currentBackdrop === style));
-    button.className = `px-2 py-1 rounded font-bold ${currentBackdrop === style ? "t-btn-primary" : "t-text-muted"}`;
+    button.className = `px-1.5 py-0.5 rounded font-bold ${currentBackdrop === style ? "t-btn-primary" : "t-text-muted"}`;
   });
   document.documentElement.style.fontSize = `${(16 * currentFontScale) / 100}px`;
 
@@ -2029,8 +2106,8 @@ function renderAll() {
       btn.setAttribute("aria-pressed", String(currentTheme === th));
       btn.className =
         currentTheme === th
-          ? "display-choice px-2 py-1 rounded font-bold t-btn-primary shadow-sm"
-          : "display-choice px-2 py-1 rounded font-semibold t-text-muted";
+          ? "display-choice px-1.5 py-0.5 rounded font-bold t-btn-primary shadow-sm"
+          : "display-choice px-1.5 py-0.5 rounded font-semibold t-text-muted";
     }
   });
 
@@ -2049,8 +2126,8 @@ function renderAll() {
     if (btn)
       btn.className =
         diceMode === m
-          ? "px-2 py-1 rounded font-extrabold t-btn-primary shadow-sm"
-          : "px-2 py-1 rounded font-semibold t-text-muted";
+          ? "px-1.5 py-0.5 rounded font-extrabold t-btn-primary shadow-sm"
+          : "px-1.5 py-0.5 rounded font-semibold t-text-muted";
   });
 
   const diceTray = document.getElementById("dice3dTray");
@@ -2065,8 +2142,13 @@ function renderAll() {
   document.getElementById('sheetDisplay').hidden = !char;
   if (!char) {
     const header = document.getElementById('headerSection');
-    header.className = 't-card p-5 space-y-3';
-    header.innerHTML = '<h1 class="font-rpg text-xl font-bold t-text-accent">Crie sua primeira ficha</h1><p>Comece pelo personagem que vai levar para a mesa. Confira o estado do salvamento no perfil.</p><button class="t-btn-primary px-4 py-2 rounded font-bold" onclick="openNewCharacterModal()">Criar personagem</button>';
+    const draftInfo = getSavedDraftInfo();
+    header.className = 't-card p-4 space-y-2.5';
+    if (draftInfo) {
+      header.innerHTML = `<h1 class="font-rpg text-xl font-bold t-text-accent">Personagem em andamento</h1><p>Continue a criação de <strong>${escapeHTML(draftInfo.name)}</strong>${draftInfo.summary ? ` (${escapeHTML(draftInfo.summary)})` : ''} na <strong>Etapa ${draftInfo.stepIndex + 1} de 7 · ${escapeHTML(draftInfo.stepLabel)}</strong>, ou descarte o rascunho para começar outro.</p><div class="flex flex-wrap gap-2"><button type="button" class="t-btn-primary px-4 py-2 rounded font-bold" onclick="openNewCharacterModal()">Continuar de onde parou</button><button type="button" class="t-card px-4 py-2 rounded font-bold text-rose-500 border t-border" onclick="CharacterWizard.discardDraft()">Descartar rascunho</button></div>`;
+    } else {
+      header.innerHTML = '<h1 class="font-rpg text-xl font-bold t-text-accent">Crie sua primeira ficha</h1><p>Comece pelo personagem que vai levar para a mesa. Confira o estado do salvamento no perfil.</p><button class="t-btn-primary px-4 py-2 rounded font-bold" onclick="openNewCharacterModal()">Criar personagem</button>';
+    }
     document.getElementById('sheetViewport').innerHTML = '';
     window.SizeMotion?.refresh();
     return;
@@ -2075,11 +2157,11 @@ function renderAll() {
   document.getElementById("btnClassic").setAttribute("aria-pressed", String(!isModern));
   document.getElementById("btnModern").setAttribute("aria-pressed", String(isModern));
   document.getElementById("btnClassic").className = !isModern
-    ? "display-choice px-2 py-1 rounded font-bold t-btn-primary"
-    : "display-choice px-2 py-1 rounded font-semibold t-text-muted";
+    ? "display-choice px-1.5 py-0.5 rounded font-bold t-btn-primary"
+    : "display-choice px-1.5 py-0.5 rounded font-semibold t-text-muted";
   document.getElementById("btnModern").className = isModern
-    ? "display-choice px-2 py-1 rounded font-bold t-btn-primary"
-    : "display-choice px-2 py-1 rounded font-semibold t-text-muted";
+    ? "display-choice px-1.5 py-0.5 rounded font-bold t-btn-primary"
+    : "display-choice px-1.5 py-0.5 rounded font-semibold t-text-muted";
 
   const tabConfigs = [
     { id: "main", label: "1. Atributos & Combate", icon: "shield" },
@@ -2091,8 +2173,8 @@ function renderAll() {
     const el = document.getElementById(`tab-${t.id}`);
     el.innerHTML = `<i data-lucide="${t.icon}" class="w-4 h-4"></i> <span>${t.label}</span>`;
     el.className = currentTab === t.id
-      ? "sheet-tab flex items-center gap-1.5 px-3.5 py-2 rounded-t-lg text-xs sm:text-sm font-bold t-card-accent border-b-0 t-text-accent"
-      : "sheet-tab flex items-center gap-1.5 px-3.5 py-2 rounded-t-lg text-xs sm:text-sm font-semibold t-text-main";
+      ? "sheet-tab flex items-center gap-1.5 px-3 py-1.5 rounded-t-lg text-xs sm:text-sm font-bold t-card-accent border-b-0 t-text-accent"
+      : "sheet-tab flex items-center gap-1.5 px-3 py-1.5 rounded-t-lg text-xs sm:text-sm font-semibold t-text-main";
     el.setAttribute("aria-pressed", String(currentTab === t.id));
   });
 
@@ -2114,6 +2196,35 @@ function renderAll() {
   window.SizeMotion?.refresh();
 }
 
+const WIZARD_STEP_LABELS = [
+  "Identidade",
+  "Habilidades",
+  "Proficiências",
+  "Classe",
+  "Magias",
+  "Equipamento",
+  "Revisão",
+];
+function getSavedDraftInfo() {
+  const saved = window.CharacterGuide?.loadDraft?.();
+  if (!saved?.draft?.setup) return null;
+  const s = saved.draft.setup;
+  const name = String(s.name || "").trim() || "Personagem sem nome";
+  const stepIndex = Number.isInteger(saved.step) ? Math.max(0, Math.min(6, saved.step)) : 0;
+  const stepLabel = WIZARD_STEP_LABELS[stepIndex] || "Identidade";
+  const className = PHB_DATA.classes[s.classId]?.name || "";
+  const raceName = CharacterEngine.options?.races?.[s.raceId]?.name || "";
+  const summary = [className, raceName].filter(Boolean).join(" · ");
+  return { saved, name, stepIndex, stepLabel, summary, open: saved.open === true };
+}
+function resumeSavedDraftIfNeeded() {
+  if (sheetStore.issue?.kind === "invalid" || document.body.dataset.access === "entry") return;
+  const wizardEl = document.getElementById("characterWizard");
+  if (wizardEl && !wizardEl.classList.contains("hidden") && !wizardEl.hidden) return;
+  const info = getSavedDraftInfo();
+  if (info?.open) openNewCharacterModal();
+}
+
 function renderHeader(char, isModern) {
   const totalLvl = getTotalLevel(char);
   const pb = getProfBonus(char);
@@ -2121,43 +2232,49 @@ function renderHeader(char, isModern) {
     .map((c) => {
       const meta = RULES_DB.classes[c.classId];
       const sub = PHB_DATA.classes[c.classId]?.subclasses[c.subclassId || CharacterEngine.inferSubclass(c)];
-      return `<span tabindex="0" ${RuleTooltips.attributes(sub?.name || meta?.name, CharacterEngine.reference(sub?.name || meta?.name || '', c.classId, c.subclassId || CharacterEngine.inferSubclass(c)))} class="px-2.5 py-0.5 rounded text-xs font-bold ${meta?.badgeColor}">${meta?.name} (${escapeHTML(c.subclass)}) Nv. ${c.level}</span>`;
+      return `<span tabindex="0" ${RuleTooltips.attributes(sub?.name || meta?.name, CharacterEngine.reference(sub?.name || meta?.name || '', c.classId, c.subclassId || CharacterEngine.inferSubclass(c)))} class="px-2 py-0.5 rounded text-[11px] font-bold ${meta?.badgeColor}">${meta?.name} (${escapeHTML(c.subclass)}) Nv. ${c.level}</span>`;
     })
     .join(" ");
+  const draftInfo = getSavedDraftInfo();
+  const draftBanner = draftInfo
+    ? `<div class="t-inset px-2.5 py-1.5 rounded-lg mb-2 flex flex-wrap items-center justify-between gap-2 text-xs" data-draft-banner><span><strong>Criação em andamento:</strong> ${escapeHTML(draftInfo.name)}${draftInfo.summary ? ` (${escapeHTML(draftInfo.summary)})` : ''} · Etapa ${draftInfo.stepIndex + 1} de 7 (${escapeHTML(draftInfo.stepLabel)})</span><div class="flex flex-wrap items-center gap-1.5"><button type="button" class="t-btn-primary px-2.5 py-1 rounded font-bold" onclick="openNewCharacterModal()">Continuar de onde parou</button><button type="button" class="t-card px-2.5 py-1 rounded font-bold text-rose-500 border t-border" onclick="CharacterWizard.discardDraft()">Descartar rascunho</button></div></div>`
+    : "";
 
   const headerEl = document.getElementById("headerSection");
-  headerEl.className = "p-4 t-card-accent";
-  headerEl.innerHTML = `
-  <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-    <div class="md:col-span-5 flex items-center gap-3">
+  headerEl.className = "px-3 py-2.5 t-card-accent";
+  headerEl.innerHTML = `${draftBanner}
+  <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-center">
+    <div class="md:col-span-5 flex items-center gap-2.5 min-w-0">
       <button type="button" class="portrait-edit shrink-0" data-avatar-edit="${escapeHTML(char.id)}" aria-label="Alterar imagem de ${escapeHTML(char.name)}" title="Alterar imagem do personagem">${avatarMarkup(char.avatar)}</button>
-      <div class="w-full">
-        <div class="text-[10px] uppercase tracking-widest t-text-muted">D&D 5e • Jogador: ${escapeHTML(char.playerName)}${getSpellcastingHeader(char) ? ` • ${getSpellcastingHeader(char)}` : ""}</div>
-        <input type="text" value="${escapeHTML(char.name)}" onchange="updateField('name', this.value)" class="bg-transparent text-2xl font-rpg font-bold t-text-main border-b t-border focus:outline-none w-full" />
-        <div class="mt-1.5 flex flex-wrap gap-1.5 items-center">${classChips}</div>
+      <div class="w-full min-w-0">
+        <div class="text-[10px] uppercase tracking-wider t-text-muted truncate">D&D 5e • Jogador: ${escapeHTML(char.playerName)}${getSpellcastingHeader(char) ? ` • ${getSpellcastingHeader(char)}` : ""}</div>
+        <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          <input type="text" value="${escapeHTML(char.name)}" onchange="updateField('name', this.value)" class="bg-transparent text-lg sm:text-xl font-rpg font-bold t-text-main border-b t-border focus:outline-none min-w-[9rem] flex-1 leading-tight" />
+          <div class="flex flex-wrap gap-1 items-center">${classChips}</div>
+        </div>
       </div>
     </div>
-    <div class="md:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
-      <div class="t-inset p-2.5 rounded-lg">
-        <div class="t-text-muted text-[10px] uppercase">${isModern ? "Espécie" : "Raça"}</div>
-        <div class="font-bold text-sm mt-0.5">${escapeHTML(char.race)}</div>
+    <div class="md:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
+      <div class="t-inset px-2.5 py-1.5 rounded-lg">
+        <div class="t-text-muted text-[9px] uppercase leading-tight">${isModern ? "Espécie" : "Raça"}</div>
+        <div class="font-bold text-xs sm:text-sm truncate">${escapeHTML(char.race)}</div>
       </div>
-      <div class="t-inset p-2.5 rounded-lg">
-        <div class="t-text-muted text-[10px] uppercase">Antecedente</div>
-        <div class="font-bold text-sm mt-0.5">${escapeHTML(char.background)}</div>
+      <div class="t-inset px-2.5 py-1.5 rounded-lg">
+        <div class="t-text-muted text-[9px] uppercase leading-tight">Antecedente</div>
+        <div class="font-bold text-xs sm:text-sm truncate">${escapeHTML(char.background)}</div>
       </div>
-      <div class="t-inset p-2.5 rounded-lg">
-        <div class="t-text-muted text-[10px] uppercase">Tendência</div>
-        <div class="font-bold text-sm mt-0.5">${escapeHTML(char.alignment)}</div>
+      <div class="t-inset px-2.5 py-1.5 rounded-lg">
+        <div class="t-text-muted text-[9px] uppercase leading-tight">Tendência</div>
+        <div class="font-bold text-xs sm:text-sm truncate">${escapeHTML(char.alignment)}</div>
       </div>
-      <div class="t-inset p-2.5 rounded-lg flex justify-between items-center">
+      <div class="t-inset px-2.5 py-1.5 rounded-lg flex justify-between items-center gap-1">
         <div>
-          <div class="t-text-muted text-[10px] uppercase">Nível Global</div>
-          <div class="font-bold text-sm t-text-accent mt-0.5">Nível ${totalLvl}</div>
+          <div class="t-text-muted text-[9px] uppercase leading-tight">Nível</div>
+          <div class="font-bold text-xs sm:text-sm t-text-accent">Nv. ${totalLvl}</div>
         </div>
         <div class="text-right">
-          <div class="t-text-muted text-[10px] uppercase">Prof.</div>
-          <div class="font-extrabold text-lg t-text-accent">+${pb}</div>
+          <div class="t-text-muted text-[9px] uppercase leading-tight">Prof.</div>
+          <div class="font-extrabold text-sm sm:text-base t-text-accent leading-none">+${pb}</div>
         </div>
       </div>
     </div>
@@ -2363,7 +2480,7 @@ function openHomebrewModal(type, index = null) {
         <div><label for="hbSpRoll" class="block font-bold mb-1">Fórmula personalizada (opcional)</label><input id="hbSpRoll" value="${e(spell.customRoll)}" placeholder="Ex.: 6d6" class="w-full t-inset p-2 rounded-lg" /></div>
         <div><label for="hbSpRange" class="block font-bold mb-1">Alcance</label><input id="hbSpRange" value="${e(spell.range)}" class="w-full t-inset p-2 rounded-lg" /></div>
       </div>
-      <label class="flex items-center gap-2"><input id="hbSpTwin" type="checkbox" ${spell.canTwin ? "checked" : ""} />Permitir Magia Gêmea (confira elegibilidade no livro; exceções são da mesa)</label>
+      <label class="flex items-center gap-2"><input id="hbSpTwin" type="checkbox" ${resolveSpellMeta(spell).canTwin ? "checked" : ""} />Permitir Magia Gêmea (confira elegibilidade no livro; exceções são da mesa)</label>
       <div><label for="hbSpNotes" class="block font-bold mb-1">Descrição / notas</label><textarea id="hbSpNotes" rows="4" class="w-full t-inset p-2 rounded-lg">${e(spell.notes)}</textarea></div>`;
     saveBtn.onclick = () => {
       const name = document.getElementById("hbSpName").value.trim();
@@ -2455,13 +2572,14 @@ function showSpellTooltip(event, spellName, classId, baseCircle, index) {
   const numericCastLvl =
     chosenLvl === "pact" ? char.pactMagic.level : chosenLvl ?? baseCircle;
   const catalogEntry = CharacterEngine.spell(spell?.bookId || spellName);
+  const cleanCatalogText = catalogEntry ? RuleTooltips.formatText(catalogEntry.text) : '';
   const bookEntry = (spell?.bookId && catalogEntry ? {
     ...BOOK_SPELLS_DB[spellName], school: catalogEntry.school,
     duration: catalogEntry.duration, materialDesc: catalogEntry.components,
-    bookDesc: catalogEntry.text, upcastRule: '',
+    bookDesc: cleanCatalogText, upcastRule: '',
   } : BOOK_SPELLS_DB[spellName]) || (catalogEntry ? {
     school: catalogEntry.school, duration: catalogEntry.duration, materialDesc: catalogEntry.components,
-    bookDesc: catalogEntry.text, upcastRule: '', calcEffect: null
+    bookDesc: cleanCatalogText, upcastRule: '', calcEffect: null
   } : {
     school: `Magia de ${baseCircle}º Círculo`,
     duration: "Instantânea",
@@ -2573,12 +2691,10 @@ function toggleSpellTwinned(name) {
   renderAll();
 }
 function setLayout(mode) {
-  // O seletor 2014/2024 troca o visual; não troca o conjunto de regras.
+  // A preferência visual é salva, mas não cria um passo no histórico da ficha.
   if (!["classic_2014", "modern_2024"].includes(mode) || !getChar() || getChar().preferredLayout === mode) return;
   getChar().preferredLayout = mode;
-  recordStepAndSave(
-    `Alternou layout para ${mode === "modern_2024" ? "2024" : "2014"}`,
-  );
+  saveStateQuiet();
 }
 function setTab(tab) {
   hideBookTooltip();
@@ -2756,11 +2872,12 @@ function castSpellWithUpcast(
   if (!spObj) return;
   if (spObj.prepared === false && !spObj.ritual && !spObj.limitedUse && !spObj.atWill) return showToast('Prepare esta magia antes de conjurá-la com espaço.');
   if (spObj.limitedUse && (spObj.usesUsed || 0) >= spObj.limitedUse) return showToast('Os usos desta habilidade estão esgotados.');
-  const bookEntry = BOOK_SPELLS_DB[spellName];
+  const bookEntry = BOOK_SPELLS_DB[spellName] || (spObj?.bookId ? BOOK_SPELLS_DB[CharacterEngine.spell(spObj.bookId)?.name] : null);
+  const resolvedMeta = resolveSpellMeta(spObj);
   const chosen = getSelectedSpellCastLevel(char, spObj, globalSpellIdx);
   const numericCastLvl =
     chosen === "pact" ? char.pactMagic.level : parseInt(chosen, 10);
-  const isTwinned = !!twinnedActiveBySpell[spellName] && spObj?.canTwin;
+  const isTwinned = !!twinnedActiveBySpell[spellName] && !!resolvedMeta.canTwin;
   const twinPtCost = isTwinned
     ? baseCircle === 0
       ? 1
@@ -2809,7 +2926,7 @@ function castSpellWithUpcast(
     spObj?.customRoll ||
     (bookEntry?.diceFormula
       ? bookEntry.diceFormula(numericCastLvl, isTwinned, char, spObj)
-      : null);
+      : resolvedMeta.diceFormula || null);
   if (formulaToRoll) {
     triggerSheetRoll(
       formulaToRoll,
@@ -3075,7 +3192,9 @@ Object.assign(window, {
   renderShopItems,
   buyItem,
   openLevelUpModal,
-  closeLevelUpModal
+  closeLevelUpModal,
+  getSavedDraftInfo,
+  resumeSavedDraftIfNeeded
 });
 Object.defineProperty(window, 'characters', { get: () => characters, configurable: true });
 

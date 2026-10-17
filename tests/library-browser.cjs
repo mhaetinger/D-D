@@ -128,6 +128,12 @@ const { serve } = require("./serve.cjs");
     await wizard.locator('[data-setup="backgroundId"]').selectOption("soldado");
     await wizard.locator('[data-answer="subclass"]').selectOption("corruptor");
     for (let i = 0; i < 3; i++) {
+      if (i === 1) {
+        for (const [j, key] of ["str", "dex", "con", "int", "wis", "cha"].entries()) {
+          await wizard.locator(`[data-token="${j}"]`).click();
+          await wizard.locator(`[data-slot="${key}"]`).click();
+        }
+      }
       if (i === 2) {
         await wizard.locator('[data-answer="raceLanguages"]').selectOption("Abissal");
         await wizard.locator('[data-answer="backgroundTools"]').selectOption("Jogo: dados");
@@ -136,14 +142,12 @@ const { serve } = require("./serve.cjs");
       }
       await wizard.locator('[data-action="next"]').click();
     }
-    const source = wizard.locator('summary[data-rule-tooltip]').first();
+    const source = wizard.locator('.cw-source summary').first();
     await source.focus();
-    await fresh.waitForFunction(() => document.querySelector("#ruleTooltip")?.hidden === false);
-    const tooltip = await fresh.locator("#ruleTooltip").innerText();
-    assert.ok(tooltip.length > 150);
-    assert.ok(!tooltip.includes("Descrição completa não incluída"));
+    assert.equal(await source.getAttribute('data-rule-tooltip'), null, 'consultas recolhidas não repetem balão');
+    await fresh.evaluate(() => { setTheme('obsidiana'); setBackdropStyle('textured'); });
     await source.click();
-    const link = wizard.locator('a[href^="book.html#page="]').first();
+    const link = wizard.locator('a[href*="book.html"][href*="#page="]').first();
     const popupPromise = fresh.waitForEvent("popup");
     const href = await link.getAttribute("href");
     await link.click();
@@ -151,6 +155,8 @@ const { serve } = require("./serve.cjs");
     await popup.waitForLoadState("domcontentloaded");
     assert.equal(new URL(popup.url()).pathname, "/D-D/book.html");
     assert.equal(await popup.locator("#bookPage").inputValue(), href.split("=").pop());
+    assert.equal(await popup.locator("body").getAttribute("data-theme"), "obsidiana");
+    assert.equal(await popup.locator("body").getAttribute("data-backdrop"), "textured");
     await popup.close();
     assert.deepEqual(errors, []);
     console.log("PASS: PDFs renderizados sob /D-D/ com texto selecionável, links por página, Mestre, navegação/recarga/voltar, zoom e rodinha contida, três temas em 320px/GG, storage bloqueado, falha de rede/repetição e balão/link no criador; sem erros JS.");

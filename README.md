@@ -54,8 +54,12 @@ detalhes em dourado envelhecido. O símbolo enviado pelo responsável identifica
 a entrada, a barra da ficha e o ícone do aplicativo.
 
 **Continuar sem conta** mantém o acesso às fichas locais. A escolha dura nesta
-aba; ao sair de uma conta, a tela de entrada volta a aparecer. Nenhuma ficha do
-modo local é adotada automaticamente pela conta.
+aba; **← Tela inicial** retorna sem apagar os dados e a entrada mostra
+**Voltar à sua ficha em andamento** quando houver ficha ou rascunho. Ao cadastrar
+ou entrar, uma conta vazia recebe cópias das fichas, notas e imagens locais;
+se já tiver fichas, pergunta se deseja acrescentar novas. A identidade precisa
+estar confirmada e a coleção remota precisa ter sido consultada. Os originais
+locais são preservados; o perfil informa falhas e permite retomar a cópia.
 
 Cores, textura, tamanho de fonte e dados são preferências do usuário. No modo
 local ficam neste navegador; na conta entram também na fila de sincronização.
@@ -150,11 +154,34 @@ confirmação/recuperação exigem o mesmo navegador/dispositivo que os solicito
 o envio de fichas usa a fila própria, com migração aplicada e teste real entre
 dispositivos ainda pendente.
 
-Cada conta abre seu próprio espaço de fichas neste navegador; entrar não adota
-as fichas anteriores do modo local. Ao sair, as cópias são preservadas. Isso não
+Cada conta abre seu próprio espaço de fichas neste navegador. A cópia do espaço
+sem conta depende do fluxo de entrada descrito acima, com novos identificadores
+e sem substituir fichas existentes. Ao sair, as cópias são preservadas. Isso não
 criptografa o dispositivo. A migração do banco foi aplicada; conferir a
 confirmação de envio no perfil antes de trocar de computador. Login e
-sincronização publicados e SMTP próprio ainda não foram ativados.
+sincronização real entre dispositivos e SMTP próprio ainda precisam de validação/configuração.
+
+## Criação guiada
+
+O assistente explica cada etapa, oferece as nove tendências do livro ou texto
+livre, e mostra descrições de perícias, idiomas, ferramentas e escolhas. As
+consultas recolhidas só abrem com clique. Personalidade, ideais, vínculos e
+defeitos têm sugestões editáveis dos 13 antecedentes do livro local.
+
+Compra de pontos usa +/−, com custos crescentes e limite imediato de 27. Conjunto
+padrão e resultados de 4d6 usam peças: arraste ou selecione por clique/teclado e
+escolha o destino. Mover para um destino ocupado troca as peças, sem duplicar
+valores. A rolagem tem animação, respeitando movimento reduzido.
+
+Fechar a criação conserva o rascunho neste navegador, por espaço. **+ Novo**
+retoma o rascunho; concluir remove-o somente se a ficha tiver sido salva. Se
+houver outro rascunho na conta ao vincular dados locais, ele é preservado e o
+recebido fica na fila para a próxima criação. Rascunhos ainda não são fichas
+sincronizadas e não fazem parte do backup JSON de personagens.
+
+O livro aberto pela ficha recebe tema, textura e tamanho de fonte no link, sem
+identificadores da conta. O PDF permanece intacto. O dado abre e recolhe com
+animação de expansão; a versão recolhida não tem moldura retangular.
 
 ## Verificar
 

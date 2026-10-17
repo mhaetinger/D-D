@@ -20,8 +20,10 @@ let renderedHash;
 
 function applyPreferences() {
   try {
-    const theme = localStorage.getItem("dnd_sheet_theme") || "pergaminho_claro";
-    const scale = Number(localStorage.getItem("dnd_font_scale") || "100");
+    const appearance = new URLSearchParams(location.search);
+    const theme = appearance.get("theme") || localStorage.getItem("dnd_sheet_theme") || "pergaminho_claro";
+    const scale = Number(appearance.get("font") || localStorage.getItem("dnd_font_scale") || "100");
+    document.body.dataset.backdrop = (appearance.get("texture") || localStorage.getItem("dnd_backdrop_style")) === "textured" ? "textured" : "plain";
     if (["pergaminho_claro", "pergaminho_escuro", "obsidiana"].includes(theme)) document.body.dataset.theme = theme;
     if ([90, 100, 112, 125].includes(scale)) document.documentElement.style.fontSize = `${16 * scale / 100}px`;
   } catch {

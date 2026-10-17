@@ -1,4 +1,6 @@
 import type { AccountSession } from "./session";
+import { SHEET_KEY, LEGACY_KEY } from "../storage/character-store";
+import { loadDraft } from "../wizard/draft-store";
 
 type AccessMode = "login" | "signup" | "reset" | "password";
 
@@ -12,8 +14,9 @@ export function setupEntryScreen(account: AccountSession, panel: HTMLElement) {
   const key = `critcall-local-access:${new URL("./", document.baseURI).pathname}`;
   let localAccess = false, previousUser = account.identity?.userId;
   let showingSheet: boolean | undefined;
-  try { localAccess = sessionStorage.getItem(key) === "true"; } catch { /* A opção também funciona sem persistência. */ }
+  try { localAccess = sessionStorage.getItem(key) === "true" || !!loadDraft("")?.open; } catch { /* A opção também funciona sem persistência. */ }
   let mode: AccessMode = "login";
+  const back = document.getElementById("accessReturnHome")!;
   function render(next: AccessMode) {
     mode = next;
     if (previousUser && !account.identity) {
@@ -21,6 +24,16 @@ export function setupEntryScreen(account: AccountSession, panel: HTMLElement) {
       try { sessionStorage.removeItem(key); } catch { /* Nenhuma ficha é apagada. */ }
     }
     previousUser = account.identity?.userId;
+    back.hidden = !!account.identity;
+    let saved = !!loadDraft("");
+    try {
+      const raw = localStorage.getItem(SHEET_KEY) || localStorage.getItem(LEGACY_KEY);
+      if (raw) { const data = JSON.parse(raw); saved ||= (Array.isArray(data) ? data : data.characters)?.length > 0; }
+    } catch { saved = true; /* Dados ilegíveis continuam disponíveis para recuperação. */ }
+    local.textContent = saved ? "Voltar à sua ficha em andamento" : "Continuar sem conta";
+    document.getElementById("accessLocalHint")!.textContent = saved
+      ? "Ao criar uma conta, suas fichas, notas e imagens locais serão copiadas para ela. Se a conta já tiver fichas, você escolhe se quer acrescentar cópias."
+      : "Fichas salvas apenas neste navegador.";
     const enter = account.recovery || !account.identity && !localAccess && !!(account.client || account.message);
     const slot = document.getElementById(enter ? "accessFormSlot" : "accountAccessSlot")!;
     // O mesmo formulário mantém listeners, verificador PKCE e dados; não há cópias.
@@ -49,12 +62,22 @@ export function setupEntryScreen(account: AccountSession, panel: HTMLElement) {
       focus.tabIndex = -1;
       focus.focus({ preventScroll: true });
       showingSheet = !enter;
+      if (!enter && issue.hidden) (window as any).resumeSavedDraftIfNeeded?.();
     }
   }
   local.addEventListener("click", () => {
     localAccess = true;
     try { sessionStorage.setItem(key, "true"); } catch { /* A escolha vale até fechar esta página. */ }
     render(mode);
+  });
+  back.addEventListener("click", () => {
+    if (account.identity) return;
+    // Fechar o assistente salva seu rascunho; o espaço local não é trocado.
+    (window as any).CharacterWizard?.close(true);
+    document.getElementById("authAccountModal")!.classList.add("hidden");
+    localAccess = false;
+    try { sessionStorage.removeItem(key); } catch { /* Só muda a navegação. */ }
+    render("login");
   });
   return { render, setBusy: (busy: boolean) => { local.disabled = busy; } };
 }
