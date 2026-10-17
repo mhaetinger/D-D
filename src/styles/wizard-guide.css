@@ -1,0 +1,58 @@
+.cw-ability-status { margin-block: .5rem 1rem; }
+.cw-token-pool { display:flex; flex-wrap:wrap; gap:.7rem; min-height:3rem; margin-bottom:1rem; }
+.cw-ability-card { border:1px solid var(--border-main); border-radius:.5rem; padding:.7rem; display:flex; flex-direction:column; gap:.5rem; }
+.cw-ability-card .cw-muted { font-weight:400; }
+.cw-dialog .cw-ability-token { width:3rem; height:3rem; font-size:1.35rem; font-weight:700; border:2px solid var(--border-strong); background:var(--bg-inset); color:var(--text-main); cursor:grab; touch-action:none; }
+.cw-ability-token[aria-pressed="true"] { outline:3px solid var(--text-main); outline-offset:2px; }
+.cw-ability-token.cw-dragging { opacity:.65; }
+.cw-stepper { display:flex; gap:1rem; align-items:center; }
+.cw-stepper button { min-width:2.8rem; min-height:2.8rem; font-size:1.3rem; }
+.cw-stepper output { min-width:2ch; text-align:center; font-size:1.35rem; font-weight:700; }
+.cw-stepper button:disabled { opacity:.4; cursor:not-allowed; }
+.cw-stepper[hidden], .cw-token-pool[hidden], .cw-ability-slot[hidden] { display:none; }
+.cw-suggestions button { display:block; text-align:left; margin:.4rem 0; width:100%; font-weight:400; }
+.cw-body { flex:1; min-height:0; }
+.cw-draft-status { padding:.25rem 1rem; margin:0; flex:none; font-size:.75em; }
+.cw-dialog > header, .cw-dialog > footer, .cw-dialog > nav { flex:none; }
+.cw-rolling { display:flex; gap:1rem; justify-content:center; padding:1rem; }
+.cw-rolling span { display:inline-block; font-size:2.5rem; animation:cw-roll .2s linear infinite; }
+.cw-rolling span:nth-child(even) { animation-direction:reverse; }
+@keyframes cw-roll { to { transform:rotate(180deg) translateY(4px); } }
+@media(prefers-reduced-motion:reduce) { .cw-rolling span { animation:none; } }
+
+/* Pontos de Vida no 1º Nível e Equipamento Inicial (Cap. 5) */
+.cw-hp-box, .cw-equip-mode, .cw-wealth-box { margin-bottom: .75rem; }
+.cw-hp-controls { display: flex; flex-wrap: wrap; gap: .65rem; align-items: flex-end; }
+.cw-hp-controls > .cw-label { flex: 1 1 16rem; }
+.cw-hp-inline { display: flex; flex-wrap: wrap; gap: .5rem; align-items: flex-end; }
+.cw-hp-inline .cw-label { min-width: 9rem; }
+.cw-hp-summary { margin-top: .5rem; padding: .45rem .65rem; border: 1px solid var(--border-main); border-radius: .35rem; background: var(--bg-inset); display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; justify-content: space-between; font-size: .92em; }
+.cw-package-summary { border: 1px solid var(--border-main); border-radius: .45rem; padding: .55rem .75rem; background: var(--bg-inset); font-size: .9em; margin-top: .25rem; }
+.cw-package-summary ul { margin: .35rem 0 0 1.1rem; padding: 0; list-style: disc; }
+.cw-wealth-controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: flex-end; }
+.cw-wealth-input { max-width: 10rem; }
+.cw-wallet-bar { display: flex; flex-wrap: wrap; gap: .75rem; justify-content: space-between; padding: .45rem .65rem; border: 1px solid var(--border-strong); border-radius: .35rem; background: var(--bg-inset); font-size: .9em; margin: .35rem 0; }
+.cw-cart-box { border: 1px solid var(--border-main); border-radius: .4rem; padding: .5rem .65rem; background: var(--bg-surface); font-size: .9em; }
+.cw-cart-items { display: flex; flex-direction: column; gap: .3rem; margin-top: .35rem; max-height: 8.5rem; overflow-y: auto; }
+.cw-cart-row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: .2rem .35rem; border-bottom: 1px dashed var(--border-main); }
+.cw-cart-row:last-child { border-bottom: 0; }
+.cw-cart-actions { display: flex; gap: .3rem; }
+.cw-cart-actions button { padding: .15rem .45rem; font-size: .82em; }
+.cw-market-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: .5rem; margin-top: .25rem; }
+.cw-market-list { max-height: 15rem; padding: .35rem; gap: .25rem; }
+.cw-market-row { display: flex; align-items: center; justify-content: space-between; gap: .6rem; padding: .35rem .5rem; border: 1px solid var(--border-main); border-radius: .35rem; background: var(--bg-surface); }
+.cw-market-info { min-width: 0; flex: 1; font-size: .9em; }
+.cw-market-cost { display: inline-block; padding: .05rem .35rem; border: 1px solid var(--border-strong); border-radius: .25rem; background: var(--bg-inset); font-weight: 700; font-size: .85em; margin-left: .25rem; }
+.cw-market-owned { display: inline-block; padding: .05rem .35rem; border: 1px solid var(--border-strong); border-radius: .25rem; font-weight: 700; font-size: .82em; margin-left: .25rem; }
+.cw-market-row button { flex: none; padding: .3rem .6rem; font-size: .85em; }
+.cw-market-row button:disabled { opacity: .45; cursor: not-allowed; }
+.cw-adapt-box { border: 1px solid var(--border-main); border-radius: .45rem; padding: .55rem .75rem; background: var(--bg-surface); }
+.cw-adapt-box > summary { cursor: pointer; font-weight: 700; }
+.cw-custom-equip-row { display: grid; grid-template-columns: 1fr 4.5rem auto; gap: .45rem; align-items: center; margin-top: .45rem; }
+.cw-custom-equip-list { margin: .45rem 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: .25rem; }
+.cw-custom-equip-list li { display: flex; justify-content: space-between; align-items: center; padding: .25rem .45rem; border: 1px solid var(--border-main); border-radius: .3rem; background: var(--bg-inset); font-size: .9em; }
+.cw-custom-equip-list button { padding: .15rem .45rem; font-size: .82em; }
+@media (max-width: 560px) {
+  .cw-custom-equip-row { grid-template-columns: 1fr 4rem; }
+  .cw-custom-equip-row button { grid-column: 1 / -1; }
+}

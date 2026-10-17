@@ -7,8 +7,28 @@ export function setupDiceDock(roll: () => void, toggle: () => void) {
   const value = document.getElementById("diceDockValue")!;
   let position: { x: number; y: number } | null = null;
   let suppressClick = false, endDrag = () => {};
+  let motion: Animation | undefined;
+  const stopMotion = () => { motion?.cancel(); motion = undefined; };
+  function transition(update: () => void) {
+    const before = tray.getBoundingClientRect();
+    stopMotion();
+    update();
+    const after = tray.getBoundingClientRect();
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches || !after.width || !before.width) return;
+    const closed = tray.dataset.minimized === "true";
+    const hex = "polygon(50% 0%, 96% 24%, 96% 76%, 50% 100%, 4% 76%, 4% 24%)";
+    const box = "polygon(0% 0%, 100% 0%, 100% 100%, 50% 100%, 0% 100%, 0% 0%)";
+    // O retângulo anterior vira a nova forma sem mover a posição salva do dado.
+    // Cancelar antes de uma nova transição permite inverter cliques rápidos.
+    motion = tray.animate([
+      { transform: `translate(${before.x - after.x}px, ${before.y - after.y}px) scale(${before.width / after.width}, ${before.height / after.height})`, clipPath: closed ? box : hex },
+      { transform: "none", clipPath: closed ? hex : box },
+    ], { duration: 260, easing: "cubic-bezier(.2,.75,.25,1)" });
+    tray.style.transformOrigin = "0 0";
+  }
   const resultKey = () => `critcall-dice-result:${currentWorkspaceKey()}`;
   function restore() {
+    stopMotion();
     endDrag();
     position = null;
     try {
@@ -53,6 +73,7 @@ export function setupDiceDock(roll: () => void, toggle: () => void) {
   for (const handle of [dock, document.getElementById("diceTrayDrag")!]) handle.addEventListener("pointerdown", event => {
     const first = event as PointerEvent;
     if (first.button !== 0 || !first.isPrimary) return;
+    stopMotion();
     endDrag();
     const rect = tray.getBoundingClientRect();
     const samples = [{ x: first.clientX, y: first.clientY, time: first.timeStamp }];
@@ -94,9 +115,9 @@ export function setupDiceDock(roll: () => void, toggle: () => void) {
   });
   restore();
   window.addEventListener("dnd-workspace-changed", () => { restore(); reflow(); });
-  window.addEventListener("resize", reflow);
+  window.addEventListener("resize", () => { stopMotion(); reflow(); });
   new ResizeObserver(reflow).observe(tray);
-  return { reflow, result: (total: number) => {
+  return { reflow, transition, result: (total: number) => {
     display(String(total));
     try { sessionStorage.setItem(resultKey(), String(total)); } catch { /* O resultado continua visível. */ }
   } };

@@ -1217,7 +1217,205 @@
       }
     }
   }
+  // Livro do Jogador, Cap. 5 (p. 145): Riqueza Inicial por Classe.
+  const startingWealth = {
+    barbaro: { dice: 2, mult: 10, formula: "2d4 × 10 po", avgGold: 50 },
+    bardo: { dice: 5, mult: 10, formula: "5d4 × 10 po", avgGold: 125 },
+    bruxo: { dice: 4, mult: 10, formula: "4d4 × 10 po", avgGold: 100 },
+    clerigo: { dice: 5, mult: 10, formula: "5d4 × 10 po", avgGold: 125 },
+    druida: { dice: 2, mult: 10, formula: "2d4 × 10 po", avgGold: 50 },
+    feiticeiro: { dice: 3, mult: 10, formula: "3d4 × 10 po", avgGold: 75 },
+    guerreiro: { dice: 5, mult: 10, formula: "5d4 × 10 po", avgGold: 125 },
+    ladino: { dice: 4, mult: 10, formula: "4d4 × 10 po", avgGold: 100 },
+    mago: { dice: 4, mult: 10, formula: "4d4 × 10 po", avgGold: 100 },
+    monge: { dice: 5, mult: 1, formula: "5d4 po", avgGold: 12 },
+    paladino: { dice: 5, mult: 10, formula: "5d4 × 10 po", avgGold: 125 },
+    patrulheiro: { dice: 5, mult: 10, formula: "5d4 × 10 po", avgGold: 125 },
+  };
+  function rollStartingWealth(classId, random = Math.random) {
+    const spec = startingWealth[classId] || { dice: 4, mult: 10, formula: "4d4 × 10 po", avgGold: 100 };
+    const rolls = Array.from({ length: spec.dice }, () => 1 + Math.floor(random() * 4));
+    const sum = rolls.reduce((a, b) => a + b, 0);
+    return {
+      rolls,
+      mult: spec.mult,
+      totalGold: sum * spec.mult,
+      formula: spec.formula,
+    };
+  }
+  function parseCostCp(costStr) {
+    const m = String(costStr || "").trim().match(/^(\d+(?:[.,]\d+)?)\s*(pc|pp|pe|po|pl)$/i);
+    if (!m) return 0;
+    const val = Number(m[1].replace(",", "."));
+    const unit = m[2].toLowerCase();
+    const mult = { pc: 1, pp: 10, pe: 50, po: 100, pl: 1000 }[unit] || 100;
+    return Math.round(val * mult);
+  }
+  let cachedCatalog = null;
+  function equipmentCatalog() {
+    if (cachedCatalog) return cachedCatalog;
+    const items = [];
+    const armors = [
+      { name: "Armadura acolchoada", cost: "5 po", weight: 4, meta: "Armadura leve · CA 11 + DES · Furtividade (desv.)" },
+      { name: "Armadura de couro", cost: "10 po", weight: 5, meta: "Armadura leve · CA 11 + DES" },
+      { name: "Armadura de couro batido", cost: "45 po", weight: 6.5, meta: "Armadura leve · CA 12 + DES" },
+      { name: "Gibão de peles", cost: "10 po", weight: 6, meta: "Armadura média · CA 12 + DES (máx. 2)" },
+      { name: "Camisa de malha", cost: "50 po", weight: 10, meta: "Armadura média · CA 13 + DES (máx. 2)" },
+      { name: "Brunea", cost: "50 po", weight: 22.5, meta: "Armadura média · CA 14 + DES (máx. 2) · Furtividade (desv.)" },
+      { name: "Peitoral", cost: "400 po", weight: 10, meta: "Armadura média · CA 14 + DES (máx. 2)" },
+      { name: "Meia-armadura", cost: "750 po", weight: 20, meta: "Armadura média · CA 15 + DES (máx. 2) · Furtividade (desv.)" },
+      { name: "Cota de anéis", cost: "30 po", weight: 20, meta: "Armadura pesada · CA 14 · Furtividade (desv.)" },
+      { name: "Cota de malha", cost: "75 po", weight: 27.5, meta: "Armadura pesada · CA 16 · FOR 13 · Furtividade (desv.)" },
+      { name: "Cota de talas", cost: "200 po", weight: 30, meta: "Armadura pesada · CA 17 · FOR 15 · Furtividade (desv.)" },
+      { name: "Armadura de placas", cost: "1500 po", weight: 32.5, meta: "Armadura pesada · CA 18 · FOR 15 · Furtividade (desv.)" },
+      { name: "Escudo", cost: "10 po", weight: 3, meta: "Escudo · +2 na CA" },
+    ];
+    for (const a of armors)
+      items.push({
+        id: norm(a.name),
+        name: a.name,
+        category: "armaduras",
+        cost: a.cost,
+        costCp: parseCostCp(a.cost),
+        weight: a.weight,
+        meta: a.meta,
+      });
+    for (const w of P.weapons) {
+      if (norm(w.name) === "ataque-desarmado") continue;
+      items.push({
+        id: norm(w.name),
+        name: w.name,
+        category: w.kind.startsWith("simple") ? "armas_simples" : "armas_marciais",
+        cost: w.cost,
+        costCp: parseCostCp(w.cost),
+        weight: w.weight,
+        meta: `${w.damage} ${w.damageType} · ${w.properties}`,
+      });
+    }
+    const packs = [
+      { name: "Pacote de aventureiro", cost: "12 po", weight: 19.5, meta: "Mochila, pé de cabra, martelo, 10 pítons, 10 tochas, 10 dias de rações, cantil, 15m de corda" },
+      { name: "Pacote de explorador", cost: "10 po", weight: 29.5, meta: "Mochila, saco de dormir, kit de refeição, caixa de fogo, 10 tochas, 10 dias de rações, cantil, 15m de corda" },
+      { name: "Pacote de assaltante", cost: "16 po", weight: 21, meta: "Mochila, 1.000 esferas, 3m de linha, sino, 5 velas, pé de cabra, martelo, 10 pítons, lanterna coberta, 2 frascos de óleo, 5 dias de rações, caixa de fogo, cantil, 15m de corda" },
+      { name: "Pacote de sacerdote", cost: "19 po", weight: 12, meta: "Mochila, cobertor, 10 velas, caixa de fogo, caixa de esmolas, 2 blocos de incenso, incensário, vestes, 2 dias de rações, cantil" },
+      { name: "Pacote de estudioso", cost: "40 po", weight: 5, meta: "Mochila, livro de estudo, vidro de tinta, caneta tinteiro, 10 folhas de pergaminho, saquinho de areia, pequena faca" },
+      { name: "Pacote de diplomata", cost: "39 po", weight: 18, meta: "Baú, 2 caixas para mapas/pergaminhos, roupas finas, vidro de tinta, caneta tinteiro, lâmpada, 2 frascos de óleo, 5 folhas de papel, frasco de perfume, parafina, sabão" },
+      { name: "Pacote de artista", cost: "40 po", weight: 19, meta: "Mochila, saco de dormir, 2 fantasias, 5 velas, 5 dias de rações, cantil, kit de disfarce" },
+    ];
+    for (const pk of packs)
+      items.push({
+        id: norm(pk.name),
+        name: pk.name,
+        category: "pacotes",
+        cost: pk.cost,
+        costCp: parseCostCp(pk.cost),
+        weight: pk.weight,
+        meta: pk.meta,
+      });
+    const extraGear = [
+      { name: "20 Flechas", cost: "1 po", weight: 0.5, meta: "Munição para arco curto ou longo" },
+      { name: "20 Virotes", cost: "1 po", weight: 0.75, meta: "Munição para besta" },
+      { name: "20 Balas de funda", cost: "4 pc", weight: 0.75, meta: "Munição para funda" },
+    ];
+    for (const g of extraGear)
+      items.push({
+        id: norm(g.name),
+        name: g.name,
+        category: "aventura",
+        cost: g.cost,
+        costCp: parseCostCp(g.cost),
+        weight: g.weight,
+        meta: g.meta,
+      });
+    for (const g of P.gear) {
+      if (g.name.startsWith("Pacote de ")) continue;
+      const isFocus = /^(Foco arcano|Foco druídico|Símbolo sagrado|Bolsa de componentes|Grimório)/i.test(g.name);
+      items.push({
+        id: norm(g.name),
+        name: g.name,
+        category: isFocus ? "ferramentas" : "aventura",
+        cost: g.cost,
+        costCp: parseCostCp(g.cost),
+        weight: g.weight,
+        meta: `${g.weight ?? 0} kg · Cap. 5`,
+      });
+    }
+    const toolsCatalog = [
+      { name: "Ferramentas de ladrão", cost: "25 po", weight: 0.5, meta: "Ferramenta · Abrir fechaduras e desarmar armadilhas" },
+      { name: "Kit de herbalismo", cost: "5 po", weight: 1.5, meta: "Ferramenta · Identificar plantas e criar poções de cura" },
+      { name: "Kit de disfarce", cost: "25 po", weight: 1.5, meta: "Ferramenta · Cosméticos, tintura e acessórios" },
+      { name: "Kit de falsificação", cost: "15 po", weight: 2.5, meta: "Ferramenta · Tintas, pergaminhos e lacres" },
+      { name: "Kit de navegante", cost: "25 po", weight: 1, meta: "Ferramenta · Sextante, bússola e cartas náuticas" },
+      { name: "Kit de venenos", cost: "50 po", weight: 1, meta: "Ferramenta · Frascos e substâncias para manipular venenos" },
+      { name: "Instrumento: Alaúde", cost: "35 po", weight: 1, meta: "Instrumento musical (p. 156)" },
+      { name: "Instrumento: Flauta", cost: "2 po", weight: 0.5, meta: "Instrumento musical (p. 156)" },
+      { name: "Instrumento: Lira", cost: "30 po", weight: 1, meta: "Instrumento musical (p. 156)" },
+      { name: "Instrumento: Tambor", cost: "6 po", weight: 1.5, meta: "Instrumento musical (p. 156)" },
+      { name: "Instrumento: Trombeta", cost: "3 po", weight: 1, meta: "Instrumento musical (p. 156)" },
+      { name: "Instrumento: Violino", cost: "30 po", weight: 0.5, meta: "Instrumento musical (p. 156)" },
+      { name: "Ferramentas de artesão: Ferramentas de ferreiro", cost: "20 po", weight: 4, meta: "Ferramenta de artesão (p. 156)" },
+      { name: "Ferramentas de artesão: Suprimentos de alquimista", cost: "50 po", weight: 4, meta: "Ferramenta de artesão (p. 156)" },
+      { name: "Ferramentas de artesão: Suprimentos de cervejeiro", cost: "20 po", weight: 4.5, meta: "Ferramenta de artesão (p. 156)" },
+      { name: "Ferramentas de artesão: Ferramentas de carpinteiro", cost: "8 po", weight: 3, meta: "Ferramenta de artesão (p. 156)" },
+      { name: "Ferramentas de artesão: Ferramentas de coureiro", cost: "5 po", weight: 2.5, meta: "Ferramenta de artesão (p. 156)" },
+      { name: "Ferramentas de artesão: Ferramentas de funileiro", cost: "50 po", weight: 5, meta: "Ferramenta de artesão (p. 156)" },
+    ];
+    for (const t of toolsCatalog)
+      if (!items.some((x) => x.id === norm(t.name)))
+        items.push({
+          id: norm(t.name),
+          name: t.name,
+          category: "ferramentas",
+          cost: t.cost,
+          costCp: parseCostCp(t.cost),
+          weight: t.weight,
+          meta: t.meta,
+        });
+    cachedCatalog = items;
+    return cachedCatalog;
+  }
+  function startingHpPreview(d) {
+    const c = D.classes[d.classId];
+    if (!c) return { die: 8, conMod: 0, raceBonus: 0, draconicBonus: 0, toughBonus: 0, method: "max", baseDie: 8, total: 8 };
+    const fStats = finalScores(d),
+      conMod = mod(fStats.con),
+      r = raceOf(d),
+      raceBonus = r?.hpPerLevel || 0,
+      draconicBonus = d.classId === "feiticeiro" && effectiveSub(d) === "draconica" ? 1 : 0,
+      toughBonus = [d.answers?.feat, d.answers?.racialFeat].includes("Robusto") ? 2 : 0,
+      method = ["max", "rolled", "fixed", "custom"].includes(d.setup?.hpMethod) ? d.setup.hpMethod : "max",
+      fixedDie = c.die / 2 + 1,
+      rawRoll = Number(d.setup?.hpRoll),
+      validRoll = Number.isInteger(rawRoll) && rawRoll >= 1 && rawRoll <= c.die,
+      rolledDie = validRoll ? rawRoll : null,
+      baseDie =
+        method === "rolled"
+          ? rolledDie ?? c.die
+          : method === "fixed"
+            ? fixedDie
+            : c.die,
+      calculatedTotal = Math.max(1, baseDie + conMod) + raceBonus + draconicBonus + toughBonus,
+      rawCustom = Number(d.setup?.hpCustom),
+      validCustom = Number.isInteger(rawCustom) && rawCustom >= 1 && rawCustom <= 999,
+      total = method === "custom" && validCustom ? rawCustom : calculatedTotal;
+    return {
+      die: c.die,
+      conMod,
+      raceBonus,
+      draconicBonus,
+      toughBonus,
+      method,
+      fixedDie,
+      rolledDie,
+      validRoll,
+      baseDie,
+      calculatedTotal,
+      customTotal: validCustom ? rawCustom : null,
+      validCustom,
+      total,
+    };
+  }
   function equipmentRequirements(d, add) {
+    if (d.setup?.equipmentMethod === "wealth") return;
     const eq = P.equipment[d.classId];
     if (!eq) return;
     for (let i = 0; i < eq.groups.length; i++) {
@@ -1548,6 +1746,32 @@
             "Atribua os seis totais rolados sem repetir ou perder um resultado.",
           );
       }
+      if (d.setup.hpMethod === "rolled" && c) {
+        const hpRoll = Number(d.setup.hpRoll);
+        if (!Number.isInteger(hpRoll) || hpRoll < 1 || hpRoll > c.die)
+          errors.push(`Pontos de Vida iniciais: role ou informe 1d${c.die} (1 a ${c.die}).`);
+      }
+      if (d.setup.hpMethod === "custom") {
+        const hpCustom = Number(d.setup.hpCustom);
+        if (!Number.isInteger(hpCustom) || hpCustom < 1 || hpCustom > 999)
+          errors.push("Pontos de Vida iniciais: informe um total personalizado válido (mínimo 1).");
+      }
+      if (d.setup.equipmentMethod === "wealth") {
+        const wg = Number(d.setup.wealthGold);
+        if (d.setup.wealthGold === undefined || d.setup.wealthGold === null || d.setup.wealthGold === "" || !Number.isFinite(wg) || wg < 0)
+          errors.push("Riqueza inicial: role ou informe o ouro inicial da classe (Cap. 5, p. 145).");
+        else {
+          const catalog = equipmentCatalog();
+          const spentCp = arr(d.setup.wealthPurchases).reduce((sum, entry) => {
+            const name = typeof entry === "string" ? entry : entry?.name;
+            const qty = Math.max(1, Number(entry?.qty) || 1);
+            const item = catalog.find((x) => x.name === name || x.id === norm(name));
+            return sum + (item ? item.costCp * qty : 0);
+          }, 0);
+          if (spentCp > Math.round(wg * 100))
+            errors.push("O custo das compras iniciais excede o ouro disponível.");
+        }
+      }
     }
     for (const field of r) {
       const vals = arr(d.answers[field.id]);
@@ -1600,17 +1824,116 @@
       throw e;
     }
   }
+  const SPELL_NON_DAMAGE_IDS = new Set([
+    "teia", "mesclar-se-as-rochas", "alterar-se", "porta-dimensional", "teletransporte",
+    "forma-eterea", "caminhar-no-vento", "desejo", "forjar-morte", "limpar-a-mente",
+    "protecao-contra-laminas", "protecao-contra-energia", "protecao-contra-veneno", "protecao-contra-a-morte",
+    "pele-de-pedra", "absorver-elementos", "escudo-arcano", "vinculo-protetor",
+  ]);
+  const SPELL_DMG_TYPES = {
+    fogo: ["fogo", "Fogo"],
+    frio: ["frio", "Frio"],
+    "elétrico": ["eletrico", "Elétrico"],
+    eletrico: ["eletrico", "Elétrico"],
+    "elétrica": ["eletrico", "Elétrico"],
+    "necrótico": ["necrotico", "Necrótico"],
+    necrotico: ["necrotico", "Necrótico"],
+    "necrótica": ["necrotico", "Necrótico"],
+    energia: ["energia", "Energia"],
+    trovejante: ["trovejante", "Trovejante"],
+    "ácido": ["acido", "Ácido"],
+    acido: ["acido", "Ácido"],
+    "ácida": ["acido", "Ácido"],
+    veneno: ["veneno", "Veneno"],
+    "psíquico": ["psiquico", "Psíquico"],
+    psiquico: ["psiquico", "Psíquico"],
+    "psíquica": ["psiquico", "Psíquico"],
+    radiante: ["radiante", "Radiante"],
+    cortante: ["cortante", "Cortante"],
+    perfurante: ["perfurante", "Perfurante"],
+    "concussão": ["concussao", "Concussão"],
+  };
+  const SPELL_META_OVERRIDES = {
+    "misseis-magicos": { dmgType: "energia", dmgLabel: "Energia", targetType: "multi", defType: "auto_hit", canTwin: true, effectSummary: "3 mísseis (3d4+3)", diceFormula: "3d4+3" },
+    "nuvem-de-adagas": { dmgType: "cortante", dmgLabel: "Cortante", targetType: "cubo", defType: "auto_hit", canTwin: false, effectSummary: "4d4 Cortante Auto", diceFormula: "4d4" },
+    "armadura-arcana": { dmgType: "defesa", dmgLabel: "Defesa", targetType: "pessoal", defType: "nenhuma", canTwin: false, effectSummary: "CA 13 + DES · 8h", diceFormula: null },
+    "armadura-de-agathys": { dmgType: "frio", dmgLabel: "Frio", targetType: "pessoal", defType: "nenhuma", canTwin: false, effectSummary: "5 PV temp · 5 Frio", diceFormula: null },
+    "orbe-cromatica": { dmgType: "energia", dmgLabel: "Elemental", targetType: "mira", defType: "atq_magico", canTwin: true, effectSummary: "3d8 Elemental", diceFormula: "3d8" },
+    "bruxaria": { dmgType: "necrotico", dmgLabel: "Necrótico", targetType: "mira", defType: "nenhuma", canTwin: true, effectSummary: "+1d6 Necrótico (1h)", diceFormula: "1d6" },
+    "marca-do-cacador": { dmgType: "perfurante", dmgLabel: "Perfurante", targetType: "mira", defType: "nenhuma", canTwin: true, effectSummary: "+1d6 Dano (1h)", diceFormula: "1d6" },
+    "protecao-contra-laminas": { dmgType: "defesa", dmgLabel: "Defesa", targetType: "pessoal", defType: "nenhuma", canTwin: false, effectSummary: "Resistência física (1 rod.)", diceFormula: null },
+    "escudo-arcano": { dmgType: "defesa", dmgLabel: "Defesa", targetType: "pessoal", defType: "nenhuma", canTwin: false, effectSummary: "+5 CA (1 rodada)", diceFormula: null },
+    "escudo-da-fe": { dmgType: "defesa", dmgLabel: "Defesa", targetType: "mira", defType: "nenhuma", canTwin: true, effectSummary: "+2 CA (10 min)", diceFormula: null },
+  };
+  function spellMeta(entry) {
+    const s = typeof entry === "string" ? spell(entry) : entry?.bookId || entry?.id ? spell(entry.bookId || entry.id) || entry : spell(entry?.name) || entry;
+    if (!s) return { dmgType: "utilidade", dmgLabel: "Utilidade", targetType: "mira", defType: "nenhuma", canTwin: false, effectSummary: "Consultar descrição", diceFormula: null };
+    const id = s.id || s.bookId || "";
+    if (SPELL_META_OVERRIDES[id]) return { ...SPELL_META_OVERRIDES[id] };
+    const text = String(s.text || "").replace(/\s+/g, " ");
+    const range = String(s.range || "");
+    let dmgType = "utilidade", dmgLabel = "Utilidade", diceFormula = null, effectSummary = s.duration || "Consultar descrição";
+    if (!SPELL_NON_DAMAGE_IDS.has(id)) {
+      const m = text.match(/(\d+d\d+(?:\s*\+\s*\d+)?)\s+de\s+dano\s+(?:de\s+)?(fogo|frio|elétric[oa]|necrótic[oa]|energia|trovejante|ácid[oa]|veneno|psíquic[oa]|radiante|cortante|perfurante|concussão)/i)
+        || text.match(/dano\s+(?:de\s+)?(fogo|frio|elétric[oa]|necrótic[oa]|energia|trovejante|ácid[oa]|veneno|psíquic[oa]|radiante|cortante|perfurante|concussão)\s+igual\s+a\s+(\d+d\d+(?:\s*\+\s*\d+)?)/i);
+      if (m) {
+        const dice = /\d/.test(m[1]) ? m[1].replace(/\s+/g, "") : m[2].replace(/\s+/g, "");
+        const rawType = (/\d/.test(m[1]) ? m[2] : m[1]).toLowerCase();
+        const mapped = SPELL_DMG_TYPES[rawType];
+        if (mapped) {
+          [dmgType, dmgLabel] = mapped;
+          diceFormula = dice;
+          effectSummary = `${dice} ${dmgLabel}`;
+        }
+      }
+    }
+    if (dmgType === "utilidade") {
+      const healMatch = text.match(/recupera[m]?\s+(?:uma quantidade de\s+)?pontos de vida igual a\s+(\d+d\d+)/i);
+      if (healMatch || /recupera[m]? .*?pontos de vida|pontos de vida temporários/i.test(text)) {
+        dmgType = "cura";
+        dmgLabel = "Cura";
+        if (healMatch) {
+          diceFormula = healMatch[1];
+          effectSummary = `${healMatch[1]} Cura`;
+        } else {
+          effectSummary = `Cura · ${s.duration || "Instantânea"}`;
+        }
+      } else if (s.school === "abjuração" || /\bCA\b|classe de armadura|resistência contra dano/i.test(text)) {
+        dmgType = "defesa";
+        dmgLabel = "Defesa";
+      }
+    }
+    let defType = "nenhuma";
+    if (/ataque (?:corpo-a-corpo|à distância) com magia|jogada de ataque .*?com magia/i.test(text)) defType = "atq_magico";
+    else {
+      const saveMatch = text.match(/teste de resistência de (Destreza|Constituição|Sabedoria|Força|Carisma|Inteligência)|teste de (Destreza|Constituição|Sabedoria|Força|Carisma|Inteligência) para evitar/i);
+      const saveAttr = (saveMatch?.[1] || saveMatch?.[2] || "").toLowerCase();
+      const saveMap = { destreza: "tr_des", "constituição": "tr_con", sabedoria: "tr_sab", "força": "tr_for", carisma: "tr_car", "inteligência": "tr_int" };
+      if (saveMap[saveAttr]) defType = saveMap[saveAttr];
+    }
+    let targetType = "mira";
+    const areaText = `${range} ${text}`;
+    if (s.ritual && s.level > 0 && dmgType === "utilidade" && /^(?:Pessoal|Toque|3 metros)/i.test(range)) targetType = "ritual_inv";
+    else if (/\besfera\b|raio de \d+/i.test(areaText)) targetType = "esfera";
+    else if (/\bcone de \d+/i.test(areaText)) targetType = "cone";
+    else if (/\blinha de \d+/i.test(areaText)) targetType = "linha";
+    else if (/\bcubo de \d+/i.test(areaText)) targetType = "cubo";
+    else if (/\bcilindro de \d+/i.test(areaText)) targetType = "cilindro";
+    else if (/^Pessoal/i.test(range)) targetType = "pessoal";
+    else if (/^Toque/i.test(range)) targetType = "toque";
+    const canTwin = !/^Pessoal/i.test(range) && ["mira", "toque"].includes(targetType) && !/criaturas|até três|escolha duas|cada criatura|qualquer número|múltiplos|dois feixes/i.test(text);
+    return { dmgType, dmgLabel, targetType, defType, canTwin, effectSummary, diceFormula };
+  }
   function toSheetSpell(s, classId, extra = {}) {
+    const meta = spellMeta(s);
     return {
       name: s.name,
       bookId: s.id,
       circle: s.level,
       classId,
-      // O texto do catálogo é a referência. Não classifica automaticamente
-      // centenas de efeitos como ataque, área ou dano com base em palavras soltas.
-      dmgType: "livro",
-      targetType: null,
-      defType: "nenhuma",
+      dmgType: meta.dmgType,
+      targetType: meta.targetType,
+      defType: meta.defType,
       time: s.time || "",
       range: s.range || "",
       v: s.components?.includes("V") || false,
@@ -1619,9 +1942,9 @@
       conc: !!s.concentration,
       ritual: false,
       ritualAvailable: !!s.ritual,
-      canTwin: false,
+      canTwin: meta.canTwin,
       customRoll: "",
-      effectSummary: s.duration || "Consultar descrição",
+      effectSummary: meta.effectSummary,
       notes: "",
       pdfPage: s.pdfPage,
       ...extra,
@@ -1634,11 +1957,8 @@
       r = raceOf(d),
       bg = bgOf(d),
       stats = scores(d),
-      hp =
-        c.die +
-        mod(stats.con) +
-        (r.hpPerLevel || 0) +
-        (d.classId === "feiticeiro" && effectiveSub(d) === "draconica" ? 1 : 0);
+      hpInfo = startingHpPreview(d),
+      hp = hpInfo.total;
     const char = {
       id:
         "char_" +
@@ -1718,8 +2038,19 @@
         baseScores: clone(setup.baseScores),
         abilityMethod: setup.abilityMethod,
         rolls: clone(setup.rolls || []),
+        hpMethod: hpInfo.method,
+        equipmentMethod: setup.equipmentMethod === "wealth" ? "wealth" : "packages",
         history: [],
-        hpRolls: [],
+        hpRolls: [
+          {
+            classId: d.classId,
+            level: 1,
+            method: hpInfo.method,
+            roll: hpInfo.rolledDie,
+            fixed: hpInfo.method === "fixed" ? hpInfo.fixedDie : null,
+            custom: hpInfo.customTotal,
+          },
+        ],
       },
     };
     char.proficiencies.languages = uniq(
@@ -1741,27 +2072,64 @@
       ...arr(answers.backgroundTools),
       ...arr(answers.duplicateTools),
     ]).join(", ");
-    const equipment = P.equipment[d.classId];
-    const items = [
-      ...equipment.fixed,
-      ...equipment.groups.flatMap((_, i) => {
-        const pick = answers["equipment" + i];
-        const chosen = arr(answers["equipmentWeapons" + i]);
-        return chosen.length
-          ? chosen.concat(pick === "Arma marcial e escudo" ? ["Escudo"] : [])
-          : [pick];
-      }),
-      ...bg.items,
-    ];
-    for (const name of items)
-      addEquipment(
-        char,
-        {
-          "Foco arcano": answers.arcaneFocus,
-          "Foco druídico": answers.druidFocus,
-          "Símbolo sagrado": answers.holySymbol,
-        }[name] || name,
-      );
+    if (setup.equipmentMethod === "wealth") {
+      const catalog = equipmentCatalog();
+      const totalCp = Math.round(Number(setup.wealthGold || 0) * 100);
+      let spentCp = 0;
+      for (const entry of arr(setup.wealthPurchases)) {
+        const name = typeof entry === "string" ? entry : entry?.name;
+        const qty = Math.max(1, Number(entry?.qty) || 1);
+        if (!name) continue;
+        const catItem = catalog.find((x) => x.name === name || x.id === norm(name));
+        if (catItem) spentCp += catItem.costCp * qty;
+        for (let q = 0; q < qty; q++) addEquipment(char, name);
+      }
+      const remCp = Math.max(0, totalCp - spentCp);
+      char.coins = {
+        pc: remCp % 10,
+        pp: Math.floor((remCp % 100) / 10),
+        pe: 0,
+        po: Math.floor(remCp / 100),
+        pl: 0,
+      };
+    } else {
+      const equipment = P.equipment[d.classId];
+      const items = [
+        ...equipment.fixed,
+        ...equipment.groups.flatMap((_, i) => {
+          const pick = answers["equipment" + i];
+          const chosen = arr(answers["equipmentWeapons" + i]);
+          return chosen.length
+            ? chosen.concat(pick === "Arma marcial e escudo" ? ["Escudo"] : [])
+            : [pick];
+        }),
+        ...bg.items,
+      ];
+      for (const name of items)
+        addEquipment(
+          char,
+          {
+            "Foco arcano": answers.arcaneFocus,
+            "Foco druídico": answers.druidFocus,
+            "Símbolo sagrado": answers.holySymbol,
+          }[name] || name,
+        );
+    }
+    for (const customItem of arr(setup.customEquipment)) {
+      const name = typeof customItem === "string" ? customItem.trim() : String(customItem?.name || "").trim();
+      const qty = Math.max(1, Number(customItem?.qty) || 1);
+      if (!name) continue;
+      addEquipment(char, qty > 1 && !/^\d+\s+/.test(name) ? `${qty} ${name}` : name);
+    }
+    if (
+      setup.customGold !== undefined &&
+      setup.customGold !== null &&
+      String(setup.customGold).trim() !== "" &&
+      Number.isFinite(Number(setup.customGold)) &&
+      Number(setup.customGold) >= 0
+    ) {
+      char.coins.po = Math.floor(Number(setup.customGold));
+    }
     // O criador permite começar com a armadura vestida; posse e uso continuam
     // separados para retirar/trocar equipamento sem apagar o item do inventário.
     if (setup.wearStartingArmor !== false) {
@@ -1775,7 +2143,7 @@
       );
     }
     applyChoices(char, d);
-    char.hpMax += mod(char.abilities.con.score) - mod(stats.con);
+    char.hpMax = startingHpPreview(d).total;
     char.hpCurrent = char.hpMax;
     refresh(char, true);
     return char;
@@ -1805,9 +2173,22 @@
         norm(w.name) + "s" === norm(itemName),
     );
     const armor = {
+      acolchoada: 4,
+      "armadura-acolchoada": 4,
       "armadura-de-couro": 5,
-      "cota-de-malha": 27.5,
+      couro: 5,
+      "armadura-de-couro-batido": 6.5,
+      "couro-batido": 6.5,
+      "gibao-de-peles": 6,
+      "camisa-de-malha": 10,
       brunea: 22.5,
+      peitoral: 10,
+      "meia-armadura": 20,
+      "cota-de-aneis": 20,
+      "cota-de-malha": 27.5,
+      "cota-de-talas": 30,
+      "armadura-de-placas": 32.5,
+      placas: 32.5,
       escudo: 3,
       "escudo-de-madeira": 3,
     };
@@ -1823,24 +2204,32 @@
     const gear = P.gear.find(
       (g) => norm(g.name) === (aliases[norm(itemName)] || norm(itemName)),
     );
+    const catEntry = equipmentCatalog().find((x) => x.id === norm(itemName));
     const weight =
       w?.weight ??
       gear?.weight ??
       armor[norm(itemName)] ??
+      catEntry?.weight ??
       (norm(itemName) === "flechas"
         ? 0.025
         : norm(itemName) === "virotes"
           ? 0.0375
           : null);
-    char.inventoryItems.push({
-      name: itemName,
-      qty,
-      weightKg: weight ?? 0,
-      weightUnreviewed: weight === null,
-      description:
-        w?.properties ||
-        "Equipamento inicial do livro. Consulte o capítulo 5 para peso e propriedades.",
-    });
+    const existingItem = char.inventoryItems.find((i) => norm(i.name) === norm(itemName));
+    if (existingItem) {
+      existingItem.qty = (Number(existingItem.qty) || 1) + qty;
+    } else {
+      char.inventoryItems.push({
+        name: itemName,
+        qty,
+        weightKg: weight ?? 0,
+        weightUnreviewed: weight === null,
+        description:
+          w?.properties ||
+          catEntry?.meta ||
+          "Equipamento inicial do livro. Consulte o capítulo 5 para peso e propriedades.",
+      });
+    }
     if (w) {
       const finesse = /acuidade/.test(w.properties),
         m = w.kind.endsWith("Ranged")
@@ -2869,6 +3258,7 @@
     scores,
     finalScores,
     spell,
+    spellMeta,
     spellLimit,
     casting,
     selections,
@@ -2883,6 +3273,10 @@
     multiclassNotes,
     unarmoredDefense,
     classFeatures,
+    startingWealth,
+    rollStartingWealth,
+    equipmentCatalog,
+    startingHpPreview,
   };
   if (node) module.exports = api;
   else root.CharacterEngine = api;

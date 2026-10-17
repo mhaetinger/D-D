@@ -72,3 +72,5 @@ button.primary { color: var(--on-accent); background: var(--accent); border-colo
   .reader-toolbar { display: none; }
   #bookReader { height: auto; overflow: visible; }
 }
+/* A textura acompanha a ficha; o PDF permanece intacto e legível. */
+body[data-backdrop="textured"] { background-image: repeating-linear-gradient(25deg, transparent 0 3px, #98856a0b 3px 4px), radial-gradient(ellipse at top, #a2875a18, transparent 75%); }

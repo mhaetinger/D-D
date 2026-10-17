@@ -53,6 +53,15 @@ async function importBackup(page, value) {
 
     // A seleção sobrevive à recarga e acompanha o ID, mesmo com outra ordem.
     await page.evaluate(() => closeAuthAccountModal());
+    const historyBeforeLayout = await page.evaluate(() => JSON.parse(localStorage.getItem("dnd_history_v1")).stack.length);
+    await page.locator("#btnModern").click();
+    await page.locator("#btnClassic").click();
+    const historyAfterLayout = await page.evaluate(() => {
+      const saved = JSON.parse(localStorage.getItem("dnd_history_v1"));
+      return { length: saved.stack.length, layoutActions: saved.stack.filter((item) => item.action.startsWith("Alternou layout para ")).length };
+    });
+    assert.equal(historyAfterLayout.length, historyBeforeLayout, "trocar o layout não cria passos no histórico");
+    assert.equal(historyAfterLayout.layoutActions, 0, "trocar o layout não aparece como alteração da ficha");
     for (const [index, id] of [["0", char.id], ["1", imported]]) {
       await page.locator("#charSelect").selectOption(index);
       await page.reload({ waitUntil: "networkidle" });

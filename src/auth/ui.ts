@@ -3,6 +3,7 @@ import { currentWorkspaceKey, workspaceKey } from "../storage/account-scope";
 import { sheetStore } from "../storage/character-store";
 import type { CharacterRecord } from "../storage/validation";
 import { setupEntryScreen } from "./entry";
+import { setupGuestImport } from "./guest-import";
 
 interface SheetHost {
   characters: CharacterRecord[];
@@ -25,6 +26,7 @@ export function setupAccountUI(account: AccountSession) {
   const signedOut = document.getElementById("accountSignedOut")!;
   const signedIn = document.getElementById("accountSignedIn")!;
   const entry = setupEntryScreen(account, panel);
+  const guestImport = setupGuestImport(account);
   let mode: AccessMode = account.recovery ? "password" : "login";
   let busy = false;
   const message = (text: string, error = false) => {
@@ -135,6 +137,7 @@ export function setupAccountUI(account: AccountSession) {
     void run(async () => {
       const auth = account.client!.auth;
       if (mode === "login") {
+        const issue = guestImport.begin(email.value); if (issue) { message(issue, true); return; }
         const { error } = await auth.signInWithPassword({ email: email.value.trim(), password: password.value });
         if (error) throw error;
         password.value = "";
@@ -142,6 +145,7 @@ export function setupAccountUI(account: AccountSession) {
         if (!account.identity || account.offline) throw new Error("Identidade não validada no serviço");
         message("Você entrou. As fichas deste espaço continuam salvas neste navegador.");
       } else if (mode === "signup") {
+        const issue = guestImport.begin(email.value); if (issue) { message(issue, true); return; }
         const { data, error } = await auth.signUp({ email: email.value.trim(), password: password.value, options: { emailRedirectTo: redirectTo() } });
         if (error) throw error;
         password.value = ""; confirm.value = "";

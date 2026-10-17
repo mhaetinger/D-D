@@ -5,7 +5,7 @@
     <meta name="robots" content="noindex,nofollow,noarchive" />
     <meta name="referrer" content="same-origin" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" type="image/png" href="/icons/icon.png" />
     <meta name="theme-color" content="#8b1e1e" />
     <title>CritCall</title>
@@ -20,8 +20,8 @@
           <img class="access-logo" src="/icons/icon.png" alt="" width="1254" height="1254" fetchpriority="high" />
           <p class="access-wordmark">Crit<span>Call</span></p>
           <p class="access-eyebrow">Sua próxima aventura começa aqui</p>
-          <p class="access-intro">O personagem é seu.<br />A história está por vir.</p>
-          <p class="access-description">Crie sua ficha, prepare seus dados e leve cada detalhe para a mesa.</p>
+          <p class="access-intro">Da sua imaginação,<br />direto para a mesa.</p>
+          <p class="access-description">Crie sua ficha, prepare seus dados e leve cada detalhe para a sessão.</p>
         </div>
         <div class="access-card">
           <p class="access-eyebrow">Bem-vindo à mesa</p>
@@ -31,7 +31,7 @@
           <div id="accessFormSlot"></div>
           <div id="accessLocalOption" class="access-local" hidden>
             <button id="accessContinueLocal" type="button">Continuar sem conta <span aria-hidden="true">→</span></button>
-            <p>Fichas salvas apenas neste navegador.</p>
+            <p id="accessLocalHint">Fichas salvas apenas neste navegador.</p>
           </div>
         </div>
         <p class="access-footer">Uma ficha para cada personagem. Um lugar para todas as suas histórias.</p>
@@ -53,6 +53,7 @@
       <form method="dialog" class="space-y-4">
         <h2 id="confirmationTitle" class="font-rpg font-bold t-text-accent"></h2>
         <p id="confirmationMessage" class="text-sm whitespace-pre-line"></p>
+        <div id="confirmationExtra" class="text-sm" hidden></div>
         <div class="flex flex-wrap justify-end gap-2">
           <button value="cancel" formnovalidate autofocus class="t-inset px-4 py-2 rounded-lg font-bold text-sm">Cancelar</button>
           <button id="confirmationAccept" value="confirm" class="t-btn-primary px-4 py-2 rounded-lg font-bold text-sm">Confirmar</button>
@@ -279,16 +280,17 @@
         background-color: var(--bg-header);
         border-color: var(--border-main);
       "
-      class="sticky top-0 z-40 backdrop-blur border-b px-3 py-2 shadow-md"
+      class="app-topbar sticky top-0 z-40 backdrop-blur border-b px-2.5 py-1.5 shadow-sm"
     >
       <div
-        class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2"
+        class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-1.5"
       >
         <!-- Conta + Seletor de Personagem + Botão Novo + Undo/Redo -->
-        <div class="flex flex-wrap items-center gap-1.5">
+        <div class="flex flex-wrap items-center gap-1">
+          <button id="accessReturnHome" type="button" class="t-inset px-2 py-1 rounded-md text-[11px] font-bold">← Tela inicial</button>
           <button
             onclick="openAuthAccountModal()"
-            class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-rpg font-bold badge-feiticeiro hover:opacity-90 transition"
+            class="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-rpg font-bold badge-feiticeiro hover:opacity-90 transition"
             title="Abrir perfil e personagens"
           >
             <span class="portrait portrait-small" data-avatar-profile><i data-lucide="user-check" aria-hidden="true"></i></span>
@@ -298,25 +300,25 @@
           <select
             id="charSelect"
             onchange="switchCharacter(this.value)"
-            class="t-inset t-text-main text-xs rounded-lg px-2 py-1.5 font-bold focus:outline-none"
+            class="t-inset t-text-main text-[11px] rounded-md px-2 py-1 font-bold focus:outline-none max-w-[13rem] truncate"
           ></select>
 
           <button
             onclick="openNewCharacterModal()"
-            class="t-inset t-text-accent hover:opacity-80 text-xs px-2.5 py-1.5 rounded-lg font-extrabold flex items-center gap-1"
+            class="t-inset t-text-accent hover:opacity-80 text-[11px] px-2 py-1 rounded-md font-extrabold flex items-center gap-1"
             title="Criar um Novo Personagem na sua conta"
           >
-            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+            <i data-lucide="user-plus" class="w-3 h-3"></i>
             <span>+ Novo</span>
           </button>
 
           <!-- Desfazer / Refazer / Histórico / Salvar -->
-          <div class="flex items-center t-inset rounded-lg p-0.5 text-xs">
+          <div class="flex items-center t-inset rounded-md p-0.5 text-[11px]">
             <button
               onclick="undoStep()"
               id="btnUndo"
               title="Desfazer último passo"
-              class="px-1.5 py-1 rounded hover:opacity-80 disabled:opacity-30 font-bold"
+              class="px-1.5 py-0.5 rounded hover:opacity-80 disabled:opacity-30 font-bold"
             >
               <i data-lucide="undo-2" class="w-3.5 h-3.5"></i>
             </button>
@@ -324,14 +326,14 @@
               onclick="redoStep()"
               id="btnRedo"
               title="Refazer passo"
-              class="px-1.5 py-1 rounded hover:opacity-80 disabled:opacity-30 font-bold"
+              class="px-1.5 py-0.5 rounded hover:opacity-80 disabled:opacity-30 font-bold"
             >
               <i data-lucide="redo-2" class="w-3.5 h-3.5"></i>
             </button>
             <button
               onclick="toggleHistoryDrawer()"
               title="Linha do Tempo"
-              class="px-1.5 py-1 rounded hover:opacity-80 flex items-center gap-1 font-bold t-text-accent"
+              class="px-1.5 py-0.5 rounded hover:opacity-80 flex items-center gap-1 font-bold t-text-accent"
             >
               <i data-lucide="history" class="w-3.5 h-3.5"></i>
               <span id="historyCountBadge" class="text-[10px]">0</span>
@@ -339,7 +341,7 @@
             <button
               onclick="saveNamedCheckpoint()"
               title="Salvar Ficha"
-              class="px-2 py-1 rounded t-btn-primary font-extrabold flex items-center gap-1 ml-0.5"
+              class="px-1.5 py-0.5 rounded t-btn-primary font-extrabold flex items-center gap-1 ml-0.5"
             >
               <i data-lucide="save" class="w-3.5 h-3.5"></i>
             </button>
@@ -347,36 +349,36 @@
         </div>
 
         <!-- Preferências do usuário: cores, textura, fonte e dados. -->
-        <div class="flex flex-wrap items-center gap-1.5">
-          <div class="flex items-center t-inset p-0.5 rounded-lg text-[11px]" role="group" aria-label="Cores da ficha">
+        <div class="flex flex-wrap items-center gap-1">
+          <div class="flex items-center t-inset p-0.5 rounded-md text-[11px]" role="group" aria-label="Cores da ficha">
             <button
               id="themeBtn-pergaminho_claro"
               onclick="setTheme('pergaminho_claro')"
-              class="px-2 py-1 rounded font-bold"
+              class="px-1.5 py-0.5 rounded font-bold"
             >
               Pergaminho
             </button>
             <button
               id="themeBtn-pergaminho_escuro"
               onclick="setTheme('pergaminho_escuro')"
-              class="px-2 py-1 rounded font-bold"
+              class="px-1.5 py-0.5 rounded font-bold"
             >
               Grimório
             </button>
             <button
               id="themeBtn-obsidiana"
               onclick="setTheme('obsidiana')"
-              class="px-2 py-1 rounded font-bold"
+              class="px-1.5 py-0.5 rounded font-bold"
             >
               Obsidiana
             </button>
           </div>
 
-          <div class="flex items-center t-inset p-0.5 rounded-lg text-[11px]" role="group" aria-label="Estilo do fundo">
-            <button id="backdropBtn-clean" onclick="setBackdropStyle('clean')" class="px-2 py-1 rounded font-bold">Limpo</button>
-            <button id="backdropBtn-textured" onclick="setBackdropStyle('textured')" class="px-2 py-1 rounded font-bold">Textura</button>
+          <div class="flex items-center t-inset p-0.5 rounded-md text-[11px]" role="group" aria-label="Estilo do fundo">
+            <button id="backdropBtn-clean" onclick="setBackdropStyle('clean')" class="px-1.5 py-0.5 rounded font-bold">Limpo</button>
+            <button id="backdropBtn-textured" onclick="setBackdropStyle('textured')" class="px-1.5 py-0.5 rounded font-bold">Textura</button>
           </div>
-          <div class="flex items-center t-inset p-0.5 rounded-lg text-[11px]">
+          <div class="flex items-center t-inset p-0.5 rounded-md text-[11px]">
             <span class="px-1 font-serif font-bold t-text-muted">Aa</span>
             <button
               onclick="setFontScale(90)"
@@ -410,21 +412,21 @@
 
           <!-- OS 3 MODOS DE DADOS: OFF | SÓ BANDEJA MANUAL (POOL) | AUTO NA FICHA -->
           <div
-            class="flex items-center t-inset p-0.5 rounded-lg text-[11px]"
+            class="flex items-center t-inset p-0.5 rounded-md text-[11px]"
             title="Escolha entre desligar dados, usar só a bandeja manual (ex: d20+d4) ou rolar direto nos cliques da ficha"
           >
-            <i data-lucide="dices" class="w-3.5 h-3.5 mx-1.5 t-text-accent"></i>
+            <i data-lucide="dices" class="w-3.5 h-3.5 mx-1 t-text-accent"></i>
             <button
               onclick="setDiceMode('off')"
               id="diceModeBtn-off"
-              class="px-2 py-1 rounded font-bold"
+              class="px-1.5 py-0.5 rounded font-bold"
             >
               OFF
             </button>
             <button
               onclick="setDiceMode('manual')"
               id="diceModeBtn-manual"
-              class="px-2 py-1 rounded font-bold"
+              class="px-1.5 py-0.5 rounded font-bold"
               title="Abre a bandeja para somar dados avulsos (d20+d4), mas NÃO rola sozinho ao clicar na ficha"
             >
               Só Pool
@@ -432,7 +434,7 @@
             <button
               onclick="setDiceMode('auto')"
               id="diceModeBtn-auto"
-              class="px-2 py-1 rounded font-bold"
+              class="px-1.5 py-0.5 rounded font-bold"
               title="Rola automaticamente ao clicar nas perícias, armas e magias da ficha"
             >
               Auto Ficha
@@ -441,23 +443,22 @@
         </div>
 
         <!-- Ações Rápidas -->
-        <div class="flex items-center gap-1.5">
-
+        <div class="flex items-center gap-1">
           <button
             onclick="shortRest()"
-            class="t-inset t-text-main hover:opacity-80 text-xs px-2 py-1.5 rounded-lg font-semibold"
+            class="t-inset t-text-main hover:opacity-80 text-[11px] px-2 py-1 rounded-md font-semibold"
           >
             ⛺ Curto
           </button>
           <button
             onclick="longRest()"
-            class="t-inset t-text-main hover:opacity-80 text-xs px-2 py-1.5 rounded-lg font-semibold"
+            class="t-inset t-text-main hover:opacity-80 text-[11px] px-2 py-1 rounded-md font-semibold"
           >
             🌙 Longo
           </button>
           <button
             onclick="openLevelUpModal()"
-            class="t-btn-primary text-xs px-2.5 py-1.5 rounded-lg font-extrabold shadow flex items-center gap-1"
+            class="t-btn-primary text-[11px] px-2 py-1 rounded-md font-extrabold shadow flex items-center gap-1"
           >
             <i data-lucide="chevrons-up" class="w-3.5 h-3.5"></i>
             <span>UPAR</span>
@@ -467,61 +468,61 @@
     </header>
 
     <!-- CONTAINER PRINCIPAL -->
-    <main class="max-w-7xl mx-auto px-4 mt-5">
-      <div data-size-motion><div data-size-content class="space-y-5">
+    <main class="max-w-7xl mx-auto px-3 sm:px-4 mt-2.5">
+      <div data-size-motion><div data-size-content class="space-y-2.5">
       <section id="headerSection"></section>
-      <div id="sheetDisplay" class="flex flex-wrap items-center justify-between gap-2 text-xs" hidden>
-        <span class="t-text-muted" title="A troca muda a apresentação. As regras continuam sendo de 2014, com as adaptações da mesa.">Exibição da ficha · regras 2014</span>
-          <div class="flex items-center t-inset p-0.5 rounded-lg text-[11px]" role="group" aria-label="Exibição desta ficha">
-            <button
-              id="btnClassic"
-              onclick="setLayout('classic_2014')"
-              class="px-2 py-1 rounded font-bold"
-            >
-              Clássica (2014)
-            </button>
-            <button
-              id="btnModern"
-              onclick="setLayout('modern_2024')"
-              class="px-2 py-1 rounded font-bold"
-            >
-              Moderna (2024)
-            </button>
-          </div>
-      </div>
 
       <div
-        class="flex flex-wrap items-center justify-between pb-2 gap-2"
+        class="flex flex-wrap items-center justify-between pb-1 gap-1.5"
       >
-        <div class="flex flex-wrap gap-1.5">
+        <div class="flex flex-wrap gap-1">
           <button
             onclick="setTab('main')"
             id="tab-main"
-            class="flex items-center gap-1.5 px-3.5 py-2 rounded-t-lg text-xs sm:text-sm font-bold transition"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-t-lg text-xs font-bold transition"
           ></button>
           <button
             onclick="setTab('spells')"
             id="tab-spells"
-            class="flex items-center gap-1.5 px-3.5 py-2 rounded-t-lg text-xs sm:text-sm font-bold transition"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-t-lg text-xs font-bold transition"
           ></button>
           <button
             onclick="setTab('lore')"
             id="tab-lore"
-            class="flex items-center gap-1.5 px-3.5 py-2 rounded-t-lg text-xs sm:text-sm font-bold transition"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-t-lg text-xs font-bold transition"
           ></button>
         </div>
 
-        <div class="flex flex-wrap items-center gap-2 text-xs">
-          <a href="book.html" target="_blank" rel="noopener" class="t-inset t-text-accent px-2.5 py-1 rounded flex items-center gap-1 font-bold"><i data-lucide="book-open" class="w-3.5 h-3.5"></i> Consultar livro</a>
+        <div class="flex flex-wrap items-center gap-1.5 text-xs">
+          <div id="sheetDisplay" class="flex items-center gap-1.5 text-xs" hidden>
+            <span class="t-text-muted hidden sm:inline text-[11px]" title="A troca muda apenas a apresentação. As regras da ficha continuam sendo as da mesa.">Exibição:</span>
+            <div class="flex items-center t-inset p-0.5 rounded-md text-[11px]" role="group" aria-label="Exibição desta ficha">
+              <button
+                id="btnClassic"
+                onclick="setLayout('classic_2014')"
+                class="px-2 py-0.5 rounded font-bold"
+              >
+                Clássica
+              </button>
+              <button
+                id="btnModern"
+                onclick="setLayout('modern_2024')"
+                class="px-2 py-0.5 rounded font-bold"
+              >
+                Moderna
+              </button>
+            </div>
+          </div>
+          <a href="book.html" target="_blank" rel="noopener" class="t-inset t-text-accent px-2 py-1 rounded flex items-center gap-1 font-bold text-[11px]"><i data-lucide="book-open" class="w-3.5 h-3.5"></i> Livro</a>
           <button
             onclick="toggleAllPanels(false)"
-            class="t-inset t-text-muted hover:opacity-80 px-2.5 py-1 rounded flex items-center gap-1 font-semibold"
+            class="t-inset t-text-muted hover:opacity-80 px-2 py-1 rounded flex items-center gap-1 font-semibold text-[11px]"
           >
             <i data-lucide="unfold-vertical" class="w-3.5 h-3.5"></i> Expandir
           </button>
           <button
             onclick="toggleAllPanels(true)"
-            class="t-inset t-text-muted hover:opacity-80 px-2.5 py-1 rounded flex items-center gap-1 font-semibold"
+            class="t-inset t-text-muted hover:opacity-80 px-2 py-1 rounded flex items-center gap-1 font-semibold text-[11px]"
           >
             <i data-lucide="fold-vertical" class="w-3.5 h-3.5"></i> Recolher
           </button>
