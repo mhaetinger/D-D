@@ -98,7 +98,9 @@ Orbyt é outro projeto do responsável e permanece separado. O
 aplicativo tem os identificadores públicos do CritCall incluídos; o modo local
 pode ser escolhido com `VITE_AUTH_ENABLED=false`. O bootstrap valida a identidade
 antes de importar `sheet.js`; chaves de armazenamento pessoais recebem prefixo por projeto/usuário.
-As chaves originais permanecem no modo sem login, sem adoção automática.
+As chaves originais permanecem no modo sem login. O fluxo explícito de entrada
+pode copiar o conteúdo para a identidade confirmada; ver `src/auth/guest-import.ts`
+e os contratos em `SINCRONIZACAO.md`.
 O título, a instalação e os downloads usam CritCall. Identificadores legados
 com `orbyt` são mantidos apenas para compatibilidade de fichas/backups publicados;
 novos espaços de login/conta usam `dnd_auth_v1`/`dnd_account_v1`.
@@ -263,3 +265,18 @@ Migração `20261016184740_private_avatars.sql` aplicada ao CritCall exclusivo e
 16/10/2026 como versão remota `20261016184938`. Bucket/limites/políticas conferidos.
 Os avisos anteriores do advisor não mudaram. Não houve alteração das RPCs ou do
 projeto de outro aplicativo.
+
+### Criação e continuidade — 2026-10-16
+
+`src/wizard/bridge.ts` conecta módulos TypeScript ao assistente anterior, sem
+alterar o motor de regras. `abilities.ts` controla orçamento e peças por índice
+(inclusive totais iguais); a interface mantém os mesmos controles ao distribuir.
+`guidance.ts` acrescenta ajuda em português e interpreta as tabelas já extraídas
+dos antecedentes. Os catálogos gerados não são editados. `draft-store.ts` preserva
+o rascunho local por espaço, conserva dados ilegíveis e informa falhas de escrita.
+A próxima criação retoma o rascunho, incluindo os recebidos na vinculação local.
+
+`src/app/book-appearance.ts` atualiza links para o leitor com parâmetros visuais,
+sem e-mail ou ID da conta. O leitor aceita apenas temas/escalas conhecidos.
+A animação do dado usa os retângulos inicial/final e se cancela no arraste,
+redimensionamento ou troca de espaço; movimento reduzido usa abertura imediata.

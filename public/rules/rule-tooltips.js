@@ -19,18 +19,22 @@
     hoverTimer,
     pending = null,
     pointer = null,
-    followsMouse = false;
+    followsMouse = false,
+    dismissedTarget = null,
+    lastPointerDownAt = 0;
   function formatText(value) {
     // Quebras de coluna do PDF não são parágrafos. Preserva parágrafos,
     // listas e rótulos de regras, deixando o navegador ajustar a largura.
+    // Converte também marcadores Private Use Area (U+F0B7) extraídos do PDF para •.
     return String(value ?? "")
+      .replace(/[\uf0b7\uf0a7\uf0fc]\s*/g, "• ")
       .replace(/\r\n?/g, "\n")
       .trim()
       .split(/\n[ \t]*\n+/)
       .map((paragraph) =>
         paragraph
           .split(
-            /\n(?=[ \t]*(?:[•●▪]|Tempo de Conjuração:|Alcance:|Componentes:|Duração:|Pré-requisito:))/,
+            /\n(?=[ \t]*(?:[•●▪]|Tempo de Conjuração:|Alcance:|Componentes:|Duração:|Pré-requisito:))/,
           )
           .map((part) => part.replace(/[ \t]*\n[ \t]*/g, " ").trim())
           .join("\n"),
@@ -48,6 +52,7 @@
     box.className = "rule-tooltip";
     box.hidden = true;
     box.setAttribute("role", "tooltip");
+    box.setAttribute("data-scroll-window", "");
     document.body.append(box);
   }
   function hide() {
@@ -66,7 +71,7 @@
   }
   function scheduleHide() {
     clearTimeout(timer);
-    timer = setTimeout(hide, 180);
+    timer = setTimeout(hide, 140);
   }
   function inlineDescription(target, info) {
     const scope =
@@ -84,6 +89,7 @@
   }
   function show(target, mouse = false) {
     clearTimeout(timer);
+    if (target === dismissedTarget) return;
     let info;
     try {
       info = JSON.parse(target.dataset.ruleTooltip);
@@ -123,6 +129,27 @@
   }
   function position() {
     if (!active || !active.isConnected) return hide();
+    const pickerList = active.closest(".cw-picker-list");
+    if (pickerList && box && !box.hidden) {
+      const pickerRect = pickerList.getBoundingClientRect();
+      const itemRect = active.getBoundingClientRect();
+      const boxRect = box.getBoundingClientRect();
+      const gap = 12;
+      let left = pickerRect.right + gap;
+      if (left + boxRect.width > window.innerWidth - gap) {
+        left = pickerRect.left - boxRect.width - gap;
+      }
+      if (left < gap) {
+        left = Math.max(gap, window.innerWidth - boxRect.width - gap);
+      }
+      const top = Math.max(
+        gap,
+        Math.min(itemRect.top, window.innerHeight - boxRect.height - gap),
+      );
+      box.style.left = `${left}px`;
+      box.style.top = `${top}px`;
+      return;
+    }
     // Mesma função das magias: mouse acompanha o cursor; teclado usa o alvo.
     root.positionTooltip(
       { ...(followsMouse ? pointer : {}), currentTarget: active },
@@ -130,99 +157,147 @@
     );
   }
   function hover(target, event) {
+    if (target === dismissedTarget) return;
     pointer = { clientX: event.clientX, clientY: event.clientY };
     if (target === active) {
+      clearTimeout(timer);
+      clearTimeout(hoverTimer);
+      pending = null;
+      if (box && !box.hidden) return;
       followsMouse = true;
       position();
       return;
     }
     if (target === pending) return;
-    hide();
+    clearTimeout(hoverTimer);
     pending = target;
+    if (box && !box.hidden) scheduleHide();
+    else hide();
     hoverTimer = setTimeout(() => show(target, true), 250);
   }
-  document.addEventListener("pointerover", (event) => {
-    const target = event.target.closest("[data-rule-tooltip]");
-    if (target) hover(target, event);
-  });
-  document.addEventListener("pointermove", (event) => {
-    const target = event.target.closest("[data-rule-tooltip]");
-    if (target) hover(target, event);
-  });
-  document.addEventListener("pointerout", (event) => {
-    const leaving = event.target.closest("[data-rule-tooltip]");
-    if (leaving && !leaving.contains(event.relatedTarget)) {
-      clearTimeout(hoverTimer);
-      pending = null;
-    }
-    if (
-      active?.contains(event.target) &&
-      !active.contains(event.relatedTarget) &&
-      !box?.contains(event.relatedTarget)
-    )
-      scheduleHide();
-  });
-  document.addEventListener("focusin", (event) => {
-    const target = event.target.closest("[data-rule-tooltip]");
-    if (target) show(target);
-    else hide();
-  });
-  document.addEventListener("focusout", (event) => {
-    if (active?.contains(event.target)) scheduleHide();
-  });
-  document.addEventListener("pointerdown", (event) => {
-    if (
-      active &&
-      !active.contains(event.target) &&
-      !box?.contains(event.target)
-    )
-      hide();
-  });
-  // Abrir a consulta inline remove o balão equivalente, inclusive quando ele
-  // veio do nome do ganho acima. Fechar os detalhes permite novo hover normal.
-  document.addEventListener(
-    "toggle",
-    () => {
-      if (active) {
-        try {
-          if (inlineDescription(active, JSON.parse(active.dataset.ruleTooltip)))
-            hide();
-        } catch {
-          hide();
-        }
+  if (typeof document !== "undefined") {
+    document.addEventListener("pointerover", (event) => {
+      const target = event.target.closest("[data-rule-tooltip]");
+      if (target && target !== dismissedTarget) hover(target, event);
+    });
+    document.addEventListener("pointermove", (event) => {
+      const target = event.target.closest("[data-rule-tooltip]");
+      if (target && target !== dismissedTarget) hover(target, event);
+    });
+    document.addEventListener("pointerout", (event) => {
+      const leaving = event.target.closest("[data-rule-tooltip]");
+      if (leaving && !leaving.contains(event.relatedTarget)) {
+        clearTimeout(hoverTimer);
+        pending = null;
+        if (leaving === dismissedTarget) dismissedTarget = null;
       }
-    },
-    true,
-  );
-  document.addEventListener(
-    "keydown",
-    (event) => {
-      if (!active || box.hidden) return;
-      if (event.key === "Escape") {
+      if (
+        active?.contains(event.target) &&
+        !active?.contains(event.relatedTarget)
+      )
+        scheduleHide();
+    });
+    document.addEventListener("focusin", (event) => {
+      if (Date.now() - lastPointerDownAt < 450) return;
+      const target = event.target.closest("[data-rule-tooltip]");
+      if (
+        target &&
+        target !== dismissedTarget &&
+        target.matches?.(":focus-visible")
+      )
+        show(target);
+      else hide();
+    });
+    document.addEventListener("focusout", (event) => {
+      if (active?.contains(event.target)) scheduleHide();
+    });
+    document.addEventListener(
+      "pointerdown",
+      (event) => {
+        lastPointerDownAt = Date.now();
+        const target = event.target.closest?.("[data-rule-tooltip]") || active;
+        if (target) dismissedTarget = target;
         hide();
+      },
+      true,
+    );
+    document.addEventListener(
+      "wheel",
+      (event) => {
+        if (
+          event.ctrlKey ||
+          event.defaultPrevented ||
+          !event.cancelable ||
+          !box ||
+          box.hidden ||
+          box.scrollHeight <= box.clientHeight
+        )
+          return;
+        if (!box.contains(event.target) && !active?.contains(event.target))
+          return;
         event.preventDefault();
-        event.stopImmediatePropagation();
-      } else if (["PageDown", "PageUp"].includes(event.key)) {
-        box.scrollBy(
-          0,
-          box.clientHeight * (event.key === "PageDown" ? 0.8 : -0.8),
-        );
-        event.preventDefault();
-      }
-    },
-    true,
-  );
-  // A lista pode rolar normalmente; PageUp/PageDown leem o texto longo do balão.
-  document.addEventListener(
-    "scroll",
-    (event) => {
-      if (box && active && event.target !== box) {
-        if (event.target.contains?.(active)) position();
-        else hide();
-      }
-    },
-    true,
-  );
-  window.addEventListener("resize", hide);
-  root.RuleTooltips = { attributes, hide, show, formatText };
+        event.stopPropagation();
+        const style = getComputedStyle(box),
+          unit =
+            event.deltaMode === 1
+              ? parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.2
+              : event.deltaMode === 2
+                ? box.clientHeight
+                : 1;
+        box.scrollTop += event.deltaY * unit;
+      },
+      { passive: false, capture: true },
+    );
+    // Abrir a consulta inline remove o balão equivalente, inclusive quando ele
+    // veio do nome do ganho acima. Fechar os detalhes permite novo hover normal.
+    document.addEventListener(
+      "toggle",
+      () => {
+        if (active) {
+          try {
+            if (
+              inlineDescription(active, JSON.parse(active.dataset.ruleTooltip))
+            )
+              hide();
+          } catch {
+            hide();
+          }
+        }
+      },
+      true,
+    );
+    document.addEventListener(
+      "keydown",
+      (event) => {
+        if (!active || box.hidden) return;
+        if (event.key === "Escape") {
+          hide();
+          event.preventDefault();
+          event.stopImmediatePropagation();
+        } else if (["PageDown", "PageUp"].includes(event.key)) {
+          box.scrollBy(
+            0,
+            box.clientHeight * (event.key === "PageDown" ? 0.8 : -0.8),
+          );
+          event.preventDefault();
+        }
+      },
+      true,
+    );
+    // A lista pode rolar normalmente; PageUp/PageDown leem o texto longo do balão.
+    document.addEventListener(
+      "scroll",
+      (event) => {
+        if (box && active && event.target !== box) {
+          if (event.target.contains?.(active)) position();
+          else hide();
+        }
+      },
+      true,
+    );
+    window.addEventListener("resize", hide);
+  }
+  const api = { attributes, hide, show, formatText };
+  root.RuleTooltips = api;
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(globalThis);

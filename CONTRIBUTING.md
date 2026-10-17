@@ -45,7 +45,7 @@ npm ci
 npm run dev -- --port 5174 --strictPort
 ```
 
-Para continuar esta entrega, selecionar `feature/login-email` e ler
+Para continuar esta entrega, selecionar a branch indicada em `docs/RETOMADA.md` e ler
 [docs/RETOMADA.md](docs/RETOMADA.md) antes de iniciar uma nova branch. Abrir
 `http://localhost:5174/`, retorno autorizado no Supabase. A configuração pública
 do CritCall já acompanha o código; não é necessário copiar `.env.local`.

@@ -1,29 +1,31 @@
 # Retomada do CritCall em outro PC
 
-Estado conferido em **16/10/2026**. Este documento permite continuar sem o
+Estado conferido em **17/10/2026**. Este documento permite continuar sem o
 histórico da conversa. Leia também `AGENTS.md`, `README.md`, `CHANGELOG.md` e
 `docs/ARQUITETURA.md` antes de alterar o projeto.
 
 ## Abrir a versão em desenvolvimento
 
 Repositório: https://github.com/mhaetinger/D-D.
-Branch do ajuste atual: **`fix/atualizacao-cache`**, criada de `develop`.
-As PRs [#3](https://github.com/mhaetinger/D-D/pull/3) e
-[#4](https://github.com/mhaetinger/D-D/pull/4) foram integradas após autorização do
-responsável. A entrega foi publicada em **https://criticall.art/** no GitHub Pages;
-[CI e implantação passaram](https://github.com/mhaetinger/D-D/actions/runs/38953333030).
-Entrada, dado, preferências e offline conferidos no domínio com dados fictícios.
-Na atualização de uma instalação antiga, foi encontrado HTML anterior no cache
-novo por reutilização do cache HTTP. Esta branch corrige a instalação para buscar
-os arquivos atuais, com regressão reproduzida antes da correção. Conferir os
-[workflows](https://github.com/mhaetinger/D-D/actions) para a implantação do ajuste.
+Branch atual: **`feature/criacao-guiada`**, criada de `develop`.
+A versão anterior, com entrada/dado/retratos e correção do cache HTTP, foi
+integrada pelas PRs #3–#6. A implantação da correção concluiu no workflow
+[38954994107](https://github.com/mhaetinger/D-D/actions/runs/38954994107).
+Os pedidos atuais estão em [PLANO-EXPERIENCIA.md](PLANO-EXPERIENCIA.md):
+continuidade sem conta, criação orientada (incluindo escolha de PV no 1º nível,
+equipamento inicial por pacotes ou riqueza/compras do Capítulo 5 com adaptação
+livre, balão de consulta rolável sem bloquear clique ou reabrir na seleção,
+limpeza de marcadores `U+F0B7` do PDF, recorte de bordas em modais roláveis e
+cabeçalho compacto), distribuição por peças, animação do dado e tema no livro.
+Esta alteração ainda depende da revisão da PR antes de integrar e publicar. Não
+levar dados pessoais nem a pasta local `Bugs/` para o Git.
 Cloudflare está ativa no DNS; hospedagem Pages e repositório privado continuam
 dependentes da configuração descrita em [CLOUDFLARE.md](CLOUDFLARE.md).
 
 Em uma pasta nova, com Node.js **22.12 ou superior** e Git:
 
 ```sh
-git clone --branch fix/atualizacao-cache --single-branch https://github.com/mhaetinger/D-D.git CritCall
+git clone --branch feature/criacao-guiada --single-branch https://github.com/mhaetinger/D-D.git CritCall
 cd CritCall
 npm ci
 npm run dev -- --port 5174 --strictPort
@@ -91,8 +93,9 @@ antes de fechar. O backup atual exporta fichas/notas opcionais, sem todo o diár
 
 Entrar com a mesma conta no novo PC deve receber a versão já enviada. Uma edição
 offline só chega a outro dispositivo depois do envio pela origem. Fichas do modo
-sem login ficam preservadas nesse espaço e não são adotadas automaticamente;
-para levá-las à conta, exportar no modo local, entrar e importar cópias.
+sem login ficam preservadas nesse espaço. O formulário de entrada pode vincular
+cópias à conta confirmada, perguntando antes se ela já tiver fichas; veja
+[SINCRONIZACAO.md](SINCRONIZACAO.md). Rascunhos ficam locais até concluir a ficha.
 
 Login normal funciona em outros navegadores. Confirmação/recuperação PKCE exige
 abrir o link no mesmo navegador, dispositivo e endereço que iniciou o pedido.
@@ -264,3 +267,86 @@ cópia de ficha sem sobrescrever a foto original. Banco/RLS/storage passaram em
 PostgreSQL 18.6 local descartável. Revisão visual em celular/três temas/GG e dado
 compacto. Configuração do bucket real conferida; upload com conta/dispositivo real
 e publicação ainda aguardam validação do usuário. Servidor local segue em 5174.
+
+### Estado em 17/10/2026 — Kael completo, aba inicial, balões da criação e ícones temáticos de magias
+
+1. **Ficha completa do Kael (`Ficha Kael.pdf` + base HTML original):**
+   - O PDF pessoal `/home/mateus/Downloads/RPG/Ficha Kael.pdf` e o backup gerado
+     `/home/mateus/Downloads/critcall-kael-darkwood.json` permanecem fora do Git
+     (gerador auxiliar em `/tmp/generate-kael-backup.cjs`).
+   - O arquivo `/home/mateus/Downloads/critcall-kael-darkwood.json` agora contém
+     100% dos dados do PDF e do HTML original:
+     - **Feiticeiro (Magia Selvagem) 6 / Bruxo (O Corruptor) 1**, Meio-Elfo,
+       Sábio (Astrônomo), Caótico e Bom, idade `73`, altura `1,79 m`, peso `79 kg`,
+       olhos `Amarelo`, pele `Clara`, cabelos `Brancos`.
+     - **18 magias completas:**
+       - **Círculo 0 (7 truques):** *Toque Arrepiante*, *Amizade*, *Raio de Fogo*,
+         *Raio de Gelo*, *Mensagem* (Feiticeiro), *Rajada Mística* e *Ilusão Menor*
+         (Bruxo).
+       - **1º Círculo (7 magias):** *Mísseis Mágicos* (`canTwin: true`), *Armadura
+         Arcana*, *Disfarçar-se* (Feiticeiro), *Bruxaria (Hex)*, *Recuo Acelerado*
+         (Bruxo), *Invocar Familiar (Ritual)* e *Compreender Idiomas (Ritual)*
+         (via talento *Conjurador de Ritual* no nível 4 de Feiticeiro).
+       - **2º Círculo (2 magias):** *Névoa de Adagas* (`bookId: "nuvem-de-adagas"`)
+         e *Despedaçar*.
+       - **3º Círculo (2 magias):** *Bola de Fogo* (`bookId: "bola-de-fogo"`) e
+         *Relâmpago* (`bookId: "relampago"`).
+     - **Metamagia:** *Magia Acelerada* e *Magia Duplicada*.
+     - **Perícias, armas e história:** `customSkillBonuses` idênticos aos valores
+       da ficha PDF, armas *Besta leve* (`1d8+1`, Perfurante) e *Faca pequena
+       (Adaga)* (`1d4+1`, Cortante/Perfurante), aparência e história completas
+       palavra por palavra.
+
+2. **Aba inicial e painel de Truques (`src/app/sheet.js`):**
+   - A ficha inicia na aba **1. Atributos & Combate** (`currentTab = "main"`),
+     inclusive ao ativar o espaço de trabalho da conta (`activateAccountWorkspace`).
+   - O painel **Truques (Círculo 0)** inicia aberto (`collapsedPanels = {}`).
+
+3. **Rolagem do balão `#ruleTooltip` e fim de informações duplicadas na criação
+   (`public/rules/character-wizard.css`, `public/rules/rule-tooltips.js`,
+   `public/rules/character-wizard.js`):**
+   - `.rule-tooltip` passou a ter `pointer-events: auto` e `data-scroll-window`:
+     o balão permanece estacionário uma vez aberto para permitir levar o mouse
+     até a barra de rolagem sem fechar, e a rodinha do mouse (`wheel`) rola o
+     `#ruleTooltip` diretamente quando o texto excede a altura do balão.
+   - Seletores (`<select>`), opções já selecionadas (`o.value === value`),
+     caixas de seleção (`.cw-options`) e cabeçalhos de ganhos de classe que já
+     exibem a seção `<details class="cw-source">` logo abaixo não recebem
+     `data-rule-tooltip`, evitando exibir a mesma descrição duas vezes.
+
+4. **Ícones e etiquetas temáticas nas magias (`public/rules/character-engine.js`,
+   `src/app/icons.ts`, `src/styles/sheet.css`, `src/app/sheet.js`,
+   `public/rules/character-wizard.js`):**
+   - `CharacterEngine.spellMeta(entry)` e `toSheetSpell` classificam todas as
+     361 magias do catálogo com tipo de dano/efeito (`fogo`, `frio`/`gelo`,
+     `eletrico`, `energia`, `necrotico`, `trovejante`/`trovao`, `cortante`,
+     `perfurante`, `concussao`, `acido`, `veneno`, `psiquico`, `radiante`,
+     `cura`, `defesa`, `utilidade`), ícone SVG Lucide correspondente (`flame`,
+     `snowflake`, `zap`, `sparkles`, `skull`, `cloud-lightning`, `swords`,
+     `droplets`, `brain`, `sun`, `heart-pulse`, `shield`, `wand-2`), formato de
+     alvo/área (`mira`, `multi`/`auto`, `esfera`, `cilindro`, `cone`, `linha`,
+     `cubo`, `pessoal`/`self`, `ritual_inv`/`ritual`) e defesa/resistência
+     (`atq_magico`, `tr_*`, `auto_hit`), exibindo esses indicadores tanto no
+     grimório da ficha quanto na etapa de magias do criador.
+
+5. **Apresentação Clássica/Moderna sem poluir o histórico:**
+   - Os botões exibem somente **Clássica** e **Moderna** e não criam passos no
+     histórico da ficha.
+
+6. **Verificações executadas em 17/10/2026:**
+   - `npm test` (**190/190** testes Node aprovados).
+   - `npm run build` concluído sem erros (`tsc`, `check-auth-config`, `vite build`,
+     `build-offline`).
+   - Roteiros Playwright Chromium aprovados: `tests/creation-browser.cjs`,
+     `tests/sheet-browser.cjs`, `tests/app-browser.cjs` e verificação dedicada
+     da importação do Kael, aba inicial, rolagem do `#ruleTooltip` e ícones
+     temáticos das magias.
+
+### Como retomar em um novo terminal
+
+- Para reabrir exatamente esta conversa no `agy`, você pode usar o seletor de
+  conversas do `agy` (ou `agy --help` para ver a flag de retomada de sessão).
+- Se iniciar uma conversa nova do zero, basta colar:
+  > Continue o projeto CritCall na branch `feature/criacao-guiada`. Leia
+  > `AGENTS.md`, `docs/RETOMADA.md`, `docs/PLANO-EXPERIENCIA.md` e `CHANGELOG.md`
+  > para carregar todo o contexto das alterações de 17/10/2026.

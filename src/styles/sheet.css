@@ -181,7 +181,7 @@ body[data-backdrop="textured"][data-theme="obsidiana"] main {
 /* Tamanho e recolhimento são preferências da bandeja, separados da ficha. */
 #dice3dTray { --tray-width: 460px; --tray-height: auto; display: flex; flex-direction: column; width: min(var(--tray-width), calc(100vw - 2rem)); height: var(--tray-height); max-height: calc(100dvh - 2rem); padding: 0.75rem; z-index: 45; }
 #dice3dTray.hidden { display: none; }
-#dice3dTray[data-minimized="true"] { width: 4.5rem; height: 5rem; padding: 0; border: 0; background: none; box-shadow: none; }
+#dice3dTray[data-minimized="true"] { width: 4.5rem; height: 5rem; padding: 0; border: 0; outline: none; background: none; box-shadow: none; }
 #dice3dTray[data-minimized="true"] .dice-tray-header { display: none; }
 .dice-dock { position: relative; display: grid; place-items: center; width: 4.5rem; height: 5rem; padding: 0; touch-action: none; user-select: none; cursor: grab; color: #fff0ce; background: radial-gradient(ellipse at 25% 15%, #64758466, transparent 70%), repeating-conic-gradient(from 10deg at 65% 40%, #c8ad7322 0deg 1deg, transparent 1deg 29deg), linear-gradient(135deg, #323b47, #151c26 65%, #3e3029); clip-path: polygon(50% 0, 96% 24%, 96% 76%, 50% 100%, 4% 76%, 4% 24%); filter: drop-shadow(0 3px 5px #0008); }
 .dice-dock[hidden] { display: none; }
@@ -231,10 +231,17 @@ body.dice-tray-resizing { user-select: none; cursor: ne-resize; }
   border-radius: 0.75rem;
 }
 
+.t-card-accent.overflow-y-auto,
+#accountWorkspaceChanged,
+#avatarDialog,
+#confirmationDialog {
+  clip-path: inset(0 round 0.75rem);
+}
+
 [data-theme="pergaminho_claro"] .t-card-accent {
   border: 2px solid #7a5c3e;
   outline: 1px solid #c5b08e;
-  outline-offset: -5px;
+  outline-offset: -2px;
 }
 
 .t-inset {
@@ -316,6 +323,26 @@ body.dice-tray-resizing { user-select: none; cursor: ne-resize; }
   color: #34d399;
   border: 1px solid rgba(16, 185, 129, 0.4);
 }
+.badge-acido {
+  background: rgba(132, 204, 22, 0.16);
+  color: #bef264;
+  border: 1px solid rgba(132, 204, 22, 0.45);
+}
+.badge-veneno {
+  background: rgba(22, 163, 74, 0.18);
+  color: #86efac;
+  border: 1px solid rgba(22, 163, 74, 0.45);
+}
+.badge-psiquico {
+  background: rgba(236, 72, 153, 0.16);
+  color: #f9a8d4;
+  border: 1px solid rgba(236, 72, 153, 0.45);
+}
+.badge-radiante {
+  background: rgba(234, 179, 8, 0.18);
+  color: #fde047;
+  border: 1px solid rgba(234, 179, 8, 0.45);
+}
 .badge-feiticeiro {
   background: rgba(217, 119, 6, 0.18);
   color: #fbbf24;
@@ -366,6 +393,26 @@ body.dice-tray-resizing { user-select: none; cursor: ne-resize; }
   background: #d1fae5;
   color: #065f46;
   border-color: #059669;
+}
+[data-theme="pergaminho_claro"] .badge-acido {
+  background: #ecfccb;
+  color: #365314;
+  border-color: #65a30d;
+}
+[data-theme="pergaminho_claro"] .badge-veneno {
+  background: #dcfce7;
+  color: #14532d;
+  border-color: #16a34a;
+}
+[data-theme="pergaminho_claro"] .badge-psiquico {
+  background: #fce7f3;
+  color: #831843;
+  border-color: #db2777;
+}
+[data-theme="pergaminho_claro"] .badge-radiante {
+  background: #fef9c3;
+  color: #713f12;
+  border-color: #ca8a04;
 }
 [data-theme="pergaminho_claro"] .badge-feiticeiro {
   background: #f8e0d8;
@@ -440,8 +487,8 @@ body.dice-tray-resizing { user-select: none; cursor: ne-resize; }
 #charSelect { min-width: 0; max-width: min(28rem, calc(100vw - 2rem)); text-overflow: ellipsis; }
 
 /* Retratos são arquivos privados separados, não conteúdo HTML da ficha. */
-.portrait { width: 3rem; height: 3rem; flex: 0 0 auto; display: inline-grid; place-items: center; position: relative; overflow: hidden; border: 1px solid var(--text-muted); border-radius: .7rem; background: var(--bg-inset); color: var(--text-accent); }
-.portrait-small { width: 1.75rem; height: 1.75rem; border-radius: 50%; }
+.portrait { width: 2.6rem; height: 2.6rem; flex: 0 0 auto; display: inline-grid; place-items: center; position: relative; overflow: hidden; border: 1px solid var(--text-muted); border-radius: .65rem; background: var(--bg-inset); color: var(--text-accent); }
+.portrait-small { width: 1.65rem; height: 1.65rem; border-radius: 50%; }
 .account-character-avatar .portrait { width: 2rem; height: 2rem; }
 #avatarSyncStatus:empty { display: none; }
 #avatarDialog { color: var(--text-main); max-height: 85dvh; overflow-y: auto; }
@@ -452,3 +499,13 @@ body.dice-tray-resizing { user-select: none; cursor: ne-resize; }
 .portrait:has(img) svg { display: none; }
 .portrait img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
 .portrait-edit:focus-visible, [data-avatar-edit]:focus-visible { outline: 2px solid var(--text-accent); outline-offset: 3px; border-radius: .7rem; }
+
+@media (max-width: 640px) {
+  .app-topbar {
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+  }
+  #headerSection {
+    padding: 0.5rem 0.65rem;
+  }
+}

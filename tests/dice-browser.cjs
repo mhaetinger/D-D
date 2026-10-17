@@ -20,6 +20,7 @@ const { serve } = require('./serve.cjs');
     await page.locator('#dicePoolModInput').fill('7'); await page.locator('#dicePoolModInput').dispatchEvent('change');
     const pool=await page.locator('#dicePoolDisplay').textContent();
     await page.locator('#diceTrayMinimizeButton').click();
+    await page.waitForFunction(()=>document.querySelector('#dice3dTray').getAnimations().length===0);
     const start=await page.locator('#diceDock').boundingBox();
     await page.mouse.move(start.x+30,start.y+30); await page.mouse.down();
     await page.mouse.move(start.x+180,start.y-120,{steps:12}); await page.waitForTimeout(250); await page.mouse.up();
