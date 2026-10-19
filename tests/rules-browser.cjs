@@ -14,12 +14,16 @@ const {warrior} = require('./fixture.cjs');
     await page.getByRole('button',{name:'Atq +7',exact:true}).waitFor();
     const defense=page.locator('[data-rule-disclosure="defense"]');
     await defense.locator('summary').click();
-    assert.equal(await defense.locator('[data-rule-help]').count(),7);
-    for(const button of await defense.locator('[data-rule-help]').all()) {
-      await button.click();await page.locator('#ruleTooltip').waitFor({state:'visible'});
+    assert.equal(await defense.locator('button').count(),0);
+    assert.equal(await defense.locator('[data-rule-tooltip]').count(),7);
+    for(const label of await defense.locator('[data-rule-tooltip]').all()) {
+      await label.hover();await page.locator('#ruleTooltip').waitFor({state:'visible'});
+      await page.waitForFunction(name=>document.querySelector('#ruleTooltip strong')?.textContent===name,JSON.parse(await label.getAttribute('data-rule-tooltip')).name);
       assert.ok((await page.locator('#ruleTooltip').innerText()).length>80);
-      assert.equal(await defense.locator('input[type="checkbox"]:checked').count(),0,'abrir ajuda não marca o efeito');
+      assert.equal(await defense.locator('input[type="checkbox"]:checked').count(),0,'passar o mouse não marca o efeito');
     }
+    await defense.locator('summary').focus();await page.keyboard.press('Tab');
+    await page.waitForFunction(()=>document.querySelector('#ruleTooltip')?.hidden===false && document.querySelector('#ruleTooltip strong')?.textContent==='Fórmula de CA');
     await page.keyboard.press('Escape');
     assert.equal(await page.getByRole('heading',{name:'Recursos e condições',exact:true}).count(),0);
     const rageEntry=page.locator('.feature-entry').filter({has:page.locator('[data-resource="barbaro:rage"]')});

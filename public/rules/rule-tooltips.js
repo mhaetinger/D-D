@@ -169,20 +169,13 @@
       return;
     }
     if (target === pending) return;
-    clearTimeout(hoverTimer);
+    // Cancelar o balão anterior antes de agendar o novo evita que seu atraso
+    // de fechamento também cancele a abertura do próximo rótulo.
+    hide();
     pending = target;
-    if (box && !box.hidden) scheduleHide();
-    else hide();
     hoverTimer = setTimeout(() => show(target, true), 250);
   }
   if (typeof document !== "undefined") {
-    // A ajuda explícita também abre por toque, sem ativar a caixa ao lado.
-    document.addEventListener("click", (event) => {
-      const target = event.target.closest?.("[data-rule-help][data-rule-tooltip]");
-      if (!target) return;
-      dismissedTarget = null;
-      show(target);
-    });
     document.addEventListener("pointerover", (event) => {
       const target = event.target.closest("[data-rule-tooltip]");
       if (target && target !== dismissedTarget) hover(target, event);

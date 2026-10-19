@@ -43,7 +43,7 @@ export function preparationControls(c:Sheet,E:Engine) {
 
 export function defenseControls(c:Sheet,E:Engine) {
   const ac=armorClass(c,E);
-  const help=(name:string,text:string)=>`<button type="button" class="rule-help" data-rule-help data-rule-tooltip="${escape(JSON.stringify({name,text}))}" aria-label="Ajuda: ${escape(name)}">?</button>`;
+  const help=(name:string,text:string)=>`tabindex="0" class="rule-help-label" data-rule-tooltip="${escape(JSON.stringify({name,text}))}"`;
   const adjustments=[
     ['armorMagicBonus','Magia da armadura','Bônus mágico da armadura vestida, por exemplo +1. Não é o valor base de CA da armadura. Deixe vazio para usar o bônus identificado no nome do equipamento; 0 ignora esse bônus.'],
     ['shieldMagicBonus','Magia do escudo','Bônus mágico adicional do escudo equipado. O +2 normal do escudo já está no cálculo. Deixe vazio para reconhecer o bônus pelo nome; 0 usa apenas o escudo comum.'],
@@ -55,9 +55,9 @@ export function defenseControls(c:Sheet,E:Engine) {
     ['spell:bladeWard','Proteção contra Lâminas · resistência','Até o fim do seu próximo turno, esta magia dá resistência a dano de concussão, cortante e perfurante causado por ataques com armas. Não aumenta a CA. A marcação registra o efeito; aplique a redução do dano manualmente.'],
   ];
   return `<details class="rule-context" data-rule-disclosure="defense"><summary>Ajustes de defesa e efeitos recebidos</summary>
-    <div class="rule-defense-field"><div class="rule-field-heading"><label for="ruleAcFormula">Fórmula de CA</label>${help('Fórmula de CA','CA é a Classe de Armadura, o valor que um ataque precisa alcançar para acertar. Automática escolhe a maior fórmula válida; você pode escolher outra das disponíveis. Fórmulas alternativas não se somam. Os bônus abaixo são adicionados à fórmula escolhida.')}</div><select id="ruleAcFormula" data-rule-ac>${ac.options.map(o=>`<option value="${o.id}" ${c.acFormula===o.id?'selected':''}>${escape(o.label)} · ${o.total}</option>`).join('')}<option value="auto" ${!ac.options.some(o=>o.id===c.acFormula)?'selected':''}>Automática · maior válida</option></select></div>
-    <div class="rule-defense-grid">${adjustments.map(([id,label,text])=>`<div class="rule-defense-field"><div class="rule-field-heading"><label for="ruleDefense-${id}">${label}</label>${help(label,text)}</div><input id="ruleDefense-${id}" type="number" min="-100" max="100" step="1" data-rule-defense="${id}" placeholder="Auto" value="${c[id]===undefined?'':Number(c[id])}"></div>`).join('')}</div>
-    <div class="rule-defense-effects">${effects.map(([id,label,text])=>`<div class="rule-effect-row"><label><input type="checkbox" data-rule-effect="${id}" ${active(c,id)?'checked':''}><span>${label}</span></label>${help(label,text)}</div>`).join('')}</div></details>`;
+    <div class="rule-defense-field"><label for="ruleAcFormula" ${help('Fórmula de CA','CA é a Classe de Armadura, o valor que um ataque precisa alcançar para acertar. Automática escolhe a maior fórmula válida; você pode escolher outra das disponíveis. Fórmulas alternativas não se somam. Os bônus abaixo são adicionados à fórmula escolhida.')}>Fórmula de CA</label><select id="ruleAcFormula" data-rule-ac>${ac.options.map(o=>`<option value="${o.id}" ${c.acFormula===o.id?'selected':''}>${escape(o.label)} · ${o.total}</option>`).join('')}<option value="auto" ${!ac.options.some(o=>o.id===c.acFormula)?'selected':''}>Automática · maior válida</option></select></div>
+    <div class="rule-defense-grid">${adjustments.map(([id,label,text])=>`<div class="rule-defense-field"><label for="ruleDefense-${id}" ${help(label,text)}>${label}</label><input id="ruleDefense-${id}" type="number" min="-100" max="100" step="1" data-rule-defense="${id}" placeholder="Auto" value="${c[id]===undefined?'':Number(c[id])}"></div>`).join('')}</div>
+    <div class="rule-defense-effects">${effects.map(([id,label,text])=>`<div class="rule-effect-row"><label ${help(label,text)}><input type="checkbox" data-rule-effect="${id}" ${active(c,id)?'checked':''}><span>${label}</span></label></div>`).join('')}</div></details>`;
 }
 
 export function conditionControls(c:Sheet) {

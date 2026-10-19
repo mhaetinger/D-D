@@ -320,9 +320,9 @@ e contratos da RPC permanecem iguais. Um histórico ilegível congela sua própr
 gravação, sem impedir salvar as fichas válidas.
 
 O leitor conserva os presets e no máximo uma opção de zoom livre. Ajustes de
-defesa usam rótulos/campos separados, caixas espaçadas e ajuda explícita por item.
-`rule-tooltips.js` reaproveita o balão para mouse/teclado e clique/toque no botão
-de ajuda, sem marcar a caixa do efeito.
+defesa usam rótulos/campos separados, caixas espaçadas e ajuda sobre o próprio
+rótulo de cada item. `rule-tooltips.js` reaproveita o balão por passagem do mouse
+ou foco de teclado, sem botão adicional e sem marcar a caixa do efeito.
 
 A revisão ampla em [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md) registra
 capítulos, apêndices, 12 classes/41 subclasses, raças, talentos e magias. Os

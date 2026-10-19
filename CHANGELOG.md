@@ -2,6 +2,16 @@
 
 ## Não lançado
 
+### Ajuda discreta nos ajustes de defesa — 2026-10-19
+
+- Ajuda aparece ao passar o mouse sobre o nome de cada campo/efeito, usando o
+  balão existente. Rótulos também aceitam foco de teclado. Botões “?” removidos;
+  mantém o espaçamento entre as caixas e seus textos.
+- Corrigida a troca direta entre balões: o fechamento anterior não cancela a
+  abertura do próximo. Verificação: 266 testes Node, build e Chromium de regras
+  e criação aprovados, incluindo as sete ajudas por mouse, foco de teclado,
+  caixas preservadas e três temas/320 px/GG.
+
 ### Histórico por ficha, zoom e revisão do livro — 2026-10-19
 
 - Cada personagem tem seu histórico/checkpoints e ponteiro de desfazer/refazer.
