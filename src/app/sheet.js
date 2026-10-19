@@ -1,11 +1,12 @@
 import { sheetStore, selectCharacterWorkspace } from "../storage/character-store";
 import { currentWorkspaceKey, workspaceStorage } from "../storage/account-scope";
 import { ACTIVE_CHARACTER_KEY, readPreference, writePreference } from "../storage/preferences";
-import { armorClass, applyDamage, exhaustion, savingThrow } from "../rules/combat";
+import { armorClass, applyDamage, exhaustion, savingThrow, initiativeBonus, changePermanentAbility } from "../rules/combat";
 import { readableText } from "../rules/text";
 import { renderResourceControls, renderResourcesAt, preparationControls, defenseControls, conditionControls, hitDiceRecoveryControls } from "../rules/ui";
 import { featureResourceBindings, resourcesAt } from "../rules/placement";
-import { canCastNormally, canRitual, preparation } from "../rules/spellcasting";
+import { canCastNormally, canRitual, preparation, wizardPrivilege, castingRestriction } from "../rules/spellcasting";
+import { resolveSpellEffect, innateCastLevel, twinEligible } from "../rules/spell-effects";
 import { takeRest } from "../rules/rest";
 import { onSpellCast } from "../rules/resources";
 import { characterSnapshot, historyComparable as characterHistoryComparable, historyKey, HISTORY_PREFIX, isCharacterHistoryKey, migrateCharacterHistories, splitLegacyHistory, validateCharacterHistory } from '../storage/character-history';
@@ -771,11 +772,11 @@ function getArmorExplanation(char) {
 }
 
 function getCurrentLoadKg(char) {
-  // Peso unitário em kg multiplicado pela quantidade; moedas não entram aqui.
+  // O livro local usa cerca de 10 g por moeda, independentemente do metal.
   return char.inventoryItems.reduce(
     (total, item) => total + item.qty * item.weightKg,
     0,
-  );
+  ) + Object.values(char.coins).reduce((total, count) => total + Number(count), 0) * .01;
 }
 
 function recordStepAndSave(
@@ -1049,12 +1050,10 @@ function updatePoolDisplay() {
   const modVal = parseInt(
     document.getElementById("dicePoolModInput")?.value || "0",
     10,
-  );
-  if (modVal !== 0) parts.push(modVal > 0 ? `+${modVal}` : `${modVal}`);
-  disp.textContent =
-    parts.length > 0
-      ? parts.join(" + ")
-      : "Pool vazio (clique nos dados)";
+  ) || 0;
+  let formula=parts.join(' + ');
+  if(modVal) formula+=parts.length?` ${modVal<0?'-':'+'} ${Math.abs(modVal)}`:String(modVal);
+  disp.textContent = formula || 'Pool vazio (clique nos dados)';
   disp.title = disp.textContent;
   ["normal", "adv", "dis"].forEach(mode => {
     document.getElementById(`rollMode-${mode}`)?.setAttribute("aria-pressed", String(currentRollMode === mode));
@@ -1383,17 +1382,19 @@ function getSpellSlotOptions(char, spell) {
   if (char.pactMagic.total > 0 && char.pactMagic.level >= spell.circle) {
     options.push({ value: "pact", level: char.pactMagic.level, remaining: char.pactMagic.total - char.pactMagic.used, total: char.pactMagic.total, source: "Pacto" });
   }
+  const privilege=wizardPrivilege(char,spell,CharacterEngine);
+  if (privilege) options.unshift(privilege);
   return options.sort((a, b) => a.level - b.level);
 }
 
 function getSelectedSpellCastLevel(char, spell, index) {
-  if (spell.circle === 0 || spell.ritual || spell.limitedUse || spell.atWill) return spell.castLevel || spell.circle;
+  if (spell.circle === 0 || spell.ritual || spell.limitedUse || spell.atWill) return innateCastLevel(char,spell,CharacterEngine);
   const options = getSpellSlotOptions(char, spell);
   const saved = selectedCastLevelBySpell[`${char.id}:${index}`];
   if (options.some((option) => option.value === saved)) return saved;
   // Livro, p. 166: as origens são intercambiáveis. A classe só define a
   // preferência inicial; esgotar um recurso nunca seleciona outro escondido.
-  return (spell.classId === "bruxo" ? options.find((option) => option.value === "pact") : options.find((option) => option.value !== "pact"))?.value ?? options[0]?.value ?? null;
+  return (options.find(option=>['mastery','signature'].includes(option.value)) || (spell.classId === "bruxo" ? options.find((option) => option.value === "pact") : options.find((option) => option.value !== "pact")))?.value ?? options[0]?.value ?? null;
 }
 
 function renderSpellCastControls(char, spell, index) {
@@ -1406,35 +1407,33 @@ function renderSpellCastControls(char, spell, index) {
   const unavailable = (usesSlot && (!selected || selected.remaining <= 0)) || (spell.limitedUse && (spell.usesUsed || 0) >= spell.limitedUse);
   const canNormal = canCastNormally(char,spell,CharacterEngine);
   return `
-    ${meta.canTwin && characterHasTwinned(char) ? `<button type="button" onclick="toggleSpellTwinnedByIndex(${index})" class="spell-action-button spell-twin-control" aria-label="${detail.twin ? "Desativar" : "Ativar"} Magia Gêmea para ${escapeHTML(spell.name)}" aria-pressed="${detail.twin}">Gêmea (${escapeHTML(detail.cost ?? spell.circle)}pt)</button>` : ""}
+    ${detail.canTwin && characterHasTwinned(char) ? `<button type="button" onclick="toggleSpellTwinnedByIndex(${index})" class="spell-action-button spell-twin-control" aria-label="${detail.twin ? "Desativar" : "Ativar"} Magia Gêmea para ${escapeHTML(spell.name)}" aria-pressed="${detail.twin}">Gêmea (${escapeHTML(detail.cost ?? spell.circle)}pt)</button>` : ""}
     ${usesSlot && canNormal ? `<select data-spell-slot="${index}" aria-label="Espaço para ${escapeHTML(spell.name)}" onchange="setSpellCastLevelByIndex(${index}, this.value)" class="spell-slot-select">
-      ${options.length ? options.map((option) => `<option value="${option.value}" ${option.value === chosen ? "selected" : ""}>${option.source} · ${option.level}º · ${Math.max(0, option.remaining)}/${option.total}${option.remaining <= 0 ? " (esgotado)" : ""}</option>`).join("") : '<option value="">Sem espaços compatíveis</option>'}
+      ${options.length ? options.map((option) => `<option value="${option.value}" ${option.value === chosen ? "selected" : ""}>${option.source} · ${option.level}º · ${Number.isFinite(option.remaining)?Math.max(0, option.remaining):'∞'}/${Number.isFinite(option.total)?option.total:'∞'}${option.remaining <= 0 ? " (esgotado)" : ""}</option>`).join("") : '<option value="">Sem espaços compatíveis</option>'}
     </select>` : ""}
     ${spell.limitedUse ? `<span class="text-[11px]">Usos: ${Math.max(0, spell.limitedUse - (spell.usesUsed || 0))}/${escapeHTML(spell.limitedUse)}</span>` : ''}
-    ${canNormal ? `<button data-cast-spell="${index}" onclick="castSpellByIndex(${index})" ${unavailable ? "disabled" : ""} class="spell-action-button spell-cast-button t-btn-primary" title="${usesSlot ? "Gasta apenas o espaço selecionado. Para trocar a origem, use o seletor." : "Não gasta espaços de magia."}">${spell.ritual ? "Ritual" : spell.circle === 0 ? "Truque" : unavailable ? "Esgotado" : "Conjurar"}</button>` : ''}
+    ${canNormal ? `<button data-cast-spell="${index}" onclick="castSpellByIndex(${index})" ${unavailable ? "disabled" : ""} class="spell-action-button spell-cast-button t-btn-primary" title="${['mastery','signature'].includes(chosen) ? 'Usa a característica sem gastar espaço. Para aprimorar, escolha um espaço no seletor.' : usesSlot ? "Gasta apenas o espaço selecionado. Para trocar a origem, use o seletor." : "Não gasta espaços de magia."}">${spell.ritual ? "Ritual" : spell.circle === 0 ? "Truque" : unavailable ? "Esgotado" : "Conjurar"}</button>` : ''}
     ${canCastRitual(char, spell) ? `<button onclick="castRitualByIndex(${index})" class="spell-action-button spell-cast-button t-inset" title="Acrescenta 10 minutos ao tempo de conjuração e não gasta espaço.">Ritual</button>` : ''}
+    ${detail.perRay?`<button type="button" class="spell-action-button t-inset" data-spell-ray="${index}" onclick="rollSpellRay(${index})" ${RuleTooltips.attributes('Dano de um raio/feixe',{text:detail.explanation})}>Dano por raio</button>`:''}
   `;
 }
 
 function getSpellEffectDetails(char, spell, index) {
   const meta = resolveSpellMeta(spell);
   const chosen = getSelectedSpellCastLevel(char, spell, index);
-  const level = chosen === "pact" ? char.pactMagic.level : chosen ?? spell.circle;
+  const level = getSpellSlotOptions(char,spell).find(option=>option.value===chosen)?.level ?? innateCastLevel(char,spell,CharacterEngine);
   const book = BOOK_SPELLS_DB[spell.name];
-  const twin = !!twinnedActiveBySpell[spell.name] && !!meta.canTwin;
-  // Calcula a versão normal e a versão com Gêmea sem duplicar textos na ficha.
-  // A fórmula personalizada continua tendo a precedência já usada pelo rolador.
-  const effect = active => {
-    if (spell.customRoll) return spell.customRoll;
-    if (book?.calcEffect) return book.calcEffect(level, active, char, spell).replace(/ ⚡ GÊMEA!$/, "");
-    let baseText = meta.effectSummary || getSpellNotes(char, spell);
-    if (spell.circle === 0 && meta.diceFormula) {
-      baseText = baseText.replace(/^\d+d/, `${getCantripDiceCount(char)}d`);
-    }
-    return `${active ? "2 alvos × " : ""}${baseText}`;
-  };
-  return { base: effect(false), enhanced: twin ? effect(true) : null, twin,
-    cost: spell.circle === 0 ? 1 : level };
+  const canTwin=twinEligible(char,spell,level,CharacterEngine,meta.canTwin);
+  const twin = !!twinnedActiveBySpell[spell.name] && canTwin && characterHasTwinned(char);
+  const options={legacyFormula:book?.diceFormula?.(level,false,char,spell),legacySummary:book?.calcEffect?.(level,false,char,spell),canTwin:meta.canTwin};
+  const base=resolveSpellEffect(char,spell,level,CharacterEngine,options);
+  const resolved=twin?resolveSpellEffect(char,spell,level,CharacterEngine,{...options,twinned:true}):base;
+  return {...resolved,base:base.summary,enhanced:twin?resolved.summary:null,twin,canTwin,level,cost:spell.circle === 0 ? 1 : level};
+}
+function rollSpellRay(index) {
+  const spell=getChar().spells[index];if(!spell) return;
+  const detail=getSpellEffectDetails(getChar(),spell,index);
+  if(detail.perRay && detail.formula) triggerSheetRoll(detail.formula,`${spell.name} · dano de um raio/feixe que acertou (sem novo lançamento)`);
 }
 
 function renderSpellEffectDetails(char, spell, index) {
@@ -1450,7 +1449,7 @@ function renderSpellEffectDetails(char, spell, index) {
 function setSpellCastLevelByIndex(index, value) {
   const char = getChar();
   const spell = char.spells[index];
-  const parsed = value === "pact" ? value : Number(value);
+  const parsed = ["pact","mastery","signature"].includes(value) ? value : Number(value);
   if (!spell || !getSpellSlotOptions(char, spell).some((option) => option.value === parsed)) return;
   selectedCastLevelBySpell[`${char.id}:${index}`] = parsed;
   hideBookTooltip();
@@ -1612,8 +1611,9 @@ function renderSpellsSection(char, isClassicTwoCol) {
 }
 
 function selectedMetamagic(char) {
-  if (char.rules && !char.rules.legacy) return CharacterEngine.selections(char, 'feiticeiro', 'metamagic');
-  return (char.features || []).filter(f => /Metamágica/.test(f)).map(f => f.includes('Acelerada') ? 'Magia Acelerada' : /Gêmea|Duplicada/.test(f) ? 'Magia Duplicada' : '').filter(Boolean);
+  const choices=CharacterEngine.selections(char, 'feiticeiro', 'metamagic');
+  if(choices.length || char.rules && !char.rules.legacy) return choices;
+  return [...new Set((char.features || []).map(f=>typeof f==='string'?f:`${f.title || f.name || ''} ${f.description || ''}`).filter(f=>/Metamágica|Magia Gêmea|Magia Duplicada/i.test(f)).map(f=>/Acelerada/i.test(f)?'Magia Acelerada':/Gêmea|Duplicada/i.test(f)?'Magia Duplicada':'').filter(Boolean))];
 }
 function characterHasTwinned(char) { return selectedMetamagic(char).includes('Magia Duplicada'); }
 function renderSorceryCollapsiblePanel(char) {
@@ -1872,7 +1872,7 @@ function renderMainModern2024(char) {
 function renderCombatBlock(char) {
   const isCollapsed = !!collapsedPanels["combat_box"];
   const ac = getCalculatedAC(char);
-  const dexMod = getMod(char.abilities.dex.score);
+  const dexMod = initiativeBonus(char,CharacterEngine);
   const effective = exhaustion({...char,speed:CharacterEngine.movementSpeed(char)});
 
   // Referência sem consumo/cura automática, conforme a campanha do usuário.
@@ -2064,7 +2064,7 @@ function renderLoreSection(char) {
         <h3 class="font-rpg font-bold uppercase t-text-accent">Equipamento, Tesouros & Moedas</h3>
         <button onclick="openHomebrewModal('item')" class="font-bold t-text-accent underline">+ Novo item</button>
       </div>
-      <p class="t-text-muted">${char.inventoryItems.some(item => item.weightUnreviewed) ? "Carga conhecida" : "Carga"}: ${curLoadKg.toFixed(1)} / ${maxLoadKg} kg · Passe o mouse ou toque no nome para ver a descrição.</p>
+      <p class="t-text-muted">${char.inventoryItems.some(item => item.weightUnreviewed) ? "Carga conhecida" : "Carga"}: ${curLoadKg.toFixed(1)} / ${maxLoadKg} kg (inclui moedas) · Passe o mouse ou toque no nome para ver a descrição.</p>
       <div class="grid grid-cols-5 gap-2 text-center">
         ${Object.entries(char.coins)
           .map(
@@ -2786,10 +2786,7 @@ function updateField(field, value) {
 }
 function changeAbility(key, delta) {
   const char = getChar();
-  char.abilities[key].score = Math.max(
-    1,
-    Math.min(24, char.abilities[key].score + delta),
-  );
+  changePermanentAbility(char,key,delta);
   recordStepAndSave(
     `Atributo ${RULES_DB.abilities[key].name}: ${char.abilities[key].score}`,
   );
@@ -2809,11 +2806,10 @@ function changeHp(delta) {
   const char = getChar();
   // Livro, p. 200: dano consome PV temporários antes dos PV reais.
   // Cura altera somente PV reais; não recompõe a reserva temporária.
-  const absorbed = delta < 0 ? Math.min(char.hpTemp, -delta) : 0;
-  if (delta < 0) applyDamage(char,-delta);
-  else char.hpCurrent = Math.min(exhaustion(char).hpMax,char.hpCurrent+delta);
+  const result = delta < 0 ? applyDamage(char,-delta) : null;
+  if (delta >= 0) char.hpCurrent = Math.min(exhaustion(char).hpMax,char.hpCurrent+delta);
   if (char.hpTemp === 0) char.hpTempSource = "";
-  recordStepAndSave(`${delta < 0 ? `Sofreu ${-delta} de dano (${absorbed} absorvidos por PV temporários)` : `Recebeu ${delta} de cura`} · PV: ${char.hpCurrent}/${char.hpMax} · temporários: ${char.hpTemp}`);
+  recordStepAndSave(`${delta < 0 ? `Sofreu ${-delta} de dano (${result.temp} absorvidos por PV temporários)${result.ward?` · proteção: ${result.ward}`:''}${result.beast?` · forma: ${result.beast}`:''}` : `Recebeu ${delta} de cura`} · PV: ${char.hpCurrent}/${exhaustion(char).hpMax} · temporários: ${char.hpTemp}`);
 }
 
 function getFiendBlessingAmount(char) {
@@ -2941,14 +2937,12 @@ function castSpellWithUpcast(
   const char = getChar();
   const spObj = char.spells[globalSpellIdx];
   if (!spObj) return;
-  if (!canCastNormally(char,spObj,CharacterEngine)) return showToast('Prepare esta magia antes de conjurá-la com espaço; rituais usam a ação Ritual.');
+  if (!canCastNormally(char,spObj,CharacterEngine)) return showToast(castingRestriction(char,CharacterEngine,spObj) || 'Prepare esta magia antes de conjurá-la com espaço; rituais usam a ação Ritual.');
   if (spObj.limitedUse && (spObj.usesUsed || 0) >= spObj.limitedUse) return showToast('Os usos desta habilidade estão esgotados.');
-  const bookEntry = BOOK_SPELLS_DB[spellName] || (spObj?.bookId ? BOOK_SPELLS_DB[CharacterEngine.spell(spObj.bookId)?.name] : null);
-  const resolvedMeta = resolveSpellMeta(spObj);
   const chosen = getSelectedSpellCastLevel(char, spObj, globalSpellIdx);
-  const numericCastLvl =
-    chosen === "pact" ? char.pactMagic.level : parseInt(chosen, 10);
-  const isTwinned = !!twinnedActiveBySpell[spellName] && !!resolvedMeta.canTwin;
+  const effect = getSpellEffectDetails(char,spObj,globalSpellIdx);
+  const numericCastLvl = effect.level;
+  const isTwinned = effect.twin;
   const twinPtCost = isTwinned
     ? baseCircle === 0
       ? 1
@@ -2962,8 +2956,8 @@ function castSpellWithUpcast(
     return;
   }
 
-  if (spObj.customRoll && !parseDiceFormula(spObj.customRoll)) {
-    showToast("A fórmula personalizada desta magia é inválida. Corrija-a antes de conjurar; nenhum recurso foi gasto.");
+  if (effect.formula && !parseDiceFormula(effect.formula)) {
+    showToast(spObj.customRoll?"A fórmula personalizada desta magia é inválida. Corrija-a antes de conjurar; nenhum recurso foi gasto.":"Não foi possível montar uma rolagem válida para esta magia. Nenhum recurso foi gasto; confira a descrição.");
     return;
   }
 
@@ -2973,7 +2967,12 @@ function castSpellWithUpcast(
       showToast("O espaço selecionado está indisponível. Escolha outra origem ou nível no seletor; nenhum recurso foi gasto.");
       return;
     }
-    if (chosen === "pact") {
+    if (chosen === 'signature') {
+      char.ruleState ||= {};char.ruleState.used ||= {};
+      char.ruleState.used['mago:signature:'+wizardPrivilege(char,spObj,CharacterEngine).id]=1;
+    } else if(chosen === 'mastery') {
+      // O círculo mínimo é gratuito; espaços superiores continuam sendo opções.
+    } else if (chosen === "pact") {
       if (char.pactMagic.used >= char.pactMagic.total) {
         showToast("Slot de Pacto já usado!");
         return;
@@ -2994,24 +2993,16 @@ function castSpellWithUpcast(
   if (spellName === "Armadura Arcana") char.mageArmorActive = true;
   onSpellCast(char,spObj,numericCastLvl,CharacterEngine);
 
-  const formulaToRoll =
-    spObj?.customRoll ||
-    (bookEntry?.diceFormula
-      ? bookEntry.diceFormula(numericCastLvl, isTwinned, char, spObj)
-      : resolvedMeta.diceFormula || null);
+  const formulaToRoll = effect.formula;
   if (formulaToRoll) {
     triggerSheetRoll(
       formulaToRoll,
-      `${spellName}${isTwinned ? " (⚡ Gêmea)" : ""}`,
+      `${spellName}${effect.perRay?' · dano de um raio/feixe':''}${isTwinned ? " (⚡ Gêmea)" : ""}`,
     );
   }
 
-  const eff =
-    spObj?.customRoll ||
-    (bookEntry?.calcEffect
-      ? bookEntry.calcEffect(numericCastLvl, isTwinned, char, spObj)
-      : "");
-  const source = baseCircle === 0 ? "truque, sem espaço" : spObj.ritual ? "ritual, sem espaço" : spObj.limitedUse ? '-1 uso da habilidade, sem espaço' : spObj.atWill ? 'habilidade, sem espaço' : `-1 espaço de ${chosen === "pact" ? "Pacto" : "Conjuração"} do ${numericCastLvl}º círculo`;
+  const eff = effect.summary;
+  const source = baseCircle === 0 ? "truque, sem espaço" : spObj.ritual ? "ritual, sem espaço" : spObj.limitedUse ? '-1 uso da habilidade, sem espaço' : spObj.atWill ? 'habilidade, sem espaço' : chosen==='mastery'?'Dominar Magia, sem espaço':chosen==='signature'?'Assinatura Mágica · -1 uso, sem espaço':`-1 espaço de ${chosen === "pact" ? "Pacto" : "Conjuração"} do ${numericCastLvl}º círculo`;
   const actionMsg = `Conjurou ${spellName} (${source})${isTwinned ? ` + Gêmea (-${twinPtCost} pt de feitiçaria)` : ""}`;
   recordStepAndSave(actionMsg);
   showToast(`✨ ${actionMsg}! ${eff ? `➔ ${eff}` : ""}`);
@@ -3028,6 +3019,7 @@ async function longRest() {
   // A recuperação integral dos Dados de Vida exige escolha explícita da mesa.
   const char = getChar();
   if (Number(char.exhaustion)>=6) return showToast('Exaustão 6 significa morte; um descanso não revive o personagem.');
+  if(char.hpCurrent<1) return showToast('O descanso longo exige pelo menos 1 PV no início.');
   const choices = document.createElement('div');
   choices.innerHTML = '<label><input type="checkbox" data-rest-food checked> Teve alimento e bebida (reduz 1 exaustão)</label><br><label><input type="checkbox" data-rest-table> Recuperar todos os Dados de Vida (adaptação da mesa)</label>';
   if (!await confirmDestructiveAction('Concluir descanso longo?', 'Recupera PV e recursos conforme o livro. Dados de Vida: até metade do nível total; escolha quais recuperar depois. PV temporários serão removidos.', 'Concluir descanso', choices)) return;
@@ -3178,6 +3170,7 @@ Object.assign(window, {
   renderSpellEffectDetails,
   setSpellCastLevelByIndex,
   castSpellByIndex,
+  rollSpellRay,
   canCastRitual,
   castRitualByIndex,
   toggleSpellTwinnedByIndex,

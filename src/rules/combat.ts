@@ -100,17 +100,38 @@ export function exhaustion(c: Sheet) {
 }
 /** Proteção Arcana, forma de besta, PV temporários e PV reais são reservas separadas. */
 export function applyDamage(c: Sheet, amount: number) {
+  if (!Number.isFinite(amount)) throw new Error('Informe uma quantidade finita de dano.');
   let damage = Math.max(0,Math.floor(amount));
+  const result={ward:0,temp:0,beast:0,hp:0,excess:0};
   const hasWard = c.classes?.some((cls:Sheet)=>cls.classId==='mago' && cls.level>=2 && (cls.subclassId==='abjuracao' || norm(cls.subclass).includes('abjuracao')));
   const ward = hasWard ? Number(c.ruleState?.pools?.['mago:ward'] || 0) : 0;
-  if (ward > 0) { const n = Math.min(ward,damage); c.ruleState.pools['mago:ward'] -= n; damage -= n; }
+  if (ward > 0) { const n = Math.min(ward,damage); c.ruleState.pools['mago:ward'] -= n; damage -= n; result.ward=n; }
+  // Temporários protegem os PV atuais, inclusive os da besta; a proteção é externa.
+  result.temp=Math.min(c.hpTemp,damage); c.hpTemp-=result.temp; damage-=result.temp;
   if (level(c,'druida')>=2 && active(c,'druida:wildShape')) {
     const beast = Math.max(0,Number(c.ruleState.pools['druida:wildShape'] || 0)), n = Math.min(beast,damage);
-    c.ruleState.pools['druida:wildShape'] -= n; damage -= n;
+    c.ruleState.pools['druida:wildShape'] -= n; damage -= n; result.beast=n;
     if (c.ruleState.pools['druida:wildShape'] <= 0) c.ruleState.active['druida:wildShape'] = false;
   }
-  const temp = Math.min(c.hpTemp,damage); c.hpTemp -= temp; damage -= temp;
+  result.hp=Math.min(c.hpCurrent,damage);result.excess=damage-result.hp;
   c.hpCurrent = Math.max(0,c.hpCurrent-damage);
+  return result;
+}
+/** Ajuste permanente conserva o dano já sofrido, sem reconstruir PV manuais. */
+export function changePermanentAbility(c:Sheet,key:string,delta:number) {
+  if (!['str','dex','con','int','wis','cha'].includes(key) || !Number.isInteger(delta)) return;
+  const oldMod=ability(c,key),oldMax=exhaustion(c).hpMax,oldScore=c.abilities[key].score;
+  const adapted=c.rules?.abilityMethod==='adapted';
+  c.abilities[key].score=Math.max(adapted?0:1,Math.min(adapted?30:Math.max(24,oldScore),oldScore+delta));
+  if (key!=='con') return;
+  const gain=(ability(c,key)-oldMod)*c.classes.reduce((n:number,x:Sheet)=>n+x.level,0);
+  c.hpMax=Math.max(1,c.hpMax+gain);
+  if (c.hpCurrent>0) c.hpCurrent=Math.max(0,Math.min(exhaustion(c).hpMax,c.hpCurrent+exhaustion(c).hpMax-oldMax));
+}
+export function initiativeBonus(c:Sheet,E:Engine) {
+  const feats=selections(c,E,'feat').concat(selections(c,E,'racialFeat'));
+  const half=level(c,'bardo')>=2 || level(c,'guerreiro')>=7 && subclass(c,'guerreiro',E)==='campeao';
+  return ability(c,'dex')+(half?Math.floor(proficiency(c)/2):0)+(feats.includes('Alerta')?5:0);
 }
 export function savingThrow(c: Sheet, key:string, E:Engine) {
   const stone = active(c,'mago:stone') && c.ruleState?.targets?.['mago:stone']==='constitution';

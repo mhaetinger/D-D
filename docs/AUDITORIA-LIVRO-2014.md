@@ -8,7 +8,34 @@ A segunda passada, na base `7667ae9`, encontrou **erros reproduzíveis além das
 ausências de controles**. A prioridade passou a ser alinhar o valor mostrado com
 o rolador, corrigir bônus/escalonamento e a interação entre dano, transformação e
 descansos. Os itens 15–27 e a tabela de cenários abaixo detalham esses achados.
-Esta revisão é uma auditoria; as correções de comportamento continuam pendentes.
+A primeira etapa de correções já foi implementada na branch de trabalho,
+conforme a tabela abaixo. O restante continua identificado como pendência.
+
+## Primeira etapa implementada — 19/10/2026
+
+As descrições numeradas e a tabela histórica de reprodução registram o problema
+encontrado na base `7667ae9`; não descrevem todas o estado atual. O diagnóstico
+atual inclui regressões adicionais e é exigido na suíte de navegador.
+
+| Itens da auditoria | Estado desta etapa |
+| --- | --- |
+| 1 | Iniciativa soma Versatilidade/Atleta Extraordinário sem duplicar meia proficiência e soma Alerta; vantagens situacionais seguem manuais |
+| 2 | Campos longos regenerados; zero componentes com parênteses truncados nas 361 entradas |
+| 3 | Armadura/escudo sem proficiência impedem lançar e usar ritual, com motivo no grimório; desvantagens em outras rolagens ainda manuais |
+| 15–16 | Prévia e rolador compartilham fórmula; truques, cura/modificador e aumento explícito de dados corrigidos nos casos testados |
+| 17 | Explosão Agonizante por feixe corrigida; Sorvedor de Vida/outros passivos ainda pendentes |
+| 18 | Nível racial fixo do tiefling corrigido, inclusive em leitura de ficha anterior sem o campo |
+| 19 | Dominar/Assinatura no seletor de origem, sem duplicar magias; preparo/usos/recuperação/aprimoramento corrigidos; troca das escolhas por tempo fora da evolução ainda sem fluxo próprio |
+| 20, 22–23, 27 | Absorção real/ordem dos PV, abjuração de outra classe e Constituição permanente corrigidos; PV manuais e notas preservados |
+| 21 | Requisito de 1 PV e preservação da forma no descanso curto corrigidos; duração, interrupções e limite de 24 h seguem manuais |
+| 24–25 | Chicote classificado como ataque, Raio Ardente sem Gêmea e Criar Chamas no talento; classificação integral e todas as exceções do catálogo ainda precisam de revisão |
+| 26 | Carga inclui moedas e informa isso no campo existente |
+| 4–14 | Outros passivos e controles básicos continuam pendentes; não anunciar concentração, morte, condições ou gasto de Dados de Vida como implementados |
+
+Fórmulas personalizadas não recebem bônus automáticos adicionais. Feixes/raios
+mostram a quantidade e rolam dano de um acerto; o botão contextual repete o dano
+sem cobrar a magia. Regras de alvo/duração e as demais famílias de efeitos não
+passam a ser automaticamente resolvidas por essa correção de fórmulas.
 
 ## Fonte, método e limites
 
@@ -45,11 +72,11 @@ Esta revisão é uma auditoria; as correções de comportamento continuam penden
 | Cap. 4, personalidade/antecedentes, 122–142 | 13 antecedentes, tendências, sugestões editáveis e campos narrativos | Inspiração de 2014 sem controle utilizável; personalização completa de antecedente ainda exige adaptação manual |
 | Cap. 5, equipamento, 144–160 | Compras em cobre, quantidades/peso, armadura/escudo, armas e propriedades consultáveis | Penalidades por falta de proficiência, munição, recarga, consumíveis e detalhes de carga; ver itens abaixo |
 | Cap. 6, personalização, 164–171 | Pré-requisitos/escolhas de multiclasse/talentos, espaços combinados e Pacto separado | Vários talentos só registram a escolha; o efeito numérico não está aplicado |
-| Cap. 7, habilidades, 174–180 | Modificadores, proficiência, especialização, perícias, resistências e modo vantagem/desvantagem | Iniciativa não incorpora todos os bônus; testes passivos/condicionais e rolagens mínimas ainda incompletos |
+| Cap. 7, habilidades, 174–180 | Modificadores, proficiência, especialização, perícias, resistências, modo vantagem/desvantagem e bônus auditados de iniciativa | Testes passivos/condicionais, vantagem na iniciativa e rolagens mínimas ainda incompletos |
 | Cap. 8, aventuras, 182–188 | Deslocamento, inventário, descansos e exaustão | Gasto de Dados de Vida sem interface; viagem, luz, sufocamento, alimento/água e atividades entre aventuras são manuais |
 | Cap. 9, combate, 189–198 | Ataques/dano, CA, PV, temporários, reservas defensivas e alguns adicionais condicionais | Morte/estabilidade, resistências, crítico completo, cobertura, ações/reações e alvo ainda exigem controle manual |
 | Cap. 10, conjuração, 201–204 | Preparação, rituais elegíveis, espaços por classe/Pacto, CDs e custos de feitiçaria | Concentração, componentes, duração e economia de ações não são um sistema integrado |
-| Cap. 11, magias, 207–288 | 361 descrições e metadados; várias fórmulas de rolagem e escalonamento | 139 resumos de componentes truncados; não há executor de todos os efeitos das 361 magias |
+| Cap. 11, magias, 207–288 | 361 descrições e metadados, campos longos corrigidos, fórmulas auditadas unificadas e escalonamento | Não há executor de todos os efeitos das 361 magias; consultar limitações por família |
 | Apêndice A, condições, 289–291 | Consulta e controle próprio de exaustão | Demais condições não possuem estado/efeitos integrados |
 | Apêndice B, deuses, 292–298 | Consulta no livro | Referência narrativa; não impor divindade/domínio ao jogador |
 | Apêndice C, planos, 299–302 | Consulta no livro | Referência de cenário; efeitos dependem do Mestre |
@@ -231,11 +258,14 @@ Esta revisão é uma auditoria; as correções de comportamento continuam penden
 
 ## Cenários executados e reprodução
 
-Foi executado `scripts/audit-phb-scenarios.cjs` contra o build da base `7667ae9`,
+O diagnóstico original executou `scripts/audit-phb-scenarios.cjs` contra o build da base `7667ae9`,
 em Chromium descartável sob `/D-D/`, com fixtures sintéticas. São **21 cenários
 direcionados, 20 divergências e 1 controle conforme**. Algumas divergências
 compartilham a mesma causa; isso não representa 20 regras independentes nem uma
 porcentagem de cobertura do livro. Não houve consulta a contas ou dados reais.
+A tabela abaixo preserva os achados dessa base. Após as correções da primeira
+etapa, o roteiro ampliado passou em **32 cenários, sem divergências**; agora
+também integra a suíte de aprovação por `tests/audited-rules-browser.cjs`.
 
 | Cenário | Resultado do livro no cenário | Resultado observado |
 | --- | --- | --- |
@@ -271,10 +301,16 @@ node scripts/audit-phb-scenarios.cjs > /tmp/critcall-auditoria.json
 Nesta máquina foi necessário prefixar o segundo comando com
 `PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=ubuntu24.04-x64`. O script bloqueia requisições
 fora do servidor local e usa armazenamento do navegador temporário. Ele relata
-`matches: false` como achado conhecido; seu código 0 indica execução concluída,
-não aprovação das regras. `sourceCommit` identifica o código da execução; não
-distribuir `dist/` antigo ao auditar outro commit. Os 266 testes existentes
-também passaram nesta revisão; seus casos ainda não cobrem essas combinações.
+`matches: false` como achado; na CLI, seu código 0 indica execução concluída,
+não aprovação das regras. O wrapper de navegador exige zero divergências e
+falha quando qualquer cenário diverge. `sourceCommit` identifica o código da
+execução; não distribuir `dist/` antigo ao auditar outro commit.
+
+Verificação após a implementação: 279 testes Node, tipos/build e os dez
+roteiros Chromium aprovados, incluindo o wrapper dos 32 cenários. No ambiente
+local, a última execução completa foi seguida de uma nova passagem de Node,
+build e cenários auditados após os ajustes finais de compatibilidade/validação.
+Esses resultados cobrem os casos descritos, sem equivaler à automação do livro.
 
 ## Classes e subclasses: o contador não é o efeito completo
 
@@ -292,7 +328,7 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 | Feiticeiro, 76–81 | Magia Selvagem; Linhagem Dracônica | Feitiçaria/metamágica compartilhada, conversão, Marés de Caos e CA dracônica | Tabela de surto/gatilhos, efeitos de Afinidade Elemental e elegibilidade completa de metamagias; adaptações devem permanecer identificadas |
 | Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico e magias | Atleta Extraordinário/iniciativa; rerrolagem de Combate com Armas Grandes; manobras/reações; Sobrevivente |
 | Ladino, 88–92 | Ladrão; Assassino; Trapaceiro Arcano | Especialização, dados/condições de Ataque Furtivo, usos avançados e magias | Talento Confiável na rolagem; Esquiva Sobrenatural/Evasão; surpresa/Assassinar e Ação Ardilosa |
-| Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, recuperação, Proteção Arcana, Presságio e vários usos/estados de escola | Dominar Magia/Assinatura; proteção por abjuração de outra classe; efeitos por alvo, bônus de escola, lacaios, pedra e Sobrecarga |
+| Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, Dominar/Assinatura, recuperação, Proteção Arcana inclusive multiclasse, Presságio e usos/estados de escola | Efeitos por alvo, bônus de escola, lacaios, pedra e Sobrecarga; fluxo de troca temporal das escolhas |
 | Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi compartilhado e gastos escolhidos, movimento/CA e curas/usos | Artes Marciais/dano desarmado em todas as condições, Atordoar/Evasão/Defletir Projéteis e recuperação ao iniciar combate |
 | Paladino, 107–113 | Devoção; Anciões; Vingança | Cura pelas Mãos, Canalizar, Arma Sagrada, aura própria nos testes, preparação e dados de Destruição | Aplicação a aliados/consciência e condições dos juramentos; cura no alvo e consumo de espaços no fluxo de dano |
 | Patrulheiro Revisado, 114–120 | Besta; Caçador; Rastreador Subterrâneo | Progressão/seleções da adaptação, conjuração, extras condicionais e PV do companheiro | Inimigo favorito, exploração, iniciativa/primeiro turno e estatísticas/comandos do companheiro; não misturar regras do patrulheiro original |
@@ -334,11 +370,11 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 | --- | --- | --- |
 | Adepto Elemental | Escolha do elemento | Resistência ignorada e mínimo dos dados |
 | Adepto Marcial | Escolha de duas manobras | Dado extra d6 e interação com a reserva de superioridade |
-| Alerta | Registro | +5 na iniciativa; surpresa/atacante oculto |
+| Alerta | +5 na iniciativa | Surpresa/atacante oculto |
 | Ambidestro | Registro | +1 CA condicional, armas elegíveis e sacar/guardar |
 | Atacante Bestial | Registro | Nova rolagem de dano uma vez por turno |
 | Atirador Aguçado | Registro | -5/+10 por ataque, cobertura e alcance |
-| Atirador de Magia | Escolha de truque de ataque | Criar Chamas omitido; alcance/cobertura |
+| Atirador de Magia | Escolha de truque de ataque, incluindo Criar Chamas | Alcance/cobertura |
 | Atleta | +1 FOR/DES | Levantar, escalar e salto |
 | Ator | +1 CAR | Vantagem e imitação nas condições do texto |
 | Combatente Montado | Registro | Vantagem, redirecionar ataque e defesa da montaria |
@@ -397,13 +433,14 @@ a aventura ou transformar consulta narrativa em campos obrigatórios.
 
 ## Entregas seguintes sugeridas
 
-1. [ ] Unificar fórmula mostrada/rolada: truques, cura/modificador/aprimoramento,
-   bônus de classe/invocação, nível racial fixo e elegibilidade de metamagia.
-   Acrescentar regressões para os cenários reproduzidos.
-2. [ ] Corrigir dano/temporários/forma, Constituição manual, requisitos e estados
-   de descanso, Proteção Arcana multiclasse e registro da absorção real.
-3. [ ] Corrigir iniciativa/passivos, Dominar Magia/Assinatura e extração de
-   componentes; revisar opções de talento e identificação da carga sem moedas.
+1. [x] Unificar fórmula mostrada/rolada nos casos auditados: truques, cura,
+   aprimoramento, Discípulo da Vida/Explosão Agonizante, nível racial e Gêmea.
+   Acrescentadas regressões. Outros passivos continuam na matriz de pendências.
+2. [x] Corrigir dano/temporários/forma, Constituição permanente, descanso longo
+   a 0 PV, forma no descanso curto, Proteção Arcana multiclasse e absorção real.
+   Duração/interrupções da forma e limite de descansos seguem manuais.
+3. [x] Corrigir bônus auditados de iniciativa, Dominar Magia/Assinatura, campos
+   longos de componentes, Atirador de Magia e inclusão de moedas na carga.
 4. [ ] Completar o bloco de PV: Dados de Vida, morte/estabilidade e inspiração,
    nos locais existentes e com dado físico/virtual.
 5. [ ] Unificar concentração/condições/dano tipado e a explicação dos efeitos;
@@ -413,8 +450,8 @@ a aventura ou transformar consulta narrativa em campos obrigatórios.
 7. [ ] Ampliar famílias de magias e criaturas, após os contratos comuns estarem
    definidos. Viagem e atividades entre aventuras ficam como auxiliares opcionais.
 
-Estas pendências não foram implementadas nesta entrega de auditoria. Zoom,
-históricos por ficha, ajustes de defesa/ajudas e descrição dos Dados de Vida foram
-alterados nas entregas anteriores. O plano anterior de refatoração continua em
+Os cenários da primeira etapa foram corrigidos; os controles e exceções restantes
+seguem nas listas de pendências. Zoom, históricos por ficha, ajustes de defesa e
+ajudas vieram das entregas anteriores. O plano anterior de refatoração continua em
 [REFATORACAO-2014.md](REFATORACAO-2014.md); seus itens concluídos não substituem
 esta auditoria mais ampla.

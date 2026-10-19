@@ -126,7 +126,7 @@ test('preparo por classe, sempre preparadas e ritual de mago sem lançamento nor
   assert.equal(canRitual(cleric,{...domain,prepared:false,automatic:false},E),false);
   const bard=make('bardo',3);assert.equal(canCastNormally(bard,{...s,classId:'bardo',prepared:false},E),true);
 });
-test('pool da proteção e forma selvagem absorvem antes dos temporários e PV reais',()=>{
+test('dano excedente atravessa proteção, temporários e forma antes dos PV reais',()=>{
   const c=make('druida',4,'lua');c.hpTemp=4;c.hpCurrent=30;c.ruleState={pools:{'mago:ward':5,'druida:wildShape':8},active:{'druida:wildShape':true}};
   c.classes.push({classId:'mago',level:2,subclassId:'abjuracao',subclass:'Escola de Abjuração'});
   applyDamage(c,20);assert.equal(c.hpTemp,0);assert.equal(c.hpCurrent,27);assert.equal(c.ruleState.active['druida:wildShape'],false);

@@ -1,5 +1,5 @@
 import { armorClass, exhaustion } from './combat';
-import { preparation } from './spellcasting';
+import { preparation, castingRestriction } from './spellcasting';
 import { remaining, resourcesFor, spend, refund, toggleResource, useResource, type Resource } from './resources';
 import { ability, active, escape, level, state, type Engine, type Sheet } from './model';
 import { resourcesAt } from './placement';
@@ -38,7 +38,8 @@ export function preparationControls(c:Sheet,E:Engine) {
     const p = preparation(c,x.classId,E);
     return `<button type="button" data-rule-action="prepare" data-class="${x.classId}" class="t-inset px-2.5 py-1 rounded font-bold">Preparar magias · ${escape(E.data.classes[x.classId].name)} (${p.used}/${p.limit})</button>`;
   }).join('');
-  return `${buttons?`<div class="flex flex-wrap items-center gap-2">${c.ruleState?.prepareReminder?'<span>Após o descanso, revise a preparação.</span>':''}${buttons}</div>`:''}${renderResourcesAt(c,E,'spellbook')}`;
+  const blocked=castingRestriction(c,E);
+  return `${blocked?`<p class="text-xs font-bold" role="status">${escape(blocked)}</p>`:''}${buttons?`<div class="flex flex-wrap items-center gap-2">${c.ruleState?.prepareReminder?'<span>Após o descanso, revise a preparação.</span>':''}${buttons}</div>`:''}${renderResourcesAt(c,E,'spellbook')}`;
 }
 
 export function defenseControls(c:Sheet,E:Engine) {

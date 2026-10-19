@@ -329,3 +329,32 @@ capítulos, apêndices, 12 classes/41 subclasses, raças, talentos e magias. Os
 itens concluídos da refatoração não equivalem à automação de todo o livro;
 o novo roteiro destaca iniciativa/passivos, componentes cortados, concentração,
 morte, Dados de Vida, inspiração e condições.
+
+## Primeira etapa dos cálculos auditados — 19/10/2026
+
+`src/rules/spell-effects.ts` resolve a fórmula e o resumo usados tanto no selo
+quanto no lançamento. Preserva `customRoll`, recebe os cálculos legados normais
+durante a migração e trata escalonamento de truques, aumento explícito de dados
+no texto, cura/modificador, Discípulo da Vida e Explosão Agonizante. Múltiplos
+raios/feixes têm dano por acerto; uma rolagem extra não conjura de novo. A
+adaptação de Mísseis/Gêmea permanece explícita; elegibilidade considera alvos e
+o círculo selecionado nos casos reconhecidos. Não é um executor das 361 magias.
+
+`wizardPrivilege` deriva Dominar/Assinatura das escolhas por ID de magia, classe
+e círculo válidos. A assinatura usa `ruleState.used['mago:signature:<id>']` por
+magia, recuperado em descanso curto/longo. O seletor mantém a origem esgotada,
+exige mudança explícita para gastar espaço e permite aprimorar. A preparação
+do motor e da ficha exclui a assinatura do orçamento sem duplicar documentos.
+O nível racial fixo é derivado também para fichas antigas sem `castLevel`.
+
+`applyDamage` retorna absorção por proteção/temporários/besta/PV e excesso. A
+mensagem do histórico usa esse resultado. Constituição permanente aplica só a
+diferença aos PV manuais e conserva o déficit; não recupera personagem a 0 PV.
+Proficiência de armadura considera a lista explícita ou, no legado, classe,
+raça e escolhas. Nenhum SQL/RLS/RPC, chave de armazenamento ou identidade mudou.
+
+`scripts/extract-phb.py` lê campos longos até o rótulo seguinte; catálogos são
+regenerados, preservando o corpo original. Componentes V/S/M usam só o prefixo,
+sem confundir letras do nome de um material com componentes.
+`tests/spell-resolution.test.ts` cobre os cálculos puros, e o roteiro auditado
+passa a ser cobrado por `tests/audited-rules-browser.cjs` na suíte de navegador.

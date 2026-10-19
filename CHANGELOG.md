@@ -2,6 +2,34 @@
 
 ## Não lançado
 
+### Cálculos e interações identificados na auditoria — 2026-10-19
+
+- Fórmula mostrada e rolagem usam a mesma resolução: escalonamento de truques,
+  cura com modificador/aprimoramento, Discípulo da Vida e Explosão Agonizante.
+  Fórmulas personalizadas são preservadas. Raio/feixe pode ter o dano de outro
+  acerto rolado sem novo gasto; Gêmea considera os casos de múltiplos alvos e
+  mantém a adaptação existente de Mísseis Mágicos.
+- Repreensão Infernal racial usa círculo 2 também nas fichas anteriores.
+  Dominar Magia e Assinatura têm opções gratuitas próprias, sem trocar para
+  espaços pagos ao esgotar. Assinatura não ocupa preparação e recupera no
+  descanso curto/longo. Aprimoramento exige seleção explícita de espaço.
+- Corrigida a ordem proteção/temporários/besta/PV e o registro da absorção real.
+  Constituição permanente ajusta os PV manuais pelo nível e conserva o déficit,
+  sem reviver a 0 PV. Descanso longo exige 1 PV no início; curto preserva a forma.
+  Abjuração de outra classe pode criar/recuperar Proteção Arcana.
+- Iniciativa inclui Alerta e meia proficiência elegível, sem duplicação.
+  Armadura/escudo usados sem proficiência impedem conjurar; itens na mochila
+  não impedem. Moedas entram na carga. Atirador de Magia oferece Criar Chamas.
+- Extração regenerada dos 361 metadados de magia preserva os componentes
+  multilinha e os custos; V/S/M não confunde letras dos materiais. Chicote de
+  Espinhos é identificado como ataque mágico. Nenhum dado real de jogador ou
+  contrato de SQL/RLS/RPC foi alterado.
+- Verificação: 279 testes Node, tipos/build e dez roteiros Chromium aprovados,
+  incluindo 32 cenários auditados sem divergências. Nova passagem de Node,
+  build e cenários após os ajustes finais de compatibilidade/validação.
+  Concentração, morte, gasto de Dados de Vida, inspiração, condições gerais e
+  outros passivos continuam pendentes em `docs/AUDITORIA-LIVRO-2014.md`.
+
 ### Auditoria aprofundada do livro e da ficha — 2026-10-19
 
 - Ampliado `docs/AUDITORIA-LIVRO-2014.md` com itens 15–27, cenários e a matriz

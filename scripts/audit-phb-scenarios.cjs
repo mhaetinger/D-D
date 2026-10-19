@@ -1,6 +1,7 @@
 // Diagnóstico manual de cobertura: matches=false registra uma lacuna conhecida.
-// Não integra a suíte de aprovação. Código 0 significa que a auditoria executou,
-// não que todas as regras estão corretas. Usa só fixtures e navegador descartável;
+// Na CLI, código 0 significa execução concluída, não aprovação das regras.
+// tests/audited-rules-browser.cjs exige correspondência e integra a suíte.
+// Usa só fixtures e navegador descartável;
 // requisições fora do servidor local são bloqueadas.
 const path = require('node:path');
 const {execFileSync} = require('node:child_process');
@@ -20,7 +21,7 @@ function level(id, n, sub, race = 'humano') {
   return c;
 }
 
-(async () => {
+async function auditScenarios() {
   const fixtures = {
     fighter: level('guerreiro', 5, 'campeao'), cleric: level('clerigo', 5, 'conhecimento'),
     life: level('clerigo', 5, 'vida'), warlock: level('bruxo', 2, 'corruptor'),
@@ -39,6 +40,7 @@ function level(id, n, sub, race = 'humano') {
   try {
     browser = await chromium.launch();
     const page = await browser.newPage();
+    const errors=[];page.on('pageerror',error=>errors.push(error.message));
     await page.route('**/*', route => new URL(route.request().url()).origin === new URL(server.url).origin ? route.continue() : route.abort());
     await page.addInitScript(c => localStorage.setItem('critcall_characters_v1', JSON.stringify({schemaVersion: 1, characters: [c]})), fixtures.fighter);
     await page.goto(server.url);
@@ -54,7 +56,7 @@ function level(id, n, sub, race = 'humano') {
         if (castLevel) setSpellCastLevelByIndex(0, String(castLevel));
         const display = getSpellEffectDetails(c, s, 0).base;
         setDiceMode('auto'); clearDicePool(); castSpellByIndex(0);
-        return {display, roll: document.getElementById('dicePoolDisplay').textContent.trim()};
+        return {display, roll: document.getElementById('dicePoolDisplay').textContent.replace(/\s+/g,'')};
       };
       let c = use(fixtures.cleric);
       record('truque-escalonamento', {display: '2d8 Radiante', roll: '2d8'}, cast(c, 'Chama Sagrada'));
@@ -66,6 +68,8 @@ function level(id, n, sub, race = 'humano') {
       record('cura-discipulo-vida', {display: '1d8+6 Cura', roll: '1d8+6'}, cast(c, 'Curar Ferimentos', 1));
       c = use(fixtures.warlock); c.abilities.cha.score = 16;
       record('explosao-agonizante', '1d10+3', cast(c, 'Rajada Mística').roll);
+      c = use(fixtures.mage);c.standardSlots[2].used=0;cast(c,'Raio Ardente',2);rollSpellRay(0);rollSpellRay(0);
+      record('raios-sem-repetir-gasto',1,c.standardSlots[2].used);
       c = use(fixtures.fighter); const before = c.hpMax; changeAbility('con', 2);
       record('con-manual', before + 5, c.hpMax);
       c = use(fixtures.tiefling); const racial = c.spells.find(s => s.bookId === 'repreensao-infernal');
@@ -73,9 +77,16 @@ function level(id, n, sub, race = 'humano') {
       c = use(fixtures.mage); const mastery = E.selections(c, 'mago', 'mastery1')[0], ms = c.spells.find(s => s.bookId === mastery);
       ms.prepared = true; setDiceMode('off'); c.standardSlots[1].used = 0; castSpellByIndex(c.spells.indexOf(ms));
       record('dominar-magia', 0, c.standardSlots[1].used);
+      setSpellCastLevelByIndex(c.spells.indexOf(ms),'2');c.standardSlots[2].used=0;castSpellByIndex(c.spells.indexOf(ms));
+      record('dominar-magia-aprimorado',1,c.standardSlots[2].used);
       c = use(fixtures.mage20); const sig = E.selections(c, 'mago', 'signature')[0], ss = c.spells.find(s => s.bookId === sig);
       ss.prepared = true; c.standardSlots[3].used = 0; castSpellByIndex(c.spells.indexOf(ss));
-      record('assinatura-magica', {slots: 0, limitedUse: 1}, {slots: c.standardSlots[3].used, limitedUse: ss.limitedUse || 0});
+      const index=c.spells.indexOf(ss),free=()=>getSpellSlotOptions(c,ss).find(o=>o.value==='signature');
+      record('assinatura-magica', {slots: 0, remaining: 0}, {slots: c.standardSlots[3].used, remaining: free()?.remaining ?? -1});
+      record('assinatura-sem-troca-escondida','signature',getSelectedSpellCastLevel(c,ss,index));
+      castSpellByIndex(index);record('assinatura-esgotada-nao-gasta',0,c.standardSlots[3].used);
+      setSpellCastLevelByIndex(index,'3');castSpellByIndex(index);record('assinatura-opcao-espaco',1,c.standardSlots[3].used);
+      R.takeRest(c,'short',E);record('assinatura-recuperacao',1,free()?.remaining ?? -1);
       c = use(fixtures.druid); c.hpTemp = 5;
       c.ruleState = {active: {'druida:wildShape': true}, pools: {'druida:wildShape': 10}, used: {}, targets: {}};
       R.applyDamage(c, 4);
@@ -108,14 +119,26 @@ function level(id, n, sub, race = 'humano') {
       record('peso-moedas', load + 10, getCurrentLoadKg(c));
       const pre = fixtures.fighter;
       record('controle-pv-evolucao', pre.hpMax + Math.max(1, 6 + getMod(pre.abilities.con.score)), fixtures.fighter6.hpMax);
+      c=use(fixtures.warlock);c.rules={...c.rules,legacy:true,history:[]};c.features=[{title:'Metamágica · Magia Gêmea',description:'Escolha importada da ficha anterior.'}];
+      record('metamagia-legada-estruturada',['Magia Duplicada'],selectedMetamagic(c));
       return out;
     }, fixtures);
     const sniper = E.requirements(E.context({...setup('mago', 'humanoVariante'), allowFeats: true}, {racialFeat: 'Atirador de Magia', racialFeatClass: 'druida'})).find(f => f.id === 'racialFeatCantrip');
     const offered = sniper.options.some(o => o.value === 'criar-chamas');
     cases.push({id: 'atirador-criar-chamas', expected: true, actual: offered, matches: offered});
-    console.log(JSON.stringify({sourceCommit: execFileSync('git', ['rev-parse', 'HEAD'], {cwd: root, encoding: 'utf8'}).trim(), summary: {cases: cases.length, divergences: cases.filter(c => !c.matches).length}, cases}, null, 2));
+    await page.evaluate(c=>{characters.splice(0,characters.length,c);switchCharacter(0);setTab('spells');},fixtures.mage20);
+    for(const theme of ['pergaminho_claro','pergaminho_escuro','obsidiana']) {
+      await page.setViewportSize({width:320,height:850});
+      await page.evaluate(theme=>{setTheme(theme);setFontScale(125);},theme);
+      const fits=await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth);
+      cases.push({id:'grimorio-320-GG-'+theme,expected:true,actual:fits,matches:fits});
+    }
+    cases.push({id:'erros-javascript',expected:[],actual:errors,matches:errors.length===0});
+    return {sourceCommit: execFileSync('git', ['rev-parse', 'HEAD'], {cwd: root, encoding: 'utf8'}).trim(), summary: {cases: cases.length, divergences: cases.filter(c => !c.matches).length}, cases};
   } finally {
     if (browser) await browser.close();
     await server.close();
   }
-})().catch(error => { console.error(error); process.exitCode = 1; });
+}
+module.exports={auditScenarios};
+if(require.main===module) auditScenarios().then(report=>console.log(JSON.stringify(report,null,2))).catch(error => { console.error(error); process.exitCode = 1; });

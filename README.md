@@ -150,9 +150,12 @@ A [auditoria do Livro do Jogador](docs/AUDITORIA-LIVRO-2014.md) percorre todos o
 capítulos/apêndices e distingue cálculo, consulta e pendências. Concentração,
 testes contra a morte e vários efeitos condicionais ainda exigem controle manual.
 A revisão aprofundada também reproduziu divergências de fórmulas/rolagens,
-cura, transformação/descansos e recursos de alto nível. O roteiro diagnóstico
-`scripts/audit-phb-scenarios.cjs` usa somente personagens fictícios e registra
-essas lacunas; não é uma suíte de aprovação nem altera dados de jogadores.
+cura, transformação/descansos e recursos de alto nível. A primeira etapa de
+correções unifica a fórmula mostrada/rolada, corrige os cenários de PV e usa
+Dominar Magia/Assinatura no seletor de origem já existente. Componentes de
+magias não ficam mais cortados na quebra de linha. O diagnóstico
+`scripts/audit-phb-scenarios.cjs` usa somente personagens fictícios; o teste
+`tests/audited-rules-browser.cjs` exige os resultados corrigidos na suíte.
 
 ## Login em desenvolvimento
 
@@ -192,9 +195,21 @@ pergunta sobre alimento/bebida e a adaptação de recuperar todos os Dados de Vi
 A recuperação de metade dos Dados de Vida permite escolher a classe em multiclasse.
 Dados adicionais de ataque mostram condições; alvos e duração são controlados pelo jogador.
 
+PV temporários protegem a forma de besta antes de seus PV; Proteção Arcana é
+externa a essas reservas. Ajustar Constituição pelos botões da ficha é uma
+alteração permanente: muda os PV máximos por diferença de modificador e nível,
+conservando o dano sofrido. Personagem a 0 PV permanece a 0. Descanso longo exige
+1 PV no início; o curto preserva a Forma Selvagem, cuja duração segue manual.
+A carga inclui moedas a cerca de 10 g cada, conforme o exemplar local.
+
 Magias que precisam de preparo só oferecem lançamento normal quando preparadas;
 Domínio/Círculo/Juramento ficam **Sempre Preparadas**. Ritual de mago no grimório
 continua disponível sem preparo e sem gastar espaço. Pacto mantém reserva própria.
+Dominar Magia e Assinatura aparecem no seletor junto aos espaços, sem duplicar
+magias: a assinatura tem um uso por magia entre descansos; aprimorar exige
+escolher um espaço explicitamente. A assinatura esgotada não troca de origem
+sozinha. Rajada Mística/Raio Ardente mostram o número de feixes/raios e rolam
+dano por acerto; **Dano por raio** repete a rolagem sem lançar/gastar de novo.
 
 O modo de atributos **Livre / Adaptado** é separado dos 27 pontos. Sugestões de
 personalidade usam seletores compactos e continuam editáveis livremente.

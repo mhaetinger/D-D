@@ -14,6 +14,24 @@ preparação, textos, criador, zoom, moeda e migração de identificadores.
 Não mesclar/publicar esta revisão sem aprovação. A branch remota `develop`
 foi restaurada após a entrega na referência de integração já aprovada
 `b1155fbc5d14a566f548814bd808374aa2383721`, merge da PR #7.
+
+**Estado atual da primeira etapa da auditoria:** fórmulas mostradas/roladas
+unificadas nos casos auditados, cura/modificador/aprimoramento, Explosão
+Agonizante por feixe, nível racial fixo, Dominar/Assinatura, iniciativa e
+componentes corrigidos. Dano usa proteção → temporários → besta → PV; o histórico
+registra a absorção real. Constituição permanente ajusta PV manuais sem reviver
+a 0 PV; descanso longo exige 1 PV e o curto preserva a Forma Selvagem.
+Concentração, morte/estabilidade, gasto de Dados de Vida, inspiração, condições
+gerais e outros passivos da matriz continuam pendentes. Ver a tabela de estado
+no início de [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md).
+Validação local: 279 testes Node, tipos/build e dez roteiros Chromium, incluindo
+32 cenários auditados sem divergências. O último ajuste de validação do mago
+foi conferido novamente com Node/build/cenários. O comando `npm run check`
+inclui o wrapper que falha se houver divergência; a CLI diagnóstica continua
+apenas relatando `matches`. Sem alteração de SQL/RLS/RPC ou dados reais.
+
+### Histórico das revisões anteriores
+
 A revisão inicial teve 260 testes Node aprovados, tipos/build e nove roteiros Chromium;
 detalhes das execuções e limites em `REFATORACAO-2014.md`.
 Após teste do responsável, os controles foram incorporados aos lugares existentes,
@@ -34,7 +52,8 @@ descansos, proteção multiclasse e opção de talento. Ver os itens 15–27 e a
 dos 42 talentos no relatório. Rodar `npm run build` antes de
 `node scripts/audit-phb-scenarios.cjs`; `matches: false` é achado da auditoria,
 não um teste de aprovação falhando. Não tratar a passagem dos 266 testes existentes
-como cobertura dessas combinações. A implementação da ficha não mudou nesta etapa.
+como cobertura dessas combinações. A implementação da ficha não mudou naquela
+etapa de levantamento; as correções atuais estão descritas acima.
 Verificação desta revisão: `npm run check`, 266 testes Node, tipos/build e nove
 roteiros Chromium aprovados, incluindo login também sob `/`. A consulta ao
 Supabase real confirmou o contrato existente por leitura de metadados; nenhum

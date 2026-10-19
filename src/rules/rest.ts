@@ -3,6 +3,7 @@ import { resetResources } from './resources';
 import type { Engine, Sheet } from './model';
 export function takeRest(c: Sheet, kind:'short'|'long', E: Engine, options={foodAndWater:true,tableHitDice:false}, random=Math.random) {
   if (Number(c.exhaustion)>=6) throw new Error('Exaustão 6 significa morte. Um descanso não revive o personagem.');
+  if (kind==='long' && c.hpCurrent<1) return false; // Requisito do início, sem consumir/recuperar nada.
   resetResources(c,kind,E,random);
   if (Number(c.exhaustion)>=6) { c.hpCurrent=0; return false; }
   c.pactMagic.used = 0;

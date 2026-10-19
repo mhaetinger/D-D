@@ -1156,32 +1156,13 @@
             .filter(
               (value) =>
                 f.choice !== "attackCantrip" ||
-                spellOptions(d, { level: 0, list: value }).some((o) =>
-                  [
-                    "toque-arrepiante",
-                    "raio-de-fogo",
-                    "raio-de-gelo",
-                    "toque-chocante",
-                    "rajada-mistica",
-                    "chicote-de-espinhos",
-                  ].includes(o.value),
-                ),
+                spellOptions(d, { level: 0, list: value }).some((o) => spellMeta(o.spell).defType === 'atq_magico'),
             )
             .map((value) => ({ value, label: D.classes[value].name })),
         );
         const list = a[key + "Class"];
         if (!list) return;
-        const attackOnly = (options) =>
-          options.filter((o) =>
-            [
-              "toque-arrepiante",
-              "raio-de-fogo",
-              "raio-de-gelo",
-              "toque-chocante",
-              "rajada-mistica",
-              "chicote-de-espinhos",
-            ].includes(o.value),
-          );
+        const attackOnly = (options) => options.filter((o) => spellMeta(o.spell).defType === 'atq_magico');
         if (f.choice === "initiate") {
           add(
             key + "Cantrips",
@@ -1621,12 +1602,13 @@
         (type === "halfPrepared" ? Math.floor(n / 2) : n) +
           mod(finalScores(d)[ability(d)]),
       );
-      const automatic = new Set(subSpells(d).map((s) => s.id));
+      const automatic = new Set(subSpells(d).map((s) => s.id).concat(d.classId==='mago' && n>=20 ? arr(a.signature || selections(d.char,'mago','signature')) : []));
       const opts =
         type === "book"
           ? uniq(exclude.concat(arr(a.spells)))
               .map(spell)
               .filter(Boolean)
+              .filter((s) => !automatic.has(s.id))
               .map((s) => ({ value: s.id, label: s.name, spell: s }))
           : spellOptions(d, {}).filter((o) => !automatic.has(o.value));
       add(
@@ -1875,7 +1857,7 @@
     if (!s) return { dmgType: "utilidade", dmgLabel: "Utilidade", targetType: "mira", defType: "nenhuma", canTwin: false, effectSummary: "Consultar descrição", diceFormula: null };
     const id = s.id || s.bookId || "";
     if (SPELL_META_OVERRIDES[id]) return { ...SPELL_META_OVERRIDES[id] };
-    const text = String(s.text || "").replace(/\s+/g, " ");
+    const text = String(s.text || "").replace(/\s+/g, " ").replace(/corpo\s*-\s*a\s*-\s*corpo/gi,'corpo-a-corpo');
     const range = String(s.range || "");
     let dmgType = "utilidade", dmgLabel = "Utilidade", diceFormula = null, effectSummary = s.duration || "Consultar descrição";
     if (!SPELL_NON_DAMAGE_IDS.has(id)) {
@@ -1926,7 +1908,7 @@
     else if (/\bcilindro de \d+/i.test(areaText)) targetType = "cilindro";
     else if (/^Pessoal/i.test(range)) targetType = "pessoal";
     else if (/^Toque/i.test(range)) targetType = "toque";
-    const canTwin = !/^Pessoal/i.test(range) && ["mira", "toque"].includes(targetType) && !/criaturas|até três|escolha duas|cada criatura|qualquer número|múltiplos|dois feixes/i.test(text);
+    const canTwin = !/^Pessoal/i.test(range) && ["mira", "toque"].includes(targetType) && !/criaturas|até três|escolha duas|cada criatura|qualquer número|múltiplos|dois feixes|três raios|vários alvos/i.test(text);
     return { dmgType, dmgLabel, targetType, defType, canTwin, effectSummary, diceFormula };
   }
   function toSheetSpell(s, classId, extra = {}) {
@@ -1941,9 +1923,9 @@
       defType: meta.defType,
       time: s.time || "",
       range: s.range || "",
-      v: s.components?.includes("V") || false,
-      s: s.components?.includes("S") || false,
-      m: s.components?.includes("M") || false,
+      v: /\bV\b/.test((s.components || '').split('(')[0]),
+      s: /\bS\b/.test((s.components || '').split('(')[0]),
+      m: /\bM\b/.test((s.components || '').split('(')[0]),
       conc: !!s.concentration,
       ritual: false,
       ritualAvailable: !!s.ritual,
@@ -2663,6 +2645,7 @@
           grant(spell(id), char.classes[0].classId, r.name, {
             castingAbility: r.name.startsWith("Gnomo") ? "int" : "cha",
             limitedUse: +lv > 1 ? 1 : 0,
+            ...(char.rules.raceId==='tiefling' && id==='repreensao-infernal'?{castLevel:2}:{}),
           });
     if (char.rules?.raceId === "altoElfo")
       for (const id of selections(char, null, "raceCantrip")) {
@@ -2692,6 +2675,7 @@
           extraSource: source,
           prepared: true,
         });
+      else if (existing && extra.castLevel && existing.castLevel===undefined) existing.castLevel=extra.castLevel;
     }
   }
   function reference(

@@ -214,7 +214,7 @@ export function toggleResource(c: Sheet, r: Resource, E: Engine) {
 }
 export function onSpellCast(c: Sheet, spell: Sheet, circle: number, E: Engine) {
   const s = state(c), school = norm(E.spell(spell.bookId || spell.name)?.school || spell.school);
-  if (circle>=1 && spell.classId==='mago' && school==='abjuracao' && subclass(c,'mago',E)==='abjuracao' && level(c,'mago')>=2) {
+  if (circle>=1 && school==='abjuracao' && subclass(c,'mago',E)==='abjuracao' && level(c,'mago')>=2) {
     const max = Math.max(0,2*level(c,'mago')+ability(c,'int'));
     s.pools['mago:ward'] = s.wardCreated ? Math.min(max,(s.pools['mago:ward'] || 0)+2*circle) : max; s.wardCreated = true;
   }
@@ -234,7 +234,9 @@ export function resetResources(c: Sheet, kind:'short'|'long', E: Engine, random=
     if (r.kind==='pool') s.pools[r.id] = r.max;
     if (r.kind==='portent') s.portent = Array.from({length:r.max},()=>({value:1+Math.floor(random()*20),spent:false}));
   }
-  for (const key of Object.keys(s.active)) if (key !== 'mago:stone') s.active[key] = false;
+  // Um descanso curto não encerra automaticamente uma transformação de várias horas.
+  for (const key of Object.keys(s.active)) if (key !== 'mago:stone' && !(kind==='short' && key==='druida:wildShape')) s.active[key] = false;
+  for (const key of Object.keys(s.used)) if (key.startsWith('mago:signature:')) s.used[key]=0;
   if (kind==='long') { s.wardCreated = false; s.pools['mago:ward'] = 0; s.targets = s.active['mago:stone']?{'mago:stone':s.targets['mago:stone']}:{}; s.targetsUsed = {}; c.tidesOfChaosAvailable = true; }
   if (kind==='short' && level(c,'feiticeiro')>=20) c.sorceryPoints.current = Math.min(c.sorceryPoints.max,c.sorceryPoints.current+4);
 }
