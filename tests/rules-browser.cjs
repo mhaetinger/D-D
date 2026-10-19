@@ -12,6 +12,15 @@ const {warrior} = require('./fixture.cjs');
     await page.addInitScript(c=>{if(!localStorage.getItem('rulesSeeded')){localStorage.setItem('critcall_characters_v1',JSON.stringify({schemaVersion:1,characters:[c]}));localStorage.setItem('rulesSeeded','true');}},c);
     await page.goto(server.url,{waitUntil:'networkidle'});await page.locator('#accessContinueLocal').click();
     await page.getByRole('button',{name:'Atq +7',exact:true}).waitFor();
+    const defense=page.locator('[data-rule-disclosure="defense"]');
+    await defense.locator('summary').click();
+    assert.equal(await defense.locator('[data-rule-help]').count(),7);
+    for(const button of await defense.locator('[data-rule-help]').all()) {
+      await button.click();await page.locator('#ruleTooltip').waitFor({state:'visible'});
+      assert.ok((await page.locator('#ruleTooltip').innerText()).length>80);
+      assert.equal(await defense.locator('input[type="checkbox"]:checked').count(),0,'abrir ajuda não marca o efeito');
+    }
+    await page.keyboard.press('Escape');
     assert.equal(await page.getByRole('heading',{name:'Recursos e condições',exact:true}).count(),0);
     const rageEntry=page.locator('.feature-entry').filter({has:page.locator('[data-resource="barbaro:rage"]')});
     await rageEntry.locator('summary').click();
@@ -91,6 +100,11 @@ const {warrior} = require('./fixture.cjs');
       await page.evaluate(()=>setTab('spells'));
       assert.equal(await page.locator('[data-rule-control="feiticeiro:tides"]').count(),1);
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+      await page.evaluate(()=>setTab('main'));await defense.locator('summary').click();
+      assert.equal(await defense.evaluate(el=>el.scrollWidth>el.clientWidth),false);
+      for(const label of await defense.locator('.rule-effect-row label').all()) {
+        assert.ok(await label.evaluate(el=>el.querySelector('span').getBoundingClientRect().left-el.querySelector('input').getBoundingClientRect().right>=7),'texto separado da caixa nos três temas/320px/GG');
+      }
     }
     await page.setViewportSize({width:1440,height:1000});
     await page.evaluate(()=>{setTheme('pergaminho_claro');setFontScale(100);setLayout('classic_2014');setTab('main');scrollTo(0,0);});
@@ -129,12 +143,37 @@ const {warrior} = require('./fixture.cjs');
     await next();await next();await wizard.locator('[data-action="finish"]').click();await wizard.waitFor({state:'hidden'});
     assert.equal(await page.evaluate(()=>getChar().abilities.str.score),20);assert.equal(await page.evaluate(()=>getChar().abilities.con.score),19);
     assert.equal(await page.evaluate(()=>getChar().classes[0].level),4);
+    // Desfazer A não restaura B nem altera notas; excluir B conserva seu próprio histórico.
+    const aId=await page.evaluate(()=>{
+      getChar().name='Ficha A';getChar().coins.po=10;recordStepAndSave('A10');getChar().coins.po=20;recordStepAndSave('A20');
+      const aId=getChar().id,b=structuredClone(getChar());b.id=crypto.randomUUID();b.name='Ficha B';b.coins.po=50;commitCreatedCharacter(b);
+      b.coins.po=70;recordStepAndSave('B70');localStorage.setItem('dnd_player_private_notes_v1',JSON.stringify({[aId]:'Nota A',[b.id]:'Nota B'}));
+      switchCharacter(characters.findIndex(c=>c.id===aId));return aId;
+    });
+    await page.evaluate(()=>undoStep());
+    assert.equal(await page.evaluate(()=>getChar().coins.po),10);
+    assert.equal(await page.evaluate(()=>characters.find(c=>c.name==='Ficha B').coins.po),70);
+    await page.evaluate(()=>redoStep());assert.equal(await page.evaluate(()=>getChar().coins.po),20);
+    await page.evaluate(()=>jumpToHistoryStep(0));assert.equal(await page.evaluate(()=>characters.find(c=>c.name==='Ficha B').coins.po),70);
+    await page.evaluate(()=>{window.pendingDeletion=deleteCharacter(characters.findIndex(c=>c.name==='Ficha B'));});await page.locator('#confirmationAccept').click();
+    await page.evaluate(()=>window.pendingDeletion);
+    assert.equal(await page.evaluate(()=>characters.length),1);
+    await page.evaluate(()=>toggleHistoryDrawer());await page.locator('#deletedCharacterHistories summary').click();
+    await page.getByRole('button',{name:'Restaurar Ficha B',exact:true}).click();
+    assert.equal(await page.evaluate(()=>getChar().name),'Ficha B');assert.equal(await page.evaluate(()=>getChar().coins.po),70);
+    assert.ok(!(await page.locator('#historyTimelineList').innerText()).includes('A20'));
+    await page.reload({waitUntil:'networkidle'});
+    assert.equal(await page.evaluate(()=>getChar().coins.po),70);
+    assert.equal(await page.evaluate(id=>JSON.parse(localStorage.getItem('dnd_player_private_notes_v1'))[id],aId),'Nota A');
     const book=await browser.newPage();book.on('pageerror',e=>errors.push(e.message));
     await book.goto(server.url+'book.html#page=148');
     await book.waitForFunction(()=>document.querySelector('#bookReader').dataset.renderedPage==='148' && document.querySelector('#bookReader').getAttribute('aria-busy')==='false');
     const font=await book.evaluate(()=>getComputedStyle(document.documentElement).fontSize);
     await book.keyboard.press('Control++');
     assert.ok(Number(await book.locator('#bookZoom').inputValue())>1);
+    for(const delta of [-85,140,-230,60,-150]) await book.locator('#bookReader').dispatchEvent('wheel',{ctrlKey:true,deltaY:delta,bubbles:true,cancelable:true});
+    assert.ok(await book.locator('#bookZoom [data-custom-zoom]').count()<=1,'porcentagens intermediárias não acumulam opções');
+    await book.locator('#bookZoom').selectOption('1');assert.equal(await book.locator('#bookZoom [data-custom-zoom]').count(),0);
     await book.keyboard.press('Control+0');assert.equal(await book.locator('#bookZoom').inputValue(),'1');
     await book.locator('#bookReader').dispatchEvent('wheel',{ctrlKey:true,deltaY:-120,bubbles:true,cancelable:true});
     assert.ok(Number(await book.locator('#bookZoom').inputValue())>1);

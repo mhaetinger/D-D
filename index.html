@@ -72,10 +72,10 @@
           <i data-lucide="history" class="w-5 h-5 t-text-accent"></i>
           <div>
             <h3 class="font-rpg font-bold text-sm t-text-accent">
-              Linha do Tempo da Sessão
+              Histórico desta ficha
             </h3>
-            <p class="text-[11px] t-text-muted">
-              Clique em qualquer passo para voltar
+            <p id="historyCharacterName" class="text-[11px] t-text-muted">
+              Abra uma ficha
             </p>
           </div>
         </div>
@@ -100,6 +100,7 @@
         data-scroll-content
         class="p-3 space-y-2 overflow-y-auto flex-1 text-xs"
       ></div>
+      <details id="deletedCharacterHistories" class="p-3 border-t t-border text-xs" hidden></details>
       <div
         class="p-3 border-t t-border flex justify-between items-center text-[11px]"
       >

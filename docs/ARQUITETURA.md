@@ -306,3 +306,26 @@ documentos reconhece aliases sem duplicar a preferência. Textos estruturados
 legados ganham apresentação legível e material original para recuperação.
 
 Escopo, decisões de automação e verificações em [REFATORACAO-2014.md](REFATORACAO-2014.md).
+
+## Histórico por personagem e cobertura do livro — 19/10/2026
+
+`src/storage/character-history.ts` valida snapshots de uma única ficha, separa
+o histórico coletivo legado por mudanças reais de ID e copia os documentos sem
+apagar o original. `canonical.ts` mantém a comparação estável compartilhada com
+a sincronização. Nome do perfil e layout não geram diferenças de conteúdo.
+A interface restaura somente a ficha ativa, mantém os outros personagens/notas
+e oferece recuperação dos históricos de fichas excluídas. As preferências
+dinâmicas são isoladas por espaço/conta e sincronizadas separadamente. Os limites
+e contratos da RPC permanecem iguais. Um histórico ilegível congela sua própria
+gravação, sem impedir salvar as fichas válidas.
+
+O leitor conserva os presets e no máximo uma opção de zoom livre. Ajustes de
+defesa usam rótulos/campos separados, caixas espaçadas e ajuda explícita por item.
+`rule-tooltips.js` reaproveita o balão para mouse/teclado e clique/toque no botão
+de ajuda, sem marcar a caixa do efeito.
+
+A revisão ampla em [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md) registra
+capítulos, apêndices, 12 classes/41 subclasses, raças, talentos e magias. Os
+itens concluídos da refatoração não equivalem à automação de todo o livro;
+o novo roteiro destaca iniciativa/passivos, componentes cortados, concentração,
+morte, Dados de Vida, inspiração e condições.

@@ -4,16 +4,13 @@ import { PERSONAL_KEYS } from "../storage/preferences";
 import { validateCharacters } from "../storage/validation";
 import type { StoragePort } from "../storage/account-scope";
 import { currentStorageKey, migrateStorage } from "../storage/legacy";
+import { historyKey, HISTORY_PREFIX, isCharacterHistoryKey, migrateCharacterHistories, validateCharacterHistory } from '../storage/character-history';
+export { canonical } from '../storage/canonical';
 
 export type Kind = "character" | "note" | "preference" | "recovery";
 export interface DocumentValue { kind: Kind; id: string; value: unknown }
 export type Documents = Record<string, DocumentValue>;
 export const documentKey = (kind: Kind, id: string) => `${kind}:${encodeURIComponent(id)}`;
-/** JSON canônico evita regravar tudo quando o JSONB do PostgreSQL reordena chaves. */
-export function canonical(value: unknown): string {
-  return JSON.stringify(value, (_, item) => item && typeof item === "object" && !Array.isArray(item)
-    ? Object.fromEntries(Object.keys(item).sort().map(key => [key, item[key]])) : item);
-}
 export function validateDocument(doc: DocumentValue): DocumentValue {
   if (!doc || !["character", "note", "preference", "recovery"].includes(doc.kind) || typeof doc.id !== "string" || !doc.id || doc.id.length > 300) throw new Error("Documento inválido");
   if (doc.value === null) return doc;
@@ -24,7 +21,8 @@ export function validateDocument(doc: DocumentValue): DocumentValue {
   } else if (doc.kind === "note") {
     if (typeof doc.value !== "string" || doc.value.length > 2_000_000) throw new Error("Anotação inválida");
   } else if (doc.kind === "preference") {
-    if (!PERSONAL_KEYS.includes(currentStorageKey(doc.id)) || typeof doc.value !== "string" || doc.value.length > 15_000_000) throw new Error("Preferência inválida");
+    if ((!PERSONAL_KEYS.includes(currentStorageKey(doc.id)) && !isCharacterHistoryKey(doc.id)) || typeof doc.value !== "string" || doc.value.length > 15_000_000) throw new Error("Preferência inválida");
+    if(isCharacterHistoryKey(doc.id)) validateCharacterHistory(doc.value,doc.id.slice(HISTORY_PREFIX.length));
     if (doc.id === "dnd_profile_avatar" && doc.value !== "null" && !isAvatarRef(JSON.parse(doc.value))) throw new Error("Imagem de perfil inválida");
     if (doc.id === "dnd_history_v1") {
       const history = JSON.parse(doc.value);
@@ -46,23 +44,26 @@ export function readDocuments(port: StoragePort, recoveryKeys: string[] = []): D
   const put = (kind: Kind, id: string, value: unknown) => { docs[documentKey(kind, id)] = validateDocument({ kind, id, value }); };
   const raw = port.getItem(SHEET_KEY), legacy = port.getItem(LEGACY_KEY);
   const chars = raw !== null ? validateCharacters(JSON.parse(raw).characters) : legacy !== null ? validateCharacters(JSON.parse(legacy)) : [];
+  let migratedKeys:string[]=[];
+  try { migratedKeys=migrateCharacterHistories(port); } catch { /* O original continua disponível; fichas válidas seguem sincronizando. */ }
   for (const char of chars) put("character", char.id, char);
   const notes = JSON.parse(port.getItem(NOTES_KEY) || "{}");
   if (!notes || typeof notes !== "object" || Array.isArray(notes)) throw new Error("Anotações ilegíveis");
   for (const [id, text] of Object.entries(notes)) put("note", id, text);
-  for (const id of PERSONAL_KEYS) {
+  const historyKeys=[...new Set([...chars.map(c=>historyKey(c.id)),...migratedKeys,...recoveryKeys.filter(isCharacterHistoryKey)])];
+  for (const id of [...PERSONAL_KEYS,...historyKeys]) {
     const value = port.getItem(id);
     if (value !== null) {
       try { put("preference", id, value); }
       catch (error) {
-        if (id !== "dnd_history_v1") throw error;
+        if (id !== "dnd_history_v1" && !isCharacterHistoryKey(id)) throw error;
         // Histórico ilegível não impede enviar as fichas válidas. Os bytes
         // originais viram um documento privado de recuperação, sem executá-los.
-        put("recovery", RECOVERY_KEY + "_history_invalid", value);
+        put("recovery", RECOVERY_KEY + "_history_invalid"+(isCharacterHistoryKey(id)?'_'+id.slice(HISTORY_PREFIX.length):''), value);
       }
     }
   }
-  for (const id of recoveryKeys) { const value = port.getItem(id); if (value !== null) put("recovery", id, value); }
+  for (const id of recoveryKeys.filter(key=>!isCharacterHistoryKey(key))) { const value = port.getItem(id); if (value !== null) put("recovery", id, value); }
   return docs;
 }
 

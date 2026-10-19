@@ -21,6 +21,17 @@ tokens não são documentos nem backups. Editores ainda não confirmados mantêm
 seu fluxo de salvar/descartar; pool temporário, buscas, animações e painéis
 abertos não são registros da ficha.
 
+O histórico de edição usa um documento `preference` independente por personagem,
+`dnd_character_history_v2:<id>`. Cada passo contém somente essa ficha. A migração
+separa mudanças reais do antigo `dnd_history_v1`, preservando o documento original;
+checkpoints antigos sem autor identificável ficam no original. Os ponteiros de
+desfazer/refazer são independentes. Históricos de fichas excluídas permanecem
+disponíveis para restaurá-las, sem recuperar/substituir as outras fichas ou notas.
+Histórico ilegível não é sobrescrito e vira uma cópia privada de recuperação na
+fila. A RPC existente aceita esses IDs de preferência; não há migração SQL nova.
+Isso separa edições de personagens diferentes; edições simultâneas do mesmo
+histórico continuam sujeitas à resolução de versões/conflitos existente.
+
 localStorage conserva o cache legado. IndexedDB `critcall-sync-v1`, separado por
 projeto/usuário, registra fila e versões em transações entre abas. Respostas
 removem somente operações confirmadas. IDs tornam repetições idempotentes,

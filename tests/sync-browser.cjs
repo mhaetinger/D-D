@@ -219,7 +219,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     assert.equal(await a.page.evaluate(()=>readPrivateNotes(getChar().id)),'Nota alterada offline','restaurar ficha não restaura anotações');
     await a.page.reload({waitUntil:'networkidle'});
     assert.equal(await a.page.evaluate(()=>getChar()?.coins.po),123);
-    assert.ok(await a.page.evaluate(()=>JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k=>k.endsWith('dnd_history_v1')))).stack.length>1),'histórico/checkpoints sobrevivem à recarga');
+    assert.ok(await a.page.evaluate(()=>JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k=>k.endsWith('dnd_character_history_v2:'+getChar().id)))).stack.length>1),'histórico/checkpoints desta ficha sobrevivem à recarga');
     // Alterar o retrato de uma cópia não sobrescreve o arquivo da ficha original.
     const source=await a.page.evaluate(()=>JSON.parse(JSON.stringify(getChar())));
     const copied={format:'critcall.character-backup',version:1,exportedAt:new Date().toISOString(),characters:[source]};

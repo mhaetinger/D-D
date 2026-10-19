@@ -102,6 +102,11 @@ Veja [docs/SINCRONIZACAO.md](docs/SINCRONIZACAO.md).
 Ao reabrir a aplicação, a última ficha selecionada é restaurada. Se ela tiver
 sido removida, abre a primeira ficha disponível.
 
+Cada personagem tem sua própria linha do tempo, com desfazer/refazer e marcos.
+Voltar um passo afeta somente essa ficha; notas pessoais e as outras fichas são
+preservadas. A linha do tempo também permite restaurar fichas excluídas. O
+histórico coletivo antigo é copiado por personagem sem apagar o original.
+
 No perfil local, **Baixar backup** salva suas fichas em JSON. As anotações pessoais
 ficam fora do arquivo por padrão; marque a opção para incluí-las em um backup
 privado. **Importar backup** cria cópias com novos identificadores, mantendo as
@@ -139,6 +144,11 @@ responsável pelo projeto; veja [public/books/README.md](public/books/README.md)
 
 O leitor PDF.js é hospedado junto do aplicativo e tem texto selecionável. Os
 balões e consultas do criador também oferecem as descrições das regras.
+O zoom livre mantém apenas a porcentagem atual na lista, junto dos atalhos fixos.
+
+A [auditoria do Livro do Jogador](docs/AUDITORIA-LIVRO-2014.md) percorre todos os
+capítulos/apêndices e distingue cálculo, consulta e pendências. Concentração,
+testes contra a morte e vários efeitos condicionais ainda exigem controle manual.
 
 ## Login em desenvolvimento
 

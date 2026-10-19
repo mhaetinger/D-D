@@ -21,6 +21,16 @@ eliminando o painel redundante sob as armas. Esta revisão tem 261 testes Node e
 Chromium de regras/ficha/armazenamento; ver a tabela de localização no mesmo plano.
 O incremento da evolução passou a usar a grade +/− da criação. Esta revisão tem
 262 testes Node, tipos/build e Chromium de regras/evolução e criação aprovados.
+Na revisão seguinte, zoom deixa de acumular porcentagens, cada ficha ganha
+histórico próprio (com migração preservando o coletivo e recuperação de excluídas)
+e os ajustes de defesa têm espaçamento e ajuda nos sete itens. O levantamento
+amplo está em [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md): há lacunas
+confirmadas, inclusive iniciativa/passivos e componentes cortados, além de
+concentração/morte/condições ainda manuais. Essas pendências não estão implementadas.
+Verificação desta revisão: `npm run check`, 266 testes Node, tipos/build e nove
+roteiros Chromium aprovados, incluindo login também sob `/`. A consulta ao
+Supabase real confirmou o contrato existente por leitura de metadados; nenhum
+SQL/RLS/RPC ou dado pessoal foi alterado.
 A versão anterior, com entrada/dado/retratos e correção do cache HTTP, foi
 integrada pelas PRs #3–#6. A implantação da correção concluiu no workflow
 [38954994107](https://github.com/mhaetinger/D-D/actions/runs/38954994107).

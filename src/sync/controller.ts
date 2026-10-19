@@ -3,6 +3,7 @@ import { currentWorkspaceKey, workspaceKey, workspaceStorage } from "../storage/
 import { storageMutations, announceStorageChange } from "../storage/mutations";
 import { sheetStore } from "../storage/character-store";
 import { currentStorageKey, migrateStorage } from "../storage/legacy";
+import { isCharacterHistoryKey } from '../storage/character-history';
 import { BrowserJournal } from "./journal";
 import { SyncEngine } from "./engine";
 import { SupabaseDocuments } from "./supabase-port";
@@ -58,7 +59,7 @@ export async function initializeSync(account: AccountSession) {
     const read = () => {
       const sourceKeys = Object.keys(localStorage).filter(key=>key.startsWith(next)).map(key=>key.slice(next.length));
       migrateStorage(port,sourceKeys);
-      const keys = sourceKeys.map(currentStorageKey).filter(key=>key.startsWith('critcall_recovery_v1'));
+      const keys = sourceKeys.map(currentStorageKey).filter(key=>key.startsWith('critcall_recovery_v1') || isCharacterHistoryKey(key));
       return readDocuments(port, keys);
     };
     remote = new SupabaseDocuments(account.client, identity.userId);

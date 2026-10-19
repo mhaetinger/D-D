@@ -2,6 +2,33 @@
 
 ## Não lançado
 
+### Histórico por ficha, zoom e revisão do livro — 2026-10-19
+
+- Cada personagem tem seu histórico/checkpoints e ponteiro de desfazer/refazer.
+  Restaurar um passo altera somente a ficha ativa, preservando outras fichas,
+  notas e preferências visuais. Fichas excluídas podem ser recuperadas pelo
+  histórico preservado, sem reverter a coleção inteira.
+- Migração copia mudanças reais do histórico coletivo por ID, sem apagar o
+  original; históricos ilegíveis são preservados e não bloqueiam fichas válidas.
+  A sincronização usa documentos separados por ficha, sem alteração de SQL/RLS/RPC.
+- O zoom do livro mantém os atalhos fixos e só a porcentagem livre atual.
+- Ajustes de defesa separam rótulos/campos e dão espaço às caixas dos efeitos.
+  Sete ajudas explicam fórmula, bônus e magias por mouse/teclado ou clique/toque,
+  incluindo os limites de aplicação automática. A dica dos Dados de Vida deixa
+  de anunciar recuperação integral obrigatória.
+- Auditoria de todos os capítulos/apêndices em `docs/AUDITORIA-LIVRO-2014.md`,
+  com matriz das 12 classes/41 subclasses e inventário de raças/talentos/magias.
+  Identifica iniciativa/passivos e 139 resumos de componentes cortados, além de
+  concentração, morte, Dados de Vida, inspiração e condições ainda incompletos.
+  As pendências estão registradas; não foram todas implementadas nesta entrega.
+- Verificação: `npm run check` aprovado com 266 testes Node, tipos/build e os
+  nove roteiros Chromium sob `/D-D/` (login também sob `/`). Inclui históricos
+  independentes/migração, exclusão/restauração/notas, alterações concorrentes em
+  documentos de fichas diferentes, zoom sem acúmulo, sete ajudas sem marcar
+  efeitos e espaçamento nos três temas/320 px/GG. Capturas de defesa escura
+  conferidas em desktop/celular. Testes de sync usam HTTP simulado; o projeto real
+  teve apenas leitura de metadados da RPC, sem escrita em dados de jogadores.
+
 ### Contraste das listas nos temas escuros — 2026-10-19
 
 - Seletores nativos e suas opções acompanham o tema, incluindo a lista de

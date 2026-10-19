@@ -53,11 +53,11 @@ async function importBackup(page, value) {
 
     // A seleção sobrevive à recarga e acompanha o ID, mesmo com outra ordem.
     await page.evaluate(() => closeAuthAccountModal());
-    const historyBeforeLayout = await page.evaluate(() => JSON.parse(localStorage.getItem("dnd_history_v1")).stack.length);
+    const historyBeforeLayout = await page.evaluate(() => JSON.parse(localStorage.getItem('dnd_character_history_v2:'+getChar().id)).stack.length);
     await page.locator("#btnModern").click();
     await page.locator("#btnClassic").click();
     const historyAfterLayout = await page.evaluate(() => {
-      const saved = JSON.parse(localStorage.getItem("dnd_history_v1"));
+      const saved = JSON.parse(localStorage.getItem('dnd_character_history_v2:'+getChar().id));
       return { length: saved.stack.length, layoutActions: saved.stack.filter((item) => item.action.startsWith("Alternou layout para ")).length };
     });
     assert.equal(historyAfterLayout.length, historyBeforeLayout, "trocar o layout não cria passos no histórico");

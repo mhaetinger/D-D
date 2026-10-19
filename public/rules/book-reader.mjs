@@ -142,10 +142,18 @@ next.addEventListener("click", () => {
   const { book, page } = selectionFromHash(location.hash);
   navigate(book.id, page + 1);
 });
-zoom.addEventListener("change", () => renderPage(selectionFromHash(location.hash)));
+function removeCustomZooms() {
+  for (const option of zoom.querySelectorAll('[data-custom-zoom]')) option.remove();
+}
+zoom.addEventListener("change", () => {
+  if(!zoom.selectedOptions[0]?.dataset.customZoom) removeCustomZooms();
+  renderPage(selectionFromHash(location.hash));
+});
 let zoomTimer;
 function setReaderZoom(value) {
   const next = Math.round(Math.max(.5, Math.min(3, value))*100)/100;
+  // A lista guarda os atalhos fixos e, no máximo, o zoom livre atual.
+  removeCustomZooms();
   if (![...zoom.options].some(o => Number(o.value) === next)) {
     const option = new Option(`${Math.round(next*100)}%`,String(next));
     option.dataset.customZoom = 'true'; zoom.append(option);

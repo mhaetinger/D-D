@@ -8,9 +8,9 @@ import { featureResourceBindings, resourcesAt } from "../rules/placement";
 import { canCastNormally, canRitual, preparation } from "../rules/spellcasting";
 import { takeRest } from "../rules/rest";
 import { onSpellCast } from "../rules/resources";
+import { characterSnapshot, historyComparable as characterHistoryComparable, historyKey, HISTORY_PREFIX, isCharacterHistoryKey, migrateCharacterHistories, splitLegacyHistory, validateCharacterHistory } from '../storage/character-history';
 import { setupDiceDock } from "./dice-dock";
 import { avatarMarkup } from "../media/avatar";
-import { canonical, validateDocument } from "../sync/documents";
 
 // =========================================================================
 // 1. METADADOS E CATÁLOGOS
@@ -525,7 +525,7 @@ let twinnedActiveBySpell = { "Mísseis Mágicos": true };
 let homebrewInitialState = "";
 let weaponDamageDraft = null; // Montagem do formulário; nunca usa o pool da bandeja.
 const HIT_DICE_RULE = {
-  text: "Referência para rolar os Dados de Vida manualmente na bandeja e ajustar os PV pelos botões da ficha. Nesta campanha, dormir recupera todos os PV e recursos registrados, incluindo a reserva completa de Dados de Vida (regra da mesa).",
+  text: "No descanso curto, role os Dados de Vida manualmente na bandeja e ajuste os PV pelos botões da ficha. O gasto desses dados ainda exige controle manual. O descanso longo recupera até metade do nível total em Dados de Vida, no mínimo um; recuperar a reserva inteira é uma adaptação opcional da mesa.",
 };
 const COIN_LABELS = { pc: "Cobre", pp: "Prata", pe: "Electro", po: "Ouro", pl: "Platina" };
 const LORE_LABELS = { traits: "Personalidade", ideals: "Ideais", bonds: "Ligações", flaws: "Defeitos", backstory: "História do personagem", appearance: "Aparência", allies: "Aliados", treasure: "Tesouros narrativos" };
@@ -533,14 +533,10 @@ const PHYSICAL_LABELS = { age: "Idade", height: "Altura", weight: "Peso", eyes: 
 
 // Histórico pessoal persistido separadamente; preferências visuais não são passos.
 function historySnapshot() {
-  const snapshot = structuredClone(characters);
-  for (const character of snapshot) delete character.preferredLayout;
-  return JSON.stringify(snapshot);
+  return getChar()?characterSnapshot(getChar()):'[]';
 }
 function historyComparable(value) {
-  const snapshot = JSON.parse(value);
-  for (const character of snapshot) delete character.preferredLayout;
-  return canonical(snapshot);
+  return characterHistoryComparable(value);
 }
 let historyStack = [
   {
@@ -556,30 +552,42 @@ let historyStack = [
 ];
 let historyPointer = 0;
 let historyWritable = true;
+let historyOwnerId = null;
 function restoreSavedHistory() {
   historyWritable = true;
-  const raw = readPreference('dnd_history_v1');
+  const char=getChar();historyOwnerId=char?.id || null;historyPointer=0;
+  historyStack=char?[{timestamp:new Date().toISOString(),action:'Marco inicial desta ficha',isCheckpoint:true,stateJson:historySnapshot()}]:[];
+  if(!char) return;
+  let raw=readPreference(historyKey(char.id));
+  if(raw===null) {
+    const port=workspaceStorage(()=>localStorage);let legacy;
+    try { legacy=port.getItem('dnd_history_v1'); } catch { historyWritable=false;return; }
+    if(legacy) try { migrateCharacterHistories(port);raw=port.getItem(historyKey(char.id)); }
+    catch {
+      try { const h=splitLegacyHistory(legacy).get(char.id);if(h) raw=JSON.stringify(h); }
+      catch { showToast('O histórico antigo foi preservado; não foi possível separar seus passos.'); }
+    }
+  }
   if (!raw) return;
   try {
-    validateDocument({ kind: 'preference', id: 'dnd_history_v1', value: raw });
-    const saved = JSON.parse(raw);
+    const saved = validateCharacterHistory(raw,char.id);
     const current = saved.stack[saved.pointer];
     historyStack = saved.stack.filter((item) => !/^Alternou layout para /.test(item.action));
     historyPointer = historyStack.indexOf(current);
     if (historyPointer < 0) historyPointer = Math.min(saved.pointer, historyStack.length - 1);
-    if (historyComparable(historyStack[historyPointer].stateJson) !== canonical(JSON.parse(historySnapshot()))) {
+    if (!historyStack.length || historyComparable(historyStack[historyPointer].stateJson) !== historyComparable(historySnapshot())) {
       historyStack.push({ timestamp: new Date().toISOString(), action: 'Estado mais recente carregado', isCheckpoint: true, stateJson: historySnapshot() });
       historyPointer = historyStack.length - 1;
     }
   } catch {
-    try { workspaceStorage(() => localStorage).setItem(`critcall_recovery_v1_history_${crypto.randomUUID()}`, raw); }
-    catch { historyWritable = false; }
-    showToast('O histórico não pôde ser lido. O conteúdo anterior foi preservado para recuperação.');
+    historyWritable = false;
+    showToast('O histórico desta ficha não pôde ser lido. O original foi preservado; novos passos ficam só nesta aba.');
   }
 }
 function persistHistory() {
+  if(!getChar() || historyOwnerId!==getChar().id) return;
   if (!historyWritable) { showToast('O histórico anterior está ilegível e foi preservado. Baixe um backup antes de fechar.'); return; }
-  if (!writePreference('dnd_history_v1', JSON.stringify({ stack: historyStack, pointer: historyPointer }))) showToast('O histórico não pôde ser salvo. Baixe um backup antes de fechar.');
+  if (!writePreference(historyKey(historyOwnerId), JSON.stringify({ version:2,characterId:historyOwnerId,stack: historyStack, pointer: historyPointer }))) showToast('O histórico não pôde ser salvo. Baixe um backup antes de fechar.');
 }
 
 const COIN_RATES_IN_PC = { pc: 1, pp: 10, pe: 50, po: 100, pl: 1000 };
@@ -650,12 +658,11 @@ function getChar() {
 }
 
 function loadHistoryState(index) {
-  // Uma exclusão/criação pode mudar índices: preserva o ID ativo, se existir.
-  const activeId = getChar()?.id;
-  const layouts = new Map(characters.map((char) => [char.id, char.preferredLayout]));
-  characters = JSON.parse(historyStack[index].stateJson);
-  for (const char of characters) if (layouts.has(char.id)) char.preferredLayout = layouts.get(char.id);
-  activeCharIndex = Math.max(0, characters.findIndex((char) => char.id === activeId));
+  const current=getChar();if(!current || current.id!==historyOwnerId) return;
+  const [saved]=JSON.parse(historyStack[index].stateJson);
+  if(saved?.id!==current.id) return;
+  // Desfazer só substitui a ficha ativa; identidade do perfil e exibição seguem atuais.
+  characters[activeCharIndex]={...saved,preferredLayout:current.preferredLayout,playerName:current.playerName};
 }
 
 // Cálculos usados pelos três painéis e pelo cabeçalho da ficha.
@@ -775,6 +782,8 @@ function recordStepAndSave(
   actionDescription,
   isManualCheckpoint = false,
 ) {
+  if(historyOwnerId!==(getChar()?.id || null)) restoreSavedHistory();
+  if(!getChar()) { saveStateQuiet();return; }
   // Uma edição após desfazer abre um novo caminho e descarta o antigo refazer.
   if (historyPointer < historyStack.length - 1) {
     historyStack = historyStack.slice(0, historyPointer + 1);
@@ -841,7 +850,9 @@ function saveNamedCheckpoint() {
 }
 
 async function restoreToSessionStart() {
-  if (!await confirmDestructiveAction("Voltar ao Marco Zero?", "As fichas serão substituídas pelo estado de quando esta sessão foi aberta. Isso pode desfazer criações, exclusões e alterações de todos os personagens desta sessão.", "Voltar ao Marco Zero")) return;
+  const ownId=getChar()?.id;if(!ownId) return;
+  if (!await confirmDestructiveAction("Voltar ao Marco Zero?", "Somente esta ficha voltará ao primeiro estado do seu histórico. As outras fichas e as anotações pessoais serão preservadas.", "Voltar ao Marco Zero")) return;
+  if(getChar()?.id!==ownId) return;
   jumpToHistoryStep(0);
 }
 
@@ -857,6 +868,7 @@ function toggleHistoryDrawer() {
 function renderHistoryDrawerList() {
   const listEl = document.getElementById("historyTimelineList");
   if (!listEl) return;
+  document.getElementById('historyCharacterName').textContent=getChar()?.name || 'Abra uma ficha';
   listEl.innerHTML = historyStack
     .map((item, idx) => {
       const isCurrent = idx === historyPointer;
@@ -875,7 +887,30 @@ function renderHistoryDrawerList() {
     })
     .reverse()
     .join("");
+  renderDeletedHistories();
   if (window.lucide) window.lucide.createIcons();
+}
+
+let deletedHistories=[];
+function renderDeletedHistories() {
+  const host=document.getElementById('deletedCharacterHistories');if(!host) return;
+  deletedHistories=[];
+  try {
+    const scope=currentWorkspaceKey(),port=workspaceStorage(()=>localStorage);
+    for(const key of Object.keys(localStorage).filter(k=>k.startsWith(scope)).map(k=>k.slice(scope.length)).filter(isCharacterHistoryKey)) {
+      const id=key.slice(HISTORY_PREFIX.length);if(characters.some(c=>c.id===id)) continue;
+      try { const h=validateCharacterHistory(port.getItem(key),id),[c]=JSON.parse(h.stack[h.pointer].stateJson);deletedHistories.push(c); } catch { /* Arquivos ilegíveis permanecem intactos. */ }
+    }
+  } catch { /* Armazenamento bloqueado não impede a ficha em memória. */ }
+  host.hidden=!deletedHistories.length;
+  host.innerHTML=deletedHistories.length?`<summary>Fichas excluídas (${deletedHistories.length})</summary>${deletedHistories.map((c,i)=>`<button type="button" onclick="restoreDeletedCharacter(${i})" class="block underline py-1">Restaurar ${escapeHTML(c.name)}</button>`).join('')}`:'';
+}
+function restoreDeletedCharacter(index) {
+  const recovered=deletedHistories[index];if(!recovered || characters.some(c=>c.id===recovered.id)) return;
+  const c=structuredClone(recovered),profile=readPreference('dnd_public_player_name');if(profile!==null) c.playerName=profile;
+  const next=[...characters,c];if(!sheetStore.write(next)) return showToast('Não foi possível restaurar. O histórico foi preservado.');
+  characters=next;activeCharIndex=characters.length-1;restoreSavedHistory();
+  recordStepAndSave('Restaurou ficha excluída',true);renderAccountCharactersList();
 }
 
 // =========================================================================
@@ -1289,10 +1324,20 @@ function renderAccountCharactersList() {
 
 async function deleteCharacter(idx) {
   if (characters.length <= 1 || !characters[idx]) return;
-  if (!await confirmDestructiveAction("Excluir personagem?", `A ficha de “${characters[idx].name}”, incluindo magias, ataques, inventário e história, será excluída deste navegador. Você poderá desfazer nesta sessão.`, "Excluir personagem")) return;
-  const removed = characters.splice(idx, 1)[0];
-  activeCharIndex = 0;
-  recordStepAndSave(`Removeu personagem "${removed.name}"`);
+  const target=characters[idx],scope=currentWorkspaceKey();
+  if (!await confirmDestructiveAction("Excluir personagem?", `A ficha de “${target.name}” será excluída. Você poderá restaurá-la em Fichas excluídas, na linha do tempo.`, "Excluir personagem")) return;
+  if(scope!==currentWorkspaceKey() || !characters.includes(target)) return;
+  // Guarde a última edição antes de excluir; outro personagem não recebe este passo.
+  try {
+    const key=historyKey(target.id),raw=readPreference(key);
+    const h=raw?validateCharacterHistory(raw,target.id):{version:2,characterId:target.id,stack:[],pointer:0};
+    const snapshot=characterSnapshot(target);
+    if(!h.stack.length || historyComparable(h.stack[h.pointer].stateJson)!==historyComparable(snapshot)) { h.stack=h.stack.slice(0,h.pointer+1);h.stack.push({timestamp:new Date().toISOString(),action:'Último estado antes de excluir',isCheckpoint:true,stateJson:snapshot});h.pointer=h.stack.length-1; }
+    if(!writePreference(key,JSON.stringify(h))) throw new Error();
+  } catch { return showToast('Não foi possível preservar o histórico; a ficha continua aqui.'); }
+  const activeId=getChar()?.id,next=characters.filter(c=>c.id!==target.id);
+  if(!sheetStore.write(next)) return showToast('Não foi possível excluir; a ficha foi preservada.');
+  characters=next;activeCharIndex=Math.max(0,characters.findIndex(c=>c.id===activeId));restoreSavedHistory();renderAll();
   renderAccountCharactersList();
 }
 
@@ -2069,6 +2114,7 @@ function renderLoreSection(char) {
 // 9. RENDERALL & EVENTOS GERAIS
 // =========================================================================
 function renderAll() {
+  if(historyOwnerId!==(getChar()?.id || null)) restoreSavedHistory();
   const panelPositions = window.PanelFlow?.capture(document.getElementById("sheetViewport"));
   window.PanelFlow?.dispose();
   RuleTooltips.hide();
@@ -2100,7 +2146,7 @@ function renderAll() {
   document.getElementById("btnRedo").disabled =
     historyPointer >= historyStack.length - 1;
   document.getElementById("historyCountBadge").textContent =
-    `${historyPointer}/${historyStack.length - 1}`;
+    `${historyPointer}/${Math.max(0,historyStack.length - 1)}`;
   renderHistoryDrawerList();
 
   ["pergaminho_claro", "pergaminho_escuro", "obsidiana"].forEach((th) => {
@@ -2731,6 +2777,7 @@ function setTab(tab) {
 function switchCharacter(idx) {
   hideBookTooltip();
   activeCharIndex = parseInt(idx, 10);
+  restoreSavedHistory();
   renderAll();
 }
 function updateField(field, value) {
@@ -2978,8 +3025,7 @@ function shortRest() {
 }
 
 async function longRest() {
-  // Regra desta campanha: dormir recupera tudo, sem gasto de Dados de Vida.
-  // Não substitui a referência de descansos do livro para outras campanhas.
+  // A recuperação integral dos Dados de Vida exige escolha explícita da mesa.
   const char = getChar();
   if (Number(char.exhaustion)>=6) return showToast('Exaustão 6 significa morte; um descanso não revive o personagem.');
   const choices = document.createElement('div');
@@ -3097,6 +3143,7 @@ Object.assign(window, {
   restoreToSessionStart,
   toggleHistoryDrawer,
   renderHistoryDrawerList,
+  restoreDeletedCharacter,
   setDiceMode,
   setRollMode,
   readDiceTrayDimensions,

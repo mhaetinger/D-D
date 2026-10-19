@@ -38,6 +38,17 @@ function setup(remote = new Remote(), journal: JournalPort = new BrowserJournal(
 }
 const name = (value: string): Documents => ({ [documentKey("preference", "dnd_public_player_name")]: { kind: "preference", id: "dnd_public_player_name", value } });
 
+test('históricos de personagens diferentes sincronizam sem disputar o mesmo documento',async()=>{
+  const remote=new Remote(),a=setup(remote),b=setup(remote),ca=warrior(),cb=warrior();
+  const make=(c:any,action:string)=>{const id='dnd_character_history_v2:'+c.id;return {[documentKey('preference',id)]:{kind:'preference' as const,id,value:JSON.stringify({version:2,characterId:c.id,stack:[{timestamp:'2026-10-19T12:00:00Z',action,stateJson:JSON.stringify([c]),isCheckpoint:true}],pointer:0})}}};
+  await a.engine.capture(true);a.docs={...make(ca,'Inicial A'),...make(cb,'Inicial B')};await a.engine.capture();await a.engine.run();
+  await b.engine.capture(true);await b.engine.run();
+  a.docs={...a.docs,...make(ca,'Mudou A')};b.docs={...b.docs,...make(cb,'Mudou B')};
+  await a.engine.capture();await b.engine.capture();await a.engine.run();await b.engine.run();await a.engine.run();
+  const values=Object.values(a.docs).map(d=>JSON.parse(d.value as string).stack[0].action);
+  assert.ok(values.includes('Mudou A'));assert.ok(values.includes('Mudou B'));assert.equal(Object.keys(a.docs).length,2);
+});
+
 test('migração de identificadores conserva operações antigas da fila e projeta preferência atual',async()=>{
   const remote=new Remote(),journal=new BrowserJournal(new IDBFactory()),scope='conta-migrada';
   const old=legacyKeyFor('critcall_active_character_v1'),char=warrior(),operationId=crypto.randomUUID();

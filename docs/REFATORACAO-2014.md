@@ -1,5 +1,9 @@
 # Revisão universal das regras — 19/10/2026
 
+Para a auditoria posterior de **todos os capítulos/apêndices**, consulte
+[AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md). Concluir os itens desta
+refatoração não significa implementar todos os efeitos do livro.
+
 Base: Livro do Jogador local (314 páginas), capítulos 3, 5, 6, 9, 10,
 descrições de magias e apêndice A. O exemplar inclui Patrulheiro Revisado,
 que permanece identificado como adaptação. Extração completa consultável com
