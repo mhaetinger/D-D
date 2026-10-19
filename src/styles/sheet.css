@@ -8,6 +8,7 @@ html {
 
 :root,
 [data-theme="pergaminho_claro"] {
+  --control-color-scheme: light;
   --bg-page: #efe4ce;
   --bg-header: rgba(235, 222, 196, 0.96);
   --bg-card: #f8f1e0;
@@ -34,6 +35,7 @@ html {
 }
 
 [data-theme="pergaminho_escuro"] {
+  --control-color-scheme: dark;
   --bg-page: #14100d;
   --bg-header: rgba(22, 17, 13, 0.96);
   --bg-card: #1f1914;
@@ -59,6 +61,7 @@ html {
 }
 
 [data-theme="obsidiana"] {
+  --control-color-scheme: dark;
   --bg-page: #09090b;
   --bg-header: rgba(9, 9, 11, 0.95);
   --bg-card: #121215;
@@ -86,6 +89,19 @@ body {
   font-family: var(--font-body);
   background-color: var(--bg-page);
   color: var(--text-main);
+}
+
+/* O menu nativo também precisa do tema: texto claro sobre o fundo padrão
+   branco do sistema tornava as opções de empunhadura ilegíveis. */
+select {
+  color-scheme: var(--control-color-scheme, light);
+  color: var(--text-main);
+  background-color: var(--bg-inset);
+  border-color: var(--border-main);
+}
+select option, select optgroup {
+  color: var(--text-main);
+  background-color: var(--bg-card);
 }
 
 /* As etiquetas em pixels não acompanhavam P/M/G/GG. O pequeno piso em rem

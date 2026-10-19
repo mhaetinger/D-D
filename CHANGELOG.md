@@ -2,6 +2,13 @@
 
 ## Não lançado
 
+### Contraste das listas nos temas escuros — 2026-10-19
+
+- Seletores nativos e suas opções acompanham o tema, incluindo a lista de
+  uma/duas mãos das armas. Evita texto claro sobre o menu branco do sistema.
+- Verificação: 262 testes Node, build e Chromium de regras aprovados; cores do
+  seletor/opções e troca de mãos conferidas nos três temas.
+
 ### Incremento de habilidades na evolução — 2026-10-19
 
 - Os dois seletores de atributos foram substituídos pela grade visual da criação,
