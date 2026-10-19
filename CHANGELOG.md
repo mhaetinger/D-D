@@ -2,6 +2,17 @@
 
 ## Não lançado
 
+### Incremento de habilidades na evolução — 2026-10-19
+
+- Os dois seletores de atributos foram substituídos pela grade visual da criação,
+  com +/−, valor atual/final e pontos disponíveis. Permite +2 em um atributo ou
+  +1 em dois, bloqueando o terceiro ponto e valores acima de 20.
+- Dicas por ponto e consulta duplicada da opção foram retiradas; a consulta da
+  regra permanece recolhível. Escolha de talento continua disponível quando
+  habilitada. Redistribuir e voltar de etapa preserva as escolhas.
+- Verificação: 262 testes Node, tipos/build e Chromium de regras/evolução e
+  criação, com aplicação real do nível, três temas/320 px/GG e preservação dos nós.
+
 ### Controles nos campos existentes, sem painel redundante — 2026-10-19
 
 - Removido o bloco separado de recursos abaixo das armas. Usos e estados são

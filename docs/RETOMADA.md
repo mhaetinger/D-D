@@ -19,6 +19,8 @@ detalhes das execuções e limites em `REFATORACAO-2014.md`.
 Após teste do responsável, os controles foram incorporados aos lugares existentes,
 eliminando o painel redundante sob as armas. Esta revisão tem 261 testes Node e
 Chromium de regras/ficha/armazenamento; ver a tabela de localização no mesmo plano.
+O incremento da evolução passou a usar a grade +/− da criação. Esta revisão tem
+262 testes Node, tipos/build e Chromium de regras/evolução e criação aprovados.
 A versão anterior, com entrada/dado/retratos e correção do cache HTTP, foi
 integrada pelas PRs #3–#6. A implantação da correção concluiu no workflow
 [38954994107](https://github.com/mhaetinger/D-D/actions/runs/38954994107).

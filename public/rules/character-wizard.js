@@ -306,6 +306,7 @@
       nextSignatures.set(f.id, signature);
     }
     renderedChoices = nextSignatures;
+    guide().bindIncrements(host, E.scores(ctx()), draft.answers, persistDraft);
     persistDraft();
     restoreView(state);
     root.lucide?.createIcons();
@@ -1084,6 +1085,7 @@
     auto_hit: "Acerto automático",
   };
   function choice(f) {
+    if (f.id === 'asi') return guide().incrementMarkup(f);
     const selected = array(draft.answers[f.id]);
     const items = f.options.map((o) => ({
       ...o,
@@ -1092,7 +1094,7 @@
     let control = "";
     if (f.count === 1) {
       const picked = items.find((o) => o.value === selected[0]);
-      control = `<select data-answer="${f.id}" ${items.some((o) => o.reference?.text) ? 'data-help-picker="true"' : ""} aria-label="${escape(f.label)}">${options(items, selected[0], f.min === 0 ? "Manter / não trocar" : "Escolha…")}</select>${picked?.spell ? spellDetails(picked.spell) : picked?.reference ? `<details class="cw-source"><summary>Consultar ${escape(picked.label)}</summary><p>${escape(root.RuleTooltips.formatText(picked.reference.text))}</p><a href="book.html#page=${picked.reference.pdfPage}" target="_blank" rel="noopener">Abrir no livro · p. ${picked.reference.page}</a></details>` : ""}`;
+      control = `<select data-answer="${f.id}" ${items.some((o) => o.reference?.text) ? 'data-help-picker="true"' : ""} aria-label="${escape(f.label)}">${options(items, selected[0], f.min === 0 ? "Manter / não trocar" : "Escolha…")}</select>${picked?.spell ? spellDetails(picked.spell) : picked?.reference && f.id !== 'advancement' ? `<details class="cw-source"><summary>Consultar ${escape(picked.label)}</summary><p>${escape(root.RuleTooltips.formatText(picked.reference.text))}</p><a href="book.html#page=${picked.reference.pdfPage}" target="_blank" rel="noopener">Abrir no livro · p. ${picked.reference.page}</a></details>` : ""}`;
     } else if (!f.unique)
       control = Array.from(
         { length: f.count },
@@ -1558,6 +1560,7 @@
     renderedView = view;
     renderedChoices = new Map(fields.map((f) => [f.id, JSON.stringify(f)]));
     guide().bindAbilities(host, draft.setup, () => E.scores(ctx()), persistDraft);
+    guide().bindIncrements(host, E.scores(ctx()), draft.answers, persistDraft);
     persistDraft();
     restoreView(state);
     root.lucide?.createIcons();

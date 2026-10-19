@@ -293,6 +293,12 @@ contador da própria magia. `ui.ts` preserva foco e expansão ao salvar.
 `ruleState` viaja no documento da ficha e
 nas versões existentes, sem SQL novo ou alteração de autorização.
 
+`src/wizard/increments.ts` reutiliza os cards de `abilities.ts` para o incremento
+da evolução. Atualiza os nós em lugar e conserva `answers.asi` como a lista de
+dois códigos já esperada pelo motor; não reaplica raça nem modifica a ficha
+antes da confirmação. A interface bloqueia orçamento/limite, e o motor continua
+validando a aplicação final.
+
 `src/storage/legacy.ts` concentra a leitura de identificadores históricos e a
 cópia para chaves atuais. Fichas, recuperações e ficha ativa passam a usar prefixo
 CritCall; a fila mantém IDs/revisões antigos até confirmação. A projeção de

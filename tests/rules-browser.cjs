@@ -97,6 +97,38 @@ const {warrior} = require('./fixture.cjs');
     await page.screenshot({path:'/tmp/critcall-context-main.png'});
     await page.evaluate(()=>{setTab('spells');scrollTo(0,0);});
     await page.screenshot({path:'/tmp/critcall-context-spells.png'});
+    // Evolução: reutiliza a grade da criação sem listas/dicas por ponto.
+    await page.evaluate(()=>{
+      const c=getChar();c.classes=[{classId:'barbaro',level:3,subclassId:'berserker',subclass:'Caminho do Furioso',hitDie:12,hitDiceUsed:0}];c.rules.history=[];c.rules.allowFeats=true;c.abilities.str.score=19;c.abilities.con.score=18;c.abilities.cha.score=20;
+      c.sorceryPoints={max:0,current:0};c.pactMagic={level:0,total:0,used:0};c.ruleState={used:{},active:{},pools:{},targets:{}};
+      recordStepAndSave('Bárbaro para evolução sintética',true);openLevelUpModal();
+    });
+    const wizard=page.locator('#characterWizard'),next=()=>wizard.locator('[data-action="next"]').click();
+    await next();await next();
+    await wizard.locator('[data-answer="advancement"]').selectOption('asi');
+    assert.equal(await wizard.locator('[data-answer="asi"]').count(),0);
+    assert.equal(await wizard.locator('.cw-asi-grid .cw-source').count(),0);
+    const score=key=>wizard.locator(`.cw-asi-grid [data-ability-card="${key}"]`);
+    assert.equal(await score('cha').locator('[data-increment="1"]').isDisabled(),true);
+    await page.evaluate(()=>window.incrementGrid=document.querySelector('.cw-asi-grid'));
+    await score('con').locator('[data-increment="1"]').click();await score('con').locator('[data-increment="1"]').click();
+    assert.equal(await score('con').locator('[data-increment-value]').innerText(),'20');
+    assert.equal(await score('str').locator('[data-increment="1"]').isDisabled(),true);
+    await score('con').locator('[data-increment="-1"]').click();await score('str').locator('[data-increment="1"]').click();
+    assert.equal(await score('str').locator('[data-increment-value]').innerText(),'20');
+    assert.equal(await score('con').locator('[data-increment-value]').innerText(),'19');
+    assert.equal(await page.evaluate(()=>window.incrementGrid.isConnected),true);
+    await wizard.locator('[data-action="back"]').click();await next();
+    assert.equal(await score('str').locator('[data-increment-value]').innerText(),'20');
+    for(const theme of ['pergaminho_claro','pergaminho_escuro','obsidiana']) {
+      await page.setViewportSize({width:320,height:760});await page.evaluate(t=>{setTheme(t);setFontScale(125);},theme);
+      assert.equal(await wizard.locator('.cw-dialog').evaluate(el=>el.scrollWidth>el.clientWidth),false);
+    }
+    await page.setViewportSize({width:1100,height:850});await page.evaluate(()=>setFontScale(100));
+    await page.screenshot({path:'/tmp/critcall-asi.png'});
+    await next();await next();await wizard.locator('[data-action="finish"]').click();await wizard.waitFor({state:'hidden'});
+    assert.equal(await page.evaluate(()=>getChar().abilities.str.score),20);assert.equal(await page.evaluate(()=>getChar().abilities.con.score),19);
+    assert.equal(await page.evaluate(()=>getChar().classes[0].level),4);
     const book=await browser.newPage();book.on('pageerror',e=>errors.push(e.message));
     await book.goto(server.url+'book.html#page=148');
     await book.waitForFunction(()=>document.querySelector('#bookReader').dataset.renderedPage==='148' && document.querySelector('#bookReader').getAttribute('aria-busy')==='false');

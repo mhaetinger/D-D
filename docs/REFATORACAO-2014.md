@@ -114,3 +114,9 @@ Obscuro permanece junto aos PV temporários; o botão repetido no Pacto foi reti
 Verificação desta revisão: 261 testes Node, tipos/build, Chromium de regras,
 ficha e armazenamento/offline. O roteiro de regras confere unicidade dos controles,
 gastos/persistência e os dois layouts em três temas/320 px/fonte GG.
+
+O Incremento no Valor de Habilidade da evolução agora usa os mesmos cards da
+criação, com +/− e prévia atual/final, em vez dos dois seletores com dicas
+repetidas. Mantém o contrato `answers.asi`, o limite 20 e a alternativa de talento.
+Verificação: 262 testes Node, tipos/build e roteiros Chromium de regras/evolução
+e criação; inclui redistribuição, retorno de etapa e aplicação no bárbaro 3→4.

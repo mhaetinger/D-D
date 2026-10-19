@@ -1,6 +1,6 @@
 export const STANDARD = [15, 14, 13, 12, 10, 8];
 export const COST: Record<number, number> = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 };
-const labels: Record<string, string> = { str: 'Força', dex: 'Destreza', con: 'Constituição', int: 'Inteligência', wis: 'Sabedoria', cha: 'Carisma' };
+export const labels: Record<string, string> = { str: 'Força', dex: 'Destreza', con: 'Constituição', int: 'Inteligência', wis: 'Sabedoria', cha: 'Carisma' };
 const hints: Record<string, string> = { str: 'Esforço físico, saltos e ataques corpo a corpo com muitas armas.', dex: 'Agilidade, furtividade, iniciativa e ataques à distância.', con: 'Resistência física, pontos de vida e concentração em magias.', int: 'Raciocínio, memória, investigação e magia dos magos.', wis: 'Atenção, intuição e magia de clérigos, druidas e patrulheiros.', cha: 'Presença, interação social e magia de bardos, bruxos e feiticeiros.' };
 export interface AbilitySetup { abilityMethod: string; baseScores: Record<string, number>; assignment: Record<string, string>; rolls: number[][] }
 export const totals = (s: AbilitySetup) => s.abilityMethod === 'rolled' ? s.rolls.map(g => g.reduce((a, b) => a + b, 0) - Math.min(...g)) : STANDARD;
@@ -26,8 +26,11 @@ export function assign(s: AbilitySetup, index: string, target: string) {
   }
   return true;
 }
+export function abilityCard(key:string,content:string,showHint=true) {
+  return `<section class="cw-ability-card" data-ability-card="${key}"><strong>${labels[key]}</strong>${showHint?`<p class="cw-muted">${hints[key]}</p>`:''}${content}</section>`;
+}
 export function abilityMarkup() {
-  return `<div id="cw-distribution"><p class="cw-ability-status" role="status"></p><div class="cw-token-pool" aria-label="Valores disponíveis"></div><div class="cw-grid">${Object.entries(labels).map(([key, name]) => `<section class="cw-ability-card" data-ability-card="${key}"><strong>${name}</strong><p class="cw-muted">${hints[key]}</p><div class="cw-stepper"><button type="button" data-adjust="-1" aria-label="Diminuir ${name}">−</button><output data-score></output><button type="button" data-adjust="1" aria-label="Aumentar ${name}">+</button></div><button type="button" class="cw-ability-slot" data-slot="${key}" aria-label="Atribuir valor a ${name}"></button><span class="cw-muted" data-final></span></section>`).join('')}</div></div>`;
+  return `<div id="cw-distribution"><p class="cw-ability-status" role="status"></p><div class="cw-token-pool" aria-label="Valores disponíveis"></div><div class="cw-grid">${Object.entries(labels).map(([key, name]) => abilityCard(key,`<div class="cw-stepper"><button type="button" data-adjust="-1" aria-label="Diminuir ${name}">−</button><output data-score></output><button type="button" data-adjust="1" aria-label="Aumentar ${name}">+</button></div><button type="button" class="cw-ability-slot" data-slot="${key}" aria-label="Atribuir valor a ${name}"></button><span class="cw-muted" data-final></span>`)).join('')}</div></div>`;
 }
 export function bindAbilities(host: HTMLElement, s: AbilitySetup, scores: () => Record<string, number>, save: () => void) {
   const panel = host.querySelector<HTMLElement>('#cw-distribution');

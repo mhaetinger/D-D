@@ -197,6 +197,10 @@ padrão e resultados de 4d6 usam peças: arraste ou selecione por clique/teclado
 escolha o destino. Mover para um destino ocupado troca as peças, sem duplicar
 valores. A rolagem tem animação, respeitando movimento reduzido.
 
+Na evolução, o Incremento no Valor de Habilidade reutiliza a grade dos seis
+atributos: distribua dois pontos com +/− e confira os valores atuais/finais.
+O limite de 20 é imediato; você pode devolver pontos antes de concluir.
+
 Fechar a criação conserva o rascunho neste navegador, por espaço. **+ Novo**
 retoma o rascunho; concluir remove-o somente se a ficha tiver sido salva. Se
 houver outro rascunho na conta ao vincular dados locais, ele é preservado e o
