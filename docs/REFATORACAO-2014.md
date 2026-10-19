@@ -11,7 +11,7 @@ que permanece identificado como adaptação. Extração completa consultável co
 2. [x] Armas: reconciliar catálogo/importações e calcular proficiência, mãos,
    habilidade, magia e estados em `src/rules/combat.ts`; integrar ataques/editor.
 3. [x] Recursos: modelo por classe/subclasse, preparação, descansos e exaustão
-   em `src/rules/`; painel compacto na ficha, sem recursos de classes ausentes.
+   em `src/rules/`; controles em contexto, sem recursos de classes ausentes.
 4. [x] Textos: normalização de objetos legados com preservação dos dados e
    leitura compatível em `src/storage/`.
 5. [x] CA: alternativas de fórmula e bônus separados; escolha automática/manual
@@ -39,7 +39,7 @@ que permanece identificado como adaptação. Extração completa consultável co
 
 ## Como a ficha resolve condições
 
-O painel só gera recursos para as classes, subclasses e níveis presentes. Usos,
+O motor só gera recursos para as classes, subclasses e níveis presentes. Usos,
 reservas, estados, alvos e presságios ficam em `ruleState`, dentro da própria
 ficha; anotações pessoais continuam fora dela. Recursos com custo compartilham
 a reserva original: Chi, feitiçaria e Canalizar Divindade não são duplicados.
@@ -91,3 +91,26 @@ não há automação de ações de outras criaturas ou compartilhamento de mesa.
 
 A entrega segue em `feature/regras-universais`, por PR para `develop`, sem
 mescla/publicação desta revisão antes da aprovação do responsável.
+
+## Revisão de apresentação após teste do responsável
+
+O bloco independente abaixo das armas foi removido: repetia informações do
+grimório e afastava controles de seus campos. `placement.ts` atribui um único
+lugar a cada ação. Descrições do livro permanecem nas características existentes.
+
+| Controle | Lugar |
+| --- | --- |
+| Fúria, Frenesi, Chi, inspiração e demais usos/estados | Na própria característica, com consulta recolhível |
+| Feitiçaria, Metamágica e origem do feiticeiro | Painel existente de Fonte de Magia no grimório |
+| Pacto e Mestre Místico | Painel existente de Magia de Pacto |
+| Arcanum com magia registrada | Contador da própria magia |
+| Preparação e recuperação de espaços | Barra do grimório |
+| Exaustão, proteção e PV da besta | Bloco de combate/PV |
+| Fórmula e bônus de defesa | Ajustes junto à CA |
+| Recuperação de Dados de Vida | Junto à lista de Dados de Vida |
+
+Reservas compartilhadas não são reexibidas em cada atalho de gasto. Bênção do
+Obscuro permanece junto aos PV temporários; o botão repetido no Pacto foi retirado.
+Verificação desta revisão: 261 testes Node, tipos/build, Chromium de regras,
+ficha e armazenamento/offline. O roteiro de regras confere unicidade dos controles,
+gastos/persistência e os dois layouts em três temas/320 px/fonte GG.

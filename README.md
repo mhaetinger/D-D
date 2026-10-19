@@ -168,9 +168,12 @@ proficiência automática ou manual, bônus mágicos e seletor de mãos para arm
 versáteis. O editor separa cálculo automático de valores adaptados. A CA escolhe
 uma fórmula válida, permite seleção manual e explica cada parcela no balão.
 
-**Recursos e condições** reúne usos e reservas das classes/subclasses da ficha,
-Fúria/Frenesi, exaustão, Proteção Arcana, PV de Forma Selvagem, presságios e
-atalhos de gasto compartilhado. Descansos recuperam conforme a origem; o longo
+Usos e estados aparecem nas respectivas **Características & escolhas**; pontos
+de feitiçaria, Metamágica, Pacto e preparação usam os painéis do grimório.
+Exaustão, Proteção Arcana e PV de Forma Selvagem ficam junto aos PV; ajustes
+de defesa ficam junto à CA e a recuperação de Dados de Vida junto à sua lista.
+Cada controle tem um único lugar e usa a reserva compartilhada correspondente.
+Descansos recuperam conforme a origem; o longo
 pergunta sobre alimento/bebida e a adaptação de recuperar todos os Dados de Vida.
 A recuperação de metade dos Dados de Vida permite escolher a classe em multiclasse.
 Dados adicionais de ataque mostram condições; alvos e duração são controlados pelo jogador.

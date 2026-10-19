@@ -3,7 +3,8 @@ import { currentWorkspaceKey, workspaceStorage } from "../storage/account-scope"
 import { ACTIVE_CHARACTER_KEY, readPreference, writePreference } from "../storage/preferences";
 import { armorClass, applyDamage, exhaustion, savingThrow } from "../rules/combat";
 import { readableText } from "../rules/text";
-import { resourcePanel } from "../rules/ui";
+import { renderResourceControls, renderResourcesAt, preparationControls, defenseControls, conditionControls, hitDiceRecoveryControls } from "../rules/ui";
+import { featureResourceBindings, resourcesAt } from "../rules/placement";
 import { canCastNormally, canRitual, preparation } from "../rules/spellcasting";
 import { takeRest } from "../rules/rest";
 import { onSpellCast } from "../rules/resources";
@@ -1571,7 +1572,9 @@ function selectedMetamagic(char) {
 }
 function characterHasTwinned(char) { return selectedMetamagic(char).includes('Magia Duplicada'); }
 function renderSorceryCollapsiblePanel(char) {
-  if (char.sorceryPoints.max <= 0) return "";
+  const extraResources=resourcesAt(char,CharacterEngine,'sorcery');
+  const managedNames=new Set(extraResources.map(r=>r.name));
+  if (char.sorceryPoints.max <= 0 && !extraResources.length) return "";
   const isCollapsed = !!collapsedPanels["sorcery_top"];
   const spCur = char.sorceryPoints.current;
   const spMax = char.sorceryPoints.max;
@@ -1590,16 +1593,16 @@ function renderSorceryCollapsiblePanel(char) {
         <i data-lucide="${isCollapsed ? "chevron-right" : "chevron-down"}" class="w-4 h-4 t-text-accent"></i>
         <i data-lucide="sparkles" class="w-4 h-4 t-text-accent"></i>
         <h3 class="font-rpg text-xs sm:text-sm font-bold uppercase t-text-accent">
-          Feiticeiro · Fonte de Magia & Metamágica
+          Feiticeiro · ${spMax>0?'Fonte de Magia & Metamágica':'Origem de Feitiçaria'}
         </h3>
       </div>
-      <div class="flex items-center gap-3 text-xs" onclick="event.stopPropagation()">
+      ${spMax>0?`<div class="flex items-center gap-3 text-xs" onclick="event.stopPropagation()">
         <div class="flex flex-wrap items-center gap-2 t-inset px-2.5 py-1 rounded-lg max-w-full">
           <span class="font-bold text-[11px]">Pts Feitiçaria:</span>
           <div class="flex flex-wrap items-center gap-1.5 px-1" style="max-width:min(24rem,65vw)">${spGems}</div>
           <strong class="t-text-accent">${spCur}/${spMax}</strong>
         </div>
-      </div>
+      </div>`:''}
     </div>
 
     ${
@@ -1607,17 +1610,18 @@ function renderSorceryCollapsiblePanel(char) {
         ? `
       <div class="p-4 pt-2 border-t t-border space-y-3">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
-          ${selectedMetamagic(char).map(name => name === 'Magia Acelerada' ? `<button ${RuleTooltips.attributes(name, CharacterEngine.reference(name, "feiticeiro"))} onclick="useMetamagicOrWild('Magia Acelerada', 2)" class="t-inset p-2.5 rounded-lg text-left"><strong class="t-text-accent">Magia Acelerada · 2 pts</strong><p class="text-[11px] mt-1">Magia de 1 ação passa a usar ação bônus.</p></button>` : `<div tabindex="0" ${RuleTooltips.attributes(name, CharacterEngine.reference(name, "feiticeiro"))} class="t-inset p-2.5 rounded-lg"><strong class="t-text-accent">${escapeHTML(name === 'Magia Duplicada' ? 'Magia Gêmea (Duplicada)' : name)}</strong><p class="text-[11px] mt-1">${name === 'Magia Duplicada' ? 'Use Gêmea nas magias elegíveis; custo igual ao círculo, mínimo 1 ponto.' : 'Consulte o efeito em Características & escolhas.'}</p></div>`).join('')}
+          ${selectedMetamagic(char).filter(name=>!managedNames.has(name)).map(name => name === 'Magia Acelerada' ? `<button ${RuleTooltips.attributes(name, CharacterEngine.reference(name, "feiticeiro"))} onclick="useMetamagicOrWild('Magia Acelerada', 2)" class="t-inset p-2.5 rounded-lg text-left"><strong class="t-text-accent">Magia Acelerada · 2 pts</strong><p class="text-[11px] mt-1">Magia de 1 ação passa a usar ação bônus.</p></button>` : `<div tabindex="0" ${RuleTooltips.attributes(name, CharacterEngine.reference(name, "feiticeiro"))} class="t-inset p-2.5 rounded-lg"><strong class="t-text-accent">${escapeHTML(name === 'Magia Duplicada' ? 'Magia Gêmea (Duplicada)' : name)}</strong><p class="text-[11px] mt-1">${name === 'Magia Duplicada' ? 'Use Gêmea nas magias elegíveis; custo igual ao círculo, mínimo 1 ponto.' : 'Consulte o efeito em Características & escolhas.'}</p></div>`).join('')}
           ${char.classes.some(c => c.classId === 'feiticeiro' && c.level >= 6 && (c.subclassId === 'selvagem' || /selvagem/i.test(c.subclass))) ? `<button ${RuleTooltips.attributes("Dobrar a Sorte", CharacterEngine.reference("Dobrar a Sorte", "feiticeiro", "selvagem"))} onclick="if(useMetamagicOrWild('Dobrar a Sorte (1d4)', 2)) addDieToPool(4)" class="t-inset p-2.5 rounded-lg text-left"><strong class="t-text-accent">Dobrar a Sorte (+1d4) · 2 pts</strong></button>` : ''}
         </div>
+        ${extraResources.length?`<div class="rule-context rule-resource-grid" data-rule-place="sorcery">${renderResourceControls(char,CharacterEngine,extraResources)}</div>`:''}
 
-        <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] pt-1">
+        ${spMax>0?`<div class="flex flex-wrap items-center justify-between gap-2 text-[11px] pt-1">
           <span class="t-text-muted font-semibold">Conjuração Flexível (Converter Slots ⇄ Pontos):</span>
           <div class="flex flex-wrap gap-1.5">
             ${standardSlotEntries(char).filter(([, slot]) => slot.total > 0).map(([level]) => `<button onclick="convertSlotToSorceryPoints(${Number(level)})" class="px-2 py-1 t-inset rounded font-semibold">Converter ${Number(level)}º (+${Number(level)} pt)</button>`).join('')}
             ${[2,3,5,6,7].map((cost,index) => `<button onclick="createSlotWithSorceryPoints(${index+1}, ${cost})" class="px-2 py-1 t-inset rounded font-semibold">Criar ${index+1}º (-${cost} pt)</button>`).join('')}
           </div>
-        </div>
+        </div>`:''}
       </div>
     `
         : ""
@@ -1638,7 +1642,7 @@ function renderPactMagicPanel(char) {
       </div>
     </div>
     <p class="text-xs t-text-muted">Espaços de magia do Bruxo. Recuperam no descanso curto ou ao dormir.</p>
-    ${getFiendBlessingAmount(char) ? `<button ${RuleTooltips.attributes("Bênção do Obscuro", CharacterEngine.reference("Bênção do Obscuro", "bruxo", "corruptor"))} onclick="triggerBencaoChamasNegras()" class="t-inset px-3 py-2 rounded-lg text-xs font-bold t-text-accent">Bênção do Obscuro · receber ${getFiendBlessingAmount(char)} PV temporários</button><p class="text-[11px] t-text-muted">Ao reduzir uma criatura hostil a 0 PV; não exige que o abate seja com magia.</p>` : ""}
+    ${renderResourcesAt(char,CharacterEngine,'pact')}
   </section>`;
 }
 
@@ -1650,7 +1654,7 @@ function renderSpellsToolbar(char) {
       <button onclick="setSpellClassFilter('all')" class="px-2.5 py-1 rounded font-bold ${spellFilterClass === 'all' ? 't-btn-primary' : 't-inset'}">Todas</button>
       ${ids.map(id => `<button onclick="setSpellClassFilter('${id}')" class="px-2.5 py-1 rounded font-bold ${spellFilterClass === id ? 't-btn-primary' : 't-inset'}">${escapeHTML(RULES_DB.classes[id]?.name || id)}</button>`).join('')}
     </div>
-    <div class="flex flex-wrap gap-2">${char.classes.filter(c => ['prepared','halfPrepared','book'].includes(PHB_DATA.classes[c.classId]?.casting) && (c.classId !== 'paladino' || c.level >= 2)).map(c => `<button class="t-inset px-2.5 py-1 rounded font-bold" onclick="CharacterWizard.openPrepare('${c.classId}')">Preparar magias · ${escapeHTML(RULES_DB.classes[c.classId].name)}</button>`).join('')}</div>
+    <div class="flex flex-wrap gap-2">${preparationControls(char,CharacterEngine)}</div>
   </div>`;
 }
 
@@ -1733,7 +1737,6 @@ function renderMainClassic2014(char) {
     <div class="lg:col-span-5 space-y-4">
       ${renderCombatBlock(char)}
       ${renderAttacksBlock(char)}
-      ${resourcePanel(char,CharacterEngine)}
     </div>
     <div class="lg:col-span-3 space-y-3">
       ${renderFeaturesCollapsible(char)}
@@ -1813,7 +1816,6 @@ function renderMainModern2024(char) {
     <div class="lg:col-span-6 space-y-4">
       ${renderCombatBlock(char)}
       ${renderAttacksBlock(char)}
-      ${resourcePanel(char,CharacterEngine)}
     </div>
     <div class="lg:col-span-12 min-w-0">
       ${renderFeaturesCollapsible(char, true)}
@@ -1845,7 +1847,7 @@ function renderCombatBlock(char) {
       !isCollapsed
         ? `
       <div class="p-4 space-y-3.5">
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
+        <div class="grid grid-cols-3 gap-2.5 text-center">
           <div class="combat-stat t-inset p-2 rounded-lg">
             <span tabindex="0" ${RuleTooltips.attributes('Cálculo da CA', { text: getArmorExplanation(char) })} class="text-[10px] uppercase t-text-muted block cursor-help">CA</span>
             <span class="text-2xl font-extrabold t-text-accent">${ac}</span>
@@ -1861,11 +1863,8 @@ function renderCombatBlock(char) {
             <span class="text-[10px] uppercase t-text-muted block">Desloc.</span>
             <span class="text-2xl font-extrabold">${effective.speed}m</span>
           </div>
-          ${char.sorceryPoints.max > 0 ? `<div class="combat-stat t-inset p-2 rounded-lg">
-            <span class="text-[10px] uppercase t-text-muted block">Pts Feitiçaria</span>
-            <span class="text-2xl font-extrabold t-text-accent">${char.sorceryPoints.current}/${char.sorceryPoints.max}</span>
-          </div>` : ''}
         </div>
+        ${defenseControls(char,CharacterEngine)}
 
         <div class="t-inset p-3 rounded-lg flex flex-wrap items-center justify-between gap-2">
           <div>
@@ -1880,6 +1879,8 @@ function renderCombatBlock(char) {
           </div>
         </div>
 
+        ${conditionControls(char)}
+        ${renderResourcesAt(char,CharacterEngine,'health')}
         <div class="t-inset p-3 rounded-lg space-y-2">
           <div class="flex flex-wrap justify-between items-center gap-2">
             <span class="font-bold t-text-accent">PV temporários: <strong id="temporaryHpValue">${char.hpTemp}</strong></span>
@@ -1895,7 +1896,7 @@ function renderCombatBlock(char) {
           <p class="text-[11px] t-text-muted">Não se somam: escolha manter os atuais ou receber o novo valor. Absorvem dano antes dos PV normais; cura não os recupera.</p>
         </div>
 
-        <div class="space-y-1.5"><p class="text-[11px] font-bold t-text-muted" tabindex="0" ${RuleTooltips.attributes('Dados de Vida · rolagem manual', HIT_DICE_RULE)}>Dados de Vida · rolagem manual</p><div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${hitDiceHtml}</div></div>
+        <div class="space-y-1.5"><p class="text-[11px] font-bold t-text-muted" tabindex="0" ${RuleTooltips.attributes('Dados de Vida · rolagem manual', HIT_DICE_RULE)}>Dados de Vida · rolagem manual</p><div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${hitDiceHtml}</div>${hitDiceRecoveryControls(char,CharacterEngine)}</div>
       </div>
     `
         : ""
@@ -1960,8 +1961,11 @@ function renderFeaturesCollapsible(char, wide = false) {
   // nunca esperam ResizeObserver para deixar de se sobrepor. A leitura segue
   // por coluna e a ordem do HTML, igual no celular e ao navegar por teclado.
   const isCollapsed = !!collapsedPanels.features_box;
-  const gains = CharacterEngine.features(char);
-  const entries = gains.map(g => `<details><summary ${RuleTooltips.attributes(g.name, g.reference)} class="cursor-pointer"><strong>Nv. ${g.level} · ${escapeHTML(g.name)}</strong><span class="block t-text-muted text-[11px]">${escapeHTML(g.source)}</span></summary>${g.choices?.length ? `<p class="my-2 font-semibold">${g.choices.map(escapeHTML).join(" · ")}</p>` : ""}${g.reference ? `<p class="feature-description">${escapeHTML(RuleTooltips.formatText(g.reference.text))}</p><a class="underline" target="_blank" rel="noopener" href="book.html#page=${g.reference.pdfPage}">Consultar no livro · p. ${g.reference.page}</a>` : '<p class="t-text-muted">Consulte a seção desta classe no livro.</p>'}</details>`);
+  const {gains,bindings} = featureResourceBindings(char,CharacterEngine);
+  const entries = gains.map((g,index) => {
+    const controls=bindings.get(index) || [], disclosure=`feature:${g.classId || g.source}:${g.level}:${index}`;
+    return `<section class="feature-entry"><details data-rule-disclosure="${escapeHTML(disclosure)}"><summary ${RuleTooltips.attributes(g.name, g.reference)} class="cursor-pointer"><strong>Nv. ${g.level} · ${escapeHTML(g.name)}</strong><span class="block t-text-muted text-[11px]">${escapeHTML(g.source)}</span></summary>${g.choices?.length ? `<p class="my-2 font-semibold">${g.choices.map(escapeHTML).join(" · ")}</p>` : ""}${g.reference ? `<p class="feature-description">${escapeHTML(RuleTooltips.formatText(g.reference.text))}</p><a class="underline" target="_blank" rel="noopener" href="book.html#page=${g.reference.pdfPage}">Consultar no livro · p. ${g.reference.page}</a>` : `<p class="t-text-muted">${escapeHTML(controls[0]?.note || 'Consulte a seção desta classe no livro.')}</p>`}</details>${renderResourceControls(char,CharacterEngine,controls,controls.length>1 || g.name==='Juramento Sagrado')}</section>`;
+  });
   if (char.features?.length) entries.push(`<details><summary class="cursor-pointer font-bold">Anotações e adaptações já presentes nesta ficha</summary><ul class="list-disc pl-4 space-y-2 mt-2">${char.features.map(text => `<li>${escapeHTML(readableText(text))}</li>`).join('')}</ul></details>`);
   const multiclass = CharacterEngine.multiclassNotes(char);
   if (multiclass.length) entries.push(`<details><summary class="cursor-pointer font-bold">Interações de multiclasse</summary><ul class="list-disc pl-4 space-y-2 mt-2">${multiclass.map(note => `<li><strong>${escapeHTML(note.name)}</strong>: ${escapeHTML(note.text)} <a class="underline" href="book.html#page=${note.pdfPage}" target="_blank" rel="noopener">Livro · p. ${note.page}</a></li>`).join('')}</ul></details>`);
@@ -2984,7 +2988,7 @@ async function longRest() {
   if (getChar() !== char) return;
   if (!takeRest(char,'long',CharacterEngine,{foodAndWater:choices.querySelector('[data-rest-food]').checked,tableHitDice:choices.querySelector('[data-rest-table]').checked})) { recordStepAndSave('Frenesi terminou com exaustão 6',true); return showToast('Frenesi levou à exaustão 6. O personagem morreu antes de concluir o descanso.'); }
   recordStepAndSave('Descanso longo · PV, recursos e preparação',true);
-  showToast('Descanso concluído. Revise a preparação e os Dados de Vida no painel de recursos.');
+  showToast('Descanso concluído. Preparação no grimório; recuperação de Dados de Vida junto aos PV.');
 }
 
 function openShopModal() {

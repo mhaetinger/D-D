@@ -2,54 +2,70 @@ import { armorClass, exhaustion } from './combat';
 import { preparation } from './spellcasting';
 import { remaining, resourcesFor, spend, refund, toggleResource, useResource, type Resource } from './resources';
 import { ability, active, escape, level, state, type Engine, type Sheet } from './model';
+import { resourcesAt } from './placement';
 
-export function resourcePanel(c: Sheet,E: Engine) {
-  const resources = resourcesFor(c,E), fatigue = exhaustion({...c,speed:E.movementSpeed(c)}), ac = armorClass(c,E);
+export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
   const number = (n:number) => Number.isFinite(n)?n:'∞';
   const tip = (r:Resource) => {
     const ref = E.reference(r.name,r.classId);
     return `data-rule-tooltip="${escape(JSON.stringify({name:r.name,text:r.note,page:ref?.page || E.data.classes[r.classId]?.page,pdfPage:ref?.pdfPage || E.data.classes[r.classId]?.page}))}"`;
   };
-  const classes = c.classes.map((cls:Sheet) => `<details class="rule-class" ${c.classes.length===1?'open':''}><summary>${escape(E.data.classes[cls.classId]?.name || cls.classId)} · nível ${cls.level}</summary><div class="rule-resource-grid">${resources.filter(r=>r.classId===cls.classId).map(r=>{
+  return resources.map(r=>{
     const value = remaining(c,r), enabled = active(c,r.id);
-    const source = r.cost ? r.cost[0]==='feiticeiro:sorceryPool' ? {id:r.cost[0],max:c.sorceryPoints.max,kind:'pool'} as Resource : resources.find(x=>x.id===r.cost![0]) : null;
+    const source = r.cost ? r.cost[0]==='feiticeiro:sorceryPool' ? {id:r.cost[0],max:c.sorceryPoints.max,kind:'pool'} as Resource : resourcesFor(c,E).find(x=>x.id===r.cost![0]) : null;
     const affordable = !r.cost || !!source && remaining(c,source)>=r.cost[1];
     let control = '';
     if (r.kind==='portent') control = c.ruleState?.portent?.length ? c.ruleState.portent.map((p:Sheet,i:number)=>`<button type="button" data-rule-action="portent" data-index="${i}" ${p.spent?'disabled':''} aria-label="Gastar presságio ${i+1}, resultado ${p.value}">${p.value}${p.spent?' ✓':''}</button>`).join('') : '<button type="button" data-rule-action="portentInitial">Rolar dados iniciais</button>';
     else if (r.kind==='toggle' || r.action==='rage') control = `<button type="button" data-rule-action="toggle" data-resource="${r.id}" aria-pressed="${enabled}">${enabled?'✓ Ativo · encerrar':'Ativar'}</button>${r.action==='rage'?`<span>${number(value)}/${number(r.max)} usos</span>`:''}`;
     else if (r.kind==='pool') control = `<label>Reserva <input type="number" min="0" max="${r.max}" step="1" data-rule-pool="${r.id}" value="${value}" aria-label="${escape(r.name)} atuais"></label><span>/ ${r.max}</span>`;
-    else if (r.kind==='counter') control = `<span>${r.cost?`Custo ${r.cost[1]} · reserva ${source?number(remaining(c,source)):0}`:`${number(value)}/${number(r.max)} usos`}</span><button type="button" data-rule-action="use" data-resource="${r.id}" ${value<1 || !affordable?'disabled':''}>Usar</button>${!r.cost?`<button type="button" data-rule-action="refund" data-resource="${r.id}" ${value===r.max?'disabled':''} aria-label="Devolver um uso de ${escape(r.name)}">↶</button>`:''}`;
+    else if (r.kind==='counter') control = `<span>${r.cost?`Custo ${r.cost[1]} ${r.cost[0]==='monge:ki'?'Chi':r.cost[0]==='feiticeiro:sorceryPool'?'pt':'uso'}`:`${number(value)}/${number(r.max)} usos`}</span><button type="button" data-rule-action="use" data-resource="${r.id}" ${value<1 || !affordable?'disabled':''}>Usar</button>${!r.cost?`<button type="button" data-rule-action="refund" data-resource="${r.id}" ${value===r.max?'disabled':''} aria-label="Devolver um uso de ${escape(r.name)}">↶</button>`:''}`;
     if (r.action==='wildShape') control += `<label>PV da forma <input type="number" min="0" data-rule-beast-hp value="${Number(c.ruleState?.pools?.[r.id] || 0)}"></label><label>PV máximos <input type="number" min="1" data-rule-beast-max value="${Number(c.ruleState?.beastMax || 1)}"></label>${enabled?`<button type="button" data-rule-action="toggle" data-resource="${r.id}">Encerrar forma</button>`:''}`;
     const needsTarget = ['paladino:sacredWeapon','paladino:enmity','mago:hypnotic'].includes(r.id);
     const target = needsTarget ? r.id==='paladino:sacredWeapon' ? `<label>Arma<select data-rule-target="${r.id}"><option value="">Escolha a arma</option>${c.weapons.map((w:Sheet)=>`<option ${c.ruleState?.targets?.[r.id]===w.name?'selected':''}>${escape(w.name)}</option>`).join('')}</select></label>` : `<input data-rule-target="${r.id}" value="${escape(c.ruleState?.targets?.[r.id] || '')}" placeholder="Alvo" aria-label="Alvo de ${escape(r.name)}">` : '';
     const stone = r.id==='mago:stone'?`<label>Benefício <select data-rule-target="${r.id}">${[['darkvision','Visão no escuro'],['speed','Deslocamento +3 m'],['constitution','Proficiência em CON'],['acid','Resistência · ácido'],['cold','Resistência · frio'],['fire','Resistência · fogo'],['lightning','Resistência · elétrico'],['thunder','Resistência · trovejante']].map(([id,name])=>`<option value="${id}" ${c.ruleState?.targets?.[r.id]===id?'selected':''}>${name}</option>`).join('')}</select></label>`:'';
-    return `<section class="rule-resource"><strong tabindex="0" ${tip(r)}>${escape(r.name)}</strong><div class="rule-controls">${control}</div>${target}${stone}<details><summary>Regra e condições</summary><p>${escape(r.note)}</p><span>${r.recovery==='short'?'Recupera em descanso curto/longo':r.recovery==='long'?'Recupera em descanso longo':'Conforme a condição descrita'}</span></details></section>`;
-  }).join('')}${cls.classId==='patrulheiro' && resources.some(r=>r.id==='patrulheiro:companion')?`<section class="rule-resource"><label>Companheiro<input data-rule-companion="name" value="${escape(c.companion?.name || '')}"></label><label>PV <input type="number" min="0" data-rule-companion="hp" value="${Number(c.companion?.hp || 0)}"></label><label>PV máximos <input type="number" min="1" data-rule-companion="max" value="${Number(c.companion?.max || 1)}"></label></section>`:''}</div></details>`).join('');
-  const prepare = c.classes.filter((x:Sheet)=>preparation(c,x.classId,E).prepares).map((x:Sheet)=>{
-    const p = preparation(c,x.classId,E);
-    return `<button type="button" data-rule-action="prepare" data-class="${x.classId}">Preparar · ${escape(E.data.classes[x.classId].name)} (${p.used}/${p.limit})</button>`;
+    const companion = r.id==='patrulheiro:companion'?`<div class="rule-controls"><label>Nome<input data-rule-companion="name" value="${escape(c.companion?.name || '')}"></label><label>PV <input type="number" min="0" data-rule-companion="hp" value="${Number(c.companion?.hp || 0)}"></label><label>PV máximos <input type="number" min="1" data-rule-companion="max" value="${Number(c.companion?.max || 1)}"></label></div>`:'';
+    return `<div class="rule-inline" data-rule-control="${r.id}">${showNames?`<strong tabindex="0" ${tip(r)}>${escape(r.name)}</strong>`:''}<div class="rule-controls" ${!showNames?tip(r):''}>${control}</div>${target}${stone}${companion}</div>`;
   }).join('');
-  const defense = `<details class="rule-class"><summary>Defesa e efeitos recebidos</summary>
+}
+
+export function renderResourcesAt(c:Sheet,E:Engine,place:string) {
+  const list=resourcesAt(c,E,place);
+  return list.length?`<div class="rule-context" data-rule-place="${place}">${renderResourceControls(c,E,list)}</div>`:'';
+}
+
+export function preparationControls(c:Sheet,E:Engine) {
+  const buttons = c.classes.filter((x:Sheet)=>preparation(c,x.classId,E).prepares).map((x:Sheet)=>{
+    const p = preparation(c,x.classId,E);
+    return `<button type="button" data-rule-action="prepare" data-class="${x.classId}" class="t-inset px-2.5 py-1 rounded font-bold">Preparar magias · ${escape(E.data.classes[x.classId].name)} (${p.used}/${p.limit})</button>`;
+  }).join('');
+  return `${buttons?`<div class="flex flex-wrap items-center gap-2">${c.ruleState?.prepareReminder?'<span>Após o descanso, revise a preparação.</span>':''}${buttons}</div>`:''}${renderResourcesAt(c,E,'spellbook')}`;
+}
+
+export function defenseControls(c:Sheet,E:Engine) {
+  const ac=armorClass(c,E);
+  return `<details class="rule-context" data-rule-disclosure="defense"><summary>Ajustes de defesa e efeitos recebidos</summary>
     <label>Fórmula de CA <select data-rule-ac>${ac.options.map(o=>`<option value="${o.id}" ${c.acFormula===o.id?'selected':''}>${escape(o.label)} · ${o.total}</option>`).join('')}<option value="auto" ${!ac.options.some(o=>o.id===c.acFormula)?'selected':''}>Automática · maior válida</option></select></label>
-    <p>${escape(ac.explanation)}</p>
     <div class="rule-controls">${[['armorMagicBonus','Magia da armadura'],['shieldMagicBonus','Magia do escudo'],['acAdjustment','Ajuste de CA']].map(([id,label])=>`<label>${label}<input type="number" min="-100" max="100" step="1" data-rule-defense="${id}" placeholder="Auto" value="${c[id]===undefined?'':Number(c[id])}"></label>`).join('')}</div>
     <div class="rule-controls">${[['spell:shieldOfFaith','Escudo da Fé +2'],['spell:shield','Escudo Arcano +5'],['spell:bladeWard','Proteção contra Lâminas · resistência']].map(([id,label])=>`<label><input type="checkbox" data-rule-effect="${id}" ${active(c,id)?'checked':''}>${label}</label>`).join('')}</div></details>`;
-  return `<section class="rule-panel t-card-accent p-3" aria-label="Recursos de classe e condições">
-    <h3 class="font-rpg font-bold t-text-accent">Recursos e condições</h3>
-    <div class="rule-controls"><label>Exaustão <select data-rule-exhaustion aria-label="Nível de exaustão">${[0,1,2,3,4,5,6].map(n=>`<option ${n===fatigue.level?'selected':''}>${n}</option>`).join('')}</select></label><span>${fatigue.penalties.map(escape).join(' · ') || 'Sem penalidades de exaustão'}</span></div>
-    ${fatigue.level?`<p>PV máximos efetivos ${fatigue.hpMax} · Deslocamento ${fatigue.speed} m</p>`:''}${classes}${defense}
-    ${prepare?`<div class="rule-controls">${c.ruleState?.prepareReminder?'<span>Após o descanso, você pode revisar as magias preparadas.</span>':''}${prepare}</div>`:''}
-    ${c.ruleState?.hitDiceRecovery?`<div class="rule-controls"><span>Recupere ${c.ruleState.hitDiceRecovery} Dado(s) de Vida:</span>${c.classes.filter((x:Sheet)=>x.hitDiceUsed>0).map((x:Sheet)=>`<button type="button" data-rule-action="hitDie" data-class="${x.classId}">${escape(E.data.classes[x.classId].name)} · d${x.hitDie}</button>`).join('')}</div>`:''}</section>`;
+}
+
+export function conditionControls(c:Sheet) {
+  const fatigue=exhaustion(c);
+  return `<div class="rule-context rule-controls"><label>Exaustão <select data-rule-exhaustion aria-label="Nível de exaustão">${[0,1,2,3,4,5,6].map(n=>`<option ${n===fatigue.level?'selected':''}>${n}</option>`).join('')}</select></label>${fatigue.level?`<span>${fatigue.penalties.map(escape).join(' · ')}</span>`:''}</div>`;
+}
+
+export function hitDiceRecoveryControls(c:Sheet,E:Engine) {
+  return c.ruleState?.hitDiceRecovery?`<div class="rule-context rule-controls"><span>Recupere ${c.ruleState.hitDiceRecovery} Dado(s) de Vida:</span>${c.classes.filter((x:Sheet)=>x.hitDiceUsed>0).map((x:Sheet)=>`<button type="button" data-rule-action="hitDie" data-class="${x.classId}">${escape(E.data.classes[x.classId].name)} · d${x.hitDie}</button>`).join('')}</div>`:'';
 }
 
 export function setupRuleUI(E: Engine) {
   const host = window as any;
   const save = (description:string) => {
     const focused = document.activeElement as HTMLElement;
-    const attrs = focused ? [...focused.attributes].filter(a=>a.name.startsWith('data-rule-')).map(a=>`[${a.name}="${CSS.escape(a.value)}"]`).join('') : '';
-    const open = [...document.querySelectorAll<HTMLElement>('.rule-class[open]')].map(el=>el.querySelector('summary')?.textContent);
+    const attrs = focused ? [...focused.attributes].filter(a=>a.name.startsWith('data-rule-') || ['data-resource','data-index','data-class'].includes(a.name)).map(a=>`[${a.name}="${CSS.escape(a.value)}"]`).join('') : '';
+    const open = new Map([...document.querySelectorAll<HTMLDetailsElement>('[data-rule-disclosure]')].map(el=>[el.dataset.ruleDisclosure,el.open]));
     host.recordStepAndSave(description,true);
-    for (const el of document.querySelectorAll<HTMLDetailsElement>('.rule-class')) el.open = open.includes(el.querySelector('summary')?.textContent);
+    for (const el of document.querySelectorAll<HTMLDetailsElement>('[data-rule-disclosure]')) if(open.has(el.dataset.ruleDisclosure)) el.open = open.get(el.dataset.ruleDisclosure)!;
     if (attrs) document.querySelector<HTMLElement>(attrs)?.focus({preventScroll:true});
   };
   const rand = (sides:number) => 1+Math.floor(Math.random()*sides);

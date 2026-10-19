@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {weaponStats,armorClass,applyDamage,exhaustion,savingThrow} from '../src/rules/combat';
 import {resourcesFor,remaining,spend,refund,toggleResource,useResource,onSpellCast} from '../src/rules/resources';
 import {takeRest} from '../src/rules/rest';
+import {featureResourceBindings,resourcePlace,resourcesAt} from '../src/rules/placement';
 import {canCastNormally,canRitual,preparation,slotTable} from '../src/rules/spellcasting';
 import {normalizeCharacterText,readableText} from '../src/rules/text';
 import {legacyBackupFormat,legacyKeyFor,migrateStorage} from '../src/storage/legacy';
@@ -38,6 +39,24 @@ test('catálogo completo de armas mantém propriedades e fórmulas válidas',()=
     assert.match(result.damage,/^(?:\d+|\d+d\d+)(?:[+-]\d+d\d+)*(?:[+-]\d+)?$/);
     assert.equal(result.properties,w.properties);assert.equal(result.critical,18);
   }
+});
+test('cada recurso tem um dono e controles existentes de magia não reaparecem nas características',()=>{
+  const c=make('feiticeiro',6,'selvagem');c.rules.history=[{classId:'feiticeiro',level:3,answers:{metamagic:['Magia Acelerada','Magia Sutil']}}];
+  const rs=resourcesFor(c,E);
+  assert.equal(resourcePlace(c,rs.find(r=>r.id==='feiticeiro:sorcery')!),'reference');
+  assert.equal(resourcePlace(c,rs.find(r=>r.id==='feiticeiro:meta-magia-acelerada')!),'existing');
+  assert.equal(resourcePlace(c,rs.find(r=>r.id==='feiticeiro:bendLuck')!),'existing');
+  assert.equal(resourcesAt(c,E,'features').length,0);
+  for(const [id,cls] of Object.entries(E.data.classes) as any) for(const sid of Object.keys(cls.subclasses)) {
+    const sheet=make(id,20,sid),bound=featureResourceBindings(sheet,E);
+    const controls=[...bound.bindings.values()].flat().map(r=>r.id);
+    assert.equal(bound.gains.length,E.features(sheet).length,`${id}/${sid}: reutiliza entradas existentes`);
+    assert.equal(new Set(controls).size,controls.length);
+    assert.deepEqual(controls.sort(),resourcesAt(sheet,E,'features').map(r=>r.id).sort());
+  }
+  const barb=make('barbaro',3,'berserker'),bound=featureResourceBindings(barb,E);
+  assert.equal(bound.gains.length,E.features(barb).length,'ações reutilizam as características da classe');
+  assert.equal(bound.gains.filter(g=>g.name==='Frenesi').length,1);
 });
 test('acuidade, arremesso, fúria e Arma Sagrada usam condições e reservas corretas',()=>{
   const c=make('barbaro',9,'berserker');c.abilities.dex.score=20;

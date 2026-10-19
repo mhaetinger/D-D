@@ -14,8 +14,11 @@ preparação, textos, criador, zoom, moeda e migração de identificadores.
 Não mesclar/publicar esta revisão sem aprovação. A branch remota `develop`
 foi restaurada após a entrega na referência de integração já aprovada
 `b1155fbc5d14a566f548814bd808374aa2383721`, merge da PR #7.
-A revisão tem 260 testes Node aprovados, tipos/build e nove roteiros Chromium;
+A revisão inicial teve 260 testes Node aprovados, tipos/build e nove roteiros Chromium;
 detalhes das execuções e limites em `REFATORACAO-2014.md`.
+Após teste do responsável, os controles foram incorporados aos lugares existentes,
+eliminando o painel redundante sob as armas. Esta revisão tem 261 testes Node e
+Chromium de regras/ficha/armazenamento; ver a tabela de localização no mesmo plano.
 A versão anterior, com entrada/dado/retratos e correção do cache HTTP, foi
 integrada pelas PRs #3–#6. A implantação da correção concluiu no workflow
 [38954994107](https://github.com/mhaetinger/D-D/actions/runs/38954994107).

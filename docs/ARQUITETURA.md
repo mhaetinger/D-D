@@ -286,8 +286,11 @@ redimensionamento ou troca de espaço; movimento reduzido usa abertura imediata.
 `src/rules/` contém cálculos puros de armas/CA, preparação, recursos e descansos,
 com modelo de estado independente de DOM/rede. `bridge.ts` mantém a assinatura
 de `CharacterEngine.weaponStats` na interface; criação/evolução e catálogos
-continuam no motor anterior. O painel delegado em `ui.ts` agrupa por classe e
-preserva foco e expansão ao salvar. `ruleState` viaja no documento da ficha e
+continuam no motor anterior. `placement.ts` define um único lugar por controle:
+característica existente, PV ou painel já presente no grimório. Notas de consulta
+não criam cards operacionais repetidos; Arcanum com magia registrada usa o
+contador da própria magia. `ui.ts` preserva foco e expansão ao salvar.
+`ruleState` viaja no documento da ficha e
 nas versões existentes, sem SQL novo ou alteração de autorização.
 
 `src/storage/legacy.ts` concentra a leitura de identificadores históricos e a

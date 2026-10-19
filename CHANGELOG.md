@@ -2,6 +2,19 @@
 
 ## Não lançado
 
+### Controles nos campos existentes, sem painel redundante — 2026-10-19
+
+- Removido o bloco separado de recursos abaixo das armas. Usos e estados são
+  incorporados às características já listadas, aproveitando título e consulta.
+- Feitiçaria/Metamágica, Pacto, Arcanum e preparação usam seus controles no
+  grimório; Bênção do Obscuro fica nos PV temporários. Contadores de reserva
+  deixam de se repetir em cada atalho de gasto.
+- Exaustão, Proteção Arcana e PV da besta ficam junto aos PV; defesa junto à CA;
+  recuperação de Dados de Vida na lista correspondente. Campos preservam valores,
+  foco e consultas abertas ao usar os controles.
+- Verificação: 261 testes Node, tipos/build e Chromium de regras, ficha e
+  armazenamento/offline, com unicidade, persistência, layouts/temas/320 px/GG.
+
 ### Regras, recursos por classe e continuidade de dados — 2026-10-19
 
 - Armas importadas são reconciliadas com o catálogo: habilidade, proficiência
