@@ -1,10 +1,11 @@
 import { validateCharacters, type Backup, type CharacterRecord } from "./validation";
 import { selectWorkspace, workspaceKey, workspaceStorage, type WorkspaceIdentity } from "./account-scope";
 import { announceStorageChange } from "./mutations";
-export const SHEET_KEY = "orbyt_characters_v1";
+import { legacyKeyFor, migrateStorage } from "./legacy";
+export const SHEET_KEY = "critcall_characters_v1";
 export const LEGACY_KEY = "dnd_sheet_public_v1";
 export const NOTES_KEY = "dnd_player_private_notes_v1";
-export const RECOVERY_KEY = "orbyt_recovery_v1";
+export const RECOVERY_KEY = "critcall_recovery_v1";
 type StoragePort = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 type Issue = { kind: "invalid" | "unavailable" | "write"; message: string };
 
@@ -21,10 +22,11 @@ export class CharacterStore extends EventTarget {
     this.dispatchEvent(new Event("change"));
   }
   read(): CharacterRecord[] {
-    let legacy = false;
+    let legacy = false, migrationFailed = false;
     try {
       const storage = this.storage();
-      this.raw = storage.getItem(SHEET_KEY);
+      try { migrateStorage(storage); } catch { migrationFailed = true; }
+      this.raw = storage.getItem(SHEET_KEY) ?? storage.getItem(legacyKeyFor(SHEET_KEY));
       if (this.raw === null) { this.raw = storage.getItem(LEGACY_KEY); legacy = this.raw !== null; }
       this.readSucceeded = true;
     } catch {
@@ -37,7 +39,15 @@ export class CharacterStore extends EventTarget {
       const data = JSON.parse(this.raw);
       if (!legacy && data?.schemaVersion !== 1) throw new Error("Versão de dados não suportada");
       const characters = validateCharacters(legacy ? data : data.characters);
-      if (legacy) this.write(characters);
+      const changedText = JSON.stringify(characters)!==JSON.stringify(legacy?data:data.characters);
+      if (changedText) {
+        try {
+          const storage = this.storage(), key = storage.getItem(RECOVERY_KEY)===null ? RECOVERY_KEY : RECOVERY_KEY+'_text_'+crypto.randomUUID();
+          storage.setItem(key,this.raw);
+        } catch { this.report({kind:'write',message:'Os textos foram recuperados em memória. Preserve um backup antes de fechar; não foi possível salvar a migração.'}); return characters; }
+      }
+      if (legacy || changedText) this.write(characters);
+      if (migrationFailed) this.report({kind:'write',message:'Fichas antigas preservadas e abertas. Não foi possível gravar o formato atual; confira o espaço e baixe um backup antes de fechar.'});
       return characters;
     } catch {
       this.report({ kind: "invalid", message: "Não foi possível ler as fichas salvas. Os dados originais foram preservados. Baixe-os para recuperação ou importe um backup válido." });
@@ -81,7 +91,7 @@ export class CharacterStore extends EventTarget {
   }
   backup(characters: CharacterRecord[], includeNotes = false): Backup {
     const copy = structuredClone(validateCharacters(characters));
-    const result: Backup = { format: "orbyt.character-backup", version: 1, exportedAt: new Date().toISOString(), characters: copy };
+    const result: Backup = { format: "critcall.character-backup", version: 1, exportedAt: new Date().toISOString(), characters: copy };
     if (includeNotes) {
       const notes = this.notes();
       result.privateNotes = Object.fromEntries(copy.filter((c) => Object.hasOwn(notes, c.id)).map((c) => [c.id, notes[c.id]]));

@@ -112,7 +112,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     assert.equal(rows.get(`${ids.a}:preference:dnd_public_player_name`).value,'Nome preservado após falha da fila');
     await a.page.locator('#accPlayerName').fill('Nome salvo automaticamente'); await a.sync();
     const char=warrior();
-    const backup={format:'orbyt.character-backup',version:1,exportedAt:new Date().toISOString(),characters:[char],privateNotes:{[char.id]:'Nota particular sincronizada'}};
+    const backup={format:'critcall.character-backup',version:1,exportedAt:new Date().toISOString(),characters:[char],privateNotes:{[char.id]:'Nota particular sincronizada'}};
     await a.page.locator('#backupFile').setInputFiles({name:'teste.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(backup))});
     await a.page.waitForFunction(()=>characters.length===1); await a.sync();
     const id=await a.page.evaluate(()=>getChar().id);
@@ -222,7 +222,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     assert.ok(await a.page.evaluate(()=>JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k=>k.endsWith('dnd_history_v1')))).stack.length>1),'histórico/checkpoints sobrevivem à recarga');
     // Alterar o retrato de uma cópia não sobrescreve o arquivo da ficha original.
     const source=await a.page.evaluate(()=>JSON.parse(JSON.stringify(getChar())));
-    const copied={format:'orbyt.character-backup',version:1,exportedAt:new Date().toISOString(),characters:[source]};
+    const copied={format:'critcall.character-backup',version:1,exportedAt:new Date().toISOString(),characters:[source]};
     await a.page.evaluate(()=>openAuthAccountModal());
     await a.page.locator('#backupFile').setInputFiles({name:'copia.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(copied))});
     await a.page.waitForFunction(()=>characters.length===2);

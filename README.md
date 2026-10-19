@@ -1,7 +1,7 @@
 # CritCall
 
-Este aplicativo se chama CritCall e é dedicado às fichas de D&D. Orbyt é outro
-projeto do responsável e usa infraestrutura separada. O projeto Supabase novo
+Este aplicativo se chama CritCall e é dedicado às fichas de D&D, com
+infraestrutura própria. O projeto Supabase exclusivo
 do CritCall foi identificado e configurado localmente. A conexão com a API foi
 conferida. O build já inclui a configuração pública, sem variables do GitHub;
 o usuário confirmou cadastro, confirmação de e-mail e entrada no teste local.
@@ -162,6 +162,27 @@ confirmação de envio no perfil antes de trocar de computador. Login e
 sincronização real entre dispositivos e SMTP próprio ainda precisam de validação/configuração.
 
 ## Criação guiada
+
+A revisão de regras inclui armas importadas reconciliadas com o catálogo,
+proficiência automática ou manual, bônus mágicos e seletor de mãos para armas
+versáteis. O editor separa cálculo automático de valores adaptados. A CA escolhe
+uma fórmula válida, permite seleção manual e explica cada parcela no balão.
+
+**Recursos e condições** reúne usos e reservas das classes/subclasses da ficha,
+Fúria/Frenesi, exaustão, Proteção Arcana, PV de Forma Selvagem, presságios e
+atalhos de gasto compartilhado. Descansos recuperam conforme a origem; o longo
+pergunta sobre alimento/bebida e a adaptação de recuperar todos os Dados de Vida.
+A recuperação de metade dos Dados de Vida permite escolher a classe em multiclasse.
+Dados adicionais de ataque mostram condições; alvos e duração são controlados pelo jogador.
+
+Magias que precisam de preparo só oferecem lançamento normal quando preparadas;
+Domínio/Círculo/Juramento ficam **Sempre Preparadas**. Ritual de mago no grimório
+continua disponível sem preparo e sem gastar espaço. Pacto mantém reserva própria.
+
+O modo de atributos **Livre / Adaptado** é separado dos 27 pontos. Sugestões de
+personalidade usam seletores compactos e continuam editáveis livremente.
+No livro, Ctrl/Cmd + rodinha, +, − e 0 ajustam apenas a página do PDF.
+Backups novos usam `critcall.character-backup`; os antigos continuam importáveis.
 
 O assistente explica cada etapa, oferece as nove tendências do livro ou texto
 livre, e mostra descrições de perícias, idiomas, ferramentas e escolhas. As

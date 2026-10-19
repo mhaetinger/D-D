@@ -9,7 +9,7 @@ sincronização entre dispositivos reais e publicação ainda pendentes.** As
 ferramentas do Supabase ficaram disponíveis e confirmaram o projeto exclusivo
 `qhrpgkpvwbztubnrdhya`, ativo em PostgreSQL 17.11, com nome D-D no painel e URL
 `https://qhrpgkpvwbztubnrdhya.supabase.co`. Antes da aplicação não havia tabelas
-públicas nem migrações. Orbyt é outro projeto e não recebeu alterações.
+públicas nem migrações. Outros projetos não receberam alterações.
 
 ## Dados e fila
 
@@ -71,6 +71,14 @@ O fluxo novo não muda SQL, RLS ou RPC. A importação manual de backups permane
 independente e continua sem notas por padrão.
 
 ## Datas e recuperação
+
+Na revisão de 19/10/2026, chaves e metadados novos usam CritCall. A migração
+copia dados por espaço e conserva a origem; a fila IndexedDB mantém operações
+e identificadores já existentes. Aliases históricos de preferências e
+recuperações são aceitos na entrada e projetados para a chave atual. Havendo
+ambos, a versão com identificador atual prevalece, inclusive numa exclusão.
+Um teste envia uma operação antiga pendente e verifica confirmação, projeção e
+repetição sem duplicação. Nenhuma RPC/RLS/tabela ou identidade foi alterada.
 
 Cada documento tem revisão crescente, data de edição e recebimento no servidor.
 O relógio é calibrado no Supabase; datas mais de cinco minutos no futuro são

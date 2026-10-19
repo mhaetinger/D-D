@@ -83,7 +83,7 @@ async function verify(prefix) {
     const guest = warrior();
     await context.addInitScript((char) => {
       if (!localStorage.getItem('authTestSeeded')) {
-        localStorage.setItem('orbyt_characters_v1', JSON.stringify({ schemaVersion: 1, characters: [char] }));
+        localStorage.setItem('critcall_characters_v1', JSON.stringify({ schemaVersion: 1, characters: [char] }));
         localStorage.setItem('dnd_player_private_notes_v1', JSON.stringify({ [char.id]: 'Nota do espaço sem login' }));
         localStorage.setItem('authTestSeeded', 'true');
       }
@@ -127,10 +127,10 @@ async function verify(prefix) {
     await login('a@example.test');
     await page.waitForFunction(() => characters.length === 0);
     assert.ok((await page.locator('#accountIdentity').textContent()).includes('a@example.test'));
-    assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('orbyt_characters_v1')).characters[0].id), guest.id);
+    assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('critcall_characters_v1')).characters[0].id), guest.id);
     await page.evaluate(() => undoStep());
     assert.equal(await page.evaluate(() => characters.length), 0, 'o histórico anterior não atravessa a conta');
-    const imported = { format: 'orbyt.character-backup', version: 1, exportedAt: new Date().toISOString(), characters: [{ ...guest, name: 'Ficha da conta A' }], privateNotes: { [guest.id]: 'Nota da conta A' } };
+    const imported = { format: 'critcall.character-backup', version: 1, exportedAt: new Date().toISOString(), characters: [{ ...guest, name: 'Ficha da conta A' }], privateNotes: { [guest.id]: 'Nota da conta A' } };
     await page.locator('#backupFile').setInputFiles({ name: 'teste.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(imported)) });
     await page.waitForFunction(() => characters.length === 1);
     const idA = await page.evaluate(() => getChar().id);

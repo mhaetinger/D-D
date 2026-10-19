@@ -1,6 +1,12 @@
 import { sheetStore, selectCharacterWorkspace } from "../storage/character-store";
 import { currentWorkspaceKey, workspaceStorage } from "../storage/account-scope";
 import { ACTIVE_CHARACTER_KEY, readPreference, writePreference } from "../storage/preferences";
+import { armorClass, applyDamage, exhaustion, savingThrow } from "../rules/combat";
+import { readableText } from "../rules/text";
+import { resourcePanel } from "../rules/ui";
+import { canCastNormally, canRitual, preparation } from "../rules/spellcasting";
+import { takeRest } from "../rules/rest";
+import { onSpellCast } from "../rules/resources";
 import { setupDiceDock } from "./dice-dock";
 import { avatarMarkup } from "../media/avatar";
 import { canonical, validateDocument } from "../sync/documents";
@@ -565,7 +571,7 @@ function restoreSavedHistory() {
       historyPointer = historyStack.length - 1;
     }
   } catch {
-    try { workspaceStorage(() => localStorage).setItem(`orbyt_recovery_v1_history_${crypto.randomUUID()}`, raw); }
+    try { workspaceStorage(() => localStorage).setItem(`critcall_recovery_v1_history_${crypto.randomUUID()}`, raw); }
     catch { historyWritable = false; }
     showToast('O histórico não pôde ser lido. O conteúdo anterior foi preservado para recuperação.');
   }
@@ -580,7 +586,7 @@ const COIN_RATES_IN_PC = { pc: 1, pp: 10, pe: 50, po: 100, pl: 1000 };
 // Codificação para texto/atributos HTML. Eventos novos usam índices numéricos,
 // sem interpolar nomes ou descrições do usuário em código JavaScript.
 function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+  return readableText(value).replace(/[&<>"']/g, (char) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
   })[char]);
 }
@@ -748,29 +754,12 @@ function getSkillBonus(char, skill) {
 }
 
 function getCalculatedAC(char) {
-  // Compara a CA base cadastrada com Armadura Arcana; soma o escudo depois.
-  // A elegibilidade de armaduras ainda depende da revisão do motor de regras.
-  const worn = CharacterEngine.armorInfo(char.armorEquipped);
-  let armor = worn && worn.type !== 'shield' ? worn.base + (worn.dexCap ? Math.min(getMod(char.abilities.dex.score), worn.dexCap) : 0) : char.baseAcArmor;
-  if (char.rules && !char.rules.legacy && !char.armorEquipped) {
-    const dex = getMod(char.abilities.dex.score);
-    armor = 10 + dex;
-    // Livro, p. 166: somente a primeira Defesa sem Armadura é adquirida.
-    const defense = CharacterEngine.unarmoredDefense(char);
-    if (defense === 'barbaro') armor = Math.max(armor, 10 + dex + getMod(char.abilities.con.score));
-    if (defense === 'monge' && !char.shieldEquipped) armor = Math.max(armor, 10 + dex + getMod(char.abilities.wis.score));
-    if (char.classes.some(c => c.classId === 'feiticeiro' && c.subclassId === 'draconica')) armor = Math.max(armor, 13 + dex);
-  }
-  const base = armor + (char.shieldEquipped ? 2 : 0);
-  return char.mageArmorActive ? Math.max(base, getMageArmorAC(char)) : base;
+  return armorClass(char,CharacterEngine).total;
 }
 function getArmorExplanation(char) {
   // A origem do valor legado fica explícita, sem inventar equipamento
   // ou alterar atributos para coincidir com uma CA esperada.
-  const base = getCalculatedAC({ ...char, mageArmorActive: false, shieldEquipped: false }),
-    shield = char.shieldEquipped ? 2 : 0,
-    origin = char.armorEquipped ? `Armadura: ${char.armorEquipped}` : char.rules && !char.rules.legacy ? "Defesa calculada pelas escolhas" : "CA base informada no cadastro";
-  return `${origin}: ${base}. Escudo: +${shield}.${char.baseAcArmorNote ? " " + char.baseAcArmorNote : ""}\n\nArmadura Arcana usa 13 + modificador de Destreza (${fmtMod(getMod(char.abilities.dex.score))})${shield ? " + escudo (2)" : ""} = ${getMageArmorAC(char)}. É uma fórmula alternativa, não um bônus somado à CA base. Requer estar sem armadura.\n\nCA exibida: ${getCalculatedAC(char)}.`;
+  return armorClass(char,CharacterEngine).explanation;
 }
 
 function getCurrentLoadKg(char) {
@@ -1369,7 +1358,7 @@ function renderSpellCastControls(char, spell, index) {
   const selected = options.find((option) => option.value === chosen);
   const usesSlot = spell.circle > 0 && !spell.ritual && !spell.limitedUse && !spell.atWill;
   const unavailable = (usesSlot && (!selected || selected.remaining <= 0)) || (spell.limitedUse && (spell.usesUsed || 0) >= spell.limitedUse);
-  const canNormal = spell.prepared !== false || spell.ritual || spell.limitedUse || spell.atWill;
+  const canNormal = canCastNormally(char,spell,CharacterEngine);
   return `
     ${meta.canTwin && characterHasTwinned(char) ? `<button type="button" onclick="toggleSpellTwinnedByIndex(${index})" class="spell-action-button spell-twin-control" aria-label="${detail.twin ? "Desativar" : "Ativar"} Magia Gêmea para ${escapeHTML(spell.name)}" aria-pressed="${detail.twin}">Gêmea (${escapeHTML(detail.cost ?? spell.circle)}pt)</button>` : ""}
     ${usesSlot && canNormal ? `<select data-spell-slot="${index}" aria-label="Espaço para ${escapeHTML(spell.name)}" onchange="setSpellCastLevelByIndex(${index}, this.value)" class="spell-slot-select">
@@ -1377,7 +1366,7 @@ function renderSpellCastControls(char, spell, index) {
     </select>` : ""}
     ${spell.limitedUse ? `<span class="text-[11px]">Usos: ${Math.max(0, spell.limitedUse - (spell.usesUsed || 0))}/${escapeHTML(spell.limitedUse)}</span>` : ''}
     ${canNormal ? `<button data-cast-spell="${index}" onclick="castSpellByIndex(${index})" ${unavailable ? "disabled" : ""} class="spell-action-button spell-cast-button t-btn-primary" title="${usesSlot ? "Gasta apenas o espaço selecionado. Para trocar a origem, use o seletor." : "Não gasta espaços de magia."}">${spell.ritual ? "Ritual" : spell.circle === 0 ? "Truque" : unavailable ? "Esgotado" : "Conjurar"}</button>` : ''}
-    ${!spell.ritual && canCastRitual(char, spell) ? `<button onclick="castRitualByIndex(${index})" class="spell-action-button spell-cast-button t-inset" title="Acrescenta 10 minutos ao tempo de conjuração e não gasta espaço.">Ritual</button>` : ''}
+    ${canCastRitual(char, spell) ? `<button onclick="castRitualByIndex(${index})" class="spell-action-button spell-cast-button t-inset" title="Acrescenta 10 minutos ao tempo de conjuração e não gasta espaço.">Ritual</button>` : ''}
   `;
 }
 
@@ -1427,13 +1416,12 @@ function castSpellByIndex(index) {
   if (spell) return castSpellWithUpcast(spell.name, spell.circle, spell.classId, index);
 }
 function canCastRitual(char, spell) {
-  if (!spell.ritualAvailable || spell.limitedUse || spell.atWill) return false;
-  if (spell.classId === 'mago' && !spell.extraSource) return true;
-  return ['bardo', 'clerigo', 'druida'].includes(spell.classId) && spell.prepared !== false && (!spell.extraSource || spell.extraSource === 'Magia de subclasse');
+  return canRitual(char,spell,CharacterEngine);
 }
 function castRitualByIndex(index) {
   const spell = getChar().spells[index];
   if (!spell || !canCastRitual(getChar(), spell)) return;
+  onSpellCast(getChar(),spell,spell.circle,CharacterEngine);
   recordStepAndSave(`Conjurou ${spell.name} como ritual (+10 minutos, sem espaço)`);
   showToast('Ritual: acrescente 10 minutos ao tempo da magia. Nenhum espaço gasto.');
 }
@@ -1450,6 +1438,8 @@ function showSpellTooltipByIndex(event, index) {
 
 function renderExpandedSpellCard(char, sp, globalSpellIdx) {
   const meta = resolveSpellMeta(sp);
+  const prep = preparation(char, sp.classId, CharacterEngine);
+  const preparationLabel = prep.always(sp) ? 'Sempre Preparada' : !prep.prepares ? 'Conhecida' : sp.prepared ? 'Preparada' : canRitual(char, sp, CharacterEngine) ? 'Não preparada · ritual disponível' : 'Não preparada';
   const clsMeta =
     RULES_DB.classes[sp.classId] || RULES_DB.classes.feiticeiro;
   const targetMeta =
@@ -1463,6 +1453,7 @@ function renderExpandedSpellCard(char, sp, globalSpellIdx) {
             <button onclick="openHomebrewModal('spell', ${globalSpellIdx})" class="t-text-main" aria-label="Editar ${escapeHTML(sp.name)}"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
             ${Number.isInteger(sp.pdfPage) ? `<a href="book.html#page=${sp.pdfPage}" target="_blank" rel="noopener" aria-label="Consultar ${escapeHTML(sp.name)} no livro"><i data-lucide="book-open" class="w-3.5 h-3.5"></i></a>` : ''}
             ${sp.extraSource ? `<span class="text-[11px] t-text-muted">${escapeHTML(sp.extraSource)}</span>` : ''}
+            ${sp.circle>0?`<span class="text-[11px] font-bold">${preparationLabel}</span>`:''}
           </div>
           <div class="text-[11px] t-text-muted">Tempo: <strong>${escapeHTML(sp.time)}</strong> • Alcance: <strong>${escapeHTML(sp.range)}</strong></div>
       <div class="flex flex-wrap items-center gap-1.5 text-[11px] font-bold">
@@ -1543,7 +1534,7 @@ function buildSingleCirclePanelHtml(char, lvl, isClassicTwoCol) {
 
 // Círculos em ordem numérica; PanelFlow acomoda cada um na coluna mais
 // curta, sem prender permanentemente níveis pares/ímpares ao mesmo lado.
-function isSpellVisible(spell) { return spell.prepared !== false || canCastRitual(getChar(), spell); }
+function isSpellVisible(spell) { return canCastNormally(getChar(),spell,CharacterEngine) || canCastRitual(getChar(), spell); }
 function renderSpellsSection(char, isClassicTwoCol) {
   const circles = Array.from({ length: 10 }, (_, level) => level).filter(
     (level) => level === 0 || char.standardSlots[level]?.total > 0 || char.spells.some((spell) => spell.circle === level),
@@ -1691,7 +1682,7 @@ function renderMainClassic2014(char) {
   const savesHtml = Object.entries(RULES_DB.abilities)
     .map(([key, meta]) => {
       const isProf = char.abilities[key].saveProf;
-      const val = getMod(char.abilities[key].score) + (isProf ? pb : 0);
+      const val = savingThrow(char,key,CharacterEngine);
       return `
     <div class="flex items-center justify-between py-1 px-2 rounded t-hover text-xs">
       <div onclick="toggleSave('${key}')" class="flex items-center gap-2 cursor-pointer">
@@ -1742,6 +1733,7 @@ function renderMainClassic2014(char) {
     <div class="lg:col-span-5 space-y-4">
       ${renderCombatBlock(char)}
       ${renderAttacksBlock(char)}
+      ${resourcePanel(char,CharacterEngine)}
     </div>
     <div class="lg:col-span-3 space-y-3">
       ${renderFeaturesCollapsible(char)}
@@ -1757,7 +1749,7 @@ function renderMainModern2024(char) {
       const score = char.abilities[key].score;
       const mod = getMod(score);
       const saveProf = char.abilities[key].saveProf;
-      const saveVal = mod + (saveProf ? pb : 0);
+      const saveVal = savingThrow(char,key,CharacterEngine);
       const childSkills = RULES_DB.skills.filter(
         (s) => s.ability === key,
       );
@@ -1821,6 +1813,7 @@ function renderMainModern2024(char) {
     <div class="lg:col-span-6 space-y-4">
       ${renderCombatBlock(char)}
       ${renderAttacksBlock(char)}
+      ${resourcePanel(char,CharacterEngine)}
     </div>
     <div class="lg:col-span-12 min-w-0">
       ${renderFeaturesCollapsible(char, true)}
@@ -1833,6 +1826,7 @@ function renderCombatBlock(char) {
   const isCollapsed = !!collapsedPanels["combat_box"];
   const ac = getCalculatedAC(char);
   const dexMod = getMod(char.abilities.dex.score);
+  const effective = exhaustion({...char,speed:CharacterEngine.movementSpeed(char)});
 
   // Referência sem consumo/cura automática, conforme a campanha do usuário.
   const hitDiceHtml = char.classes.map(c => `<div class="t-inset px-2.5 py-1.5 rounded text-xs"><strong>${Number(c.level)}d${Number(c.hitDie)}</strong> · ${escapeHTML(RULES_DB.classes[c.classId]?.name || c.classId)}</div>`).join("");
@@ -1844,7 +1838,7 @@ function renderCombatBlock(char) {
         <i data-lucide="${isCollapsed ? "chevron-right" : "chevron-down"}" class="w-4 h-4 t-text-accent"></i>
         <h3 class="font-rpg text-xs font-bold uppercase t-text-accent">Status de Combate & Pontos de Vida</h3>
       </div>
-      <span class="text-xs font-bold">PV: ${char.hpCurrent}/${char.hpMax} | CA: ${ac}</span>
+      <span class="text-xs font-bold">PV: ${char.hpCurrent}/${effective.hpMax} | CA: ${ac}</span>
     </div>
 
     ${
@@ -1865,7 +1859,7 @@ function renderCombatBlock(char) {
           </button>
           <div class="combat-stat t-inset p-2 rounded-lg">
             <span class="text-[10px] uppercase t-text-muted block">Desloc.</span>
-            <span class="text-2xl font-extrabold">${CharacterEngine.movementSpeed(char)}m</span>
+            <span class="text-2xl font-extrabold">${effective.speed}m</span>
           </div>
           ${char.sorceryPoints.max > 0 ? `<div class="combat-stat t-inset p-2 rounded-lg">
             <span class="text-[10px] uppercase t-text-muted block">Pts Feitiçaria</span>
@@ -1879,7 +1873,7 @@ function renderCombatBlock(char) {
             <div class="flex items-center gap-1.5 mt-1">
               <button onclick="changeHp(-1)" class="px-2 py-0.5 t-card rounded font-bold text-xs">-1</button>
               <button onclick="changeHp(-5)" class="px-2 py-0.5 t-card rounded font-bold text-xs">-5</button>
-              <span class="text-lg font-extrabold px-2">${char.hpCurrent} / ${char.hpMax}</span>
+              <span class="text-lg font-extrabold px-2">${char.hpCurrent} / ${effective.hpMax}</span>
               <button onclick="changeHp(1)" class="px-2 py-0.5 t-card rounded font-bold text-xs">+1</button>
               <button onclick="changeHp(5)" class="px-2 py-0.5 t-card rounded font-bold text-xs">+5</button>
             </div>
@@ -1936,7 +1930,9 @@ function renderAttacksBlock(char) {
                   <button class="font-bold underline decoration-dotted text-left" onmouseenter="showEquipmentTooltip(event, 'weapon', ${idx})" onmousemove="positionTooltip(event)" onmouseleave="hideBookTooltip()" onfocus="showEquipmentTooltip(event, 'weapon', ${idx})" onblur="hideBookTooltip()" onclick="showEquipmentTooltip(event, 'weapon', ${idx})" aria-label="Descrição de ${escapeHTML(w.name)}">${escapeHTML(w.name)}</button>
                   <button onclick="openHomebrewModal('weapon', ${idx})" class="t-text-muted hover:opacity-100" aria-label="Editar ataque ${escapeHTML(w.name)}"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
                 </div>
-                <span class="text-[11px] t-text-muted block">${escapeHTML(w.notes)}</span>
+                <span class="text-[11px] t-text-muted block">${escapeHTML(w.notes)}${w.critical?` · Crítico ${w.critical}–20`:''}</span>
+                ${w.ruleWeapon && /vers[aá]til/i.test(w.properties || '') ? `<label>Mãos <select data-weapon-hands="${idx}" onchange="setWeaponHands(${idx},this.value)" aria-label="Mãos para ${escapeHTML(w.name)}"><option value="1" ${storedWeapon.hands!==2?'selected':''}>1 mão</option><option value="2" ${storedWeapon.hands===2?'selected':''}>2 mãos</option></select></label>`:''}
+                ${w.extras?.length?`<details><summary>Danos adicionais · condições</summary>${w.extras.map(extra=>`<p><strong>${escapeHTML(extra.name)} ${escapeHTML(extra.formula)}</strong> · ${escapeHTML(extra.condition)}</p>`).join('')}</details>`:''}
               </div>
               <div class="flex items-center gap-1.5">
                 <button onclick="rollWeapon(${idx}, 'attack')" class="px-2 py-1 badge-feiticeiro rounded font-bold">
@@ -1966,7 +1962,7 @@ function renderFeaturesCollapsible(char, wide = false) {
   const isCollapsed = !!collapsedPanels.features_box;
   const gains = CharacterEngine.features(char);
   const entries = gains.map(g => `<details><summary ${RuleTooltips.attributes(g.name, g.reference)} class="cursor-pointer"><strong>Nv. ${g.level} · ${escapeHTML(g.name)}</strong><span class="block t-text-muted text-[11px]">${escapeHTML(g.source)}</span></summary>${g.choices?.length ? `<p class="my-2 font-semibold">${g.choices.map(escapeHTML).join(" · ")}</p>` : ""}${g.reference ? `<p class="feature-description">${escapeHTML(RuleTooltips.formatText(g.reference.text))}</p><a class="underline" target="_blank" rel="noopener" href="book.html#page=${g.reference.pdfPage}">Consultar no livro · p. ${g.reference.page}</a>` : '<p class="t-text-muted">Consulte a seção desta classe no livro.</p>'}</details>`);
-  if (char.features?.length) entries.push(`<details><summary class="cursor-pointer font-bold">Anotações e adaptações já presentes nesta ficha</summary><ul class="list-disc pl-4 space-y-2 mt-2">${char.features.map(text => `<li>${escapeHTML(text)}</li>`).join('')}</ul></details>`);
+  if (char.features?.length) entries.push(`<details><summary class="cursor-pointer font-bold">Anotações e adaptações já presentes nesta ficha</summary><ul class="list-disc pl-4 space-y-2 mt-2">${char.features.map(text => `<li>${escapeHTML(readableText(text))}</li>`).join('')}</ul></details>`);
   const multiclass = CharacterEngine.multiclassNotes(char);
   if (multiclass.length) entries.push(`<details><summary class="cursor-pointer font-bold">Interações de multiclasse</summary><ul class="list-disc pl-4 space-y-2 mt-2">${multiclass.map(note => `<li><strong>${escapeHTML(note.name)}</strong>: ${escapeHTML(note.text)} <a class="underline" href="book.html#page=${note.pdfPage}" target="_blank" rel="noopener">Livro · p. ${note.page}</a></li>`).join('')}</ul></details>`);
   entries.push(`<details><summary class="cursor-pointer font-bold">Proficiências e idiomas</summary>${char.armorProficiencies ? `<p>Armaduras: ${char.armorProficiencies.map(a => ({leve: 'leves', media: 'médias', pesada: 'pesadas', escudo: 'escudos'})[a] || a).map(escapeHTML).join(', ') || 'nenhuma'}</p>` : ''}<p>Armas: ${escapeHTML(char.proficiencies.weapons)}</p><p>Ferramentas: ${escapeHTML(char.proficiencies.tools)}</p><p>Idiomas: ${escapeHTML(char.proficiencies.languages)}</p></details>`);
@@ -2001,7 +1997,10 @@ function toggleWornArmor(index) {
   const char = getChar(), item = char.inventoryItems[index];
   const armor = CharacterEngine.armorInfo(item?.name);
   if (!armor) return;
-  if (armor.type === 'shield') char.shieldEquipped = !char.shieldEquipped;
+  if (armor.type === 'shield') {
+    const same = char.shieldName ? char.shieldName===item.name : item.name==='Escudo';
+    char.shieldEquipped = !(same && char.shieldEquipped); char.shieldName = item.name;
+  }
   else char.armorEquipped = char.armorEquipped === item.name ? null : item.name;
   recordStepAndSave(`Alterou equipamento vestido: ${item.name}`);
 }
@@ -2412,6 +2411,19 @@ function openHomebrewModal(type, index = null) {
       <div><label for="hbWepNotes" class="block font-bold mb-1">Propriedades / resumo</label><input id="hbWepNotes" value="${e(weapon.notes)}" class="w-full t-inset p-2 rounded-lg" /></div>
       <div><label for="hbWepDescription" class="block font-bold mb-1">Descrição ao passar o mouse ou tocar no nome</label><textarea id="hbWepDescription" rows="4" maxlength="8000" class="w-full t-inset p-2 rounded-lg">${e(weapon.description ?? BOOK_ITEMS_DB[weapon.name]?.bookDesc ?? weapon.notes)}</textarea></div>`;
     initWeaponDamageBuilder(weapon.damage);
+    const original = index!==null ? {magicBonus:weapon.magicBonus,...char.weapons[index]} : {};
+    const options = document.createElement('div'); options.className = 'grid grid-cols-2 gap-3';
+    options.innerHTML = `<label>Cálculo<select id="hbWepMode"><option value="auto" ${weapon.ruleWeapon && original.calculationMode!=='manual'?'selected':''}>Automático pelo catálogo</option><option value="manual" ${!weapon.ruleWeapon || original.calculationMode==='manual'?'selected':''}>Valores manuais / adaptação</option></select></label><label>Arma do catálogo<select id="hbWepCatalog"><option value="">Ataque personalizado</option>${CharacterEngine.progression.weapons.map(w=>`<option ${weapon.ruleWeapon===w.name?'selected':''}>${e(w.name)}</option>`).join('')}</select></label><label>Proficiência<select id="hbWepProf"><option value="auto" ${typeof original.proficient!=='boolean'?'selected':''}>Detectar pela ficha</option><option value="yes" ${original.proficient===true?'selected':''}>Proficiente · manual</option><option value="no" ${original.proficient===false?'selected':''}>Não proficiente · manual</option></select></label><label>Bônus mágico<input id="hbWepMagic" type="number" min="-10" max="10" value="${Number(original.magicBonus || 0)}"></label><label>Habilidade<select id="hbWepAbility"><option value="auto">Automática</option><option value="str" ${original.abilityOverride==='str'?'selected':''}>Força · ajuste</option><option value="dex" ${original.abilityOverride==='dex'?'selected':''}>Destreza · ajuste</option></select></label><label>Modo de ataque<select id="hbWepAttackMode"><option value="normal">Normal</option><option value="thrown" ${original.attackMode==='thrown'?'selected':''}>Arremessar</option></select></label><label>Ajuste de ataque<input id="hbWepAttackAdjust" type="number" min="-100" max="100" value="${Number(original.attackAdjustment || 0)}"></label><label>Ajuste de dano<input id="hbWepDamageAdjust" type="number" min="-100" max="100" value="${Number(original.damageAdjustment || 0)}"></label><label><input id="hbWepDuel" type="checkbox" ${original.duelingEligible?'checked':''}> Única arma corpo a corpo na mão (Duelismo)</label><label><input id="hbWepOffhand" type="checkbox" ${original.offHand?'checked':''}> Ataque bônus com segunda arma</label>`;
+    body.prepend(options);
+    const calculationHint = document.createElement('p'); calculationHint.className = 't-text-muted text-xs';
+    calculationHint.textContent = 'No modo automático, ataque e dano vêm do catálogo, atributos, proficiência e ajustes abaixo. Use Valores manuais para editar os totais e dados diretamente.';
+    options.after(calculationHint);
+    const updateCalculationMode = () => {
+      const automatic = document.getElementById('hbWepMode').value==='auto';
+      for (const id of ['hbWepBonus','hbWepDamageMod']) document.getElementById(id).disabled = automatic;
+      for (const button of body.querySelectorAll('[id^="hbDamageDie"]')) button.disabled = automatic;
+    };
+    document.getElementById('hbWepMode').addEventListener('change',updateCalculationMode); updateCalculationMode();
     saveBtn.onclick = () => {
       const name = document.getElementById("hbWepName").value.trim();
       const bonus = document.getElementById("hbWepBonus").value.trim();
@@ -2425,6 +2437,11 @@ function openHomebrewModal(type, index = null) {
         dmgTypeLabel: document.getElementById("hbWepType").value.trim(),
         notes: document.getElementById("hbWepNotes").value.trim(),
         description: document.getElementById("hbWepDescription").value.trim() };
+      const numeric = ['hbWepMagic','hbWepAttackAdjust','hbWepDamageAdjust'];
+      if (numeric.some(id=>!Number.isInteger(Number(document.getElementById(id).value)) || Math.abs(Number(document.getElementById(id).value))>100)) return showHomebrewError('hbWepMagic','Use ajustes inteiros entre -100 e 100.');
+      Object.assign(updated,{calculationMode:document.getElementById('hbWepMode').value,ruleWeapon:document.getElementById('hbWepCatalog').value || undefined,
+        proficient:document.getElementById('hbWepProf').value==='auto'?undefined:document.getElementById('hbWepProf').value==='yes',magicBonus:Number(document.getElementById('hbWepMagic').value),abilityOverride:document.getElementById('hbWepAbility').value,attackMode:document.getElementById('hbWepAttackMode').value,
+        attackAdjustment:Number(document.getElementById('hbWepAttackAdjust').value),damageAdjustment:Number(document.getElementById('hbWepDamageAdjust').value),duelingEligible:document.getElementById('hbWepDuel').checked,offHand:document.getElementById('hbWepOffhand').checked});
       if (index === null) char.weapons.push(updated);
       else char.weapons[index] = updated;
       closeHomebrewModal(true);
@@ -2538,6 +2555,11 @@ function rollWeapon(index, kind) {
   }
   triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}`);
 }
+function setWeaponHands(index,value) {
+  const entry = getChar().weapons[index]; if (!entry || !['1','2'].includes(String(value))) return;
+  entry.hands = Number(value); recordStepAndSave('Mudou empunhadura da arma',true);
+  document.querySelector(`[data-weapon-hands="${index}"]`)?.focus({preventScroll:true});
+}
 
 function showEquipmentTooltip(event, type, index) {
   const stored = (type === "weapon" ? getChar().weapons : getChar().inventoryItems)[index];
@@ -2553,6 +2575,7 @@ function showEquipmentTooltip(event, type, index) {
   const details = document.createElement("p");
   details.className = "text-[11px] t-text-muted my-2";
   details.textContent = type === "weapon" ? `${item.damage} · ${item.dmgTypeLabel || "Dano"} · ${item.notes || book?.props || ""}` : `${item.qty}x · ${item.weightKg} kg por unidade`;
+  if (type==='weapon' && item.explanation) details.textContent += '\n'+item.explanation;
   const description = document.createElement("p");
   description.className = "whitespace-pre-wrap leading-relaxed";
   description.textContent = item.description ?? book?.bookDesc ?? item.notes ?? "Sem descrição. Use o lápis para adicionar uma descrição.";
@@ -2736,11 +2759,8 @@ function changeHp(delta) {
   // Livro, p. 200: dano consome PV temporários antes dos PV reais.
   // Cura altera somente PV reais; não recompõe a reserva temporária.
   const absorbed = delta < 0 ? Math.min(char.hpTemp, -delta) : 0;
-  char.hpTemp -= absorbed;
-  char.hpCurrent = Math.max(
-    0,
-    Math.min(char.hpMax, char.hpCurrent + delta + absorbed),
-  );
+  if (delta < 0) applyDamage(char,-delta);
+  else char.hpCurrent = Math.min(exhaustion(char).hpMax,char.hpCurrent+delta);
   if (char.hpTemp === 0) char.hpTempSource = "";
   recordStepAndSave(`${delta < 0 ? `Sofreu ${-delta} de dano (${absorbed} absorvidos por PV temporários)` : `Recebeu ${delta} de cura`} · PV: ${char.hpCurrent}/${char.hpMax} · temporários: ${char.hpTemp}`);
 }
@@ -2870,7 +2890,7 @@ function castSpellWithUpcast(
   const char = getChar();
   const spObj = char.spells[globalSpellIdx];
   if (!spObj) return;
-  if (spObj.prepared === false && !spObj.ritual && !spObj.limitedUse && !spObj.atWill) return showToast('Prepare esta magia antes de conjurá-la com espaço.');
+  if (!canCastNormally(char,spObj,CharacterEngine)) return showToast('Prepare esta magia antes de conjurá-la com espaço; rituais usam a ação Ritual.');
   if (spObj.limitedUse && (spObj.usesUsed || 0) >= spObj.limitedUse) return showToast('Os usos desta habilidade estão esgotados.');
   const bookEntry = BOOK_SPELLS_DB[spellName] || (spObj?.bookId ? BOOK_SPELLS_DB[CharacterEngine.spell(spObj.bookId)?.name] : null);
   const resolvedMeta = resolveSpellMeta(spObj);
@@ -2921,6 +2941,7 @@ function castSpellWithUpcast(
   if (isTwinned) char.sorceryPoints.current -= twinPtCost;
   if (spObj.limitedUse) spObj.usesUsed = (spObj.usesUsed || 0) + 1;
   if (spellName === "Armadura Arcana") char.mageArmorActive = true;
+  onSpellCast(char,spObj,numericCastLvl,CharacterEngine);
 
   const formulaToRoll =
     spObj?.customRoll ||
@@ -2946,8 +2967,8 @@ function castSpellWithUpcast(
 }
 
 function shortRest() {
-  getChar().pactMagic.used = 0;
-  getChar().spells.filter(s => s.recovery === 'short').forEach(s => s.usesUsed = 0);
+  if (Number(getChar().exhaustion)>=6) return showToast('Exaustão 6 significa morte; um descanso não revive o personagem.');
+  if (!takeRest(getChar(),'short',CharacterEngine)) { recordStepAndSave('Frenesi terminou com exaustão 6',true); return showToast('Frenesi levou à exaustão 6. O personagem morreu antes de concluir o descanso.'); }
   recordStepAndSave("⛺ Descanso Curto");
   showToast("Descanso Curto concluído!");
 }
@@ -2955,19 +2976,15 @@ function shortRest() {
 async function longRest() {
   // Regra desta campanha: dormir recupera tudo, sem gasto de Dados de Vida.
   // Não substitui a referência de descansos do livro para outras campanhas.
-  if (!await confirmDestructiveAction("Dormir e recuperar tudo?", "Regra da mesa: recupera todos os PV, Dados de Vida, espaços de magia, pontos de feitiçaria e usos registrados. PV temporários serão removidos. Você poderá desfazer nesta sessão.", "Dormir e recuperar")) return;
   const char = getChar();
-  char.hpCurrent = char.hpMax;
-  char.hpTemp = 0;
-  char.hpTempSource = "";
-  char.pactMagic.used = 0;
-  char.sorceryPoints.current = char.sorceryPoints.max;
-  char.tidesOfChaosAvailable = true;
-  char.spells.forEach(s => { if (s.limitedUse) s.usesUsed = 0; });
-  Object.values(char.standardSlots).forEach(s => { s.total -= s.created || 0; s.created = 0; s.used = 0; });
-  char.classes.forEach(c => { c.hitDiceUsed = 0; });
-  recordStepAndSave("🌙 Dormiu e recuperou todos os recursos (regra da mesa)", true);
-  showToast("PV e recursos recuperados — regra da mesa.");
+  if (Number(char.exhaustion)>=6) return showToast('Exaustão 6 significa morte; um descanso não revive o personagem.');
+  const choices = document.createElement('div');
+  choices.innerHTML = '<label><input type="checkbox" data-rest-food checked> Teve alimento e bebida (reduz 1 exaustão)</label><br><label><input type="checkbox" data-rest-table> Recuperar todos os Dados de Vida (adaptação da mesa)</label>';
+  if (!await confirmDestructiveAction('Concluir descanso longo?', 'Recupera PV e recursos conforme o livro. Dados de Vida: até metade do nível total; escolha quais recuperar depois. PV temporários serão removidos.', 'Concluir descanso', choices)) return;
+  if (getChar() !== char) return;
+  if (!takeRest(char,'long',CharacterEngine,{foodAndWater:choices.querySelector('[data-rest-food]').checked,tableHitDice:choices.querySelector('[data-rest-table]').checked})) { recordStepAndSave('Frenesi terminou com exaustão 6',true); return showToast('Frenesi levou à exaustão 6. O personagem morreu antes de concluir o descanso.'); }
+  recordStepAndSave('Descanso longo · PV, recursos e preparação',true);
+  showToast('Descanso concluído. Revise a preparação e os Dados de Vida no painel de recursos.');
 }
 
 function openShopModal() {
@@ -3137,6 +3154,7 @@ Object.assign(window, {
   toggleWornArmor,
   renderLoreSection,
   renderAll,
+  setWeaponHands,
   renderHeader,
   showHomebrewError,
   getHomebrewFormState,

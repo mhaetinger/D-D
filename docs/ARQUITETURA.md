@@ -56,7 +56,7 @@ são distribuídos no build e no cache do aplicativo, sem alterar os livros.
 
 ## Dados locais e backup
 
-`CharacterStore` lê `orbyt_characters_v1`, envelope com `schemaVersion: 1` e
+`CharacterStore` lê `critcall_characters_v1`, envelope com `schemaVersion: 1` e
 `characters`. Se essa chave ainda não existe, lê `dnd_sheet_public_v1` e copia os
 dados validados, mantendo o conteúdo anterior para recuperação/retorno à versão
 antiga. O armazenamento permanece no mesmo navegador e origem.
@@ -71,7 +71,7 @@ de gravar/importar sobre dados que ainda não puderam ser conferidos.
 
 Anotações continuam em `dnd_player_private_notes_v1`, por ID do personagem,
 separadas de ficha, impressão e snapshots. Backups só incluem notas com escolha
-explícita. O formato `orbyt.character-backup`, versão 1, tem data e personagens,
+explícita. O formato `critcall.character-backup`, versão 1, tem data e personagens,
 com `privateNotes` opcional e separado. Importar cria novos IDs e remapeia as
 notas correspondentes; não substitui personagens com o mesmo ID ou nome.
 Arquivos de até 20 MB são aceitos; versões desconhecidas são rejeitadas.
@@ -94,7 +94,7 @@ abriu o link de recuperação em outro navegador/dispositivo, embora o retorno
 fosse localhost. O fluxo PKCE atual exige o navegador/dispositivo de origem.
 Após essa orientação, em 16/10/2026 o usuário relatou sucesso no teste local de
 recuperação/troca. Isso não é validação da publicação, SMTP próprio ou duas contas.
-Orbyt é outro projeto do responsável e permanece separado. O
+Os demais aplicativos do responsável permanecem separados. O
 aplicativo tem os identificadores públicos do CritCall incluídos; o modo local
 pode ser escolhido com `VITE_AUTH_ENABLED=false`. O bootstrap valida a identidade
 antes de importar `sheet.js`; chaves de armazenamento pessoais recebem prefixo por projeto/usuário.
@@ -102,7 +102,7 @@ As chaves originais permanecem no modo sem login. O fluxo explícito de entrada
 pode copiar o conteúdo para a identidade confirmada; ver `src/auth/guest-import.ts`
 e os contratos em `SINCRONIZACAO.md`.
 O título, a instalação e os downloads usam CritCall. Identificadores legados
-com `orbyt` são mantidos apenas para compatibilidade de fichas/backups publicados;
+antigos são lidos apenas pela camada de compatibilidade silenciosa;
 novos espaços de login/conta usam `dnd_auth_v1`/`dnd_account_v1`.
 
 Sessões online passam por `getUser`; uma identidade previamente validada só
@@ -280,3 +280,20 @@ A próxima criação retoma o rascunho, incluindo os recebidos na vinculação l
 sem e-mail ou ID da conta. O leitor aceita apenas temas/escalas conhecidos.
 A animação do dado usa os retângulos inicial/final e se cancela no arraste,
 redimensionamento ou troca de espaço; movimento reduzido usa abertura imediata.
+
+## Revisão universal de 2014 — 19/10/2026
+
+`src/rules/` contém cálculos puros de armas/CA, preparação, recursos e descansos,
+com modelo de estado independente de DOM/rede. `bridge.ts` mantém a assinatura
+de `CharacterEngine.weaponStats` na interface; criação/evolução e catálogos
+continuam no motor anterior. O painel delegado em `ui.ts` agrupa por classe e
+preserva foco e expansão ao salvar. `ruleState` viaja no documento da ficha e
+nas versões existentes, sem SQL novo ou alteração de autorização.
+
+`src/storage/legacy.ts` concentra a leitura de identificadores históricos e a
+cópia para chaves atuais. Fichas, recuperações e ficha ativa passam a usar prefixo
+CritCall; a fila mantém IDs/revisões antigos até confirmação. A projeção de
+documentos reconhece aliases sem duplicar a preferência. Textos estruturados
+legados ganham apresentação legível e material original para recuperação.
+
+Escopo, decisões de automação e verificações em [REFATORACAO-2014.md](REFATORACAO-2014.md).

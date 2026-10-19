@@ -2,6 +2,38 @@
 
 ## Não lançado
 
+### Regras, recursos por classe e continuidade de dados — 2026-10-19
+
+- Armas importadas são reconciliadas com o catálogo: habilidade, proficiência
+  de classe/raça/talento ou manual, magia, empunhadura versátil, Arquearia,
+  Fúria e Arma Sagrada. O editor separa cálculo automático de totais adaptados;
+  dados adicionais e intervalos de crítico mostram suas condições.
+- CA usa alternativas de base e bônus aditivos separados, incluindo a primeira
+  Defesa sem Armadura em multiclasse, armaduras, escudo mágico, Resiliência,
+  Armadura Arcana, Defesa, Escudo da Fé e Escudo Arcano. O balão explica a soma.
+- Novo painel por classe/subclasse com usos, reservas, custos compartilhados,
+  alvos, presságios e estados persistidos na ficha. Frenesi gera exaustão ao
+  encerrar Fúria; Proteção Arcana e PV da besta absorvem dano antes de reservas
+  temporárias/reais. Descansos, Dados de Vida e lembrete de preparação seguem
+  suas condições. Efeitos por alvo e duração têm resolução explícita do jogador.
+- Preparação por classe e magias sempre preparadas não são confundidas com
+  conhecer ou lançar como ritual. Magia ritual não preparada de mago não pode
+  ser lançada normalmente; preparada pode gastar espaço. Pacto permanece separado.
+- Balões têm corpos justificados e tipografia/padding compactos. Personalidade
+  usa seletores de sugestões + texto sempre editável, preservado ao trocar de
+  antecedente. Ctrl/Cmd + rodinha/+/-/0 ajusta só a página do leitor.
+- Atributos ganham modo livre identificado como adaptação. Compras validam
+  quantidades, catálogo, orçamento em cobre e milhares em português: luneta
+  de 1.000 po não custa mais 1 po. Valores monetários aceitam centavos exatos.
+- Textos estruturados antigos tornam-se legíveis com cópia do material original;
+  strings irrecuperáveis são identificadas. Exportações/chaves novas usam CritCall.
+  Leitura silenciosa preserva formatos históricos, originais e operações já
+  enfileiradas, sem troca de identidade, SQL ou autorização.
+- Plano, contratos e verificação em `docs/REFATORACAO-2014.md`.
+- Verificação: 260 testes Node, tipos/build e nove roteiros Chromium aprovados;
+  regras repetidas após os últimos ajustes. Inclui login, sincronização com HTTP
+  simulado, isolamento, offline e continuidade local. Sem alteração de SQL/RLS.
+
 ### PV iniciais, riqueza/mercado do Capítulo 5, balão sem bloquear clique, correções visuais e cabeçalho compacto — 2026-10-17
 
 - **Balão de consulta (`#ruleTooltip`) na criação**: mantém a rolagem pela rodinha
@@ -301,7 +333,7 @@
   ficaram disponíveis. Consulta real sem dados (`limit=0`) no projeto CritCall
   retornou 404/PGRST205 para a nova tabela. **Migração ainda não aplicada e
   sincronização real ainda não validada.** Sem e-mail real, merge/publicação,
-  mudança no Orbyt ou compra/ativação de domínio. Detalhes em SINCRONIZACAO.md.
+  mudança no outro aplicativo ou compra/ativação de domínio. Detalhes em SINCRONIZACAO.md.
 
 ### Recuperação local relatada como bem-sucedida — 2026-10-16
 
@@ -465,7 +497,7 @@
 
 - Usuário definiu **CritCall** como nome do aplicativo de fichas de D&D.
   Atualizados título, instalação, pacote, nomes de downloads, documentação e
-  instruções de manutenção. Orbyt continua identificado como outro projeto.
+  instruções de manutenção. Outros aplicativos permanecem separados.
 - Chaves de armazenamento, formato dos backups e endereço publicado preservados.
   O projeto Supabase novo já foi criado pelo usuário e ainda aguarda identificação/conexão.
 - Verificação: tipos/build e conferência Chromium de título, manifest, ícone,
@@ -475,14 +507,14 @@
 
 ### Identidade correta: Fichas D&D — 2026-10-15
 
-- Usuário esclareceu que **Orbyt é outro projeto** e informou que já criou o
+- Usuário esclareceu que **outro aplicativo é outro projeto** e informou que já criou o
   Supabase novo do D&D. Corrigidos título, nome de instalação, pacote, ícone,
   downloads e documentação para Fichas D&D; registrada a separação no AGENTS.md.
   Falta identificar/conectar o projeto novo; não criar outro por repetição.
 - Novos espaços de autenticação/conta usam prefixos `dnd_auth_v1` e
   `dnd_account_v1`. As chaves de fichas publicadas e o formato de backup legado
   são preservados para não interromper a leitura dos dados existentes; não
-  representam vínculo com a aplicação Orbyt.
+  representam vínculo com outros aplicativos.
 - Verificação desta correção: 18 testes de armazenamento/contas, tipos/build e
   roteiros Chromium de armazenamento e login passaram. Conferidos título,
   manifest, ícone e nome do download no navegador, com formato legado legível.

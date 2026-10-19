@@ -88,6 +88,7 @@ async function renderPage(selection, preserveScroll = false) {
     await textLayer.render();
     if (version !== revision) return;
     reader.replaceChildren(paper);
+    reader.dataset.renderZoom = zoom.value;
     reader.dataset.renderedBook = book.id;
     reader.dataset.renderedPage = String(number);
     status.textContent = `Página ${number} de ${pdf.numPages}`;
@@ -142,6 +143,33 @@ next.addEventListener("click", () => {
   navigate(book.id, page + 1);
 });
 zoom.addEventListener("change", () => renderPage(selectionFromHash(location.hash)));
+let zoomTimer;
+function setReaderZoom(value) {
+  const next = Math.round(Math.max(.5, Math.min(3, value))*100)/100;
+  if (![...zoom.options].some(o => Number(o.value) === next)) {
+    const option = new Option(`${Math.round(next*100)}%`,String(next));
+    option.dataset.customZoom = 'true'; zoom.append(option);
+  }
+  zoom.value = String(next);
+  const paper = reader.querySelector('.pdf-page');
+  if (paper) {
+    const ratio = next / Number(reader.dataset.renderZoom || 1);
+    paper.style.transformOrigin = '0 0'; paper.style.transform = `scale(${ratio})`;
+  }
+  clearTimeout(zoomTimer);
+  zoomTimer = setTimeout(() => renderPage(selectionFromHash(location.hash),true),120);
+}
+reader.addEventListener('wheel', event => {
+  if (!event.ctrlKey && !event.metaKey) return;
+  event.preventDefault(); event.stopPropagation();
+  const delta = event.deltaY * (event.deltaMode===1?16:event.deltaMode===2?reader.clientHeight:1);
+  setReaderZoom(Number(zoom.value) * Math.exp(-delta*.002));
+}, {passive:false});
+document.addEventListener('keydown', event => {
+  if ((!event.ctrlKey && !event.metaKey) || event.altKey || !['+','=','-','0'].includes(event.key)) return;
+  event.preventDefault();
+  setReaderZoom(event.key==='0'?1:Number(zoom.value)*(event.key==='-'?1/1.1:1.1));
+});
 const synchronizeHistory = () => { if (renderedHash !== location.hash) render(); };
 window.addEventListener("hashchange", synchronizeHistory);
 window.addEventListener("popstate", synchronizeHistory);

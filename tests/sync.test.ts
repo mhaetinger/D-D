@@ -6,6 +6,7 @@ import { SyncEngine, type RemotePort, type PushResult } from "../src/sync/engine
 import { canonical, documentKey, readDocuments, projectDocuments, type Documents } from "../src/sync/documents";
 import { SupabaseDocuments } from "../src/sync/supabase-port";
 import { createClient } from "@supabase/supabase-js";
+import { legacyKeyFor } from "../src/storage/legacy";
 const { warrior } = require("./fixture.cjs");
 
 class Remote implements RemotePort {
@@ -36,6 +37,21 @@ function setup(remote = new Remote(), journal: JournalPort = new BrowserJournal(
   return { engine, journal, remote, get docs() { return docs; }, set docs(next: Documents) { docs = next; }, edit(value: boolean) { editing = value; } };
 }
 const name = (value: string): Documents => ({ [documentKey("preference", "dnd_public_player_name")]: { kind: "preference", id: "dnd_public_player_name", value } });
+
+test('migração de identificadores conserva operações antigas da fila e projeta preferência atual',async()=>{
+  const remote=new Remote(),journal=new BrowserJournal(new IDBFactory()),scope='conta-migrada';
+  const old=legacyKeyFor('critcall_active_character_v1'),char=warrior(),operationId=crypto.randomUUID();
+  const values=new Map<string,string>([[legacyKeyFor('critcall_characters_v1'),JSON.stringify({schemaVersion:1,characters:[char]})],[old,char.id]]);
+  const port={getItem:(key:string)=>values.get(key)??null,setItem:(key:string,value:string)=>{values.set(key,value)},removeItem:(key:string)=>{values.delete(key)}};
+  await journal.change(scope,state=>{
+    state.pending.push({kind:'preference',id:old,key:documentKey('preference',old),value:char.id,operationId,parentId:null,baseRevision:0,editedAt:new Date().toISOString(),clockOffset:0,uncalibrated:false});
+  });
+  const engine=new SyncEngine(scope,journal,remote,{read:()=>readDocuments(port),apply:docs=>projectDocuments(port,docs),canApply:()=>true});
+  await engine.capture(true);await engine.run();
+  assert.equal(engine.pending,0);assert.ok(remote.sent.some(op=>op.operationId===operationId));
+  assert.equal(values.get('critcall_active_character_v1'),char.id);assert.equal(values.get(old),char.id);
+  await engine.run();assert.equal(engine.deferred,false);assert.equal(engine.pending,0);
+});
 
 test("fila IndexedDB sobrevive à recarga offline, separa notas e envia o perfil completo", async () => {
   const a = setup();
@@ -178,18 +194,18 @@ test("projeção preserva o formato legado e mantém notas fora do backup de fic
   const char = warrior();
   const docs: Documents = { ...name("Pessoa"), [documentKey("character",char.id)]: { kind: "character", id: char.id, value: char }, [documentKey("note",char.id)]: { kind: "note", id: char.id, value: "Segredo" } };
   projectDocuments(port,docs);
-  assert.equal(data.get("orbyt_characters_v1")!.includes("Segredo"),false);
+  assert.equal(data.get("critcall_characters_v1")!.includes("Segredo"),false);
   assert.equal(canonical(readDocuments(port)),canonical(docs));
 });
 test("falha na projeção reverte as chaves já escritas e preserva o histórico ilegível", () => {
-  const data = new Map<string, string>([["orbyt_characters_v1",JSON.stringify({schemaVersion:1,characters:[]})],["dnd_history_v1","{ilegível"]]);
+  const data = new Map<string, string>([["critcall_characters_v1",JSON.stringify({schemaVersion:1,characters:[]})],["dnd_history_v1","{ilegível"]]);
   let fail = false;
   const port = { getItem: (key: string) => data.get(key) ?? null, setItem: (key: string, value: string) => { if(fail&&key==='dnd_player_private_notes_v1')throw new Error('quota');data.set(key,value); }, removeItem: (key: string) => { data.delete(key); } };
   assert.ok(Object.values(readDocuments(port)).some(doc=>doc.kind==='recovery'&&doc.value==='{ilegível'));
-  const before = data.get('orbyt_characters_v1'); fail=true;
+  const before = data.get('critcall_characters_v1'); fail=true;
   const char=warrior();
   assert.throws(()=>projectDocuments(port,{[documentKey('character',char.id)]:{kind:'character',id:char.id,value:char}}));
-  assert.equal(data.get('orbyt_characters_v1'),before);
+  assert.equal(data.get('critcall_characters_v1'),before);
   assert.equal(data.get('dnd_history_v1'),'{ilegível');
 });
 test("primeira edição calibra a data no servidor sem redatar o legado", async () => {

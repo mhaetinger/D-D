@@ -5,7 +5,7 @@ const os = require("node:os");
 const { chromium } = require(process.env.DND_PLAYWRIGHT_MODULE || "playwright");
 const { serve } = require("./serve.cjs");
 const { warrior } = require("./fixture.cjs");
-const LEGACY = "dnd_sheet_public_v1", KEY = "orbyt_characters_v1", NOTES = "dnd_player_private_notes_v1";
+const LEGACY = "dnd_sheet_public_v1", KEY = "critcall_characters_v1", NOTES = "dnd_player_private_notes_v1";
 async function downloadBackup(page) {
   const pending = page.waitForEvent("download");
   await page.locator("#exportBackup").click();
@@ -40,7 +40,7 @@ async function importBackup(page, value) {
     assert.equal(await page.locator('i[data-lucide]').count(), 0, "todos os ícones usados foram incluídos no bundle");
     await page.evaluate(() => openAuthAccountModal());
     const plain = await downloadBackup(page);
-    assert.equal(plain.format, "orbyt.character-backup");
+    assert.equal(plain.format, "critcall.character-backup");
     assert.equal(plain.privateNotes, undefined);
     await page.locator("#backupIncludeNotes").check();
     const full = await downloadBackup(page);
@@ -76,7 +76,7 @@ async function importBackup(page, value) {
       await page.reload({ waitUntil: "networkidle" });
       assert.equal(await page.evaluate(() => getChar().id), imported);
     }
-    await page.evaluate(() => localStorage.setItem("orbyt_active_character_v1", "ficha-removida"));
+    await page.evaluate(() => localStorage.setItem("critcall_active_character_v1", "ficha-removida"));
     await page.reload({ waitUntil: "networkidle" });
     assert.equal(await page.evaluate(() => getChar().id), char.id, "ID ausente abre a primeira ficha disponível");
     await page.evaluate(() => openAuthAccountModal());
@@ -157,7 +157,7 @@ async function importBackup(page, value) {
     await page.evaluate(() => {
       const original = Storage.prototype.setItem;
       Storage.prototype.setItem = function(key, value) {
-        if (key === "orbyt_characters_v1") throw new DOMException("Sem espaço", "QuotaExceededError");
+        if (key === "critcall_characters_v1") throw new DOMException("Sem espaço", "QuotaExceededError");
         return original.call(this, key, value);
       };
       updateField("name", "Alteração ainda não salva");
@@ -179,7 +179,7 @@ async function importBackup(page, value) {
 
     // Uma coleção corrompida não vira uma ficha vazia gravada sobre o original.
     const recovery = await browser.newContext();
-    await recovery.addInitScript(() => { if (!localStorage.getItem("recoverySeeded")) { localStorage.setItem("orbyt_characters_v1", "{danificado"); localStorage.setItem("recoverySeeded", "true"); } });
+    await recovery.addInitScript(() => { if (!localStorage.getItem("recoverySeeded")) { localStorage.setItem("critcall_characters_v1", "{danificado"); localStorage.setItem("recoverySeeded", "true"); } });
     const damaged = await recovery.newPage();
     damaged.on("pageerror", (e) => errors.push(e.message));
     await damaged.goto(server.url, { waitUntil: "networkidle" });
@@ -196,7 +196,7 @@ async function importBackup(page, value) {
     await importBackup(damaged, plain);
     await damaged.locator("#confirmationAccept").click();
     await damaged.waitForFunction(() => characters.length === 1);
-    assert.equal(await damaged.evaluate(() => localStorage.getItem("orbyt_recovery_v1")), "{danificado");
+    assert.equal(await damaged.evaluate(() => localStorage.getItem("critcall_recovery_v1")), "{danificado");
     await recovery.close();
 
     const blocked = await browser.newContext();

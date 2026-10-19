@@ -3,6 +3,7 @@ import { SHEET_KEY, LEGACY_KEY, NOTES_KEY, RECOVERY_KEY } from "../storage/chara
 import { PERSONAL_KEYS } from "../storage/preferences";
 import { validateCharacters } from "../storage/validation";
 import type { StoragePort } from "../storage/account-scope";
+import { currentStorageKey, migrateStorage } from "../storage/legacy";
 
 export type Kind = "character" | "note" | "preference" | "recovery";
 export interface DocumentValue { kind: Kind; id: string; value: unknown }
@@ -19,10 +20,11 @@ export function validateDocument(doc: DocumentValue): DocumentValue {
   if (doc.kind === "character") {
     const [char] = validateCharacters([doc.value]);
     if (char.id !== doc.id) throw new Error("Identificador de ficha incompatível");
+    return {...doc,value:char};
   } else if (doc.kind === "note") {
     if (typeof doc.value !== "string" || doc.value.length > 2_000_000) throw new Error("Anotação inválida");
   } else if (doc.kind === "preference") {
-    if (!PERSONAL_KEYS.includes(doc.id) || typeof doc.value !== "string" || doc.value.length > 15_000_000) throw new Error("Preferência inválida");
+    if (!PERSONAL_KEYS.includes(currentStorageKey(doc.id)) || typeof doc.value !== "string" || doc.value.length > 15_000_000) throw new Error("Preferência inválida");
     if (doc.id === "dnd_profile_avatar" && doc.value !== "null" && !isAvatarRef(JSON.parse(doc.value))) throw new Error("Imagem de perfil inválida");
     if (doc.id === "dnd_history_v1") {
       const history = JSON.parse(doc.value);
@@ -33,12 +35,13 @@ export function validateDocument(doc: DocumentValue): DocumentValue {
       }
     }
   } else if (doc.kind === "recovery") {
-    if (!doc.id.startsWith(RECOVERY_KEY) || typeof doc.value !== "string" || doc.value.length > 20_000_000) throw new Error("Recuperação inválida");
+    if (!currentStorageKey(doc.id).startsWith(RECOVERY_KEY) || typeof doc.value !== "string" || doc.value.length > 20_000_000) throw new Error("Recuperação inválida");
   } else throw new Error("Tipo desconhecido");
   return doc;
 }
 
 export function readDocuments(port: StoragePort, recoveryKeys: string[] = []): Documents {
+  migrateStorage(port);
   const docs: Documents = {};
   const put = (kind: Kind, id: string, value: unknown) => { docs[documentKey(kind, id)] = validateDocument({ kind, id, value }); };
   const raw = port.getItem(SHEET_KEY), legacy = port.getItem(LEGACY_KEY);
@@ -65,7 +68,7 @@ export function readDocuments(port: StoragePort, recoveryKeys: string[] = []): D
 
 /** As notas são projetadas em outra chave, nunca dentro da ficha ou de seus snapshots. */
 export function projectDocuments(port: StoragePort, docs: Documents) {
-  const valid = Object.values(docs).map(validateDocument);
+  const valid = Object.values(compatibleDocuments(docs)).map(validateDocument);
   const characters = valid.filter(d => d.kind === "character" && d.value !== null).map(d => d.value);
   validateCharacters(characters);
   const notes = Object.fromEntries(valid.filter(d => d.kind === "note" && d.value !== null).map(d => [d.id, d.value]));
@@ -84,4 +87,17 @@ export function projectDocuments(port: StoragePort, docs: Documents) {
     }
     throw error;
   }
+}
+
+/** Mantém IDs/revisões da fila remota; só a projeção local usa o nome atual.
+ * Um documento atual, inclusive excluído, tem precedência sobre o alias antigo. */
+export function compatibleDocuments(docs:Documents):Documents {
+  const output:Documents = {};
+  const all = Object.values(docs);
+  for (const doc of all) {
+    const id = ['preference','recovery'].includes(doc.kind) ? currentStorageKey(doc.id) : doc.id;
+    if (id!==doc.id && all.some(d=>d.kind===doc.kind && d.id===id)) continue;
+    const projected = {...doc,id}; output[documentKey(doc.kind,id)] = projected;
+  }
+  return output;
 }

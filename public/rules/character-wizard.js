@@ -589,6 +589,12 @@
     host.addEventListener("change", async (event) => {
       const el = event.target,
         id = el.dataset.answer;
+      if (el.dataset.suggestionSelect && el.value !== '') {
+        const key = el.dataset.suggestionSelect;
+        const text = guide().backgroundSuggestions(draft.setup.backgroundId)[key]?.[Number(el.value)];
+        if (text) { draft.setup[key] = text; host.querySelector(`[data-text="${key}"]`).value = text; persistDraft(); }
+        return;
+      }
       if (el.hasAttribute("data-market-category")) {
         filterMarket();
         return;
@@ -626,7 +632,7 @@
         const previous = draft.setup[key];
         draft.setup[key] = next;
         if (key === "backgroundId" && previous !== next) {
-          for (const textKey of ["traits", "ideals", "bonds", "flaws"]) draft.setup[textKey] = "";
+          // Trocar o antecedente atualiza as sugestões, preservando a escrita.
           draft.setup.customizedFields = {};
         }
         if (key === "classId") {
@@ -641,7 +647,7 @@
         if (key === "abilityMethod") {
           rollRevision++; rolling = false; draft.setup.assignment = {};
           draft.setup.baseScores =
-            next === "pointBuy"
+            next === "pointBuy" || next === "adapted"
               ? Object.fromEntries(Object.keys(D.abilities).map((k) => [k, 8]))
               : {};
         }
@@ -1218,8 +1224,8 @@
           (key, i) =>
             `<div data-choice="char-${key}">${field(
               ["Personalidade", "Ideais", "Ligações", "Defeitos"][i],
-              editable ? `<textarea data-text="${key}" rows="2" ${s.customizedFields?.[key] ? "" : "readonly"}>${escape(s[key])}</textarea>` : `<div class="cw-readonly-text">${escape(s[key] || "Nenhum texto preenchido")}</div>`,
-            )}${editable ? guide().suggestionsMarkup(s.backgroundId, key) : ""}</div>`,
+              editable ? `<select data-suggestion-select="${key}" aria-label="Sugestões de ${["Personalidade","Ideais","Ligações","Defeitos"][i]}"><option value="">Escrever livremente ou escolher uma sugestão…</option>${(guide().backgroundSuggestions(s.backgroundId)[key] || []).map((text,index)=>`<option value="${index}">${escape(text)}</option>`).join('')}</select><input data-text="${key}" value="${escape(s[key])}" aria-label="Editar ${["Personalidade","Ideais","Ligações","Defeitos"][i]}">` : `<div class="cw-readonly-text">${escape(s[key] || "Nenhum texto preenchido")}</div>`,
+            )}</div>`,
         )
         .join("")}</div>
       ${field("História", editable ? `<textarea data-text="backstory" rows="2">${escape(s.backstory)}</textarea>` : `<div class="cw-readonly-text">${escape(s.backstory || "Nenhuma história preenchida")}</div>`)}
@@ -1248,6 +1254,7 @@
       { value: "standard", label: "Conjunto padrão: 15, 14, 13, 12, 10, 8" },
       { value: "rolled", label: "Rolagem: 4d6, descartar o menor; repetir seis vezes" },
       { value: "pointBuy", label: "Compra de pontos: 27 pontos (opcional do livro)" },
+      { value: "adapted", label: "Livre / Adaptado da mesa (não usa o orçamento de 27 pontos)" },
     ];
     return `${field("Método dos valores iniciais", `<select data-setup="abilityMethod">${options(methods, s.abilityMethod)}</select>`)}${s.abilityMethod === "rolled" ? `<button data-action="rollAbilities" ${rolling ? "disabled" : ""}>${rolling ? "Rolando…" : s.rolls.length ? "Rolar novamente" : "Rolar seis grupos de 4d6"}</button>${rolling ? '<div class="cw-rolling" role="status" aria-label="Rolando os seis grupos de dados"><span>⚄</span><span>⚂</span><span>⚅</span><span>⚃</span></div>' : `<div class="cw-rolls">${s.rolls.map((g, i) => `<div>Grupo ${i + 1}: ${g.map((n, j) => (j === g.indexOf(Math.min(...g)) ? `<s aria-label="${n}, descartado">${n}</s>` : `<strong>${n}</strong>`)).join(" + ")} = <strong>${totals[i]}</strong></div>`).join("")}</div>`}` : ""}${rolling ? "" : guide().abilityMarkup()}`;
   }

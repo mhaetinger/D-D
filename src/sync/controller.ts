@@ -2,6 +2,7 @@ import type { AccountSession } from "../auth/session";
 import { currentWorkspaceKey, workspaceKey, workspaceStorage } from "../storage/account-scope";
 import { storageMutations, announceStorageChange } from "../storage/mutations";
 import { sheetStore } from "../storage/character-store";
+import { currentStorageKey, migrateStorage } from "../storage/legacy";
 import { BrowserJournal } from "./journal";
 import { SyncEngine } from "./engine";
 import { SupabaseDocuments } from "./supabase-port";
@@ -55,7 +56,9 @@ export async function initializeSync(account: AccountSession) {
     const identity = account.identity;
     const port = workspaceStorage(() => localStorage, next);
     const read = () => {
-      const keys = Object.keys(localStorage).filter(key => key.startsWith(next + "orbyt_recovery_v1")).map(key => key.slice(next.length));
+      const sourceKeys = Object.keys(localStorage).filter(key=>key.startsWith(next)).map(key=>key.slice(next.length));
+      migrateStorage(port,sourceKeys);
+      const keys = sourceKeys.map(currentStorageKey).filter(key=>key.startsWith('critcall_recovery_v1'));
       return readDocuments(port, keys);
     };
     remote = new SupabaseDocuments(account.client, identity.userId);

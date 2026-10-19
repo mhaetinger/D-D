@@ -26,9 +26,9 @@ acompanha a implementação na branch `feature/criacao-guiada`.
 - [ ] Importar uma ficha existente a partir de PDF, preservando os campos
   preenchidos, escolhas manuais, história, magias e anotações antes de oferecer
   sua cópia à conta confirmada. O PDF do Kael continua fora do Git.
-- [ ] Transferir o personagem pessoal solicitado à conta indicada, depois de
-  confirmar a fonte e revisar a transcrição do PDF. Dados reais e endereços da
-  conta ficam fora do Git.
+- [x] A ficha pessoal solicitada já foi encontrada na conta indicada em consulta
+  pontual de 19/10/2026; a cópia existente foi preservada, sem nova importação ou
+  sobrescrita. Dados reais e endereços da conta ficam fora do Git.
 
 ## Criador orientado
 

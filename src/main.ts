@@ -15,6 +15,8 @@ import "./styles/access.css";
 import "./app/icons";
 import "./wizard/bridge";
 import "./styles/wizard-guide.css";
+import "./styles/rules.css";
+import { initializeRules } from "./rules/bridge";
 import { setupBackups } from "./storage/backup-ui";
 import { registerOffline } from "./pwa/register";
 import { initializeAccount } from "./auth/session";
@@ -27,6 +29,7 @@ import { setupBookAppearance } from "./app/book-appearance";
 async function start() {
   const account = await initializeAccount();
   await initializeSync(account);
+  initializeRules();
   await import("./app/sheet.js");
   setupBackups();
   setupAccountUI(account);

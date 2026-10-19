@@ -1,13 +1,21 @@
 # Retomada do CritCall em outro PC
 
-Estado conferido em **17/10/2026**. Este documento permite continuar sem o
+Estado conferido em **19/10/2026**. Este documento permite continuar sem o
 histórico da conversa. Leia também `AGENTS.md`, `README.md`, `CHANGELOG.md` e
 `docs/ARQUITETURA.md` antes de alterar o projeto.
 
 ## Abrir a versão em desenvolvimento
 
 Repositório: https://github.com/mhaetinger/D-D.
-Branch atual: **`feature/criacao-guiada`**, criada de `develop`.
+Branch atual: **`feature/regras-universais`**, baseada no histórico público de `develop`.
+A criação guiada foi integrada pelas PRs #7/#8. A revisão atual está em
+[REFATORACAO-2014.md](REFATORACAO-2014.md): regras/recursos, armas/CA,
+preparação, textos, criador, zoom, moeda e migração de identificadores.
+Não mesclar/publicar esta revisão sem aprovação. A branch remota `develop`
+foi restaurada após a entrega na referência de integração já aprovada
+`b1155fbc5d14a566f548814bd808374aa2383721`, merge da PR #7.
+A revisão tem 260 testes Node aprovados, tipos/build e nove roteiros Chromium;
+detalhes das execuções e limites em `REFATORACAO-2014.md`.
 A versão anterior, com entrada/dado/retratos e correção do cache HTTP, foi
 integrada pelas PRs #3–#6. A implantação da correção concluiu no workflow
 [38954994107](https://github.com/mhaetinger/D-D/actions/runs/38954994107).
@@ -25,7 +33,7 @@ dependentes da configuração descrita em [CLOUDFLARE.md](CLOUDFLARE.md).
 Em uma pasta nova, com Node.js **22.12 ou superior** e Git:
 
 ```sh
-git clone --branch feature/criacao-guiada --single-branch https://github.com/mhaetinger/D-D.git CritCall
+git clone --branch feature/regras-universais --single-branch https://github.com/mhaetinger/D-D.git CritCall
 cd CritCall
 npm ci
 npm run dev -- --port 5174 --strictPort
@@ -64,7 +72,7 @@ Contratos e limites: [SINCRONIZACAO.md](SINCRONIZACAO.md).
 
 Usar exclusivamente **`qhrpgkpvwbztubnrdhya`**,
 https://qhrpgkpvwbztubnrdhya.supabase.co. No painel, o projeto aparece como
-**D-D**; o aplicativo se chama **CritCall**. Orbyt é outro projeto do usuário.
+**D-D**; o aplicativo se chama **CritCall**, com infraestrutura exclusiva.
 
 Em 16/10/2026 a conexão administrativa funcionou. Inspeção inicial: sem tabelas
 em `public`, sem migrações e sem as duas RPCs. Foi aplicado pelo conector o SQL
@@ -347,6 +355,6 @@ e publicação ainda aguardam validação do usuário. Servidor local segue em 5
 - Para reabrir exatamente esta conversa no `agy`, você pode usar o seletor de
   conversas do `agy` (ou `agy --help` para ver a flag de retomada de sessão).
 - Se iniciar uma conversa nova do zero, basta colar:
-  > Continue o projeto CritCall na branch `feature/criacao-guiada`. Leia
-  > `AGENTS.md`, `docs/RETOMADA.md`, `docs/PLANO-EXPERIENCIA.md` e `CHANGELOG.md`
-  > para carregar todo o contexto das alterações de 17/10/2026.
+  > Continue o projeto CritCall na branch `feature/regras-universais`. Leia
+  > `AGENTS.md`, `docs/RETOMADA.md`, `docs/REFATORACAO-2014.md` e `CHANGELOG.md`
+  > para carregar o contexto e as verificações das alterações de 19/10/2026.

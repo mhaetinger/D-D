@@ -1246,7 +1246,8 @@
   function parseCostCp(costStr) {
     const m = String(costStr || "").trim().match(/^(\d+(?:[.,]\d+)?)\s*(pc|pp|pe|po|pl)$/i);
     if (!m) return 0;
-    const val = Number(m[1].replace(",", "."));
+    const rawNumber = /^\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(m[1]) ? m[1].replace(/\./g,'') : m[1];
+    const val = Number(rawNumber.replace(",", "."));
     const unit = m[2].toLowerCase();
     const mult = { pc: 1, pp: 10, pe: 50, po: 100, pl: 1000 }[unit] || 100;
     return Math.round(val * mult);
@@ -1690,17 +1691,18 @@
       if (!d.setup.name?.trim()) errors.push("Informe o nome do personagem.");
       if (!raceOf(d)) errors.push("Escolha raça e sub-raça.");
       if (!bgOf(d)) errors.push("Escolha o antecedente.");
-      if (!["standard", "pointBuy", "rolled"].includes(d.setup.abilityMethod))
+      if (!["standard", "pointBuy", "rolled", "adapted"].includes(d.setup.abilityMethod))
         errors.push("Escolha um método de habilidades do livro.");
       if (raceOf(d)?.optional && !d.setup.allowFeats)
         errors.push(
           "Humano Variante exige habilitar a regra opcional de talentos.",
         );
       const base = allAbilities.map((k) => Number(d.setup.baseScores?.[k]));
-      if (base.some((v) => !Number.isInteger(v) || v < 3 || v > 18))
+      if (base.some((v) => !Number.isInteger(v) || v < (d.setup.abilityMethod==='adapted'?0:3) || v > (d.setup.abilityMethod==='adapted'?30:18)))
         errors.push(
-          "Atributos iniciais precisam ser inteiros entre 3 e 18 antes dos bônus raciais.",
+          d.setup.abilityMethod==='adapted' ? "Atributos iniciais adaptados precisam ser inteiros entre 0 e 30." : "Atributos iniciais precisam ser inteiros entre 3 e 18 antes dos bônus raciais.",
         );
+      if (d.setup.abilityMethod==='adapted' && Object.values(scores(d)).some(v=>v<0 || v>30)) errors.push('Atributos iniciais adaptados, após bônus, precisam ficar entre 0 e 30.');
       if (
         d.setup.abilityMethod === "standard" &&
         base
@@ -1758,20 +1760,23 @@
       }
       if (d.setup.equipmentMethod === "wealth") {
         const wg = Number(d.setup.wealthGold);
-        if (d.setup.wealthGold === undefined || d.setup.wealthGold === null || d.setup.wealthGold === "" || !Number.isFinite(wg) || wg < 0)
+        if (d.setup.wealthGold === undefined || d.setup.wealthGold === null || d.setup.wealthGold === "" || !Number.isFinite(wg) || wg < 0 || !Number.isSafeInteger(Math.round(wg*100)) || Math.abs(wg*100-Math.round(wg*100))>1e-7)
           errors.push("Riqueza inicial: role ou informe o ouro inicial da classe (Cap. 5, p. 145).");
         else {
           const catalog = equipmentCatalog();
           const spentCp = arr(d.setup.wealthPurchases).reduce((sum, entry) => {
             const name = typeof entry === "string" ? entry : entry?.name;
-            const qty = Math.max(1, Number(entry?.qty) || 1);
+            const qty = typeof entry==='string'?1:Number(entry?.qty);
             const item = catalog.find((x) => x.name === name || x.id === norm(name));
+            if (!item || !Number.isSafeInteger(qty) || qty<1 || qty>1000) errors.push('Compras iniciais: escolha item do catálogo e quantidade inteira entre 1 e 1000.');
             return sum + (item ? item.costCp * qty : 0);
           }, 0);
           if (spentCp > Math.round(wg * 100))
             errors.push("O custo das compras iniciais excede o ouro disponível.");
+          if (arr(d.setup.wealthPurchases).reduce((sum,entry)=>sum+(typeof entry==='string'?1:Number(entry?.qty)||0),0)>1000) errors.push('Compras iniciais: limite de 1000 unidades por criação.');
         }
       }
+      for (const item of arr(d.setup.customEquipment)) if (typeof item!=='string' && (!Number.isSafeInteger(Number(item?.qty)) || Number(item.qty)<1 || Number(item.qty)>1000)) errors.push('Equipamento adaptado: quantidade inteira entre 1 e 1000.');
     }
     for (const field of r) {
       const vals = arr(d.answers[field.id]);
@@ -3184,7 +3189,7 @@
     };
   }
   function armorInfo(name) {
-    const key = norm(name).replace(/^armadura-de-/, "");
+    const key = norm(name).replace(/^armadura-(?:de-)?/, "").replace(/-[1-3]$/, '').replace(/^camisao-de-malha$/, 'camisa-de-malha');
     const armors = {
       acolchoada: [11, 99, "leve"],
       couro: [11, 99, "leve"],
