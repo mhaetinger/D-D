@@ -4,6 +4,12 @@ Há regras que ainda precisam de adaptação na ficha. Ter uma descrição, uma 
 no criador ou um contador não significa resolver todos os efeitos daquela regra.
 Este relatório distingue esses casos e serve de roteiro para as próximas entregas.
 
+A segunda passada, na base `7667ae9`, encontrou **erros reproduzíveis além das
+ausências de controles**. A prioridade passou a ser alinhar o valor mostrado com
+o rolador, corrigir bônus/escalonamento e a interação entre dano, transformação e
+descansos. Os itens 15–27 e a tabela de cenários abaixo detalham esses achados.
+Esta revisão é uma auditoria; as correções de comportamento continuam pendentes.
+
 ## Fonte, método e limites
 
 - Fonte: `public/books/livro-jogador-2014.pdf`, 314 páginas físicas,
@@ -19,6 +25,10 @@ Este relatório distingue esses casos e serve de roteiro para as próximas entre
   13 antecedentes, 42 talentos, 37 armas, 361 magias e 958 referências. Nas 361
   magias há nome, escola, página, tempo, alcance, componentes, duração e texto;
   isso verifica presença, não fidelidade integral dos campos nem de seus efeitos.
+- As tabelas de classe/subclasse listam 368 ocorrências de características,
+  incluindo repetições/aprimoramentos por nível, sem contar os incrementos de
+  habilidade gerados separadamente. Todas retornaram uma referência na consulta
+  do motor; isso não valida automaticamente o conteúdo ou a aplicação do efeito.
 - Os testes de progressão até o nível 20 verificam os contratos cobertos pelos
   testes. **Não certificam a execução de cada característica, talento ou magia**.
   Não foi simulado um combate para cada combinação possível. O Livro do Mestre
@@ -130,6 +140,142 @@ Este relatório distingue esses casos e serve de roteiro para as próximas entre
     valida todas as formas. Fonte: PDF 70–75, 114–120, 303–310. Reutilizar o bloco
     da forma/companheiro, sem substituir a ficha humana ou suas notas.
 
+## Segunda passada: erros de cálculo e interação reproduzidos
+
+### P1 — corrigir os resultados antes de acrescentar controles
+
+15. **Truques mostram o escalonamento, mas nem todos o rolam.** Clérigo 5 com
+    Chama Sagrada: o selo mostra `2d8`, mas o clique monta `1d8`. A apresentação
+    usa `getCantripDiceCount`; o lançamento genérico usa a fórmula-base de
+    `spellMeta`, sem escalonamento. As magias com tratamento próprio no
+    `BOOK_SPELLS_DB` seguem outro caminho. Fonte: PDF 224 e capítulo 6 sobre nível
+    total. Centralizar a fórmula resolvida, inclusive em multiclasse, para selo,
+    prévia, gasto e rolador usarem o mesmo resultado. Não basta mudar o texto.
+16. **Cura genérica omite o modificador e o espaço maior.** Clérigo do Conhecimento
+    com SAB 16: Curar Ferimentos deve rolar `1d8+3` no 1º círculo e `3d8+3` no 3º;
+    ambos enviaram `1d8`. No Domínio da Vida, o 1º círculo deveria curar `1d8+6`
+    nesse cenário, incluindo Discípulo da Vida, e também enviou `1d8`. Fontes:
+    PDF 234 e 69. O problema está na extração/resolução genérica da fórmula,
+    que não interpreta todos os modificadores e trechos “Em Níveis Superiores”.
+17. **Explosão Agonizante não entra no dano.** Bruxo 2 com CAR 16 e a invocação
+    escolhida: Rajada Mística enviou `1d10`, quando deveria enviar `1d10+3` para
+    aquele feixe que acertou. Fonte: PDF 60 e 273. Em níveis maiores, resolver
+    cada feixe/ataque e seu bônus; somar todos os dados sem conhecer os acertos
+    não equivale à resolução completa. Sorvedor de Vida e outros passivos devem
+    entrar na mesma revisão de modificadores condicionais.
+18. **Legado Infernal perde o nível fixo da magia racial.** O tiefling de nível 3
+    recebe Repreensão Infernal de 2º círculo pelo traço, mas o seletor/resolvedor
+    usa 1º círculo. O dano-base correspondente fica `2d10` em vez de `3d10`.
+    Fontes: PDF 42 e 276. `refresh` concede o uso racial, mas não registra
+    `castLevel: 2`. Preservar a origem racial separada da magia aprendida pela
+    classe, suas cargas e sua habilidade de conjuração.
+19. **Dominar Magia e Assinatura Mágica ficam só nas escolhas.** Mago 18 escolhe
+    as magias, mas conjurar a magia dominada, preparada e no círculo mínimo,
+    gastou um espaço normal. No nível 20, a primeira utilização da assinatura
+    também gastou um espaço de 3º, sem o uso gratuito registrado. Fonte: PDF 96.
+    Faltam projeção das escolhas nos controles, assinatura sempre preparada,
+    usos que recuperam no descanso curto/longo e opção normal de aprimorar
+    gastando espaços. Não marcar toda magia da assinatura como ilimitada.
+20. **PV temporários e Forma Selvagem estão na ordem errada.** Besta com 10 PV,
+    personagem com 5 PV temporários e dano 4: o resultado foi besta 6/temporários
+    5; deveria ser besta 10/temporários 1. Fontes: PDF 72–73 e 198. A Proteção
+    Arcana continua antecedendo o dano ao personagem; depois dela, temporários
+    devem proteger os PV atuais, inclusive quando esses PV são os da forma.
+    A afirmação do plano anterior de que a besta sempre antecede temporários
+    precisa ser corrigida junto da implementação. O teste existente usa dano
+    que esgota todas as reservas: seu resultado final não distingue a ordem;
+    acrescentar regressão com dano parcial, como o cenário acima.
+21. **Descansos apagam estados ou concedem benefícios sem todos os requisitos.**
+    Druida 8 tem Forma Selvagem por até 4 horas; um descanso de uma hora iniciado
+    logo após transformar não precisa encerrá-la, mas `resetResources` limpa
+    todos os estados ativos, exceto a pedra. Já `takeRest` permite iniciar o
+    descanso longo a 0 PV e voltar ao máximo, embora o livro exija pelo menos
+    1 PV no início. Fontes: PDF 73 e 187. Definir duração/requisitos por efeito;
+    não usar uma limpeza geral como substituto da passagem do tempo. Limite de
+    um descanso longo por 24 h e interrupções também seguem manuais.
+22. **Proteção Arcana ignora abjuração de outra classe.** Mago abjurador 2/clérigo
+    1 com INT 16, conjurando Escudo da Fé como clérigo, deveria poder criar a
+    proteção de 7 PV; a reserva ficou em 0. Fonte: PDF 96. `onSpellCast` exige
+    `spell.classId === 'mago'`, condição que a característica não impõe. A
+    elegibilidade deve vir do personagem e da escola/círculo da magia.
+23. **Ajuste direto de Constituição não acompanha os PV.** Guerreiro 5, CON 14
+    para 16 pelo botão da ficha: PV máximos ficaram 44, em vez de 49. Fonte:
+    PDF 178. O motor de evolução já calcula a mudança retroativa; `changeAbility`
+    não o faz. Separar ajuste permanente de atributo de transformações/bônus
+    temporários e preservar danos/ajustes manuais existentes ao recalcular.
+24. **Metadados de alvo/ataque não são confiáveis em todas as magias.** Raio
+    Ardente aparece elegível para Gêmea, embora possa atingir mais de uma
+    criatura; Chicote de Espinhos não recebe a indicação de ataque mágico.
+    Fontes: PDF 79, 271 e 224. A quebra `corpo-a- corpo` no texto extraído não
+    casa com a expressão de detecção. Rever normalização, múltiplos raios/alvos
+    e dependência do nível de conjuração. Preservar e identificar a adaptação
+    específica de Mísseis Mágicos; ela não autoriza toda magia de vários alvos.
+
+### P2 — completude, apresentação e adaptações não identificadas
+
+25. **Atirador de Magia omite uma opção válida.** No criador, ao escolher a lista
+    de druida para esse talento, só Chicote de Espinhos é oferecido; Criar Chamas
+    também envolve ataque mágico e deveria estar disponível. Fontes: PDF 166 e
+    descrição da magia. A lista de seis IDs em `featRequirements` é incompleta.
+    A seleção e a descrição de ataque devem compartilhar classificação validada.
+26. **A carga exclui moedas sem identificar a adaptação.** Acrescentar 1.000 po
+    não mudou o peso mostrado: 57,75 kg permaneceu 57,75 kg, quando incluir as
+    moedas levaria a 67,75 kg. Fonte: PDF 144, aproximadamente 10 g por moeda.
+    `getCurrentLoadKg` exclui moedas expressamente. Oferecer escolha ou identificar
+    que o total é apenas dos itens; não anunciar carga total conforme o livro.
+27. **O histórico pode atribuir absorção à reserva errada.** Com proteção de 10
+    PV e 5 PV temporários, sofrer 4 de dano deixa temporários intactos, mas a
+    ação salva diz “4 absorvidos por PV temporários”. O registro calcula essa
+    quantidade antes de aplicar proteção/forma. Retornar de `applyDamage` a
+    decomposição efetiva e usá-la na mensagem, sem recalcular por aproximação.
+
+## Cenários executados e reprodução
+
+Foi executado `scripts/audit-phb-scenarios.cjs` contra o build da base `7667ae9`,
+em Chromium descartável sob `/D-D/`, com fixtures sintéticas. São **21 cenários
+direcionados, 20 divergências e 1 controle conforme**. Algumas divergências
+compartilham a mesma causa; isso não representa 20 regras independentes nem uma
+porcentagem de cobertura do livro. Não houve consulta a contas ou dados reais.
+
+| Cenário | Resultado do livro no cenário | Resultado observado |
+| --- | --- | --- |
+| Chama Sagrada, clérigo 5 | Mostrar e rolar 2d8 | Mostra 2d8, rola 1d8 |
+| Curar Ferimentos, SAB 16, círculo 1 | 1d8+3 | 1d8 |
+| Mesma magia no círculo 3 | 3d8+3 | 1d8 |
+| Mesma magia, Domínio da Vida, círculo 1 | 1d8+6 | 1d8 |
+| Explosão Agonizante, CAR 16, bruxo 2 | 1d10+3 no feixe que acertou | 1d10 |
+| CON 14 → 16, guerreiro 5 | PV máximos 44 → 49 | 44 → 44 |
+| Repreensão Infernal racial do tiefling 3 | Uso como círculo 2 | Círculo 1 |
+| Dominar Magia, mago 18, magia preparada | Círculo mínimo sem gastar espaço | Gastou 1 espaço |
+| Assinatura Mágica, mago 20, primeiro uso | Uso gratuito próprio | Gastou espaço; sem carga própria |
+| Forma 10 PV + temporários 5, dano 4 | Forma 10, temporários 1 | Forma 6, temporários 5 |
+| Forma recém-ativada, druida 8, descanso 1 h | Pode continuar dentro das 4 h | Desativada incondicionalmente |
+| Descanso longo iniciado a 0 PV | Sem benefícios do descanso longo | Recuperou 44 PV |
+| Abjurador 2/clérigo 1, INT 16, Escudo da Fé | Pode criar proteção de 7 PV | Proteção 0 |
+| Mago sem proficiência, cota/escudo, conjurar | Restrição informada/aplicada | Lançamento permitido |
+| Proteção 10 + temporários 5, dano 4, registro | 0 absorvido por temporários | Histórico informa 4 |
+| Bardo 2, DES 14, iniciativa | +3 com Versatilidade | +2 |
+| Raio Ardente, elegibilidade de Gêmea 2014 | Não elegível | Elegível |
+| Chicote de Espinhos, classificação | Ataque mágico | Nenhuma defesa/ataque indicado |
+| Acrescentar 1.000 moedas à carga | +10 kg, ou adaptação identificada | Nenhuma alteração na carga |
+| Atirador de Magia, lista de druida | Oferecer Criar Chamas | Opção ausente |
+| Controle: guerreiro 5 → 6, PV fixos | 44 → 52 | 44 → 52, conforme |
+
+Para repetir, com dependências e Chromium instalados:
+
+```sh
+npm run build
+node scripts/audit-phb-scenarios.cjs > /tmp/critcall-auditoria.json
+```
+
+Nesta máquina foi necessário prefixar o segundo comando com
+`PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=ubuntu24.04-x64`. O script bloqueia requisições
+fora do servidor local e usa armazenamento do navegador temporário. Ele relata
+`matches: false` como achado conhecido; seu código 0 indica execução concluída,
+não aprovação das regras. `sourceCommit` identifica o código da execução; não
+distribuir `dist/` antigo ao auditar outro commit. Os 266 testes existentes
+também passaram nesta revisão; seus casos ainda não cobrem essas combinações.
+
 ## Classes e subclasses: o contador não é o efeito completo
 
 Todas as subclasses do catálogo estão nesta matriz. A coluna final registra
@@ -140,13 +286,13 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 | --- | --- | --- | --- |
 | Bárbaro, 45–49 | Furioso; Guerreiro Totêmico | Fúria, dano com FOR, Frenesi/exaustão, CA alternativa e extras de Crítico Brutal | Resistências e vantagem; duração/gatilhos; teste/CD crescente de Fúria Implacável |
 | Bardo, 50–54 | Conhecimento; Bravura | Reserva/dado de inspiração, proficiências/especialização, segredos e conjuração | Iniciativa de Versatilidade; Canção do Descanso; inspiração recebida/Palavras de Interrupção na jogada; recuperação ao iniciar combate |
-| Bruxo, 55–61 | Arquifada; Corruptor; Grande Antigo | Pacto, Arcanum, usos de patrono/invocações e Bênção do Obscuro | Gastos de espaço exigidos por invocações não equivalem a seu contador diário; efeitos contra alvos e bônus condicionais de invocações |
+| Bruxo, 55–61 | Arquifada; Corruptor; Grande Antigo | Pacto, Arcanum, usos de patrono/invocações e Bênção do Obscuro | Explosão Agonizante/Sorvedor de Vida; gastos de espaço de invocações não equivalem ao contador diário; efeitos contra alvos |
 | Clérigo, 62–69 | Conhecimento; Enganação; Guerra; Luz; Natureza; Tempestade; Vida | Preparação/domínios, Canalizar compartilhado, usos e Intervenção | Efeitos de cada domínio no alvo, cura/dano condicionado e Expulsar/Destruir Mortos-Vivos por ND |
 | Druida, 70–75 | Terra; Lua | Preparação/círculo, Forma Selvagem/PV, cura da Lua e Recuperação Natural | Bloco de besta/estatísticas, custo de elemental e concentração mantida na transformação |
 | Feiticeiro, 76–81 | Magia Selvagem; Linhagem Dracônica | Feitiçaria/metamágica compartilhada, conversão, Marés de Caos e CA dracônica | Tabela de surto/gatilhos, efeitos de Afinidade Elemental e elegibilidade completa de metamagias; adaptações devem permanecer identificadas |
 | Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico e magias | Atleta Extraordinário/iniciativa; rerrolagem de Combate com Armas Grandes; manobras/reações; Sobrevivente |
 | Ladino, 88–92 | Ladrão; Assassino; Trapaceiro Arcano | Especialização, dados/condições de Ataque Furtivo, usos avançados e magias | Talento Confiável na rolagem; Esquiva Sobrenatural/Evasão; surpresa/Assassinar e Ação Ardilosa |
-| Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, recuperação, Proteção Arcana, Presságio e vários usos/estados de escola | Efeitos por alvo, bônus de dano/escola, invocações e lacaios; custos e troca da Pedra do Transmutador; resolução de Sobrecarga |
+| Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, recuperação, Proteção Arcana, Presságio e vários usos/estados de escola | Dominar Magia/Assinatura; proteção por abjuração de outra classe; efeitos por alvo, bônus de escola, lacaios, pedra e Sobrecarga |
 | Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi compartilhado e gastos escolhidos, movimento/CA e curas/usos | Artes Marciais/dano desarmado em todas as condições, Atordoar/Evasão/Defletir Projéteis e recuperação ao iniciar combate |
 | Paladino, 107–113 | Devoção; Anciões; Vingança | Cura pelas Mãos, Canalizar, Arma Sagrada, aura própria nos testes, preparação e dados de Destruição | Aplicação a aliados/consciência e condições dos juramentos; cura no alvo e consumo de espaços no fluxo de dano |
 | Patrulheiro Revisado, 114–120 | Besta; Caçador; Rastreador Subterrâneo | Progressão/seleções da adaptação, conjuração, extras condicionais e PV do companheiro | Inimigo favorito, exploração, iniciativa/primeiro turno e estatísticas/comandos do companheiro; não misturar regras do patrulheiro original |
@@ -179,15 +325,55 @@ perícias/ferramentas/idiomas/armas, magias escolhidas, PV de Robusto, deslocame
 de Mobilidade, proficiências de Proteção Leve/Moderada/Pesada e teto de DES da
 Maestria em Armadura Média na CA. Isso **não executa os demais efeitos** desses talentos.
 
-A lista completa para não esquecer nenhum na revisão de efeitos:
+Matriz dos 42 talentos, cruzada com `applyChoices`, `armorClass`, `weaponStats`,
+`movementSpeed`, opções do criador e controles de recursos. “Manual” inclui
+efeitos situacionais que podem continuar sendo decididos na mesa; não significa
+que todos precisem ganhar um botão. Consulta/registro existem em todos.
 
-| Grupo de trabalho | Talentos e efeitos que precisam de conferência/integração |
-| --- | --- |
-| Rolagens, passivos e defesa | Alerta; Ambidestro; Atleta; Ator; Duelista Defensivo; Explorador de Cavernas; Mente Afiada; Observador; Resiliente; Sortudo; Sorrateiro |
-| Dano, ataques e reações | Adepto Elemental; Adepto Marcial; Atacante Bestial; Atirador Aguçado; Combatente Montado; Especialista em Besta; Especialista em Briga; Imobilizador; Investida Poderosa; Maestria em Arma de Haste; Matador de Conjuradores; Mestre de Armas; Mestre de Armas Grandes; Mestre de Escudo; Sentinela |
-| Magias e concentração | Atirador de Magia; Conjurador de Guerra; Conjurador de Ritual; Iniciado em Magia |
-| Cura, PV, movimento e equipamento | Curandeiro; Líder Inspirador; Maestria em Armadura Média; Maestria em Armadura Pesada; Mobilidade; Resistente; Robusto; Proteção Leve; Proteção Moderada; Proteção Pesada |
-| Proficiências/idiomas e benefícios relacionados | Perito; Poliglota |
+| Talento | Aplicação identificada | Manual, ausente ou a corrigir |
+| --- | --- | --- |
+| Adepto Elemental | Escolha do elemento | Resistência ignorada e mínimo dos dados |
+| Adepto Marcial | Escolha de duas manobras | Dado extra d6 e interação com a reserva de superioridade |
+| Alerta | Registro | +5 na iniciativa; surpresa/atacante oculto |
+| Ambidestro | Registro | +1 CA condicional, armas elegíveis e sacar/guardar |
+| Atacante Bestial | Registro | Nova rolagem de dano uma vez por turno |
+| Atirador Aguçado | Registro | -5/+10 por ataque, cobertura e alcance |
+| Atirador de Magia | Escolha de truque de ataque | Criar Chamas omitido; alcance/cobertura |
+| Atleta | +1 FOR/DES | Levantar, escalar e salto |
+| Ator | +1 CAR | Vantagem e imitação nas condições do texto |
+| Combatente Montado | Registro | Vantagem, redirecionar ataque e defesa da montaria |
+| Conjurador de Guerra | Registro | Concentração, componentes e magia na oportunidade |
+| Conjurador de Ritual | Escolha de classe/rituais e ação ritual | Cópia/custo/tempo do livro e efeitos das magias |
+| Curandeiro | Registro | Estojo, cura e limite por criatura/descanso |
+| Duelista Defensivo | Registro | Reação e CA somente contra o ataque elegível |
+| Especialista em Besta | Registro | Recarga, ataque próximo e ação bônus |
+| Especialista em Briga | +1 FOR/CON | Dano desarmado d4, armas improvisadas e agarrar |
+| Explorador de Cavernas | Registro | Armadilhas/portas e deslocamento de procura |
+| Imobilizador | Registro | Vantagem contra alvo agarrado e imobilização |
+| Iniciado em Magia | Dois truques, magia e uso limitado | Efeitos/resolução do grimório; exceções de origem precisam revisão |
+| Investida Poderosa | Registro | Disparada, distância mínima e ação bônus |
+| Líder Inspirador | Registro | PV temporários CAR+nível e elegibilidade por destinatário |
+| Maestria em Arma de Haste | Registro | Ataque bônus d4 e oportunidade ao entrar no alcance |
+| Maestria em Armadura Média | Teto de DES +3 na CA | Remover desvantagem de Furtividade; não há aplicação integrada dela |
+| Maestria em Armadura Pesada | +1 FOR | Redução 3 contra tipos/origens elegíveis |
+| Matador de Conjuradores | Registro | Reação, concentração do alvo e vantagem situacional |
+| Mente Afiada | +1 INT | Orientação, horário e memória consultáveis |
+| Mestre de Armas | +1 FOR/DES, quatro proficiências | Demais condições do ataque usam o fluxo comum |
+| Mestre de Armas Grandes | Registro | -5/+10 e ataque bônus após crítico/abate |
+| Mestre de Escudo | Registro | Empurrão, bônus de resistência e reação condicionais |
+| Mobilidade | +3 m no deslocamento | Terreno difícil/Disparada e oportunidade |
+| Observador | +1 INT/SAB | +5 passivo; leitura labial consultável |
+| Perito | Três perícias/ferramentas | Revisar escolhas já dominadas e rolagem contextual com ferramenta |
+| Poliglota | +1 INT e três idiomas | Cifras consultáveis |
+| Resiliente | +1 atributo e proficiência em resistência | Não concede vantagem nem bônus adicional além da proficiência |
+| Robusto | +2 PV por nível, inclusive retroativo | Edição manual de atributos/efeitos segue os limites apontados acima |
+| Sentinela | Registro | Oportunidade, reação e deslocamento do alvo |
+| Sorrateiro | Registro | Ocultação/luz e revelação por ataque falho |
+| Sortudo | Registro | Três pontos e escolha do dado no contexto da jogada |
+| Resistente | +1 CON | Mínimo de cura ao gastar Dados de Vida, cujo gasto ainda não tem interface |
+| Proteção Leve | +1 FOR/DES e proficiência leve | Penalidades de armadura ainda precisam integração |
+| Proteção Moderada | +1 FOR/DES, média e escudo | Mesma revisão de elegibilidade/penalidades |
+| Proteção Pesada | +1 FOR e proficiência pesada | Mesma revisão de elegibilidade/penalidades |
 
 Não há evidência suficiente para marcar todos esses efeitos como concluídos.
 Cada implementação deve registrar a condição exata, o cálculo que passa a usar
@@ -211,19 +397,24 @@ a aventura ou transformar consulta narrativa em campos obrigatórios.
 
 ## Entregas seguintes sugeridas
 
-1. [ ] Corrigir iniciativa/passivos confirmados e extração dos componentes, com
-   regressões para classe/talento e campos multilinha.
-2. [ ] Completar o bloco de PV: Dados de Vida, morte/estabilidade e inspiração,
+1. [ ] Unificar fórmula mostrada/rolada: truques, cura/modificador/aprimoramento,
+   bônus de classe/invocação, nível racial fixo e elegibilidade de metamagia.
+   Acrescentar regressões para os cenários reproduzidos.
+2. [ ] Corrigir dano/temporários/forma, Constituição manual, requisitos e estados
+   de descanso, Proteção Arcana multiclasse e registro da absorção real.
+3. [ ] Corrigir iniciativa/passivos, Dominar Magia/Assinatura e extração de
+   componentes; revisar opções de talento e identificação da carga sem moedas.
+4. [ ] Completar o bloco de PV: Dados de Vida, morte/estabilidade e inspiração,
    nos locais existentes e com dado físico/virtual.
-3. [ ] Unificar concentração/condições/dano tipado e a explicação dos efeitos;
+5. [ ] Unificar concentração/condições/dano tipado e a explicação dos efeitos;
    não automatizar uma redução sem conhecer sua origem.
-4. [ ] Revisar a matriz de efeitos das 12 classes/41 subclasses, raças e 42
+6. [ ] Revisar a matriz de efeitos das 12 classes/41 subclasses, raças e 42
    talentos, marcando cada efeito como calculado, uso controlado ou manual.
-5. [ ] Ampliar famílias de magias e criaturas, após os contratos comuns estarem
+7. [ ] Ampliar famílias de magias e criaturas, após os contratos comuns estarem
    definidos. Viagem e atividades entre aventuras ficam como auxiliares opcionais.
 
-Estas pendências não foram implementadas nesta entrega. A entrega atual corrige
-zoom, separa históricos por ficha, melhora os ajustes de defesa/ajudas e corrige
-a descrição dos Dados de Vida. O plano anterior de refatoração continua em
+Estas pendências não foram implementadas nesta entrega de auditoria. Zoom,
+históricos por ficha, ajustes de defesa/ajudas e descrição dos Dados de Vida foram
+alterados nas entregas anteriores. O plano anterior de refatoração continua em
 [REFATORACAO-2014.md](REFATORACAO-2014.md); seus itens concluídos não substituem
 esta auditoria mais ampla.

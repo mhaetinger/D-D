@@ -27,6 +27,14 @@ e os ajustes de defesa têm espaçamento e ajuda nos sete itens. O levantamento
 amplo está em [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md): há lacunas
 confirmadas, inclusive iniciativa/passivos e componentes cortados, além de
 concentração/morte/condições ainda manuais. Essas pendências não estão implementadas.
+A segunda passada da auditoria, na base `7667ae9`, reproduziu 20 divergências em
+21 cenários direcionados, incluindo truque mostrado/rolado, cura/modificador e
+espaço maior, invocação, magia racial, Dominar/Assinatura, PV/transformação,
+descansos, proteção multiclasse e opção de talento. Ver os itens 15–27 e a matriz
+dos 42 talentos no relatório. Rodar `npm run build` antes de
+`node scripts/audit-phb-scenarios.cjs`; `matches: false` é achado da auditoria,
+não um teste de aprovação falhando. Não tratar a passagem dos 266 testes existentes
+como cobertura dessas combinações. A implementação da ficha não mudou nesta etapa.
 Verificação desta revisão: `npm run check`, 266 testes Node, tipos/build e nove
 roteiros Chromium aprovados, incluindo login também sob `/`. A consulta ao
 Supabase real confirmou o contrato existente por leitura de metadados; nenhum

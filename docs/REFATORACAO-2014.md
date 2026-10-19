@@ -35,7 +35,10 @@ que permanece identificado como adaptação. Extração completa consultável co
   dano, sem bônus universal de CA. Condições não verificáveis pedem opção explícita.
 - Fúria exige ataque corpo a corpo com Força para o bônus; Frenesi aplica
   exaustão ao terminar. Descanso reduz exaustão com alimento e bebida; sem isso,
-  mantém o nível. Dano da besta e Proteção Arcana antecedem PV temporários/reais.
+  mantém o nível. A auditoria posterior identificou erro na ordem de absorção:
+  Proteção Arcana antecede o dano ao personagem, mas PV temporários devem proteger
+  os PV atuais da besta antes do dano excedente à forma original. A implementação
+  ainda precisa dessa correção; ver item 20 de `AUDITORIA-LIVRO-2014.md`.
 - Magias preparadas/sempre preparadas são por classe. Ritual do grimório de
   mago não permite lançamento normal sem preparo. Pacto permanece separado.
 - Dados reais do jogador não entram em commits, testes, cache público ou PDFs.

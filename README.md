@@ -149,6 +149,10 @@ O zoom livre mantém apenas a porcentagem atual na lista, junto dos atalhos fixo
 A [auditoria do Livro do Jogador](docs/AUDITORIA-LIVRO-2014.md) percorre todos os
 capítulos/apêndices e distingue cálculo, consulta e pendências. Concentração,
 testes contra a morte e vários efeitos condicionais ainda exigem controle manual.
+A revisão aprofundada também reproduziu divergências de fórmulas/rolagens,
+cura, transformação/descansos e recursos de alto nível. O roteiro diagnóstico
+`scripts/audit-phb-scenarios.cjs` usa somente personagens fictícios e registra
+essas lacunas; não é uma suíte de aprovação nem altera dados de jogadores.
 
 ## Login em desenvolvimento
 

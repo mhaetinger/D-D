@@ -2,6 +2,26 @@
 
 ## Não lançado
 
+### Auditoria aprofundada do livro e da ficha — 2026-10-19
+
+- Ampliado `docs/AUDITORIA-LIVRO-2014.md` com itens 15–27, cenários e a matriz
+  individual dos 42 talentos. Conferidas 368 ocorrências de características das
+  tabelas de 12 classes/41 subclasses, além do inventário dos capítulos/apêndices.
+- Reprodução de divergências entre fórmula mostrada/rolada, cura/modificador e
+  aprimoramento, Explosão Agonizante, nível racial do tiefling, Dominar/Assinatura,
+  Constituição manual, absorção da forma, descansos, abjuração multiclasse,
+  metadados de magias, opção de talento, carga e mensagem de dano no histórico.
+- Roteiro diagnóstico `scripts/audit-phb-scenarios.cjs`: somente fixtures,
+  Chromium e armazenamento descartáveis, servidor local e rede externa bloqueada.
+  Na base `7667ae9`, 21 cenários direcionados resultaram em 20 divergências e um
+  controle conforme. Casos podem compartilhar causas; não são um percentual de
+  cobertura nem integram a suíte de aprovação. As correções continuam pendentes.
+- Corrigida a descrição do contrato de absorção no plano anterior, identificando
+  que a implementação ainda requer ajuste. Nenhum comportamento da ficha, banco
+  ou dado de jogador foi alterado nesta auditoria.
+- Verificação: execução concluída do diagnóstico no build sob `/D-D/`, 266 testes
+  Node aprovados e `git diff --check`. A suíte existente não cobria os novos casos.
+
 ### Ajuda discreta nos ajustes de defesa — 2026-10-19
 
 - Ajuda aparece ao passar o mouse sobre o nome de cada campo/efeito, usando o
