@@ -17,9 +17,9 @@ foi restaurada após a entrega na referência de integração já aprovada
 
 **Entrega anterior substituída:** o formulário separado do commit `deec8c8`
 foi retirado. Os valores agora são editados na própria ficha; não retomar o
-fluxo antigo de Criar/Ajustar ficha manual pelo perfil. O último envio ao GitHub
-falhou por DNS; conferir a situação da branch antes de assumir que a PR #9
-inclui a revisão atual. Não houve merge/publicação desta etapa.
+fluxo antigo de Criar/Ajustar ficha manual pelo perfil. A conexão foi recuperada:
+a implementação `fe2dc66` foi enviada em 20/10 e a [PR #9](https://github.com/mhaetinger/D-D/pull/9)
+foi atualizada com base `develop`. Não houve merge/publicação desta etapa.
 
 **Edição diretamente na ficha implementada:** níveis/classes/subclasses no
 cabeçalho; atributos/PV/CA/deslocamento/perícias nos blocos atuais; moedas e

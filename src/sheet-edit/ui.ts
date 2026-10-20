@@ -90,7 +90,7 @@ export function setupSheetEditing():void {
     catch(e){el.setAttribute('aria-invalid','true');el.setCustomValidity((e as Error).message);host.showToast((e as Error).message);}
   },true);
   document.addEventListener('input',event=>{const el=event.target as HTMLInputElement;if(el?.dataset?.sheetField){el.setCustomValidity('');el.removeAttribute('aria-invalid');}});
-  document.addEventListener('keydown',event=>{const el=event.target as HTMLInputElement;if(!el?.dataset?.sheetField)return;if(event.key==='Escape'){event.preventDefault();el.value=el.dataset.sheetSaved||'';el.setCustomValidity('');el.removeAttribute('aria-invalid');el.blur();}else if(event.key==='Enter'&&el.tagName==='INPUT'){event.preventDefault();el.blur();}});
+  document.addEventListener('keydown',event=>{const el=event.target as HTMLInputElement;if(!el?.dataset?.sheetField)return;if(event.key==='Escape'){event.preventDefault();el.value=el.dataset.sheetSaved||'';el.setCustomValidity('');el.removeAttribute('aria-invalid');el.blur();}else if(event.key==='Enter'&&el.tagName==='INPUT'){event.preventDefault();el.blur();}},true);
   document.addEventListener('click',event=>{
     const target=event.target as HTMLElement,pool=target.closest<HTMLElement>('[data-sheet-show-pool]'),expertise=target.closest<HTMLElement>('[data-sheet-expertise]');
     if(pool){if(requireSheetEdit()){visiblePools.add(poolKey(host.getChar(),pool.dataset.sheetShowPool!));host.renderAll();}return;}
