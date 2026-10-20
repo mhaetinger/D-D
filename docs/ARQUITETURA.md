@@ -77,6 +77,17 @@ após leitura, revisão e recuperação; troca de espaço fecha o editor existen
 Seleção de outro personagem na revisão não recalcula suas reservas. A ação de
 revisar a ficha atual também gera cópia, sem migrar a coleção em silêncio.
 
+## Quadros de conjuração
+
+`rules/spell-class-panels.ts` agrupa preparo e recursos de `spellbook` pela classe
+de origem, sem mudar `resourcePlace`, reservas ou ações. Reutiliza `preparation`
+para contagem/limite e o mesmo assistente; magias sempre preparadas seguem seu
+contrato. Classes conhecidas e subclasses com conjuração usam metadados e nível
+mínimo, sem inferir vínculos a partir de nomes importados. Não conta o agrupamento
+como lista de magias conhecidas, pois ele pode conter origens especiais.
+`spellcastingStatusControls` mantém impedimentos e concentração comuns na barra;
+preparo/recuperação aparecem uma vez em cada quadro. O lembrete de descanso é único.
+
 ## Tipografia da ficha
 
 `src/styles/sheet-type.css` define papéis em rem dentro do cabeçalho/área da ficha:

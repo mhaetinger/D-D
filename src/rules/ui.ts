@@ -1,5 +1,5 @@
 import { armorClass, exhaustion } from './combat';
-import { preparation, castingRestriction } from './spellcasting';
+import { castingRestriction } from './spellcasting';
 import { remaining, resourcesFor, spend, refund, toggleResource, useResource, type Resource } from './resources';
 import { ability, active, escape, level, state, type Engine, type Sheet } from './model';
 import { resourcesAt } from './placement';
@@ -9,7 +9,6 @@ import { CONDITIONS, derivedCondition, hasCondition, setCondition } from './cond
 import { concentration } from './concentration';
 import { concentrationControls, setupConcentrationUI } from './concentration-ui';
 import { setupWeaponDamageUI } from './weapon-damage-ui';
-import {PREPARATION_HELP} from './spell-help';
 import {sheetInput} from '../sheet-edit/ui';
 
 export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
@@ -42,13 +41,9 @@ export function renderResourcesAt(c:Sheet,E:Engine,place:string) {
   return list.length?`<div class="rule-context" data-rule-place="${place}">${renderResourceControls(c,E,list)}</div>`:'';
 }
 
-export function preparationControls(c:Sheet,E:Engine) {
-  const buttons = c.classes.filter((x:Sheet)=>preparation(c,x.classId,E).prepares).map((x:Sheet)=>{
-    const p = preparation(c,x.classId,E);
-    return `<button type="button" title="${escape(PREPARATION_HELP)}" data-rule-action="prepare" data-class="${x.classId}" class="t-inset px-2.5 py-1 rounded font-bold">Preparar magias · ${escape(E.data.classes[x.classId].name)} (${p.used}/${p.limit})</button>`;
-  }).join('');
+export function spellcastingStatusControls(c:Sheet,E:Engine) {
   const blocked=castingRestriction(c,E);
-  return `${blocked?`<p class="text-xs font-bold" role="status">${escape(blocked)}</p>`:''}${buttons?`<div class="flex flex-wrap items-center gap-2">${c.ruleState?.prepareReminder?'<span>Após o descanso, revise a preparação.</span>':''}${buttons}</div>`:''}${concentrationControls(c)}${renderResourcesAt(c,E,'spellbook')}`;
+  return `${blocked?`<p class="text-xs font-bold" role="status" data-spellcasting-block>${escape(blocked)}</p>`:''}${concentrationControls(c)}`;
 }
 
 export function defenseControls(c:Sheet,E:Engine) {

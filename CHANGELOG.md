@@ -2,6 +2,21 @@
 
 ## Não lançado
 
+### Quadros de conjuração por classe — 2026-10-20
+
+- Paladino, Clérigo, Druida e Mago ganham quadros compactos no grimório, com
+  contador e ação de preparo. Recuperação Arcana e Recuperação Natural ficam
+  junto à classe correspondente, com os mesmos usos e espaços compartilhados.
+- Bardo, Patrulheiro, Cavaleiro Arcano e Trapaceiro Arcano têm resumos de sua
+  conjuração. Usa classe/subclasse estruturada e nível mínimo; não infere origem
+  de textos do PDF nem apresenta contagem de magias conhecidas a partir do grupo.
+- Feitiçaria e Pacto mantêm seus quadros. A barra conserva filtros, ajustes,
+  impedimentos e uma única Concentração. Não duplica espaços ou ações de preparo.
+- Conferidos 385 testes Node, tipos/build e Chromium de quadros por classe,
+  regras e concentração. Incluem preparo protegido/sempre preparadas, recuperações
+  independentes/cancelamento, origem, níveis/subclasses, filtros, recarga offline
+  e 320px/GG/três temas/dois layouts.
+
 ### Organização dos cartões de armas — 2026-10-20
 
 - Nome e descrição usam a largura inteira, preservando notas longas do PDF.

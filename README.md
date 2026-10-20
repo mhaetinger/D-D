@@ -297,6 +297,11 @@ de feitiçaria, Metamágica, Pacto e preparação usam os painéis do grimório.
 Exaustão, Proteção Arcana e PV de Forma Selvagem ficam junto aos PV; ajustes
 de defesa ficam junto à CA e a recuperação de Dados de Vida junto à sua lista.
 Cada controle tem um único lugar e usa a reserva compartilhada correspondente.
+No grimório, preparo e recuperações de magia ficam em quadros compactos por
+classe. Paladino, Clérigo, Druida e Mago têm seu contador/ação de preparo; Mago e
+Druida da Terra mantêm ali suas recuperações. Bardo, Patrulheiro e subclasses
+conjuradoras recebem resumos do método de magias conhecidas. Feitiçaria e Pacto
+conservam os quadros próprios; os espaços de Conjuração e a Concentração são comuns.
 Descansos recuperam conforme a origem; o longo
 pergunta sobre alimento/bebida e a adaptação de recuperar todos os Dados de Vida.
 A recuperação de metade dos Dados de Vida permite escolher a classe em multiclasse.

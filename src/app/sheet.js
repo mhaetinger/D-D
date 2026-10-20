@@ -3,7 +3,8 @@ import { currentWorkspaceKey, workspaceStorage } from "../storage/account-scope"
 import { ACTIVE_CHARACTER_KEY, readPreference, writePreference } from "../storage/preferences";
 import { armorClass, applyDamage, exhaustion, savingThrow, initiativeBonus, changePermanentAbility } from "../rules/combat";
 import { readableText } from "../rules/text";
-import { renderResourceControls, renderResourcesAt, preparationControls, defenseControls, conditionControls, hitDiceRecoveryControls, saveRuleStep, retainConditionNodes } from "../rules/ui";
+import { renderResourceControls, renderResourcesAt, spellcastingStatusControls, defenseControls, conditionControls, hitDiceRecoveryControls, saveRuleStep, retainConditionNodes } from "../rules/ui";
+import { spellClassPanels } from '../rules/spell-class-panels';
 import { featureResourceBindings, resourcesAt } from "../rules/placement";
 import { canCastNormally, canRitual, preparation, wizardPrivilege, castingRestriction, armorProficiencies } from "../rules/spellcasting";
 import { resolveSpellEffect, innateCastLevel, twinEligible } from "../rules/spell-effects";
@@ -1634,6 +1635,7 @@ function renderSpellsSection(char, isClassicTwoCol) {
   <div class="space-y-4">
     ${renderSorceryCollapsiblePanel(char)}
     ${renderPactMagicPanel(char)}
+    ${spellClassPanels(char,CharacterEngine)}
     ${renderSpellsToolbar(char)}
     ${layoutContainerHtml}
   </div>
@@ -1662,7 +1664,7 @@ function renderSorceryCollapsiblePanel(char) {
     .join("");
 
   return `
-  <div class="t-card-accent overflow-hidden">
+  <div class="t-card-accent overflow-hidden" data-spell-class="feiticeiro">
     <div onclick="togglePanel('sorcery_top')" class="p-3.5 flex flex-wrap items-center justify-between gap-2 cursor-pointer t-hover">
       <div class="flex items-center gap-2">
         <i data-lucide="${isCollapsed ? "chevron-right" : "chevron-down"}" class="w-4 h-4 t-text-accent"></i>
@@ -1708,7 +1710,7 @@ function renderSorceryCollapsiblePanel(char) {
 function renderPactMagicPanel(char) {
   const pact = char.pactMagic;
   if (pact.total <= 0 && !poolEditorVisible(char,'pact') && !char.classes.some(c=>c.classId==='bruxo')) return "";
-  return `<section class="t-card-accent p-4 space-y-2" aria-label="Magia de Pacto do bruxo">
+  return `<section class="t-card-accent p-4 space-y-2" data-spell-class="bruxo" aria-label="Magia de Pacto do bruxo">
     <div class="flex flex-wrap justify-between items-center gap-2">
       <h3 tabindex="0" ${RuleTooltips.attributes("Magia de Pacto", CharacterEngine.reference("Magia de Pacto", "bruxo"))} class="font-rpg font-bold text-sm t-text-accent">Bruxo · Magia de Pacto</h3>
       <div class="slot-resource t-inset px-3 py-1 rounded-lg">
@@ -1729,7 +1731,7 @@ function renderSpellsToolbar(char) {
       <button onclick="setSpellClassFilter('all')" class="px-2.5 py-1 rounded font-bold ${spellFilterClass === 'all' ? 't-btn-primary' : 't-inset'}">Todas</button>
       ${ids.map(id => `<button onclick="setSpellClassFilter('${id}')" class="px-2.5 py-1 rounded font-bold ${spellFilterClass === id ? 't-btn-primary' : 't-inset'}">${escapeHTML(RULES_DB.classes[id]?.name || id)}</button>`).join('')}
     </div>
-    <div class="flex flex-wrap items-center gap-2"><button type="button" class="t-inset px-2.5 py-1 rounded font-bold" onclick="openSpellEditor()">+ Magia</button><select class="sheet-field sheet-select" data-sheet-circle aria-label="Adicionar círculo de espaços" ${canConfigureSheet(char)?'':'disabled'}><option value="">+ Círculo</option>${Array.from({length:9},(_,i)=>`<option value="${i+1}">${i+1}º círculo</option>`).join('')}</select>${char.pactMagic.total<=0&&!poolEditorVisible(char,'pact')?'<button type="button" data-sheet-show-pool="pact">+ Pacto</button>':''}${char.sorceryPoints.max<=0&&!poolEditorVisible(char,'sorcery')?'<button type="button" data-sheet-show-pool="sorcery">+ Feitiçaria</button>':''}${preparationControls(char,CharacterEngine)}</div>
+    <div class="flex flex-wrap items-center gap-2"><button type="button" class="t-inset px-2.5 py-1 rounded font-bold" onclick="openSpellEditor()">+ Magia</button><select class="sheet-field sheet-select" data-sheet-circle aria-label="Adicionar círculo de espaços" ${canConfigureSheet(char)?'':'disabled'}><option value="">+ Círculo</option>${Array.from({length:9},(_,i)=>`<option value="${i+1}">${i+1}º círculo</option>`).join('')}</select>${char.pactMagic.total<=0&&!poolEditorVisible(char,'pact')?'<button type="button" data-sheet-show-pool="pact">+ Pacto</button>':''}${char.sorceryPoints.max<=0&&!poolEditorVisible(char,'sorcery')?'<button type="button" data-sheet-show-pool="sorcery">+ Feitiçaria</button>':''}${spellcastingStatusControls(char,CharacterEngine)}</div>
   </div>`;
 }
 

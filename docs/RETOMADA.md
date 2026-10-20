@@ -21,6 +21,14 @@ fluxo antigo de Criar/Ajustar ficha manual pelo perfil. A conexão foi recuperad
 a implementação `fe2dc66` foi enviada em 20/10 e a [PR #9](https://github.com/mhaetinger/D-D/pull/9)
 foi atualizada com base `develop`. Não houve merge/publicação desta etapa.
 
+**Quadros de conjuração por classe:** `rules/spell-class-panels.ts` reúne preparo
+e recuperações de `spellbook` em quadros compactos. Paladino/Clérigo/Druida/Mago
+usam o contador existente; conhecidas/subclasses têm resumos, sem contar origens
+especiais como magias da classe. Respeita níveis e vínculo estruturado. Feitiçaria,
+Pacto, espaços compartilhados e concentração não são duplicados. Conferidos 385
+testes Node, tipos/build e Chromium de quadros, regras e concentração, com preparo,
+recuperação/cancelamento, recarga offline e 320px/GG/três temas/dois layouts.
+
 **Armas com layout reorganizado:** descrição usa a largura inteira, ataque/dano
 têm colunas próprias e empunhadura/crítico/registro ficam no rodapé. Notas foram
 preservadas; crítico mantém geometria e empunhadura conserva foco. Conferidos 385
