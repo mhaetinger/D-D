@@ -30,6 +30,10 @@
   temporários, concentração/morte uma vez, ajustes, nós/foco, modo resolvido/
   forma, notas/histórico/fichas, recarga/offline e três temas/320 px/GG.
   Capturas desktop/celular conferidas; `git diff --check` sem problemas.
+- Roteiros de PV e concentração compartilham a espera pelo evento nativo de
+  fechamento e pela aplicação da confirmação. Evita conferir a ficha apenas
+  porque o diálogo já ficou oculto, sem depender de um atraso fixo. Ambos
+  passaram novamente no mesmo build após esse ajuste dos testes.
 
 ### Concentração e condições de 2014 — 2026-10-20
 

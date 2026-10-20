@@ -3,6 +3,7 @@ const path=require('node:path');
 const {chromium}=require('playwright');
 const {serve}=require('./serve.cjs');
 const {warrior}=require('./fixture.cjs');
+const {confirmationActions}=require('./confirmation.cjs');
 (async()=>{
   const server=await serve(path.join(__dirname,'../dist')),browser=await chromium.launch();
   try {
@@ -14,8 +15,7 @@ const {warrior}=require('./fixture.cjs');
     await page.addInitScript(c=>{if(!localStorage.getItem('healthSeeded')){localStorage.setItem('critcall_characters_v1',JSON.stringify({schemaVersion:1,characters:[c]}));localStorage.setItem('healthSeeded','1');}},c);
     await page.goto(server.url,{waitUntil:'networkidle'});await page.locator('#accessContinueLocal').click();
     await page.evaluate(()=>{setDiceMode('off');clearDicePool();addDieToPool(12);setTab('lore');savePrivateNotes('Nota pessoal sintética preservada.');setTab('main');});
-    const button=id=>page.locator(`[data-health-action="${id}"]`),dialog=page.locator('#confirmationDialog'),accept=()=>page.locator('#confirmationAccept').click();
-    const cancel=()=>dialog.getByRole('button',{name:'Cancelar',exact:true}).click();
+    const button=id=>page.locator(`[data-health-action="${id}"]`),{dialog,accept,cancel}=confirmationActions(page);
     const spend=cls=>page.locator(`[data-health-action="hitDieSpend"][data-class="${cls}"]`).click();
     const face=n=>dialog.locator('[data-health-face]').fill(String(n));
     const physicalDeath=async n=>{await button('deathSave').click();await dialog.locator('[data-health-source]').selectOption('physical');await face(n);await accept();await dialog.waitFor({state:'hidden'});};
