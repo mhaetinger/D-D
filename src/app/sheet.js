@@ -3,10 +3,12 @@ import { currentWorkspaceKey, workspaceStorage } from "../storage/account-scope"
 import { ACTIVE_CHARACTER_KEY, readPreference, writePreference } from "../storage/preferences";
 import { armorClass, applyDamage, exhaustion, savingThrow, initiativeBonus, changePermanentAbility } from "../rules/combat";
 import { readableText } from "../rules/text";
-import { renderResourceControls, renderResourcesAt, preparationControls, defenseControls, conditionControls, hitDiceRecoveryControls } from "../rules/ui";
+import { renderResourceControls, renderResourcesAt, preparationControls, defenseControls, conditionControls, hitDiceRecoveryControls, saveRuleStep } from "../rules/ui";
 import { featureResourceBindings, resourcesAt } from "../rules/placement";
 import { canCastNormally, canRitual, preparation, wizardPrivilege, castingRestriction } from "../rules/spellcasting";
 import { resolveSpellEffect, innateCastLevel, twinEligible } from "../rules/spell-effects";
+import { consumeInspiration, deathStatus, healHitPoints, inspirationRollMode } from '../rules/health';
+import { damageDescription, deathControls, hitDiceControls } from '../rules/health-ui';
 import { takeRest } from "../rules/rest";
 import { onSpellCast } from "../rules/resources";
 import { characterSnapshot, historyComparable as characterHistoryComparable, historyKey, HISTORY_PREFIX, isCharacterHistoryKey, migrateCharacterHistories, splitLegacyHistory, validateCharacterHistory } from '../storage/character-history';
@@ -525,9 +527,6 @@ let selectedCastLevelBySpell = {};
 let twinnedActiveBySpell = { "Mísseis Mágicos": true };
 let homebrewInitialState = "";
 let weaponDamageDraft = null; // Montagem do formulário; nunca usa o pool da bandeja.
-const HIT_DICE_RULE = {
-  text: "No descanso curto, role os Dados de Vida manualmente na bandeja e ajuste os PV pelos botões da ficha. O gasto desses dados ainda exige controle manual. O descanso longo recupera até metade do nível total em Dados de Vida, no mínimo um; recuperar a reserva inteira é uma adaptação opcional da mesa.",
-};
 const COIN_LABELS = { pc: "Cobre", pp: "Prata", pe: "Electro", po: "Ouro", pl: "Platina" };
 const LORE_LABELS = { traits: "Personalidade", ideals: "Ideais", bonds: "Ligações", flaws: "Defeitos", backstory: "História do personagem", appearance: "Aparência", allies: "Aliados", treasure: "Tesouros narrativos" };
 const PHYSICAL_LABELS = { age: "Idade", height: "Altura", weight: "Peso", eyes: "Olhos", skin: "Pele", hair: "Cabelo" };
@@ -1106,7 +1105,7 @@ function evaluateDicePool(counts, modifier, mode) {
   return { total, d20Natural, breakdown, appliedMode };
 }
 
-function rollCurrentPool(customLabel = "", allowFixed = false) {
+function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligible = true) {
   const cube = document.getElementById("dice3dCube");
   const resultBox = document.getElementById("dice3dResultText");
   if (!cube || !resultBox) return;
@@ -1125,8 +1124,19 @@ function rollCurrentPool(customLabel = "", allowFixed = false) {
   ) || 0;
   // Resolve tudo no clique. Trocar modo, limpar ou editar a bandeja durante a
   // animação só vale para o próximo lançamento, nunca para o que já foi feito.
-  const result = evaluateDicePool(dicePoolCounts, modVal, currentRollMode);
+  const c=getChar(),inspired=inspirationEligible && !!c && dicePoolCounts[20]===1 && c.heroicInspiration && c.ruleState?.inspirationReady;
+  const mode=inspired?inspirationRollMode(c,currentRollMode):currentRollMode;
+  const result = evaluateDicePool(dicePoolCounts, modVal, mode);
+  if(inspired && consumeInspiration(c)) saveRuleStep('Usou inspiração no d20 · '+(customLabel || 'pool'));
   presentDiceResult(result, customLabel);
+}
+// Ações com resultado aplicado aos PV usam o mesmo motor/animação, sem alterar
+// o pool manual. OFF sempre exige registrar a face do dado físico.
+function ruleDiceSettings() { return {enabled:diceMode!=='off',automatic:diceMode==='auto',mode:currentRollMode}; }
+function rollRuleDie(sides,label,mode='normal') {
+  if(diceMode==='off') throw new Error('Dados virtuais desativados: registre o resultado do dado físico.');
+  const result=evaluateDicePool({[sides]:1},0,mode);
+  presentDiceResult(result,label);return result.total;
 }
 function rollQuickD20() {
   if (diceMode === "off") return;
@@ -1168,7 +1178,7 @@ function presentDiceResult(result, customLabel) {
 }
 
 // Disparo automático vindo da ficha (só executa se diceMode === 'auto'!)
-function triggerSheetRoll(formula, label) {
+function triggerSheetRoll(formula, label, inspirationEligible = false) {
   if (diceMode !== "auto") {
     if (diceMode === "manual") {
       showToast(
@@ -1188,7 +1198,7 @@ function triggerSheetRoll(formula, label) {
   const modEl = document.getElementById("dicePoolModInput");
   if (modEl) modEl.value = parsed.modifier;
   updatePoolDisplay();
-  rollCurrentPool(label, true);
+  rollCurrentPool(label, true, inspirationEligible);
 }
 
 // =========================================================================
@@ -1715,7 +1725,7 @@ function renderMainClassic2014(char) {
       return `
     <div class="t-card-accent p-2.5 text-center flex flex-col items-center justify-center">
       <span class="text-[10px] font-bold uppercase tracking-wider t-text-muted">${meta.name}</span>
-      <button onclick="triggerSheetRoll('1d20${fmtMod(mod)}', 'Teste de ${meta.name}')" class="text-2xl font-extrabold t-text-main my-0.5 hover:scale-110 transition">
+      <button onclick="triggerSheetRoll('1d20${fmtMod(mod)}', 'Teste de ${meta.name}', true)" class="text-2xl font-extrabold t-text-main my-0.5 hover:scale-110 transition">
         ${fmtMod(mod)}
       </button>
       <div class="flex items-center gap-1 t-inset px-2 py-0.5 rounded-full text-xs">
@@ -1738,7 +1748,7 @@ function renderMainClassic2014(char) {
         <span class="w-3 h-3 rounded-full border ${isProf ? "t-btn-primary" : "t-border"}"></span>
         <span>${meta.name}</span>
       </div>
-      <button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Salvaguarda de ${meta.name}')" class="font-bold ${isProf ? "t-text-accent" : ""} hover:underline">
+      <button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Salvaguarda de ${meta.name}', true)" class="font-bold ${isProf ? "t-text-accent" : ""} hover:underline">
         ${fmtMod(val)}
       </button>
     </div>
@@ -1756,7 +1766,7 @@ function renderMainClassic2014(char) {
         <span class="w-3 h-3 rounded-full border ${isProf ? "t-btn-primary" : "t-border"}"></span>
         <span>${sk.name2014} <span class="t-text-muted">(${RULES_DB.abilities[sk.ability].short})</span></span>
       </div>
-      <button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Perícia: ${sk.name2014}')" class="font-bold ${isProf ? "t-text-accent" : ""} hover:underline">
+      <button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Perícia: ${sk.name2014}', true)" class="font-bold ${isProf ? "t-text-accent" : ""} hover:underline">
         ${fmtMod(val)}
       </button>
     </div>
@@ -1814,7 +1824,7 @@ function renderMainModern2024(char) {
             <button onclick="changeAbility('${key}', 1)" class="px-1.5 t-inset rounded font-bold">+</button>
           </div>
         </div>
-        <button onclick="triggerSheetRoll('1d20${fmtMod(mod)}', 'Teste de ${meta.name}')" class="t-inset rounded-lg px-3 py-1 text-center hover:scale-105 transition">
+        <button onclick="triggerSheetRoll('1d20${fmtMod(mod)}', 'Teste de ${meta.name}', true)" class="t-inset rounded-lg px-3 py-1 text-center hover:scale-105 transition">
           <span class="text-[9px] uppercase t-text-muted block">Mod</span>
           <span class="text-xl font-extrabold t-text-accent">${fmtMod(mod)}</span>
         </button>
@@ -1825,7 +1835,7 @@ function renderMainModern2024(char) {
           <span class="w-3 h-3 rune-slot border ${saveProf ? "t-btn-primary" : "t-border"}"></span>
           <span class="font-semibold">Salvaguarda</span>
         </div>
-        <button onclick="triggerSheetRoll('1d20${fmtMod(saveVal)}', 'Salvaguarda de ${meta.name}')" class="font-bold hover:underline">${fmtMod(saveVal)}</button>
+        <button onclick="triggerSheetRoll('1d20${fmtMod(saveVal)}', 'Salvaguarda de ${meta.name}', true)" class="font-bold hover:underline">${fmtMod(saveVal)}</button>
       </div>
 
       <div class="space-y-0.5 pt-0.5">
@@ -1840,7 +1850,7 @@ function renderMainModern2024(char) {
                 <span class="w-2.5 h-2.5 rounded-full border ${isProf ? "t-btn-primary" : "t-border"}"></span>
                 <span>${sk.name2024}</span>
               </div>
-              <button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Perícia: ${sk.name2024}')" class="font-bold ${isProf ? "t-text-accent" : ""} hover:underline">
+              <button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Perícia: ${sk.name2024}', true)" class="font-bold ${isProf ? "t-text-accent" : ""} hover:underline">
                 ${fmtMod(val)}
               </button>
             </div>
@@ -1876,7 +1886,6 @@ function renderCombatBlock(char) {
   const effective = exhaustion({...char,speed:CharacterEngine.movementSpeed(char)});
 
   // Referência sem consumo/cura automática, conforme a campanha do usuário.
-  const hitDiceHtml = char.classes.map(c => `<div class="t-inset px-2.5 py-1.5 rounded text-xs"><strong>${Number(c.level)}d${Number(c.hitDie)}</strong> · ${escapeHTML(RULES_DB.classes[c.classId]?.name || c.classId)}</div>`).join("");
 
   return `
   <div class="t-card-accent overflow-hidden">
@@ -1900,7 +1909,7 @@ function renderCombatBlock(char) {
               ${char.mageArmorActive ? `Arcana: CA ${getMageArmorAC(char)}` : "Ativar Arcana"}
             </button>` : ''}
           </div>
-          <button onclick="triggerSheetRoll('1d20${fmtMod(dexMod)}', 'Iniciativa')" class="combat-stat t-inset p-2 rounded-lg hover:scale-105 transition">
+          <button onclick="triggerSheetRoll('1d20${fmtMod(dexMod)}', 'Iniciativa', true)" class="combat-stat t-inset p-2 rounded-lg hover:scale-105 transition">
             <span class="text-[10px] uppercase t-text-muted block">Iniciativa</span>
             <span class="text-2xl font-extrabold">${fmtMod(dexMod)}</span>
           </button>
@@ -1924,6 +1933,7 @@ function renderCombatBlock(char) {
           </div>
         </div>
 
+        ${deathControls(char)}
         ${conditionControls(char)}
         ${renderResourcesAt(char,CharacterEngine,'health')}
         <div class="t-inset p-3 rounded-lg space-y-2">
@@ -1941,7 +1951,7 @@ function renderCombatBlock(char) {
           <p class="text-[11px] t-text-muted">Não se somam: escolha manter os atuais ou receber o novo valor. Absorvem dano antes dos PV normais; cura não os recupera.</p>
         </div>
 
-        <div class="space-y-1.5"><p class="text-[11px] font-bold t-text-muted" tabindex="0" ${RuleTooltips.attributes('Dados de Vida · rolagem manual', HIT_DICE_RULE)}>Dados de Vida · rolagem manual</p><div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${hitDiceHtml}</div>${hitDiceRecoveryControls(char,CharacterEngine)}</div>
+        <div class="space-y-1.5">${hitDiceControls(char,CharacterEngine)}${hitDiceRecoveryControls(char,CharacterEngine)}</div>
       </div>
     `
         : ""
@@ -2603,7 +2613,7 @@ function rollWeapon(index, kind) {
     showToast("Fórmula inválida. Corrija o ataque antes de rolar.");
     return;
   }
-  triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}`);
+  triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}`,kind==='attack');
 }
 function setWeaponHands(index,value) {
   const entry = getChar().weapons[index]; if (!entry || !['1','2'].includes(String(value))) return;
@@ -2806,10 +2816,11 @@ function changeHp(delta) {
   const char = getChar();
   // Livro, p. 200: dano consome PV temporários antes dos PV reais.
   // Cura altera somente PV reais; não recompõe a reserva temporária.
-  const result = delta < 0 ? applyDamage(char,-delta) : null;
-  if (delta >= 0) char.hpCurrent = Math.min(exhaustion(char).hpMax,char.hpCurrent+delta);
+  let result;
+  try { if(delta<0) result=applyDamage(char,-delta);else healHitPoints(char,delta); }
+  catch(error) { showToast(error.message);return; }
   if (char.hpTemp === 0) char.hpTempSource = "";
-  recordStepAndSave(`${delta < 0 ? `Sofreu ${-delta} de dano (${result.temp} absorvidos por PV temporários)${result.ward?` · proteção: ${result.ward}`:''}${result.beast?` · forma: ${result.beast}`:''}` : `Recebeu ${delta} de cura`} · PV: ${char.hpCurrent}/${exhaustion(char).hpMax} · temporários: ${char.hpTemp}`);
+  recordStepAndSave(delta<0?damageDescription(char,result,-delta):`Recebeu ${delta} de cura · PV: ${char.hpCurrent}/${exhaustion(char).hpMax} · temporários: ${char.hpTemp}`);
 }
 
 function getFiendBlessingAmount(char) {
@@ -3010,6 +3021,7 @@ function castSpellWithUpcast(
 
 function shortRest() {
   if (Number(getChar().exhaustion)>=6) return showToast('Exaustão 6 significa morte; um descanso não revive o personagem.');
+  if (deathStatus(getChar()).dead) return showToast('Um descanso não revive o personagem.');
   if (!takeRest(getChar(),'short',CharacterEngine)) { recordStepAndSave('Frenesi terminou com exaustão 6',true); return showToast('Frenesi levou à exaustão 6. O personagem morreu antes de concluir o descanso.'); }
   recordStepAndSave("⛺ Descanso Curto");
   showToast("Descanso Curto concluído!");
@@ -3019,6 +3031,7 @@ async function longRest() {
   // A recuperação integral dos Dados de Vida exige escolha explícita da mesa.
   const char = getChar();
   if (Number(char.exhaustion)>=6) return showToast('Exaustão 6 significa morte; um descanso não revive o personagem.');
+  if (deathStatus(char).dead) return showToast('Um descanso não revive o personagem.');
   if(char.hpCurrent<1) return showToast('O descanso longo exige pelo menos 1 PV no início.');
   const choices = document.createElement('div');
   choices.innerHTML = '<label><input type="checkbox" data-rest-food checked> Teve alimento e bebida (reduz 1 exaustão)</label><br><label><input type="checkbox" data-rest-table> Recuperar todos os Dados de Vida (adaptação da mesa)</label>';
@@ -3109,6 +3122,8 @@ Object.assign(window, {
   applyImportedCharacters,
   escapeHTML,
   confirmDestructiveAction,
+  ruleDiceSettings,
+  rollRuleDie,
   parseDiceFormula,
   getChar,
   loadHistoryState,

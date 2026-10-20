@@ -15,16 +15,37 @@ Não mesclar/publicar esta revisão sem aprovação. A branch remota `develop`
 foi restaurada após a entrega na referência de integração já aprovada
 `b1155fbc5d14a566f548814bd808374aa2383721`, merge da PR #7.
 
-**Estado atual da primeira etapa da auditoria:** fórmulas mostradas/roladas
+**Estado atual, segunda etapa da auditoria:** Dados de Vida têm saldo/gasto por
+classe, origem física/virtual, CON, mínimo de Resistente e Canção do Descanso
+uma vez, se ouvida e houver cura. Em forma, exige a CON da besta e cura seus PV.
+A 0 PV, controle de sucessos/falhas, 1/20 natural, estabilidade, dano
+comum/crítico/maciço e cura; morto precisa de registro explícito de retorno à
+vida após resolver a causa na mesa. Estável a 0 PV pode gastar Dados de Vida
+após descanso curto. Inspiração é a reserva binária de 2014: preparar/cancelar
+vantagem ou gastar na mesa, sem acumular/rerrolar. Tudo ocupa os campos
+existentes, é salvo no histórico da ficha e preserva notas e o pool montado.
+Concentração, condições gerais, tempo de jogo e exceções de classe que evitam
+0 PV continuam pendentes. Fonte/contratos em
+[AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md) e `src/rules/health.ts`;
+testes puros em `tests/health.test.ts` e interação em `tests/health-browser.cjs`.
+Não houve alteração de SQL/RLS/RPC ou dados reais.
+Verificação local desta etapa: 299 testes Node, tipos/build e os dez roteiros
+Chromium anteriores aprovados; o novo roteiro de PV passou no build final após
+o ajuste de foco. A suíte agora inclui onze roteiros. Confere cancelamento,
+físico/virtual/OFF, notas/desfazer/refazer, forma, dados/morte/inspiração,
+recarga/offline, isolamento e três temas/320 px/GG. Capturas de desktop/celular
+conferidas. Use `npm run check` para a bateria completa; CI também testa PostgreSQL.
+
+**Primeira etapa da auditoria, já concluída:** fórmulas mostradas/roladas
 unificadas nos casos auditados, cura/modificador/aprimoramento, Explosão
 Agonizante por feixe, nível racial fixo, Dominar/Assinatura, iniciativa e
 componentes corrigidos. Dano usa proteção → temporários → besta → PV; o histórico
 registra a absorção real. Constituição permanente ajusta PV manuais sem reviver
 a 0 PV; descanso longo exige 1 PV e o curto preserva a Forma Selvagem.
-Concentração, morte/estabilidade, gasto de Dados de Vida, inspiração, condições
-gerais e outros passivos da matriz continuam pendentes. Ver a tabela de estado
+Concentração, condições gerais e outros passivos da matriz continuam pendentes.
+PV/inspiração receberam controles na etapa atual acima. Ver a tabela de estado
 no início de [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md).
-Validação local: 279 testes Node, tipos/build e dez roteiros Chromium, incluindo
+Validação daquela etapa: 279 testes Node, tipos/build e dez roteiros Chromium, incluindo
 32 cenários auditados sem divergências. O último ajuste de validação do mago
 foi conferido novamente com Node/build/cenários. O comando `npm run check`
 inclui o wrapper que falha se houver divergência; a CLI diagnóstica continua

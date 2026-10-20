@@ -30,12 +30,44 @@ atual inclui regressões adicionais e é exigido na suíte de navegador.
 | 21 | Requisito de 1 PV e preservação da forma no descanso curto corrigidos; duração, interrupções e limite de 24 h seguem manuais |
 | 24–25 | Chicote classificado como ataque, Raio Ardente sem Gêmea e Criar Chamas no talento; classificação integral e todas as exceções do catálogo ainda precisam de revisão |
 | 26 | Carga inclui moedas e informa isso no campo existente |
-| 4–14 | Outros passivos e controles básicos continuam pendentes; não anunciar concentração, morte, condições ou gasto de Dados de Vida como implementados |
+| 6–8 | Morte/estabilidade, Dados de Vida e inspiração receberam controles na segunda etapa abaixo |
+| 4–5, 9–14 | Outros passivos, concentração, condições gerais e fluxos condicionais continuam pendentes |
 
 Fórmulas personalizadas não recebem bônus automáticos adicionais. Feixes/raios
 mostram a quantidade e rolam dano de um acerto; o botão contextual repete o dano
 sem cobrar a magia. Regras de alvo/duração e as demais famílias de efeitos não
 passam a ser automaticamente resolvidas por essa correção de fórmulas.
+
+## Segunda etapa implementada: bloco de PV e inspiração — 19/10/2026
+
+- Dados de Vida têm saldo e gasto por classe, um dado por vez, com origem física
+  ou virtual, CON, piso zero e mínimo de Resistente. A recuperação longa continua
+  com orçamento compartilhado e escolha explícita da classe; não duplica reservas.
+- Canção do Descanso é opcional quando ouvida: dado de quem realizou a atuação,
+  uma vez entre descansos e somente se o Dado de Vida recuperar PV. Em Forma
+  Selvagem, exige a CON da besta e cura sua reserva; não cura os PV humanos.
+- A 0 PV, sucessos/falhas, 1/20 natural, estabilidade, dano comum/crítico e dano
+  maciço são registrados/calculados nos PV existentes. Cura positiva limpa
+  contagens; morto não é revivido por cura/descanso. Retorno à vida tem registro
+  explícito após resolver a magia e a causa da morte na mesa.
+- Inspiração de 2014 usa uma reserva por ficha: preparar/cancelar vantagem na
+  próxima jogada elegível ou gastar na mesa. Não acumula, não rerrola depois do
+  resultado e não gasta em dano/arremesso rápido. Desvantagem cancela a vantagem.
+- Novos estados entram no documento/histórico da ficha, preservando notas.
+  Diálogos revalidam a ficha após confirmar; OFF exige face física e os dados
+  virtuais não alteram o pool. Sem mudança de SQL/RLS/RPC.
+
+Limites: horas/atividade do descanso, Medicina CD 10, origem/tempo dos bônus,
+passagem de 1d4 horas para acordar, ressurreição e características que evitam
+cair a 0 PV dependem da mesa. Não há concentração nem condições gerais
+integradas. Essa etapa não certifica todos os efeitos das classes/talentos.
+
+Verificação local: 299 testes Node, tipos/build, dez roteiros Chromium existentes
+e o novo roteiro de PV, este repetido no build final após ajuste de foco.
+Inclui gasto físico/virtual/OFF, classe/forma/CON, canção, reserva/recuperação,
+1/20/estabilidade/crítico/dano maciço, retorno à vida, inspiração, notas e
+desfazer/refazer preservados, fichas isoladas, recarga/offline e três temas/320 px/GG.
+Capturas de desktop/celular conferidas. `npm run check` inclui os onze roteiros.
 
 ## Fonte, método e limites
 
@@ -69,12 +101,12 @@ passam a ser automaticamente resolvidas por essa correção de fórmulas.
 | Cap. 1, criação, 10–14 | Atributos, 27 pontos, conjunto padrão, rolagem, criação/evolução e multiclasse | Distinguir uma escolha cadastrada de seu efeito aplicado; ver passivos abaixo |
 | Cap. 2, raças, 16–42 | Atributos, idiomas, opções, descrições e magias raciais | Resistências, rerrolagens e gatilhos raciais não têm resolução geral automática |
 | Cap. 3, classes, 44–120 | Progressão das 12 classes/41 subclasses; várias reservas e ações contextuais | Matriz por classe abaixo; contadores não controlam alvos, turnos e todos os passivos |
-| Cap. 4, personalidade/antecedentes, 122–142 | 13 antecedentes, tendências, sugestões editáveis e campos narrativos | Inspiração de 2014 sem controle utilizável; personalização completa de antecedente ainda exige adaptação manual |
+| Cap. 4, personalidade/antecedentes, 122–142 | 13 antecedentes, tendências, sugestões editáveis, campos narrativos e inspiração de 2014 | Personalização completa de antecedente ainda exige adaptação manual |
 | Cap. 5, equipamento, 144–160 | Compras em cobre, quantidades/peso, armadura/escudo, armas e propriedades consultáveis | Penalidades por falta de proficiência, munição, recarga, consumíveis e detalhes de carga; ver itens abaixo |
 | Cap. 6, personalização, 164–171 | Pré-requisitos/escolhas de multiclasse/talentos, espaços combinados e Pacto separado | Vários talentos só registram a escolha; o efeito numérico não está aplicado |
 | Cap. 7, habilidades, 174–180 | Modificadores, proficiência, especialização, perícias, resistências, modo vantagem/desvantagem e bônus auditados de iniciativa | Testes passivos/condicionais, vantagem na iniciativa e rolagens mínimas ainda incompletos |
-| Cap. 8, aventuras, 182–188 | Deslocamento, inventário, descansos e exaustão | Gasto de Dados de Vida sem interface; viagem, luz, sufocamento, alimento/água e atividades entre aventuras são manuais |
-| Cap. 9, combate, 189–198 | Ataques/dano, CA, PV, temporários, reservas defensivas e alguns adicionais condicionais | Morte/estabilidade, resistências, crítico completo, cobertura, ações/reações e alvo ainda exigem controle manual |
+| Cap. 8, aventuras, 182–188 | Deslocamento, inventário, descansos, exaustão e gasto/recuperação de Dados de Vida por classe | Tempo de descanso, viagem, luz, sufocamento, alimento/água e atividades entre aventuras são manuais |
+| Cap. 9, combate, 189–198 | Ataques/dano, CA, PV, temporários, reservas defensivas, morte/estabilidade e alguns adicionais condicionais | Resistências, crítico completo dos ataques, cobertura, ações/reações, alvo e exceções de classe ainda exigem controle manual |
 | Cap. 10, conjuração, 201–204 | Preparação, rituais elegíveis, espaços por classe/Pacto, CDs e custos de feitiçaria | Concentração, componentes, duração e economia de ações não são um sistema integrado |
 | Cap. 11, magias, 207–288 | 361 descrições e metadados, campos longos corrigidos, fórmulas auditadas unificadas e escalonamento | Não há executor de todos os efeitos das 361 magias; consultar limitações por família |
 | Apêndice A, condições, 289–291 | Consulta e controle próprio de exaustão | Demais condições não possuem estado/efeitos integrados |
@@ -321,7 +353,7 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 | Classe / PDF | Subclasses conferidas | Cobertura operacional existente | Próxima revisão necessária |
 | --- | --- | --- | --- |
 | Bárbaro, 45–49 | Furioso; Guerreiro Totêmico | Fúria, dano com FOR, Frenesi/exaustão, CA alternativa e extras de Crítico Brutal | Resistências e vantagem; duração/gatilhos; teste/CD crescente de Fúria Implacável |
-| Bardo, 50–54 | Conhecimento; Bravura | Reserva/dado de inspiração, proficiências/especialização, segredos e conjuração | Iniciativa de Versatilidade; Canção do Descanso; inspiração recebida/Palavras de Interrupção na jogada; recuperação ao iniciar combate |
+| Bardo, 50–54 | Conhecimento; Bravura | Reserva/dado de inspiração, proficiências/especialização, segredos, conjuração, iniciativa de Versatilidade e Canção do Descanso opcional | Inspiração de Bardo recebida/Palavras de Interrupção na jogada; recuperação ao iniciar combate |
 | Bruxo, 55–61 | Arquifada; Corruptor; Grande Antigo | Pacto, Arcanum, usos de patrono/invocações e Bênção do Obscuro | Explosão Agonizante/Sorvedor de Vida; gastos de espaço de invocações não equivalem ao contador diário; efeitos contra alvos |
 | Clérigo, 62–69 | Conhecimento; Enganação; Guerra; Luz; Natureza; Tempestade; Vida | Preparação/domínios, Canalizar compartilhado, usos e Intervenção | Efeitos de cada domínio no alvo, cura/dano condicionado e Expulsar/Destruir Mortos-Vivos por ND |
 | Druida, 70–75 | Terra; Lua | Preparação/círculo, Forma Selvagem/PV, cura da Lua e Recuperação Natural | Bloco de besta/estatísticas, custo de elemental e concentração mantida na transformação |
@@ -406,7 +438,7 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 | Sentinela | Registro | Oportunidade, reação e deslocamento do alvo |
 | Sorrateiro | Registro | Ocultação/luz e revelação por ataque falho |
 | Sortudo | Registro | Três pontos e escolha do dado no contexto da jogada |
-| Resistente | +1 CON | Mínimo de cura ao gastar Dados de Vida, cujo gasto ainda não tem interface |
+| Resistente | +1 CON; mínimo de cura ao gastar Dados de Vida | Efeitos cobertos nos cenários testados de descanso |
 | Proteção Leve | +1 FOR/DES e proficiência leve | Penalidades de armadura ainda precisam integração |
 | Proteção Moderada | +1 FOR/DES, média e escudo | Mesma revisão de elegibilidade/penalidades |
 | Proteção Pesada | +1 FOR e proficiência pesada | Mesma revisão de elegibilidade/penalidades |
@@ -422,7 +454,7 @@ há tratamentos específicos; uma fórmula encontrada não equivale à execuçã
 magia. Área/alvos, componentes consumidos, alcance, cobertura, resistência do
 alvo, duração e várias curas/transformações continuam sob decisão do jogador.
 
-A próxima etapa é corrigir o extrator e a concentração e, depois, organizar as
+A próxima etapa é integrar a concentração e, depois, organizar as
 magias por família de efeito. Não acrescentar 361 controles separados. Reutilizar
 os campos do grimório, PV/efeitos e o rolador existentes. A Magia Gêmea adaptada
 da mesa deve ser distinguida do texto de 2014, sem mudar escolhas pessoais.
@@ -441,7 +473,7 @@ a aventura ou transformar consulta narrativa em campos obrigatórios.
    Duração/interrupções da forma e limite de descansos seguem manuais.
 3. [x] Corrigir bônus auditados de iniciativa, Dominar Magia/Assinatura, campos
    longos de componentes, Atirador de Magia e inclusão de moedas na carga.
-4. [ ] Completar o bloco de PV: Dados de Vida, morte/estabilidade e inspiração,
+4. [x] Completar o bloco de PV: Dados de Vida, morte/estabilidade e inspiração,
    nos locais existentes e com dado físico/virtual.
 5. [ ] Unificar concentração/condições/dano tipado e a explicação dos efeitos;
    não automatizar uma redução sem conhecer sua origem.

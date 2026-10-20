@@ -2,6 +2,35 @@
 
 ## Não lançado
 
+### Dados de Vida, morte/estabilidade e inspiração — 2026-10-19
+
+- Dados de Vida têm saldo e gasto por classe, um dado por vez, com resultado
+  físico ou virtual, Constituição, limite de PV e mínimo de Resistente.
+  Canção do Descanso ouvida acrescenta seu dado uma vez por descanso, se houver
+  cura pelo Dado de Vida. A forma usa CON informada/PV da besta. Estável a 0 PV
+  pode gastar após o descanso curto; morto não é revivido.
+- Nos PV existentes, testes contra a morte controlam sucessos/falhas, 1/20
+  natural, bônus recebidos/Alma de Diamante, estabilidade e dano maciço. Dano
+  detalhado permite informar crítico; temporários a 0 não evitam as falhas pelo
+  dano recebido. Cura positiva zera contagens; ressurreição exige registro
+  explícito após resolução na mesa. Conjuração/ativação de recursos respeitam
+  morte e inconsciência a 0 PV, sem gastar o recurso recusado.
+- Inspiração usa a reserva por personagem de 2014: receber, preparar/cancelar
+  vantagem no próximo teste/ataque ou gastar na mesa após confirmação. Cancela
+  desvantagem e não gasta em dano/arremesso rápido. Não acumula nem rerrola.
+- Estados pertencem à ficha e seu histórico; notas permanecem separadas.
+  Cancelar/entrada inválida não altera a ficha. Dado virtual usa a animação
+  existente e preserva o pool; OFF exige resultado físico. Diálogos e foco
+  reutilizam os módulos existentes. Sem alteração de SQL/RLS/RPC.
+- Concentração, condições gerais, tempo de jogo, ressurreição/Medicina e
+  características que evitam cair a 0 PV continuam a cargo da mesa.
+- Verificação local: 299 testes Node e tipos/build aprovados; os dez roteiros
+  Chromium existentes passaram e o novo roteiro de PV passou no build final
+  após o ajuste de foco. Inclui físico/virtual/OFF, gasto/recuperação por classe,
+  forma/CON da besta, 1/20, estabilidade, crítico, dano maciço, retorno à vida,
+  inspiração, desfazer/refazer/notas, fichas isoladas, recarga/offline e três
+  temas/320 px/GG. Capturas de desktop/celular conferidas; `git diff --check` limpo.
+
 ### Cálculos e interações identificados na auditoria — 2026-10-19
 
 - Fórmula mostrada e rolagem usam a mesma resolução: escalonamento de truques,

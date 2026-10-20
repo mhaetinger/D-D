@@ -1,4 +1,5 @@
 import { ability, active, level, norm, selections, state, subclass, type Engine, type Sheet } from './model';
+import { markDead, requireConscious } from './health';
 export interface Resource { id:string; classId:string; name:string; max:number; recovery:'short'|'long'|'none'; kind:'counter'|'pool'|'toggle'|'note'|'portent'; note:string; cost?:[string,number]; action?:string }
 
 /** Cada definição usa nível da própria classe, nunca nível total. Sem ficha-modelo. */
@@ -187,7 +188,9 @@ export function refund(c:Sheet,r:Resource) {
   if (r.id==='feiticeiro:tides') c.tidesOfChaosAvailable = true;
 }
 export function toggleResource(c: Sheet, r: Resource, E: Engine) {
-  const s = state(c), enabled = active(c,r.id);
+  const enabled = active(c,r.id);
+  if(!enabled) requireConscious(c);
+  const s = state(c);
   if (r.id==='mago:masterTransmuter' && !enabled) {
     if (!active(c,'mago:stone')) throw new Error('Crie a Pedra do Transmutador antes de consumi-la.');
     s.active['mago:stone'] = false;
@@ -209,6 +212,7 @@ export function toggleResource(c: Sheet, r: Resource, E: Engine) {
   if (r.id==='barbaro:rage' && enabled && s.frenzyUsed) {
     c.exhaustion = Math.min(6,Number(c.exhaustion || 0)+1); s.active['barbaro:frenzy'] = false; s.frenzyUsed = false;
     if (c.exhaustion>=4) c.hpCurrent = c.exhaustion===6?0:Math.min(c.hpCurrent,Math.floor(c.hpMax/2));
+    if (c.exhaustion===6) markDead(c);
   }
   s.active[r.id] = !enabled;
 }
@@ -242,6 +246,7 @@ export function resetResources(c: Sheet, kind:'short'|'long', E: Engine, random=
 }
 /** Atalhos compartilham as reservas, sem criar um contador paralelo. */
 export function useResource(c:Sheet,r:Resource,E:Engine) {
+  requireConscious(c);
   if (!r.cost) { spend(c,r); return; }
   const source = r.cost[0]==='feiticeiro:sorceryPool' ? {id:r.cost[0],max:c.sorceryPoints.max,kind:'pool'} as Resource : resourcesFor(c,E).find(x=>x.id===r.cost![0]);
   if (!source) throw new Error('A reserva exigida não pertence ao personagem.');

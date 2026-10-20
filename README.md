@@ -147,8 +147,8 @@ balões e consultas do criador também oferecem as descrições das regras.
 O zoom livre mantém apenas a porcentagem atual na lista, junto dos atalhos fixos.
 
 A [auditoria do Livro do Jogador](docs/AUDITORIA-LIVRO-2014.md) percorre todos os
-capítulos/apêndices e distingue cálculo, consulta e pendências. Concentração,
-testes contra a morte e vários efeitos condicionais ainda exigem controle manual.
+capítulos/apêndices e distingue cálculo, consulta e pendências. Concentração
+e vários efeitos condicionais ainda exigem controle manual.
 A revisão aprofundada também reproduziu divergências de fórmulas/rolagens,
 cura, transformação/descansos e recursos de alto nível. A primeira etapa de
 correções unifica a fórmula mostrada/rolada, corrige os cenários de PV e usa
@@ -201,6 +201,30 @@ alteração permanente: muda os PV máximos por diferença de modificador e nív
 conservando o dano sofrido. Personagem a 0 PV permanece a 0. Descanso longo exige
 1 PV no início; o curto preserva a Forma Selvagem, cuja duração segue manual.
 A carga inclui moedas a cerca de 10 g cada, conforme o exemplar local.
+
+Em **Dados de Vida · descanso curto**, escolha **Gastar** na classe desejada,
+registre a face do dado físico ou use o virtual e aplique a cura. Gasta um dado
+por vez, soma Constituição e limita aos PV máximos; o talento Resistente aplica
+seu mínimo. Canção do Descanso é opcional quando ouvida e só soma uma vez entre
+descansos, se o dado recuperar PV. Em Forma Selvagem, informe a Constituição da
+besta: a cura vai para os PV da forma, preservando os humanos. Os dados virtuais
+dessas ações não alteram o pool montado. OFF exige dado físico.
+A 0 PV, resolva a estabilização antes de registrar o descanso curto e gastar.
+
+A 0 PV aparecem sucessos/falhas e **Teste contra a morte**, com dado físico ou
+virtual, bônus recebidos, 1/20 natural e estabilidade. **Dano detalhado** permite
+registrar crítico; dano a 0 PV e dano maciço atualizam o estado. Temporários não
+evitam falhas pelo dano recebido a 0; Proteção Arcana impede o dano absorvido.
+Cura positiva limpa as contagens, mas cura comum e descanso não revivem. Após
+uma ressurreição resolvida na mesa, use **Registrar retorno à vida**.
+
+**★ Inspiração** usa a regra de 2014, com uma reserva por personagem. **Usar**
+prepara vantagem para o próximo teste/ataque da ficha ou d20 do pool; desvantagem
+cancela essa vantagem. **Usar na mesa** gasta após confirmação para jogar com
+dado físico. Preparar pode ser cancelado; dano e arremesso rápido não gastam a
+inspiração preparada. Não é a reserva de Inspiração de Bardo nem uma rerrolagem.
+Tempo de descanso, Medicina, ressurreição, fontes de bônus e gatilhos de classe
+que evitam cair a 0 PV continuam dependendo da resolução da mesa.
 
 Magias que precisam de preparo só oferecem lançamento normal quando preparadas;
 Domínio/Círculo/Juramento ficam **Sempre Preparadas**. Ritual de mago no grimório

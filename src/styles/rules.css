@@ -17,6 +17,15 @@
 .rule-effect-row label { line-height:1.4; }
 .rule-effect-row input[type=checkbox] { width:1rem; height:1rem; flex:none; padding:0; margin:0; }
 .rule-help-label { cursor:help; }
+.rule-hit-dice { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr)); gap:.4rem; }
+.rule-hit-dice > div { padding:.4rem .5rem; justify-content:space-between; }
+.rule-dialog-fields { display:flex; flex-direction:column; gap:.7rem; }
+.rule-dialog-fields > label { display:flex; align-items:center; flex-wrap:wrap; gap:.4rem; }
+.rule-dialog-fields [hidden] { display:none; }
+.rule-check { display:inline-flex; align-items:center; gap:.5rem; }
+.rule-check input[type=checkbox] { margin:0; width:1rem; height:1rem; }
+.rule-context button:disabled { opacity:.45; }
+.rule-context [aria-pressed=true] { outline:2px solid var(--text-main); outline-offset:1px; }
 /* A mesma tipografia atende os dois sistemas existentes de balões. */
 .rule-tooltip, #bookTooltip { padding:.55rem .65rem; font-size:.92rem; line-height:1.45; overflow-wrap:anywhere; hyphens:auto; }
 .rule-tooltip p, #bookTooltip p, #bookTooltip .whitespace-pre-line { text-align:justify; text-justify:inter-word; margin:.3rem 0; font-size:.92rem; line-height:1.45; }

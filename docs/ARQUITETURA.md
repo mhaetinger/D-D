@@ -358,3 +358,44 @@ regenerados, preservando o corpo original. Componentes V/S/M usam só o prefixo,
 sem confundir letras do nome de um material com componentes.
 `tests/spell-resolution.test.ts` cobre os cálculos puros, e o roteiro auditado
 passa a ser cobrado por `tests/audited-rules-browser.cjs` na suíte de navegador.
+
+## PV, Dados de Vida e inspiração — 19/10/2026
+
+`src/rules/health.ts` concentra os contratos puros. `applyDamage` mantém o retorno
+de absorção existente e informa dano recebido/excesso para morte. Proteção
+externa não é dano ao personagem; temporários contam como dano a quem já está
+a 0 PV. Dano absorvido pela besta não causa falhas nos PV humanos; excesso pode.
+O máximo efetivo por exaustão é compartilhado pelo cálculo de PV e dano maciço.
+
+`ruleState.death` contém sucessos, falhas, estabilidade e morte. Fichas sem o
+campo são lidas sem migração destrutiva. Três sucessos ou estabilização zeram
+contagens; cura positiva também as limpa. Três falhas/dano maciço marcam morte.
+1/20 natural prevalece sobre bônus; Alma de Diamante usa a proficiência comum.
+Cura, descanso, conjuração e ativação de recursos respeitam morte/consciência.
+Exaustão fatal mantém a marca mesmo após corrigir seu nível; retorno à vida é
+um registro explícito, com confirmação, após resolver a causa na mesa.
+
+Gasto de Dados de Vida usa `classes[].hitDiceUsed`, valida a reserva e aplica
+CON/mínimo de Resistente antes do bônus opcional de Canção do Descanso.
+`ruleState.songOfRestUsed` impede repetir o bônus até outro descanso concluído;
+ouvir a atuação e sua origem são escolhas explícitas. Na forma, exige CON da
+besta e usa a reserva/máximo da besta. Não deduz tempo nem completa outro descanso.
+Por leitura dos requisitos de descanso de 2014 (PDF 187–188;
+[regras básicas oficiais](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/adventuring#Resting)),
+não se exige vigília para o curto. O fluxo permite gastar a 0 PV após estabilizar
+e confirmar o descanso; não libera cura/descanso a morto.
+
+`src/rules/health-ui.ts` ocupa o bloco de PV e substitui a lista passiva de Dados
+de Vida. Diálogos reutilizam confirmação/rolagem/rolagem contida existentes;
+cancelar ou uma entrada inválida não gasta nada. Confirmar revalida a identidade
+da ficha e os resultados antes da mutação. `saveRuleStep` conserva consultas
+abertas e foco. `rollRuleDie` reutiliza a avaliação/animação sem alterar o pool.
+
+`heroicInspiration` conserva o campo legado como reserva binária de 2014.
+`ruleState.inspirationReady` prepara seu uso na ficha/pool sem gastar antes de
+rolar. Jogadas elegíveis passam essa intenção explicitamente; dano/arremesso
+rápido não consomem a reserva. A vantagem preparada cancela desvantagem e é
+consumida uma vez. Dado físico tem gasto confirmado; preparação pode ser cancelada.
+Tudo pertence ao documento da ficha e seu histórico; notas continuam separadas.
+Não houve mudança de SQL/RLS/RPC. Concentração, condições gerais, efeitos de
+classe que evitam 0 PV e simulação do tempo de jogo continuam fora desta etapa.

@@ -3,6 +3,8 @@ import { preparation, castingRestriction } from './spellcasting';
 import { remaining, resourcesFor, spend, refund, toggleResource, useResource, type Resource } from './resources';
 import { ability, active, escape, level, state, type Engine, type Sheet } from './model';
 import { resourcesAt } from './placement';
+import { healHitPoints, markDead } from './health';
+import { inspirationControls, setupHealthUI } from './health-ui';
 
 export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
   const number = (n:number) => Number.isFinite(n)?n:'∞';
@@ -63,28 +65,34 @@ export function defenseControls(c:Sheet,E:Engine) {
 
 export function conditionControls(c:Sheet) {
   const fatigue=exhaustion(c);
-  return `<div class="rule-context rule-controls"><label>Exaustão <select data-rule-exhaustion aria-label="Nível de exaustão">${[0,1,2,3,4,5,6].map(n=>`<option ${n===fatigue.level?'selected':''}>${n}</option>`).join('')}</select></label>${fatigue.level?`<span>${fatigue.penalties.map(escape).join(' · ')}</span>`:''}</div>`;
+  return `<div class="rule-context rule-controls"><label>Exaustão <select data-rule-exhaustion aria-label="Nível de exaustão">${[0,1,2,3,4,5,6].map(n=>`<option ${n===fatigue.level?'selected':''}>${n}</option>`).join('')}</select></label>${fatigue.level?`<span>${fatigue.penalties.map(escape).join(' · ')}</span>`:''}${inspirationControls(c)}</div>`;
 }
 
 export function hitDiceRecoveryControls(c:Sheet,E:Engine) {
   return c.ruleState?.hitDiceRecovery?`<div class="rule-context rule-controls"><span>Recupere ${c.ruleState.hitDiceRecovery} Dado(s) de Vida:</span>${c.classes.filter((x:Sheet)=>x.hitDiceUsed>0).map((x:Sheet)=>`<button type="button" data-rule-action="hitDie" data-class="${x.classId}">${escape(E.data.classes[x.classId].name)} · d${x.hitDie}</button>`).join('')}</div>`:'';
 }
 
-export function setupRuleUI(E: Engine) {
+export function saveRuleStep(description:string) {
   const host = window as any;
-  const save = (description:string) => {
-    const focused = document.activeElement as HTMLElement;
-    const attrs = focused ? [...focused.attributes].filter(a=>a.name.startsWith('data-rule-') || ['data-resource','data-index','data-class'].includes(a.name)).map(a=>`[${a.name}="${CSS.escape(a.value)}"]`).join('') : '';
-    const open = new Map([...document.querySelectorAll<HTMLDetailsElement>('[data-rule-disclosure]')].map(el=>[el.dataset.ruleDisclosure,el.open]));
-    host.recordStepAndSave(description,true);
-    for (const el of document.querySelectorAll<HTMLDetailsElement>('[data-rule-disclosure]')) if(open.has(el.dataset.ruleDisclosure)) el.open = open.get(el.dataset.ruleDisclosure)!;
-    if (attrs) document.querySelector<HTMLElement>(attrs)?.focus({preventScroll:true});
-  };
+  const focused = document.activeElement as HTMLElement;
+  const attrs = focused ? [...focused.attributes].filter(a=>a.name.startsWith('data-rule-') || a.name.startsWith('data-health-') || ['data-resource','data-index','data-class'].includes(a.name)).map(a=>`[${a.name}="${CSS.escape(a.value)}"]`).join('') : '';
+  const handler=focused?.getAttribute('onclick');
+  const focusKey=attrs || (focused?.id?'#'+CSS.escape(focused.id):handler?`[onclick="${CSS.escape(handler)}"]`:'');
+  const open = new Map([...document.querySelectorAll<HTMLDetailsElement>('[data-rule-disclosure]')].map(el=>[el.dataset.ruleDisclosure,el.open]));
+  host.recordStepAndSave(description,true);
+  for (const el of document.querySelectorAll<HTMLDetailsElement>('[data-rule-disclosure]')) if(open.has(el.dataset.ruleDisclosure)) el.open = open.get(el.dataset.ruleDisclosure)!;
+  if (focusKey) document.querySelector<HTMLElement>(focusKey)?.focus({preventScroll:true});
+}
+export function setupRuleUI(E: Engine) {
+  const host = window as any, save=saveRuleStep;
+  setupHealthUI(E,save);
   const rand = (sides:number) => 1+Math.floor(Math.random()*sides);
   document.addEventListener('change',event=>{
-    const input = event.target as HTMLInputElement, c = host.getChar(); if (!c) return;
+    const input = event.target as HTMLInputElement;
+    if(!(input instanceof HTMLElement) || !input.getAttributeNames().some(name=>name.startsWith('data-rule-'))) return;
+    const c = host.getChar(); if (!c) return;
     const s = state(c);
-    if (input.hasAttribute('data-rule-exhaustion')) { c.exhaustion = Math.max(0,Math.min(6,Number(input.value))); c.hpCurrent = c.exhaustion===6?0:Math.min(c.hpCurrent,exhaustion(c).hpMax); }
+    if (input.hasAttribute('data-rule-exhaustion')) { c.exhaustion = Math.max(0,Math.min(6,Number(input.value))); c.hpCurrent = c.exhaustion===6?0:Math.min(c.hpCurrent,exhaustion(c).hpMax); if(c.exhaustion===6) markDead(c); }
     else if (input.hasAttribute('data-rule-ac')) c.acFormula = input.value;
     else if (input.dataset.ruleDefense && ['armorMagicBonus','shieldMagicBonus','acAdjustment'].includes(input.dataset.ruleDefense)) {
       if (!input.value.trim()) delete c[input.dataset.ruleDefense];
@@ -144,7 +152,7 @@ export function setupRuleUI(E: Engine) {
             const healed = Array.from({length:circle},()=>rand(8)).reduce((a,b)=>a+b,0);
             s.pools['druida:wildShape']=Math.min(s.beastMax,s.pools['druida:wildShape']+healed);
           } else useResource(c,r,E);
-          if (r.action==='secondWind' || r.action==='wholeness') c.hpCurrent = Math.min(exhaustion(c).hpMax,c.hpCurrent+(r.action==='secondWind'?rand(10)+level(c,'guerreiro'):3*level(c,'monge')));
+          if (r.action==='secondWind' || r.action==='wholeness') healHitPoints(c,r.action==='secondWind'?rand(10)+level(c,'guerreiro'):3*level(c,'monge'));
           if (r.action==='pactRecovery') c.pactMagic.used = 0;
           if (r.action==='wildShape') { s.active[r.id] = true; host.showToast('Forma ativa. Elemental exige 2 usos no nível 10+; confira a forma no livro.'); }
           if (r.action==='intervention') {

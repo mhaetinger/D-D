@@ -1,4 +1,5 @@
 import { ability, active, level, norm, proficiency, selections, subclass, type Engine, type Sheet } from './model';
+import { hitPointMaximum, trackDamageAtZero } from './health';
 
 const aliases: Record<string,string> = { warhammer:'Martelo de guerra', longsword:'Espada longa', shortsword:'Espada curta', dagger:'Adaga', quarterstaff:'Bordão', rapier:'Rapieira', handaxe:'Machadinha', greataxe:'Machado grande', longbow:'Arco longo', shortbow:'Arco curto', 'light crossbow':'Besta leve', 'heavy crossbow':'Besta pesada' };
 export function catalogueWeapon(entry: Sheet, E: Engine) {
@@ -96,12 +97,13 @@ export function armorClass(c: Sheet, E: Engine) {
 export function exhaustion(c: Sheet) {
   const value = Math.max(0,Math.min(6,Math.floor(Number(c.exhaustion) || 0)));
   const penalties = ['Desvantagem em testes de habilidade','Deslocamento pela metade','Desvantagem em ataques e testes de resistência','PV máximos pela metade','Deslocamento 0','Morte'];
-  return {level:value, penalties:penalties.slice(0,value), speed:value >= 5 ? 0 : Math.max(0,Number(c.speed || 0)) / (value >= 2 ? 2 : 1), hpMax:value >= 4 ? Math.floor(c.hpMax/2) : c.hpMax};
+  return {level:value, penalties:penalties.slice(0,value), speed:value >= 5 ? 0 : Math.max(0,Number(c.speed || 0)) / (value >= 2 ? 2 : 1), hpMax:hitPointMaximum(c)};
 }
 /** Proteção Arcana, forma de besta, PV temporários e PV reais são reservas separadas. */
-export function applyDamage(c: Sheet, amount: number) {
+export function applyDamage(c: Sheet, amount: number, options={critical:false}) {
   if (!Number.isFinite(amount)) throw new Error('Informe uma quantidade finita de dano.');
   let damage = Math.max(0,Math.floor(amount));
+  const wasAtZero=c.hpCurrent===0,wasShape=level(c,'druida')>=2 && active(c,'druida:wildShape');
   const result={ward:0,temp:0,beast:0,hp:0,excess:0};
   const hasWard = c.classes?.some((cls:Sheet)=>cls.classId==='mago' && cls.level>=2 && (cls.subclassId==='abjuracao' || norm(cls.subclass).includes('abjuracao')));
   const ward = hasWard ? Number(c.ruleState?.pools?.['mago:ward'] || 0) : 0;
@@ -115,6 +117,7 @@ export function applyDamage(c: Sheet, amount: number) {
   }
   result.hp=Math.min(c.hpCurrent,damage);result.excess=damage-result.hp;
   c.hpCurrent = Math.max(0,c.hpCurrent-damage);
+  trackDamageAtZero(c,wasShape?damage:Math.max(0,Math.floor(amount))-result.ward,result.excess,wasAtZero,options.critical);
   return result;
 }
 /** Ajuste permanente conserva o dano já sofrido, sem reconstruir PV manuais. */
