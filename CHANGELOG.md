@@ -2,6 +2,22 @@
 
 ## Não lançado
 
+### Só Pool e ataque por magia — 2026-10-20
+
+- Só Pool bloqueia conjurações/rituais antes de gastar recursos, trocar
+  concentração, aplicar passivos ou criar histórico. A guarda também cobre
+  chamadas diretas e confirmação aberta antes da troca de modo.
+- Magias com ataque contra CA recebem Atq +bônus por cartão, usando a habilidade
+  da origem e o motor de vantagem/desvantagem/inspiração. Substitui o indicador
+  estático; resistência/acerto automático/utilidade não recebem d20.
+- Rolar ataque não conjura nem cobra outro espaço ao repetir raios/feixes.
+  O gasto continua no lançamento explícito. OFF conserva conjuração física;
+  controles de rolagem ficam desativados fora de Auto Ficha.
+- Conferidos 360 testes Node, tipos/build e Chromium de ataques mágicos,
+  concentração, dados e 32 cenários auditados. Casos cobrem Só Pool sem efeitos,
+  confirmação pendente, bônus por classe/habilidade, filtro, vantagem/inspiração,
+  raios, OFF físico e continuidade offline/layouts/temas/320px/GG.
+
 ### Crítico automático e posição dos controles — 2026-10-20
 
 - Crítico/registro ficam na linha inferior da arma. O botão reserva espaço

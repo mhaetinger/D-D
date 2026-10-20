@@ -15,7 +15,19 @@ Não mesclar/publicar esta revisão sem aprovação. A branch remota `develop`
 foi restaurada após a entrega na referência de integração já aprovada
 `b1155fbc5d14a566f548814bd808374aa2383721`, merge da PR #7.
 
-**Ajuste mais recente:** crítico/registro ocupam a linha inferior da arma e o
+**Ajuste atual de magias:** Só Pool bloqueia conjuração/ritual antes de qualquer
+gasto/efeito/histórico, inclusive ao retomar confirmação após trocar o modo.
+Magias `atq_magico` recebem Atq +bônus no cartão em vez do indicador estático.
+O d20 usa classe/habilidade da magia, vantagem/desvantagem e inspiração; repetir
+ataques de raios/feixes não cobra outro espaço. Rolar ataque não conjura: o gasto
+permanece em Conjurar/Truque. OFF conserva lançamento físico. Teste dedicado em
+`tests/spell-attack-browser.cjs`, incluído no roteiro de navegador.
+Conferidos 360 testes Node, tipos/build e Chromium do roteiro novo, concentração,
+dados e 32 cenários auditados; imagens desktop/celular revisadas. Os cenários
+novos incluem gasto/efeito/histórico intactos em Só Pool, confirmação pendente,
+origem/habilidade, filtro, vantagem/inspiração, repetição de raios e OFF/offline.
+
+**Ajuste anterior:** crítico/registro ocupam a linha inferior da arma e o
 botão reserva largura para não deslocar conteúdo. Em Auto Ficha, cada ataque
 atualiza só sua arma pela face natural após vantagem/desvantagem, respeitando
 o intervalo de crítico do Campeão. O próximo ataque comum ou dano confirmado

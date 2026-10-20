@@ -340,6 +340,21 @@ raios/feixes têm dano por acerto; uma rolagem extra não conjura de novo. A
 adaptação de Mísseis/Gêmea permanece explícita; elegibilidade considera alvos e
 o círculo selecionado nos casos reconhecidos. Não é um executor das 361 magias.
 
+`renderSpellCastControls` oferece `data-spell-attack` apenas para metadados
+`atq_magico`, com o bônus de `getSpellcastingStats` da classe/habilidade da magia.
+O botão substitui o selo estático de ataque; os selos de salvaguarda e acerto
+automático continuam. `rollSpellAttack` revalida índice original, tipo e
+possibilidade de conjurar, e usa `triggerSheetRoll` com contexto de ataque e
+inspiração habilitada. Não gasta espaços/usos/pontos nem dispara conjuração,
+concentração ou passivos; pode repetir ataques de raios/feixes. O gasto continua
+no lançamento explícito, inclusive quando o ataque erra.
+
+Só Pool bloqueia `castSpellWithUpcast` e `castRitualByIndex` antes de qualquer
+efeito ou confirmação. A guarda é repetida na chamada retomada após confirmar
+troca de concentração, para respeitar o modo atual. A interface desativa os
+botões correspondentes; `rollSpellAttack`/`rollSpellRay` só executam em Auto Ficha.
+OFF continua permitindo o registro físico de conjuração sem rolagem virtual.
+
 `wizardPrivilege` deriva Dominar/Assinatura das escolhas por ID de magia, classe
 e círculo válidos. A assinatura usa `ruleState.used['mago:signature:<id>']` por
 magia, recuperado em descanso curto/longo. O seletor mantém a origem esgotada,

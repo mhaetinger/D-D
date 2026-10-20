@@ -897,7 +897,7 @@ function setDiceMode(mode) {
   const labels = {
     off: "Dados Desativados (Modo Dados Físicos na Mesa).",
     manual:
-      "Modo Só Pool Manual: Monte ex: 1d20 + 1d4 na bandeja (cliques na ficha não rolam sozinhos).",
+      "Modo Só Pool: monte seus dados na bandeja. Ataques e conjurações dos cartões não são executados.",
     auto: "Modo Auto + Ficha: Clicar em perícias, ataques e magias rola os dados automaticamente!",
   };
   showToast(labels[mode]);
@@ -1394,6 +1394,8 @@ function getSelectedSpellCastLevel(char, spell, index) {
 
 function renderSpellCastControls(char, spell, index) {
   const meta = resolveSpellMeta(spell);
+  const attackStats=meta.defType==='atq_magico'?getSpellcastingStats(char,spell.classId,spell):null;
+  const poolOnly=diceMode==='manual';
   const chosen = getSelectedSpellCastLevel(char, spell, index);
   const detail = getSpellEffectDetails(char, spell, index);
   const options = getSpellSlotOptions(char, spell);
@@ -1407,9 +1409,10 @@ function renderSpellCastControls(char, spell, index) {
       ${options.length ? options.map((option) => `<option value="${option.value}" ${option.value === chosen ? "selected" : ""}>${option.source} · ${option.level}º · ${Number.isFinite(option.remaining)?Math.max(0, option.remaining):'∞'}/${Number.isFinite(option.total)?option.total:'∞'}${option.remaining <= 0 ? " (esgotado)" : ""}</option>`).join("") : '<option value="">Sem espaços compatíveis</option>'}
     </select>` : ""}
     ${spell.limitedUse ? `<span class="text-[11px]">Usos: ${Math.max(0, spell.limitedUse - (spell.usesUsed || 0))}/${escapeHTML(spell.limitedUse)}</span>` : ''}
-    ${canNormal ? `<button data-cast-spell="${index}" onclick="castSpellByIndex(${index})" ${unavailable ? "disabled" : ""} class="spell-action-button spell-cast-button t-btn-primary" title="${['mastery','signature'].includes(chosen) ? 'Usa a característica sem gastar espaço. Para aprimorar, escolha um espaço no seletor.' : usesSlot ? "Gasta apenas o espaço selecionado. Para trocar a origem, use o seletor." : "Não gasta espaços de magia."}">${spell.ritual ? "Ritual" : spell.circle === 0 ? "Truque" : unavailable ? "Esgotado" : "Conjurar"}</button>` : ''}
-    ${canCastRitual(char, spell) ? `<button onclick="castRitualByIndex(${index})" class="spell-action-button spell-cast-button t-inset" title="Acrescenta 10 minutos ao tempo de conjuração e não gasta espaço.">Ritual</button>` : ''}
-    ${detail.perRay?`<button type="button" class="spell-action-button t-inset" data-spell-ray="${index}" onclick="rollSpellRay(${index})" ${RuleTooltips.attributes('Dano de um raio/feixe',{text:detail.explanation})}>Dano por raio</button>`:''}
+    ${canNormal && attackStats?`<button type="button" data-spell-attack="${index}" onclick="rollSpellAttack(${index})" ${diceMode!=='auto'?'disabled':''} class="spell-action-button badge-feiticeiro" aria-label="Ataque de ${escapeHTML(spell.name)} ${fmtMod(attackStats.attack)}" ${RuleTooltips.attributes('Ataque com magia',{text:`Role 1d20 ${fmtMod(attackStats.attack)} contra a CA do alvo em Auto Ficha. Usa o bônus da classe desta magia, com vantagem/desvantagem e inspiração quando preparadas. Só rola o ataque: use Conjurar/Truque para registrar o lançamento e gastar o espaço, mesmo se errar. ${detail.perRay?'Cada raio/feixe exige uma jogada de ataque separada; repetir este botão não gasta outro espaço.':''}`})}>Atq ${fmtMod(attackStats.attack)}</button>`:''}
+    ${canNormal ? `<button data-cast-spell="${index}" onclick="castSpellByIndex(${index})" ${poolOnly || unavailable ? "disabled" : ""} class="spell-action-button spell-cast-button t-btn-primary" title="${poolOnly?'Só Pool: use a bandeja. Para conjurar pela ficha, escolha Auto Ficha ou OFF para dados físicos.':['mastery','signature'].includes(chosen) ? 'Usa a característica sem gastar espaço. Para aprimorar, escolha um espaço no seletor.' : usesSlot ? "Gasta apenas o espaço selecionado. Para trocar a origem, use o seletor." : "Não gasta espaços de magia."}">${spell.ritual ? "Ritual" : spell.circle === 0 ? "Truque" : unavailable ? "Esgotado" : "Conjurar"}</button>` : ''}
+    ${canCastRitual(char, spell) ? `<button data-cast-ritual="${index}" onclick="castRitualByIndex(${index})" ${poolOnly?'disabled':''} class="spell-action-button spell-cast-button t-inset" title="${poolOnly?'Só Pool: conjuração pela ficha desativada.':'Acrescenta 10 minutos ao tempo de conjuração e não gasta espaço.'}">Ritual</button>` : ''}
+    ${detail.perRay?`<button type="button" class="spell-action-button t-inset" data-spell-ray="${index}" onclick="rollSpellRay(${index})" ${diceMode!=='auto'?'disabled':''} ${RuleTooltips.attributes('Dano de um raio/feixe',{text:detail.explanation})}>Dano por raio</button>`:''}
   `;
 }
 
@@ -1426,9 +1429,20 @@ function getSpellEffectDetails(char, spell, index) {
   return {...resolved,base:base.summary,enhanced:twin?resolved.summary:null,twin,canTwin,level,cost:spell.circle === 0 ? 1 : level};
 }
 function rollSpellRay(index) {
+  if(diceMode!=='auto')return;
   const spell=getChar().spells[index];if(!spell) return;
   const detail=getSpellEffectDetails(getChar(),spell,index);
   if(detail.perRay && detail.formula) triggerSheetRoll(detail.formula,`${spell.name} · dano de um raio/feixe que acertou (sem novo lançamento)`);
+}
+// O índice continua sendo o original da ficha, mesmo após filtrar por classe.
+// Repetir ataques (raios/feixes, por exemplo) não conjura nem cobra outro espaço.
+function rollSpellAttack(index) {
+  if(diceMode!=='auto')return;
+  const char=getChar(),spell=char.spells[index];
+  if(!spell || resolveSpellMeta(spell).defType!=='atq_magico' || !canCastNormally(char,spell,CharacterEngine))return;
+  const stats=getSpellcastingStats(char,spell.classId,spell);
+  if(!stats || !Number.isFinite(stats.attack))return;
+  return triggerSheetRoll(`1d20${fmtMod(stats.attack)}`,`Ataque: ${spell.name}`,true,{type:'attack'});
 }
 
 function renderSpellEffectDetails(char, spell, index) {
@@ -1459,6 +1473,7 @@ function canCastRitual(char, spell) {
   return canRitual(char,spell,CharacterEngine);
 }
 function castRitualByIndex(index, confirmedId = null) {
+  if(diceMode==='manual')return;
   const char=getChar(),spell = char.spells[index];
   if (!spell || !canCastRitual(char, spell)) return;
   if(deferConcentrationReplacement(char,spell,index,true,confirmedId,id=>castRitualByIndex(index,id)))return;
@@ -1501,7 +1516,7 @@ function renderExpandedSpellCard(char, sp, globalSpellIdx) {
       <div class="flex flex-wrap items-center gap-1.5 text-[11px] font-bold">
         ${renderSpellEffectDetails(char, sp, globalSpellIdx)}
         ${meta.targetType ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded t-card"><i data-lucide="${targetMeta.icon}" class="w-3.5 h-3.5 t-text-accent" aria-hidden="true"></i> ${escapeHTML(sp.range)} · ${escapeHTML(targetMeta.label)}</span>` : ''}
-        ${defMeta ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded t-card"><i data-lucide="${defMeta.icon}" class="w-3.5 h-3.5 t-text-accent" aria-hidden="true"></i> ${escapeHTML(defMeta.label)}</span>` : ""}
+        ${defMeta && meta.defType!=='atq_magico' ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded t-card"><i data-lucide="${defMeta.icon}" class="w-3.5 h-3.5 t-text-accent" aria-hidden="true"></i> ${escapeHTML(defMeta.label)}</span>` : ""}
       </div>
       <p class="text-xs t-text-muted">${escapeHTML(getSpellNotes(char, sp))}</p>
     <div class="spell-cast-footer">${renderSpellCastControls(char, sp, globalSpellIdx)}</div>
@@ -2968,6 +2983,10 @@ function castSpellWithUpcast(
   globalSpellIdx,
   confirmedId = null,
 ) {
+  // Só Pool deixa a resolução na bandeja/mesa. O bloqueio antecede qualquer
+  // validação com diálogo, gasto, concentração, passivo ou registro no histórico,
+  // inclusive quando uma confirmação antiga retorna após a troca de modo.
+  if(diceMode==='manual')return;
   const char = getChar();
   const spObj = char.spells[globalSpellIdx];
   if (!spObj) return;
@@ -3215,6 +3234,7 @@ Object.assign(window, {
   renderSpellCastControls,
   getSpellEffectDetails,
   renderSpellEffectDetails,
+  rollSpellAttack,
   setSpellCastLevelByIndex,
   castSpellByIndex,
   rollSpellRay,

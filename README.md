@@ -319,6 +319,16 @@ escolher um espaço explicitamente. A assinatura esgotada não troca de origem
 sozinha. Rajada Mística/Raio Ardente mostram o número de feixes/raios e rolam
 dano por acerto; **Dano por raio** repete a rolagem sem lançar/gastar de novo.
 
+Cada magia que exige ataque contra CA tem seu próprio **Atq +bônus**, no lugar
+do indicador estático de ataque. Em Auto Ficha, rola o d20 com a habilidade da
+origem da magia, vantagem/desvantagem e inspiração preparada. Repetir ataques
+dos raios/feixes não gasta outro espaço. O ataque não conjura: **Conjurar/Truque**
+continua registrando o lançamento e seu gasto, mesmo se o ataque errar. Magias
+de resistência, acerto automático e utilidade não recebem esse botão.
+**Só Pool** desativa conjurações, rituais e rolagens dos cartões de magia, antes
+de gastar espaços/usos/feitiçaria, trocar concentração ou gravar no histórico.
+**OFF** conserva o registro explícito de conjuração com dados físicos.
+
 O modo de atributos **Livre / Adaptado** é separado dos 27 pontos. Sugestões de
 personalidade usam seletores compactos e continuam editáveis livremente.
 No livro, Ctrl/Cmd + rodinha, +, − e 0 ajustam apenas a página do PDF.
