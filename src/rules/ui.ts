@@ -3,8 +3,11 @@ import { preparation, castingRestriction } from './spellcasting';
 import { remaining, resourcesFor, spend, refund, toggleResource, useResource, type Resource } from './resources';
 import { ability, active, escape, level, state, type Engine, type Sheet } from './model';
 import { resourcesAt } from './placement';
-import { healHitPoints, markDead } from './health';
+import { healHitPoints, markDead, syncIncapacity } from './health';
 import { inspirationControls, setupHealthUI } from './health-ui';
+import { CONDITIONS, derivedCondition, hasCondition, setCondition } from './conditions';
+import { concentration } from './concentration';
+import { concentrationControls, setupConcentrationUI } from './concentration-ui';
 
 export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
   const number = (n:number) => Number.isFinite(n)?n:'∞';
@@ -41,7 +44,7 @@ export function preparationControls(c:Sheet,E:Engine) {
     return `<button type="button" data-rule-action="prepare" data-class="${x.classId}" class="t-inset px-2.5 py-1 rounded font-bold">Preparar magias · ${escape(E.data.classes[x.classId].name)} (${p.used}/${p.limit})</button>`;
   }).join('');
   const blocked=castingRestriction(c,E);
-  return `${blocked?`<p class="text-xs font-bold" role="status">${escape(blocked)}</p>`:''}${buttons?`<div class="flex flex-wrap items-center gap-2">${c.ruleState?.prepareReminder?'<span>Após o descanso, revise a preparação.</span>':''}${buttons}</div>`:''}${renderResourcesAt(c,E,'spellbook')}`;
+  return `${blocked?`<p class="text-xs font-bold" role="status">${escape(blocked)}</p>`:''}${buttons?`<div class="flex flex-wrap items-center gap-2">${c.ruleState?.prepareReminder?'<span>Após o descanso, revise a preparação.</span>':''}${buttons}</div>`:''}${concentrationControls(c)}${renderResourcesAt(c,E,'spellbook')}`;
 }
 
 export function defenseControls(c:Sheet,E:Engine) {
@@ -65,7 +68,8 @@ export function defenseControls(c:Sheet,E:Engine) {
 
 export function conditionControls(c:Sheet) {
   const fatigue=exhaustion(c);
-  return `<div class="rule-context rule-controls"><label>Exaustão <select data-rule-exhaustion aria-label="Nível de exaustão">${[0,1,2,3,4,5,6].map(n=>`<option ${n===fatigue.level?'selected':''}>${n}</option>`).join('')}</select></label>${fatigue.level?`<span>${fatigue.penalties.map(escape).join(' · ')}</span>`:''}${inspirationControls(c)}</div>`;
+  const count=CONDITIONS.filter(x=>hasCondition(c,x.id)).length;
+  return `<div class="rule-context rule-controls"><label>Exaustão <select data-rule-exhaustion aria-label="Nível de exaustão">${[0,1,2,3,4,5,6].map(n=>`<option ${n===fatigue.level?'selected':''}>${n}</option>`).join('')}</select></label>${fatigue.level?`<span>${fatigue.penalties.map(escape).join(' · ')}</span>`:''}${inspirationControls(c)}</div><details class="rule-context" data-rule-disclosure="conditions"><summary>Condições${count?` · ${count} ativa(s)`:''}</summary><div class="rule-conditions">${CONDITIONS.map(x=>{const derived=derivedCondition(c,x.id);return `<label class="rule-check" tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name:x.name,text:x.text+(derived?' Decorre do estado atual; encerre sua causa para remover.':'')}))}"><input type="checkbox" data-rule-condition="${x.id}" ${hasCondition(c,x.id)?'checked':''} ${derived?'disabled':''}><span>${x.name}${derived?' · decorrente':''}</span></label>`;}).join('')}</div><p>Concentração, impedimentos de agir/mover e falhas de FOR/DES são aplicados. Outros modos de rolagem, sentidos, alvos, dano e duração seguem a mesa; consulte cada nome.</p></details>`;
 }
 
 export function hitDiceRecoveryControls(c:Sheet,E:Engine) {
@@ -75,24 +79,48 @@ export function hitDiceRecoveryControls(c:Sheet,E:Engine) {
 export function saveRuleStep(description:string) {
   const host = window as any;
   const focused = document.activeElement as HTMLElement;
-  const attrs = focused ? [...focused.attributes].filter(a=>a.name.startsWith('data-rule-') || a.name.startsWith('data-health-') || ['data-resource','data-index','data-class'].includes(a.name)).map(a=>`[${a.name}="${CSS.escape(a.value)}"]`).join('') : '';
+  const attrs = focused ? [...focused.attributes].filter(a=>a.name.startsWith('data-rule-') || a.name.startsWith('data-health-') || a.name.startsWith('data-concentration-') || ['data-resource','data-index','data-class'].includes(a.name)).map(a=>`[${a.name}="${CSS.escape(a.value)}"]`).join('') : '';
   const handler=focused?.getAttribute('onclick');
   const focusKey=attrs || (focused?.id?'#'+CSS.escape(focused.id):handler?`[onclick="${CSS.escape(handler)}"]`:'');
   const open = new Map([...document.querySelectorAll<HTMLDetailsElement>('[data-rule-disclosure]')].map(el=>[el.dataset.ruleDisclosure,el.open]));
+  const previousChecks=Number(document.querySelector<HTMLElement>('[data-concentration-control]')?.dataset.concentrationCount || 0);
   host.recordStepAndSave(description,true);
   for (const el of document.querySelectorAll<HTMLDetailsElement>('[data-rule-disclosure]')) if(open.has(el.dataset.ruleDisclosure)) el.open = open.get(el.dataset.ruleDisclosure)!;
+  const concentrationPanel=document.querySelector<HTMLDetailsElement>('[data-concentration-control]');
+  if(!previousChecks && Number(concentrationPanel?.dataset.concentrationCount)>0)concentrationPanel!.open=true;
   if (focusKey) document.querySelector<HTMLElement>(focusKey)?.focus({preventScroll:true});
+}
+/** Conserva os próprios nós das opções, além de foco/rolagem, ao atualizar a
+ * ficha. O fluxo de altura é remontado pelo chamador após recolocar a lista. */
+export function retainConditionNodes(previous:HTMLElement|null,root:HTMLElement) {
+  const next=root.querySelector<HTMLElement>('[data-rule-disclosure="conditions"]');
+  if(!previous || !next)return;
+  const inputs=next.querySelectorAll<HTMLInputElement>('[data-rule-condition]');
+  if(inputs.length!==previous.querySelectorAll('[data-rule-condition]').length)return;
+  for(const input of inputs) {
+    const old=previous.querySelector<HTMLInputElement>(`[data-rule-condition="${CSS.escape(input.dataset.ruleCondition!)}"]`);if(!old)return;
+    old.checked=input.checked;old.disabled=input.disabled;
+    const label=old.closest('label')!,fresh=input.closest('label')!;
+    label.dataset.ruleTooltip=fresh.dataset.ruleTooltip;label.querySelector('span')!.textContent=fresh.querySelector('span')!.textContent;
+  }
+  previous.querySelector('summary')!.textContent=next.querySelector('summary')!.textContent;
+  next.replaceWith(previous);
 }
 export function setupRuleUI(E: Engine) {
   const host = window as any, save=saveRuleStep;
   setupHealthUI(E,save);
+  setupConcentrationUI(E,save);
   const rand = (sides:number) => 1+Math.floor(Math.random()*sides);
   document.addEventListener('change',event=>{
     const input = event.target as HTMLInputElement;
     if(!(input instanceof HTMLElement) || !input.getAttributeNames().some(name=>name.startsWith('data-rule-'))) return;
     const c = host.getChar(); if (!c) return;
+    if(input.dataset.ruleCondition) {
+      try {const result=setCondition(c,input.dataset.ruleCondition,input.checked);save(`Condição · ${CONDITIONS.find(x=>x.id===input.dataset.ruleCondition)?.name || ''}${input.checked?' ativada':' encerrada'}${result.ended?' · encerrou concentração em '+result.ended.name:''}`);}
+      catch(error){host.showToast((error as Error).message);input.checked=hasCondition(c,input.dataset.ruleCondition);}return;
+    }
     const s = state(c);
-    if (input.hasAttribute('data-rule-exhaustion')) { c.exhaustion = Math.max(0,Math.min(6,Number(input.value))); c.hpCurrent = c.exhaustion===6?0:Math.min(c.hpCurrent,exhaustion(c).hpMax); if(c.exhaustion===6) markDead(c); }
+    if (input.hasAttribute('data-rule-exhaustion')) { c.exhaustion = Math.max(0,Math.min(6,Number(input.value))); c.hpCurrent = c.exhaustion===6?0:Math.min(c.hpCurrent,exhaustion(c).hpMax); if(c.exhaustion===6) markDead(c);else syncIncapacity(c); }
     else if (input.hasAttribute('data-rule-ac')) c.acFormula = input.value;
     else if (input.dataset.ruleDefense && ['armorMagicBonus','shieldMagicBonus','acAdjustment'].includes(input.dataset.ruleDefense)) {
       if (!input.value.trim()) delete c[input.dataset.ruleDefense];
@@ -105,7 +133,7 @@ export function setupRuleUI(E: Engine) {
       if (!r || !Number.isInteger(Number(input.value))) return;
       s.pools[r.id] = Math.max(0,Math.min(r.max,Number(input.value)));
       if (r.id==='mago:ward') s.wardCreated = true;
-    } else if (input.hasAttribute('data-rule-beast-hp')) { if (!Number.isInteger(Number(input.value))) return; s.pools['druida:wildShape']=Math.max(0,Number(input.value)); }
+    } else if (input.hasAttribute('data-rule-beast-hp')) { if (!Number.isInteger(Number(input.value))) return; s.pools['druida:wildShape']=Math.max(0,Number(input.value));if(!s.pools['druida:wildShape']){s.active['druida:wildShape']=false;syncIncapacity(c);} }
     else if (input.hasAttribute('data-rule-beast-max')) { if (!Number.isInteger(Number(input.value))) return; s.beastMax=Math.max(1,Number(input.value)); }
     else if (input.dataset.ruleCompanion) { c.companion ||= {}; c.companion[input.dataset.ruleCompanion] = input.dataset.ruleCompanion==='name'?input.value:Math.max(0,Math.floor(Number(input.value))); }
     else return;
@@ -114,9 +142,16 @@ export function setupRuleUI(E: Engine) {
   document.addEventListener('click',async event=>{
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-rule-action]'); if (!button) return;
     const c = host.getChar(); if (!c) return;
-    const s = state(c), r = resourcesFor(c,E).find(x=>x.id===button.dataset.resource);
+    let r = resourcesFor(c,E).find(x=>x.id===button.dataset.resource);
     try {
       const action = button.dataset.ruleAction;
+      const oldConcentration=concentration(c);
+      if(r?.id==='barbaro:rage' && action==='toggle' && !active(c,r.id) && oldConcentration) {
+        if(!await host.confirmDestructiveAction('Entrar em Fúria?','Encerra concentração em '+oldConcentration.name+'. O uso de Fúria só é gasto ao confirmar.','Entrar em Fúria'))return;
+        if(host.getChar()!==c || concentration(c)?.id!==oldConcentration.id || active(c,r.id))return;
+        r=resourcesFor(c,E).find(x=>x.id==='barbaro:rage');if(!r)return;
+      }
+      const s=state(c);
       if (action==='prepare') { s.prepareReminder = false; host.CharacterWizard.openPrepare(button.dataset.class); return; }
       if (action==='portentInitial') { if (s.portent.length) return; const n = resourcesFor(c,E).find(x=>x.kind==='portent')?.max; if (!n) return; s.portent = Array.from({length:n},()=>({value:rand(20),spent:false})); }
       if (action==='portent') { const p = s.portent[Number(button.dataset.index)]; if (!p || p.spent) return; p.spent = true; }
@@ -162,7 +197,7 @@ export function setupRuleUI(E: Engine) {
           }
         }
       }
-      save('Atualizou '+(r?.name || 'recurso'));
+      save('Atualizou '+(r?.name || 'recurso')+(oldConcentration && !concentration(c)?' · encerrou concentração em '+oldConcentration.name:''));
     } catch (error) { host.showToast(error instanceof Error?error.message:'Não foi possível usar esse recurso.'); }
   });
 }

@@ -24,18 +24,22 @@ export function damageDescription(c:Sheet,result:Sheet,amount:number,critical=fa
 
 /** O diálogo só decide a origem da rolagem. Mutação e gasto acontecem depois
  * da confirmação, revalidando a ficha e todos os resultados. */
+export function dieSourceControls(sides:number) {
+  const host=window as any;
+  return `<label>Dados <select data-health-source><option value="physical">Registrar dado físico</option><option value="virtual" ${host.ruleDiceSettings().enabled?'':'disabled'}>Rolar dado virtual</option></select></label><label data-health-face-label>Face do d${sides} <input type="number" min="1" max="${sides}" step="1" data-health-face></label>`;
+}
+export function chooseDieSource(controls:HTMLElement) {
+  const host=window as any,source=controls.querySelector<HTMLSelectElement>('[data-health-source]')!;
+  source.value=host.ruleDiceSettings().automatic?'virtual':'physical';
+  const update=()=>{
+    const virtual=source.value==='virtual',face=controls.querySelector<HTMLInputElement>('[data-health-face]')!;
+    controls.querySelector<HTMLElement>('[data-health-face-label]')!.hidden=virtual;face.disabled=virtual;face.required=!virtual;
+  };
+  source.addEventListener('change',update);update();
+}
 export function setupHealthUI(E:Engine,save:(description:string)=>void) {
   const host=window as any;
-  const sourceControls=(sides:number) => `<label>Dados <select data-health-source><option value="physical">Registrar dado físico</option><option value="virtual" ${host.ruleDiceSettings().enabled?'':'disabled'}>Rolar dado virtual</option></select></label><label data-health-face-label>Face do d${sides} <input type="number" min="1" max="${sides}" step="1" data-health-face></label>`;
-  const chooseSource=(controls:HTMLElement) => {
-    const source=controls.querySelector<HTMLSelectElement>('[data-health-source]')!;
-    source.value=host.ruleDiceSettings().automatic?'virtual':'physical';
-    const update=()=>{
-      const virtual=source.value==='virtual',face=controls.querySelector<HTMLInputElement>('[data-health-face]')!;
-      controls.querySelector<HTMLElement>('[data-health-face-label]')!.hidden=virtual;face.disabled=virtual;face.required=!virtual;
-    };
-    source.addEventListener('change',update);update();
-  };
+  const sourceControls=dieSourceControls,chooseSource=chooseDieSource;
   document.addEventListener('click',async event=>{
     const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-health-action]');
     if(!button || button.disabled) return;

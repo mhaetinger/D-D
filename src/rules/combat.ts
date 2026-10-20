@@ -1,5 +1,7 @@
 import { ability, active, level, norm, proficiency, selections, subclass, type Engine, type Sheet } from './model';
-import { hitPointMaximum, trackDamageAtZero } from './health';
+import { hitPointMaximum, syncIncapacity, trackDamageAtZero } from './health';
+import { queueConcentrationDamage } from './concentration';
+import { conditionSpeed } from './conditions';
 
 const aliases: Record<string,string> = { warhammer:'Martelo de guerra', longsword:'Espada longa', shortsword:'Espada curta', dagger:'Adaga', quarterstaff:'Bordão', rapier:'Rapieira', handaxe:'Machadinha', greataxe:'Machado grande', longbow:'Arco longo', shortbow:'Arco curto', 'light crossbow':'Besta leve', 'heavy crossbow':'Besta pesada' };
 export function catalogueWeapon(entry: Sheet, E: Engine) {
@@ -118,6 +120,7 @@ export function applyDamage(c: Sheet, amount: number, options={critical:false}) 
   result.hp=Math.min(c.hpCurrent,damage);result.excess=damage-result.hp;
   c.hpCurrent = Math.max(0,c.hpCurrent-damage);
   trackDamageAtZero(c,wasShape?damage:Math.max(0,Math.floor(amount))-result.ward,result.excess,wasAtZero,options.critical);
+  queueConcentrationDamage(c,Math.max(0,Math.floor(amount))-result.ward,wasShape);
   return result;
 }
 /** Ajuste permanente conserva o dano já sofrido, sem reconstruir PV manuais. */
@@ -130,6 +133,7 @@ export function changePermanentAbility(c:Sheet,key:string,delta:number) {
   const gain=(ability(c,key)-oldMod)*c.classes.reduce((n:number,x:Sheet)=>n+x.level,0);
   c.hpMax=Math.max(1,c.hpMax+gain);
   if (c.hpCurrent>0) c.hpCurrent=Math.max(0,Math.min(exhaustion(c).hpMax,c.hpCurrent+exhaustion(c).hpMax-oldMax));
+  syncIncapacity(c);
 }
 export function initiativeBonus(c:Sheet,E:Engine) {
   const feats=selections(c,E,'feat').concat(selections(c,E,'racialFeat'));
@@ -138,10 +142,18 @@ export function initiativeBonus(c:Sheet,E:Engine) {
 }
 export function savingThrow(c: Sheet, key:string, E:Engine) {
   const stone = active(c,'mago:stone') && c.ruleState?.targets?.['mago:stone']==='constitution';
-  const trained = c.abilities[key].saveProf || stone && key==='con';
-  const aura = level(c,'paladino')>=6 && c.hpCurrent>0 && c.conscious!==false ? Math.max(1,ability(c,'cha')) : 0;
+  const trained = c.abilities[key].saveProf || level(c,'monge')>=14 || stone && key==='con';
+  const aura = level(c,'paladino')>=6 && c.hpCurrent>0 && c.conscious!==false && !c.ruleState?.conditions?.inconsciente ? Math.max(1,ability(c,'cha')) : 0;
   return ability(c,key)+(trained?proficiency(c):0)+aura;
 }
 export function movementWithEffects(c:Sheet,base:number) {
-  return base+(active(c,'mago:stone') && c.ruleState?.targets?.['mago:stone']==='speed'?3:0);
+  return conditionSpeed(c,base+(active(c,'mago:stone') && c.ruleState?.targets?.['mago:stone']==='speed'?3:0));
+}
+export function concentrationSaveDetails(c:Sheet,E:Engine,options:{mode:'normal'|'adv'|'dis';damage:boolean;extra?:number;shapeBonus?:number}) {
+  const extra=options.extra ?? 0;
+  if(!Number.isInteger(extra) || Math.abs(extra)>100 || options.shapeBonus!==undefined && (!Number.isInteger(options.shapeBonus) || Math.abs(options.shapeBonus)>100))throw new Error('Confira os bônus de Constituição.');
+  const warcaster=options.damage && selections(c,E,'feat').concat(selections(c,E,'racialFeat')).includes('Conjurador de Guerra');
+  const inspired=!!(c.heroicInspiration && c.ruleState?.inspirationReady);
+  const advantage=options.mode==='adv' || warcaster || inspired,disadvantage=options.mode==='dis' || Number(c.exhaustion)>=3;
+  return {bonus:(options.shapeBonus ?? savingThrow(c,'con',E))+extra,mode:advantage===disadvantage?'normal':advantage?'adv':'dis',warcaster,inspired,exhausted:Number(c.exhaustion)>=3} as const;
 }

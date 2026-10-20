@@ -8,8 +8,8 @@ A segunda passada, na base `7667ae9`, encontrou **erros reproduzíveis além das
 ausências de controles**. A prioridade passou a ser alinhar o valor mostrado com
 o rolador, corrigir bônus/escalonamento e a interação entre dano, transformação e
 descansos. Os itens 15–27 e a tabela de cenários abaixo detalham esses achados.
-A primeira etapa de correções já foi implementada na branch de trabalho,
-conforme a tabela abaixo. O restante continua identificado como pendência.
+Três etapas de correções já foram implementadas na branch de trabalho,
+conforme as tabelas abaixo. O restante continua identificado como pendência.
 
 ## Primeira etapa implementada — 19/10/2026
 
@@ -31,7 +31,8 @@ atual inclui regressões adicionais e é exigido na suíte de navegador.
 | 24–25 | Chicote classificado como ataque, Raio Ardente sem Gêmea e Criar Chamas no talento; classificação integral e todas as exceções do catálogo ainda precisam de revisão |
 | 26 | Carga inclui moedas e informa isso no campo existente |
 | 6–8 | Morte/estabilidade, Dados de Vida e inspiração receberam controles na segunda etapa abaixo |
-| 4–5, 9–14 | Outros passivos, concentração, condições gerais e fluxos condicionais continuam pendentes |
+| 5, 9 | Concentração e parte dos efeitos das condições receberam controles na terceira etapa abaixo |
+| 4, 10–14 | Outros passivos e fluxos condicionais continuam pendentes |
 
 Fórmulas personalizadas não recebem bônus automáticos adicionais. Feixes/raios
 mostram a quantidade e rolam dano de um acerto; o botão contextual repete o dano
@@ -59,15 +60,52 @@ passam a ser automaticamente resolvidas por essa correção de fórmulas.
 
 Limites: horas/atividade do descanso, Medicina CD 10, origem/tempo dos bônus,
 passagem de 1d4 horas para acordar, ressurreição e características que evitam
-cair a 0 PV dependem da mesa. Não há concentração nem condições gerais
-integradas. Essa etapa não certifica todos os efeitos das classes/talentos.
+cair a 0 PV dependem da mesa. Concentração e condições foram tratadas na etapa
+seguinte abaixo. Essa etapa não certifica todos os efeitos das classes/talentos.
 
 Verificação local: 299 testes Node, tipos/build, dez roteiros Chromium existentes
 e o novo roteiro de PV, este repetido no build final após ajuste de foco.
 Inclui gasto físico/virtual/OFF, classe/forma/CON, canção, reserva/recuperação,
 1/20/estabilidade/crítico/dano maciço, retorno à vida, inspiração, notas e
 desfazer/refazer preservados, fichas isoladas, recarga/offline e três temas/320 px/GG.
-Capturas de desktop/celular conferidas. `npm run check` inclui os onze roteiros.
+Capturas de desktop/celular conferidas. A suíte daquela etapa incluía onze roteiros.
+
+## Terceira etapa implementada: concentração e condições — 20/10/2026
+
+- Item 5: efeito único por ficha nos PV ou no grimório; troca confirmada antes
+  dos recursos, inclusive rituais/conjurações prolongadas. Reconjurar o mesmo
+  efeito começa outro registro. Duração e interrupções durante uma conjuração
+  prolongada continuam na mesa; o botão registra sua conclusão.
+- Cada fonte de dano gera uma resistência de CON, CD 10 ou metade do dano,
+  o maior. Proteção Arcana não conta como dano ao personagem; temporários e
+  besta contam. Fila ordenada persiste com a ficha e não resolve outro efeito.
+- Dado físico/virtual/OFF, proficiência/efeitos próprios, bônus total da forma,
+  bônus recebido, Conjurador de Guerra, exaustão e inspiração. Vantagem e
+  desvantagem se cancelam independentemente de sua quantidade. 1/20 natural
+  não é resultado automático. Conjuração Focada protege conjurações contra
+  quebra por dano, sem restringir a origem de classe da magia.
+- Item 9 parcialmente: 14 condições com marcação e ajuda; incapacitação
+  derivada, impedimentos de movimento e falhas automáticas de FOR/DES.
+  Incapacitação/morte encerram concentração. Inconsciência também encerra
+  Fúria, processa Frenesi uma vez, reverte Forma Selvagem e causa queda.
+  Paralisia isolada não encerra Fúria; cura não levanta automaticamente.
+- Descanso curto mantém concentração; sono no longo encerra, com opção para
+  exceções conscientes. Sem cronômetro real. Dados ilegíveis, notas, histórico,
+  seleção/foco e pool são preservados. Sem alteração de SQL/RLS/RPC.
+
+Limites: outras vantagens/desvantagens de condições, sentidos especiais,
+identidade de alvos/origem, danos tipados, resistências/imunidades, prazos e
+economia de ações ainda exigem decisão da mesa. Não se encerram ajustes de
+defesa recebidos ao terminar concentração própria: podem vir de outro conjurador.
+A ficha ainda não integra blocos de estatísticas das bestas. Esta etapa não
+certifica todos os efeitos das classes/talentos/magias.
+
+Verificação final: `npm run check`, 320 testes Node, tipos/build e os 12 roteiros
+Chromium aprovados, incluindo 32 cenários auditados. Novo roteiro cobre troca,
+cancelamento/revalidação sem gastos, rituais, fontes/CD/fila, proteção/temporários/
+forma, físico/virtual/OFF, talentos/inspiração, condições/Fúria/sono, queda de
+ficha antiga a 0 PV, nós/foco, callbacks obsoletos, notas/histórico por ficha,
+recarga/offline e três temas/320 px/GG. Capturas desktop/celular conferidas.
 
 ## Fonte, método e limites
 
@@ -107,9 +145,9 @@ Capturas de desktop/celular conferidas. `npm run check` inclui os onze roteiros.
 | Cap. 7, habilidades, 174–180 | Modificadores, proficiência, especialização, perícias, resistências, modo vantagem/desvantagem e bônus auditados de iniciativa | Testes passivos/condicionais, vantagem na iniciativa e rolagens mínimas ainda incompletos |
 | Cap. 8, aventuras, 182–188 | Deslocamento, inventário, descansos, exaustão e gasto/recuperação de Dados de Vida por classe | Tempo de descanso, viagem, luz, sufocamento, alimento/água e atividades entre aventuras são manuais |
 | Cap. 9, combate, 189–198 | Ataques/dano, CA, PV, temporários, reservas defensivas, morte/estabilidade e alguns adicionais condicionais | Resistências, crítico completo dos ataques, cobertura, ações/reações, alvo e exceções de classe ainda exigem controle manual |
-| Cap. 10, conjuração, 201–204 | Preparação, rituais elegíveis, espaços por classe/Pacto, CDs e custos de feitiçaria | Concentração, componentes, duração e economia de ações não são um sistema integrado |
+| Cap. 10, conjuração, 201–205 | Preparação, rituais elegíveis, espaços por classe/Pacto, CDs, custos de feitiçaria e concentração com fila por dano | Componentes, duração, interrupções durante conjuração prolongada e economia de ações seguem manuais |
 | Cap. 11, magias, 207–288 | 361 descrições e metadados, campos longos corrigidos, fórmulas auditadas unificadas e escalonamento | Não há executor de todos os efeitos das 361 magias; consultar limitações por família |
-| Apêndice A, condições, 289–291 | Consulta e controle próprio de exaustão | Demais condições não possuem estado/efeitos integrados |
+| Apêndice A, condições, 289–291 | Exaustão e 14 condições com ajuda; incapacitação, deslocamento 0 e falhas automáticas de FOR/DES | Outros modos de rolagem, sentidos, alvos e dano tipado seguem manuais |
 | Apêndice B, deuses, 292–298 | Consulta no livro | Referência narrativa; não impor divindade/domínio ao jogador |
 | Apêndice C, planos, 299–302 | Consulta no livro | Referência de cenário; efeitos dependem do Mestre |
 | Apêndice D, criaturas, 303–310 | Consulta e reserva manual de PV da Forma Selvagem; companheiro separado | Sem seleção de bloco de criatura para forma/companheiro/familiar nem fusão de estatísticas |
@@ -356,11 +394,11 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 | Bardo, 50–54 | Conhecimento; Bravura | Reserva/dado de inspiração, proficiências/especialização, segredos, conjuração, iniciativa de Versatilidade e Canção do Descanso opcional | Inspiração de Bardo recebida/Palavras de Interrupção na jogada; recuperação ao iniciar combate |
 | Bruxo, 55–61 | Arquifada; Corruptor; Grande Antigo | Pacto, Arcanum, usos de patrono/invocações e Bênção do Obscuro | Explosão Agonizante/Sorvedor de Vida; gastos de espaço de invocações não equivalem ao contador diário; efeitos contra alvos |
 | Clérigo, 62–69 | Conhecimento; Enganação; Guerra; Luz; Natureza; Tempestade; Vida | Preparação/domínios, Canalizar compartilhado, usos e Intervenção | Efeitos de cada domínio no alvo, cura/dano condicionado e Expulsar/Destruir Mortos-Vivos por ND |
-| Druida, 70–75 | Terra; Lua | Preparação/círculo, Forma Selvagem/PV, cura da Lua e Recuperação Natural | Bloco de besta/estatísticas, custo de elemental e concentração mantida na transformação |
+| Druida, 70–75 | Terra; Lua | Preparação/círculo, Forma Selvagem/PV, cura da Lua, Recuperação Natural e concentração mantida na transformação | Bloco de besta/estatísticas e custo de elemental; CON da forma informada no teste |
 | Feiticeiro, 76–81 | Magia Selvagem; Linhagem Dracônica | Feitiçaria/metamágica compartilhada, conversão, Marés de Caos e CA dracônica | Tabela de surto/gatilhos, efeitos de Afinidade Elemental e elegibilidade completa de metamagias; adaptações devem permanecer identificadas |
 | Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico e magias | Atleta Extraordinário/iniciativa; rerrolagem de Combate com Armas Grandes; manobras/reações; Sobrevivente |
 | Ladino, 88–92 | Ladrão; Assassino; Trapaceiro Arcano | Especialização, dados/condições de Ataque Furtivo, usos avançados e magias | Talento Confiável na rolagem; Esquiva Sobrenatural/Evasão; surpresa/Assassinar e Ação Ardilosa |
-| Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, Dominar/Assinatura, recuperação, Proteção Arcana inclusive multiclasse, Presságio e usos/estados de escola | Efeitos por alvo, bônus de escola, lacaios, pedra e Sobrecarga; fluxo de troca temporal das escolhas |
+| Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, Dominar/Assinatura, recuperação, Proteção Arcana inclusive multiclasse, Conjuração Focada, Presságio e usos/estados de escola | Efeitos por alvo, demais bônus de escola, lacaios, pedra e Sobrecarga; fluxo de troca temporal das escolhas |
 | Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi compartilhado e gastos escolhidos, movimento/CA e curas/usos | Artes Marciais/dano desarmado em todas as condições, Atordoar/Evasão/Defletir Projéteis e recuperação ao iniciar combate |
 | Paladino, 107–113 | Devoção; Anciões; Vingança | Cura pelas Mãos, Canalizar, Arma Sagrada, aura própria nos testes, preparação e dados de Destruição | Aplicação a aliados/consciência e condições dos juramentos; cura no alvo e consumo de espaços no fluxo de dano |
 | Patrulheiro Revisado, 114–120 | Besta; Caçador; Rastreador Subterrâneo | Progressão/seleções da adaptação, conjuração, extras condicionais e PV do companheiro | Inimigo favorito, exploração, iniciativa/primeiro turno e estatísticas/comandos do companheiro; não misturar regras do patrulheiro original |
@@ -410,7 +448,7 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 | Atleta | +1 FOR/DES | Levantar, escalar e salto |
 | Ator | +1 CAR | Vantagem e imitação nas condições do texto |
 | Combatente Montado | Registro | Vantagem, redirecionar ataque e defesa da montaria |
-| Conjurador de Guerra | Registro | Concentração, componentes e magia na oportunidade |
+| Conjurador de Guerra | Vantagem para manter concentração após dano | Componentes e magia na oportunidade |
 | Conjurador de Ritual | Escolha de classe/rituais e ação ritual | Cópia/custo/tempo do livro e efeitos das magias |
 | Curandeiro | Registro | Estojo, cura e limite por criatura/descanso |
 | Duelista Defensivo | Registro | Reação e CA somente contra o ataque elegível |
@@ -454,8 +492,9 @@ há tratamentos específicos; uma fórmula encontrada não equivale à execuçã
 magia. Área/alvos, componentes consumidos, alcance, cobertura, resistência do
 alvo, duração e várias curas/transformações continuam sob decisão do jogador.
 
-A próxima etapa é integrar a concentração e, depois, organizar as
-magias por família de efeito. Não acrescentar 361 controles separados. Reutilizar
+A concentração recebeu controle na terceira etapa acima. O trabalho seguinte
+inclui dano tipado e organização das magias por família de efeito.
+Não acrescentar 361 controles separados. Reutilizar
 os campos do grimório, PV/efeitos e o rolador existentes. A Magia Gêmea adaptada
 da mesa deve ser distinguida do texto de 2014, sem mudar escolhas pessoais.
 
@@ -476,7 +515,8 @@ a aventura ou transformar consulta narrativa em campos obrigatórios.
 4. [x] Completar o bloco de PV: Dados de Vida, morte/estabilidade e inspiração,
    nos locais existentes e com dado físico/virtual.
 5. [ ] Unificar concentração/condições/dano tipado e a explicação dos efeitos;
-   não automatizar uma redução sem conhecer sua origem.
+   concentração e parte das condições já integradas. Dano tipado e os demais
+   efeitos condicionais seguem pendentes; não automatizar redução sem a origem.
 6. [ ] Revisar a matriz de efeitos das 12 classes/41 subclasses, raças e 42
    talentos, marcando cada efeito como calculado, uso controlado ou manual.
 7. [ ] Ampliar famílias de magias e criaturas, após os contratos comuns estarem

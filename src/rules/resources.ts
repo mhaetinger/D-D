@@ -1,5 +1,6 @@
 import { ability, active, level, norm, selections, state, subclass, type Engine, type Sheet } from './model';
-import { markDead, requireConscious } from './health';
+import { deathStatus, endRage, requireConscious } from './health';
+import { endConcentration } from './concentration';
 export interface Resource { id:string; classId:string; name:string; max:number; recovery:'short'|'long'|'none'; kind:'counter'|'pool'|'toggle'|'note'|'portent'; note:string; cost?:[string,number]; action?:string }
 
 /** Cada definição usa nível da própria classe, nunca nível total. Sem ficha-modelo. */
@@ -191,6 +192,7 @@ export function toggleResource(c: Sheet, r: Resource, E: Engine) {
   const enabled = active(c,r.id);
   if(!enabled) requireConscious(c);
   const s = state(c);
+  if(r.id==='barbaro:rage' && enabled) {endRage(c);return;}
   if (r.id==='mago:masterTransmuter' && !enabled) {
     if (!active(c,'mago:stone')) throw new Error('Crie a Pedra do Transmutador antes de consumi-la.');
     s.active['mago:stone'] = false;
@@ -208,12 +210,7 @@ export function toggleResource(c: Sheet, r: Resource, E: Engine) {
   }
   if (r.id==='barbaro:frenzy' && !active(c,'barbaro:rage')) throw new Error('Ative a Fúria antes do Frenesi.');
   if (r.id==='barbaro:frenzy' && !enabled) s.frenzyUsed = true;
-  if (r.id==='barbaro:rage' && !enabled) spend(c,r);
-  if (r.id==='barbaro:rage' && enabled && s.frenzyUsed) {
-    c.exhaustion = Math.min(6,Number(c.exhaustion || 0)+1); s.active['barbaro:frenzy'] = false; s.frenzyUsed = false;
-    if (c.exhaustion>=4) c.hpCurrent = c.exhaustion===6?0:Math.min(c.hpCurrent,Math.floor(c.hpMax/2));
-    if (c.exhaustion===6) markDead(c);
-  }
+  if (r.id==='barbaro:rage' && !enabled) {spend(c,r);endConcentration(c);}
   s.active[r.id] = !enabled;
 }
 export function onSpellCast(c: Sheet, spell: Sheet, circle: number, E: Engine) {
@@ -233,6 +230,7 @@ export function resetResources(c: Sheet, kind:'short'|'long', E: Engine, random=
   const s = state(c);
   // Terminar uma Fúria com Frenesi causa exaustão antes da recuperação do descanso.
   if (active(c,'barbaro:rage')) toggleResource(c,resourcesFor(c,E).find(r=>r.id==='barbaro:rage')!,E);
+  if(deathStatus(c).dead)return;
   for (const r of resourcesFor(c,E)) if (r.recovery===kind || kind==='long' && r.recovery==='short') {
     s.used[r.id] = 0;
     if (r.kind==='pool') s.pools[r.id] = r.max;

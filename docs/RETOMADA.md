@@ -1,6 +1,6 @@
 # Retomada do CritCall em outro PC
 
-Estado conferido em **19/10/2026**. Este documento permite continuar sem o
+Estado conferido em **20/10/2026**. Este documento permite continuar sem o
 histórico da conversa. Leia também `AGENTS.md`, `README.md`, `CHANGELOG.md` e
 `docs/ARQUITETURA.md` antes de alterar o projeto.
 
@@ -15,7 +15,32 @@ Não mesclar/publicar esta revisão sem aprovação. A branch remota `develop`
 foi restaurada após a entrega na referência de integração já aprovada
 `b1155fbc5d14a566f548814bd808374aa2383721`, merge da PR #7.
 
-**Estado atual, segunda etapa da auditoria:** Dados de Vida têm saldo/gasto por
+**Estado atual, terceira etapa da auditoria:** concentração tem estado único
+por ficha, troca confirmada antes de gastar recursos e fila de CON por fonte de
+dano. Inclui dado físico/virtual/OFF, bônus da forma, Conjurador de Guerra,
+Conjuração Focada, exaustão/inspiração e cancelamento de vantagem/desvantagem.
+Há 14 condições com ajuda, incapacitação derivada, movimento 0 e falhas
+automáticas de FOR/DES nos casos correspondentes. Incapacitação/morte encerram
+concentração; inconsciência também encerra Fúria, processa Frenesi, reverte forma
+e registra queda. Sono no longo encerra; exceções conscientes podem preservar,
+com duração da mesa. Lista mantém nós/foco e não há painel duplicado.
+Contratos/testes em `src/rules/concentration.ts`, `src/rules/conditions.ts`,
+`tests/concentration.test.ts` e `tests/concentration-browser.cjs`.
+Sem SQL/RLS/RPC ou alteração de dados reais. Notas, histórico por ficha e
+persistência/offline preservados. Dano tipado, outras vantagens/desvantagens de
+condições, sentidos/alvos, tempo de jogo e exceções para evitar 0 PV continuam
+pendentes. A matriz atual está em
+[AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md).
+
+Verificação final desta etapa: `npm run check`, com 320 testes Node, tipos/build
+e 12 roteiros Chromium aprovados, incluindo os 32 cenários auditados. O novo
+roteiro cobre troca/cancelamento/recursos, ritual, fila/CD, proteção/temporários/
+forma, físico/virtual/OFF, talentos/inspiração, condições/Fúria/sono, ficha antiga
+a 0 PV, callbacks obsoletos, nós/foco, notas/histórico, fichas isoladas e offline.
+Três temas/320 px/GG e capturas desktop/celular conferidos. Diff sem whitespace.
+CI também executa PostgreSQL descartável e auditoria das dependências.
+
+**Segunda etapa da auditoria, já concluída:** Dados de Vida têm saldo/gasto por
 classe, origem física/virtual, CON, mínimo de Resistente e Canção do Descanso
 uma vez, se ouvida e houver cura. Em forma, exige a CON da besta e cura seus PV.
 A 0 PV, controle de sucessos/falhas, 1/20 natural, estabilidade, dano
@@ -24,14 +49,14 @@ vida após resolver a causa na mesa. Estável a 0 PV pode gastar Dados de Vida
 após descanso curto. Inspiração é a reserva binária de 2014: preparar/cancelar
 vantagem ou gastar na mesa, sem acumular/rerrolar. Tudo ocupa os campos
 existentes, é salvo no histórico da ficha e preserva notas e o pool montado.
-Concentração, condições gerais, tempo de jogo e exceções de classe que evitam
-0 PV continuam pendentes. Fonte/contratos em
+Tempo de jogo e exceções de classe que evitam 0 PV continuam pendentes;
+concentração/condições receberam os controles acima. Fonte/contratos em
 [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md) e `src/rules/health.ts`;
 testes puros em `tests/health.test.ts` e interação em `tests/health-browser.cjs`.
 Não houve alteração de SQL/RLS/RPC ou dados reais.
-Verificação local desta etapa: 299 testes Node, tipos/build e os dez roteiros
+Verificação local daquela etapa: 299 testes Node, tipos/build e os dez roteiros
 Chromium anteriores aprovados; o novo roteiro de PV passou no build final após
-o ajuste de foco. A suíte agora inclui onze roteiros. Confere cancelamento,
+o ajuste de foco. A suíte daquela etapa incluía onze roteiros. Confere cancelamento,
 físico/virtual/OFF, notas/desfazer/refazer, forma, dados/morte/inspiração,
 recarga/offline, isolamento e três temas/320 px/GG. Capturas de desktop/celular
 conferidas. Use `npm run check` para a bateria completa; CI também testa PostgreSQL.
@@ -42,8 +67,8 @@ Agonizante por feixe, nível racial fixo, Dominar/Assinatura, iniciativa e
 componentes corrigidos. Dano usa proteção → temporários → besta → PV; o histórico
 registra a absorção real. Constituição permanente ajusta PV manuais sem reviver
 a 0 PV; descanso longo exige 1 PV e o curto preserva a Forma Selvagem.
-Concentração, condições gerais e outros passivos da matriz continuam pendentes.
-PV/inspiração receberam controles na etapa atual acima. Ver a tabela de estado
+Concentração, condições, PV/inspiração receberam os controles das etapas acima;
+outros passivos da matriz continuam pendentes. Ver a tabela de estado
 no início de [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md).
 Validação daquela etapa: 279 testes Node, tipos/build e dez roteiros Chromium, incluindo
 32 cenários auditados sem divergências. O último ajuste de validação do mago
@@ -65,7 +90,8 @@ histórico próprio (com migração preservando o coletivo e recuperação de ex
 e os ajustes de defesa têm espaçamento e ajuda nos sete itens. O levantamento
 amplo está em [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md): há lacunas
 confirmadas, inclusive iniciativa/passivos e componentes cortados, além de
-concentração/morte/condições ainda manuais. Essas pendências não estão implementadas.
+concentração/morte/condições ainda manuais naquela base. As correções atuais
+estão descritas acima; não tratar o levantamento histórico como estado atual.
 A segunda passada da auditoria, na base `7667ae9`, reproduziu 20 divergências em
 21 cenários direcionados, incluindo truque mostrado/rolado, cura/modificador e
 espaço maior, invocação, magia racial, Dominar/Assinatura, PV/transformação,

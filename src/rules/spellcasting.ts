@@ -1,5 +1,6 @@
 import { ability, active, level, norm, selections, subclass, type Engine, type Sheet } from './model';
 import { deathStatus } from './health';
+import { incapacityReason } from './concentration';
 export function armorProficiencies(c:Sheet,E:Engine):string[] {
   if (Array.isArray(c.armorProficiencies)) return c.armorProficiencies;
   const list:string[]=c.classes.flatMap((cls:Sheet,i:number)=>i===0?E.data.classes[cls.classId]?.armor || []:E.multiclass[cls.classId]?.armor || []);
@@ -24,7 +25,7 @@ export function wizardPrivilege(c:Sheet,s:Sheet,E:Engine) {
 /** O bloqueio vem do equipamento usado, não da presença de uma armadura na mochila. */
 export function castingRestriction(c:Sheet,E:Engine,spell?:Sheet) {
   if (deathStatus(c).dead) return 'Personagem morto não pode conjurar.';
-  if (c.hpCurrent===0 && !active(c,'druida:wildShape')) return 'Inconsciente a 0 PV: não pode conjurar.';
+  if (incapacityReason(c)) return `${incapacityReason(c)}: não pode conjurar.`;
   if (active(c,'barbaro:rage')) return 'Não pode conjurar durante a Fúria.';
   if (active(c,'druida:wildShape') && (level(c,'druida')<18 || spell && spell.classId!=='druida')) return 'Não pode conjurar nesta Forma Selvagem.';
   const profs=armorProficiencies(c,E);

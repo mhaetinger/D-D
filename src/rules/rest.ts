@@ -2,7 +2,8 @@ import { exhaustion } from './combat';
 import { resetResources } from './resources';
 import type { Engine, Sheet } from './model';
 import { deathStatus, healHitPoints } from './health';
-export function takeRest(c: Sheet, kind:'short'|'long', E: Engine, options={foodAndWater:true,tableHitDice:false}, random=Math.random) {
+import { endConcentration } from './concentration';
+export function takeRest(c: Sheet, kind:'short'|'long', E: Engine, options:{foodAndWater:boolean;tableHitDice:boolean;slept?:boolean}={foodAndWater:true,tableHitDice:false}, random=Math.random) {
   if (Number(c.exhaustion)>=6) throw new Error('Exaustão 6 significa morte. Um descanso não revive o personagem.');
   if (deathStatus(c).dead) throw new Error('Um descanso não revive o personagem.');
   if (kind==='long' && c.hpCurrent<1) return false; // Requisito do início, sem consumir/recuperar nada.
@@ -12,6 +13,7 @@ export function takeRest(c: Sheet, kind:'short'|'long', E: Engine, options={food
   c.ruleState.songOfRestUsed=false;
   for (const s of c.spells) if (s.recovery==='short' || kind==='long' && s.limitedUse) s.usesUsed = 0;
   if (kind==='long') {
+    if(options.slept!==false)endConcentration(c);
     if (options.foodAndWater) c.exhaustion = Math.max(0,Number(c.exhaustion || 0)-1);
     healHitPoints(c,Math.max(0,exhaustion(c).hpMax-c.hpCurrent)); c.hpTemp = 0; c.hpTempSource = '';
     c.sorceryPoints.current = c.sorceryPoints.max;

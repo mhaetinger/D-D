@@ -26,6 +26,8 @@
 .rule-check input[type=checkbox] { margin:0; width:1rem; height:1rem; }
 .rule-context button:disabled { opacity:.45; }
 .rule-context [aria-pressed=true] { outline:2px solid var(--text-main); outline-offset:1px; }
+.rule-concentration { flex-basis:100%; overflow-wrap:anywhere; }
+.rule-conditions { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr)); gap:.5rem; }
 /* A mesma tipografia atende os dois sistemas existentes de balões. */
 .rule-tooltip, #bookTooltip { padding:.55rem .65rem; font-size:.92rem; line-height:1.45; overflow-wrap:anywhere; hyphens:auto; }
 .rule-tooltip p, #bookTooltip p, #bookTooltip .whitespace-pre-line { text-align:justify; text-justify:inter-word; margin:.3rem 0; font-size:.92rem; line-height:1.45; }

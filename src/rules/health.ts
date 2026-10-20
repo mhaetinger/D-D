@@ -1,4 +1,5 @@
 import { ability, active, level, proficiency, selections, state, type Engine, type Sheet } from './model';
+import { endConcentration, incapacityReason } from './concentration';
 
 export const hitPointMaximum = (c:Sheet):number => Number(c.exhaustion)>=4 ? Math.floor(c.hpMax/2) : c.hpMax;
 const counter = (n:unknown) => Math.max(0,Math.min(3,Math.floor(Number(n)||0)));
@@ -8,15 +9,45 @@ export function deathStatus(c:Sheet) {
   return {successes:counter(d?.successes),failures:counter(d?.failures),stable:!!d?.stable && !dead,dead};
 }
 export function requireConscious(c:Sheet) {
-  if(deathStatus(c).dead || c.conscious===false || c.hpCurrent<=0 && !active(c,'druida:wildShape')) throw new Error('É preciso estar vivo e consciente para realizar esta ação.');
+  if(incapacityReason(c)) throw new Error('É preciso estar vivo e consciente, sem incapacitação, para realizar esta ação.');
+}
+/** A Fúria termina ao ficar inconsciente, mas não por toda incapacitação.
+ * O mesmo encerramento processa Frenesi uma única vez, inclusive durante dano. */
+export function endRage(c:Sheet) {
+  if(!active(c,'barbaro:rage'))return false;
+  const s=state(c);s.active['barbaro:rage']=false;s.active['barbaro:frenzy']=false;
+  if(s.frenzyUsed) {
+    s.frenzyUsed=false;c.exhaustion=Math.min(6,Number(c.exhaustion || 0)+1);
+    c.hpCurrent=Math.min(c.hpCurrent,hitPointMaximum(c));
+    if(c.exhaustion===6)markDead(c);
+    else syncIncapacity(c);
+  }
+  return true;
+}
+function markProne(c:Sheet) {
+  const s=state(c);s.conditions ||= {};if(typeof s.conditions==='object' && !Array.isArray(s.conditions))s.conditions.caido=true;
+}
+export function becameUnconscious(c:Sheet) {
+  markProne(c);const s=state(c);
+  s.active['druida:wildShape']=false;
+  endConcentration(c);endRage(c);
+}
+export function syncIncapacity(c:Sheet) {
+  const reason=incapacityReason(c);if(!reason)return null;
+  const ended=endConcentration(c);
+  if(reason==='Morto' || reason.startsWith('Inconsciente'))becameUnconscious(c);
+  return ended;
 }
 function death(c:Sheet) { return state(c).death=deathStatus(c); }
 export function markDead(c:Sheet) {
   const d=death(c);d.dead=true;d.stable=false;c.hpCurrent=0;
+  becameUnconscious(c);
 }
 export function healHitPoints(c:Sheet,amount:number) {
   if (!Number.isInteger(amount) || amount<0) throw new Error('Informe uma cura inteira e não negativa.');
   if (deathStatus(c).dead) throw new Error('Cura comum não revive. Registre primeiro o retorno à vida após a decisão da mesa.');
+  // Fichas anteriores podem estar a 0 PV sem a marca persistida de queda.
+  if(amount>0 && c.hpCurrent===0 && !active(c,'druida:wildShape'))markProne(c);
   const before=c.hpCurrent;c.hpCurrent=Math.min(hitPointMaximum(c),c.hpCurrent+amount);
   if (c.hpCurrent>before) state(c).death={successes:0,failures:0,stable:false,dead:false};
   return Math.max(0,c.hpCurrent-before);
@@ -32,6 +63,7 @@ export function trackDamageAtZero(c:Sheet,received:number,excess:number,wasAtZer
     state(c).death={successes:0,failures:0,stable:false,dead:false};
     if (excess>=hitPointMaximum(c)) markDead(c);
   }
+  if(c.hpCurrent===0 && !active(c,'druida:wildShape'))becameUnconscious(c);
 }
 function canTestDeath(c:Sheet) {
   if (c.hpCurrent!==0 || active(c,'druida:wildShape')) throw new Error('O teste contra a morte exige 0 PV fora da Forma Selvagem.');

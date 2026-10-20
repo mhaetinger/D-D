@@ -148,7 +148,8 @@ O zoom livre mantém apenas a porcentagem atual na lista, junto dos atalhos fixo
 
 A [auditoria do Livro do Jogador](docs/AUDITORIA-LIVRO-2014.md) percorre todos os
 capítulos/apêndices e distingue cálculo, consulta e pendências. Concentração
-e vários efeitos condicionais ainda exigem controle manual.
+e condições já têm os controles descritos abaixo; duração, alvos e vários
+efeitos condicionais ainda exigem decisão da mesa.
 A revisão aprofundada também reproduziu divergências de fórmulas/rolagens,
 cura, transformação/descansos e recursos de alto nível. A primeira etapa de
 correções unifica a fórmula mostrada/rolada, corrige os cenários de PV e usa
@@ -194,6 +195,24 @@ Descansos recuperam conforme a origem; o longo
 pergunta sobre alimento/bebida e a adaptação de recuperar todos os Dados de Vida.
 A recuperação de metade dos Dados de Vida permite escolher a classe em multiclasse.
 Dados adicionais de ataque mostram condições; alvos e duração são controlados pelo jogador.
+
+Concentração tem um único estado por ficha, exibido nos PV ou no grimório
+conforme a aba aberta. Conjurar outro efeito pede confirmação antes de gastar
+recursos. Cada fonte de dano gera um teste de CON: CD 10 ou metade do dano,
+o maior, com dado físico ou virtual. Proteção Arcana absorvida não entra nesse
+teste; temporários e dano à besta entram. O teste considera proficiência,
+Conjurador de Guerra, exaustão e inspiração; na forma, informe o bônus total
+apropriado à besta. Conjuração Focada protege conjurações contra quebra por dano.
+Fúria, incapacitação e morte encerram concentração. Sono no descanso longo
+também encerra; há opção para exceções conscientes. Duração e interrupções de
+conjurações prolongadas continuam sendo resolvidas pela mesa.
+
+As 14 condições do apêndice têm marcação e ajuda nos PV. Incapacitação derivada,
+impedimentos de movimento e falhas automáticas de FOR/DES entram no cálculo;
+outras vantagens/desvantagens, sentidos, alvos e reduções de dano são manuais.
+Inconsciência encerra Fúria, reverte Forma Selvagem e deixa o personagem caído;
+cura não o levanta automaticamente. Efeitos de defesa recebidos continuam
+independentes, pois sua origem pode ser outro conjurador.
 
 PV temporários protegem a forma de besta antes de seus PV; Proteção Arcana é
 externa a essas reservas. Ajustar Constituição pelos botões da ficha é uma

@@ -3,12 +3,15 @@ import { currentWorkspaceKey, workspaceStorage } from "../storage/account-scope"
 import { ACTIVE_CHARACTER_KEY, readPreference, writePreference } from "../storage/preferences";
 import { armorClass, applyDamage, exhaustion, savingThrow, initiativeBonus, changePermanentAbility } from "../rules/combat";
 import { readableText } from "../rules/text";
-import { renderResourceControls, renderResourcesAt, preparationControls, defenseControls, conditionControls, hitDiceRecoveryControls, saveRuleStep } from "../rules/ui";
+import { renderResourceControls, renderResourcesAt, preparationControls, defenseControls, conditionControls, hitDiceRecoveryControls, saveRuleStep, retainConditionNodes } from "../rules/ui";
 import { featureResourceBindings, resourcesAt } from "../rules/placement";
 import { canCastNormally, canRitual, preparation, wizardPrivilege, castingRestriction } from "../rules/spellcasting";
 import { resolveSpellEffect, innateCastLevel, twinEligible } from "../rules/spell-effects";
 import { consumeInspiration, deathStatus, healHitPoints, inspirationRollMode } from '../rules/health';
 import { damageDescription, deathControls, hitDiceControls } from '../rules/health-ui';
+import { applyCastConcentration, concentration, concentrationBlock, incapacityReason, needsConcentrationConfirmation, spellConcentration, validateConcentrationStart } from '../rules/concentration';
+import { concentrationControls } from '../rules/concentration-ui';
+import { automaticSaveFailure } from '../rules/conditions';
 import { takeRest } from "../rules/rest";
 import { onSpellCast } from "../rules/resources";
 import { characterSnapshot, historyComparable as characterHistoryComparable, historyKey, HISTORY_PREFIX, isCharacterHistoryKey, migrateCharacterHistories, splitLegacyHistory, validateCharacterHistory } from '../storage/character-history';
@@ -1178,7 +1181,9 @@ function presentDiceResult(result, customLabel) {
 }
 
 // Disparo automático vindo da ficha (só executa se diceMode === 'auto'!)
-function triggerSheetRoll(formula, label, inspirationEligible = false) {
+function triggerSheetRoll(formula, label, inspirationEligible = false, context = null) {
+  if(context?.type==='save' && automaticSaveFailure(getChar(),context.ability))return showToast('Falha automática nessa resistência de FOR/DES pela condição atual; não precisa rolar.');
+  if(context?.type==='attack' && incapacityReason(getChar()))return showToast(incapacityReason(getChar())+': não pode realizar esse ataque.');
   if (diceMode !== "auto") {
     if (diceMode === "manual") {
       showToast(
@@ -1473,10 +1478,12 @@ function castSpellByIndex(index) {
 function canCastRitual(char, spell) {
   return canRitual(char,spell,CharacterEngine);
 }
-function castRitualByIndex(index) {
-  const spell = getChar().spells[index];
-  if (!spell || !canCastRitual(getChar(), spell)) return;
-  onSpellCast(getChar(),spell,spell.circle,CharacterEngine);
+function castRitualByIndex(index, confirmedId = null) {
+  const char=getChar(),spell = char.spells[index];
+  if (!spell || !canCastRitual(char, spell)) return;
+  if(deferConcentrationReplacement(char,spell,index,true,confirmedId,id=>castRitualByIndex(index,id)))return;
+  applyCastConcentration(char,spell,CharacterEngine,true);
+  onSpellCast(char,spell,spell.circle,CharacterEngine);
   recordStepAndSave(`Conjurou ${spell.name} como ritual (+10 minutos, sem espaço)`);
   showToast('Ritual: acrescente 10 minutos ao tempo da magia. Nenhum espaço gasto.');
 }
@@ -1748,7 +1755,7 @@ function renderMainClassic2014(char) {
         <span class="w-3 h-3 rounded-full border ${isProf ? "t-btn-primary" : "t-border"}"></span>
         <span>${meta.name}</span>
       </div>
-      <button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Salvaguarda de ${meta.name}', true)" class="font-bold ${isProf ? "t-text-accent" : ""} hover:underline">
+      <button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Salvaguarda de ${meta.name}', true, {type:'save',ability:'${key}'})" class="font-bold ${isProf ? "t-text-accent" : ""} hover:underline">
         ${fmtMod(val)}
       </button>
     </div>
@@ -1835,7 +1842,7 @@ function renderMainModern2024(char) {
           <span class="w-3 h-3 rune-slot border ${saveProf ? "t-btn-primary" : "t-border"}"></span>
           <span class="font-semibold">Salvaguarda</span>
         </div>
-        <button onclick="triggerSheetRoll('1d20${fmtMod(saveVal)}', 'Salvaguarda de ${meta.name}', true)" class="font-bold hover:underline">${fmtMod(saveVal)}</button>
+        <button onclick="triggerSheetRoll('1d20${fmtMod(saveVal)}', 'Salvaguarda de ${meta.name}', true, {type:'save',ability:'${key}'})" class="font-bold hover:underline">${fmtMod(saveVal)}</button>
       </div>
 
       <div class="space-y-0.5 pt-0.5">
@@ -1935,6 +1942,7 @@ function renderCombatBlock(char) {
 
         ${deathControls(char)}
         ${conditionControls(char)}
+        ${concentrationControls(char)}
         ${renderResourcesAt(char,CharacterEngine,'health')}
         <div class="t-inset p-3 rounded-lg space-y-2">
           <div class="flex flex-wrap justify-between items-center gap-2">
@@ -2240,6 +2248,8 @@ function renderAll() {
   renderHeader(char, isModern);
 
   const viewport = document.getElementById("sheetViewport");
+  const sameCharacter=viewport.dataset.character===char.id && viewport.dataset.workspace===currentWorkspaceKey();
+  const previousConditions=sameCharacter?viewport.querySelector('[data-rule-disclosure="conditions"]'):null;
   if (currentTab === "main") {
     viewport.innerHTML = isModern
       ? renderMainModern2024(char)
@@ -2249,6 +2259,8 @@ function renderAll() {
   } else {
     viewport.innerHTML = renderLoreSection(char);
   }
+  viewport.dataset.character=char.id;viewport.dataset.workspace=currentWorkspaceKey();
+  retainConditionNodes(previousConditions,viewport);
 
   if (window.lucide) window.lucide.createIcons();
   window.PanelFlow?.mount(viewport, panelPositions);
@@ -2613,7 +2625,7 @@ function rollWeapon(index, kind) {
     showToast("Fórmula inválida. Corrija o ataque antes de rolar.");
     return;
   }
-  triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}`,kind==='attack');
+  triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}`,kind==='attack',kind==='attack'?{type:'attack'}:null);
 }
 function setWeaponHands(index,value) {
   const entry = getChar().weapons[index]; if (!entry || !['1','2'].includes(String(value))) return;
@@ -2820,7 +2832,7 @@ function changeHp(delta) {
   try { if(delta<0) result=applyDamage(char,-delta);else healHitPoints(char,delta); }
   catch(error) { showToast(error.message);return; }
   if (char.hpTemp === 0) char.hpTempSource = "";
-  recordStepAndSave(delta<0?damageDescription(char,result,-delta):`Recebeu ${delta} de cura · PV: ${char.hpCurrent}/${exhaustion(char).hpMax} · temporários: ${char.hpTemp}`);
+  saveRuleStep(delta<0?damageDescription(char,result,-delta):`Recebeu ${delta} de cura · PV: ${char.hpCurrent}/${exhaustion(char).hpMax} · temporários: ${char.hpTemp}`);
 }
 
 function getFiendBlessingAmount(char) {
@@ -2939,11 +2951,29 @@ function setSpellCastLevel(spellName, levelValue) {
   if (index >= 0) setSpellCastLevelByIndex(index, levelValue);
 }
 
+// A recursão após confirmar refaz todas as validações de recursos. O caminho
+// sem troca continua síncrono para preservar os eventos da ficha anterior.
+function deferConcentrationReplacement(char,spell,index,ritual,confirmedId,resume) {
+  const info=spellConcentration(char,spell,CharacterEngine,ritual);
+  if(!(info.held || info.prolonged))return false;
+  const blocked=concentrationBlock(char);if(blocked){showToast(blocked);return true;}
+  if(info.held)try{validateConcentrationStart(char,info);}catch(error){showToast(error.message);return true;}
+  const old=concentration(char);
+  if(!needsConcentrationConfirmation(char,spell,CharacterEngine,ritual) || old.id===confirmedId)return false;
+  const snapshot=JSON.stringify(spell),choice=getSelectedSpellCastLevel(char,spell,index),twinned=characterHasTwinned(char) && !!twinnedActiveBySpell[spell.name];
+  void confirmDestructiveAction('Trocar concentração?',`${spell.name}${ritual?' como ritual':''} exige concentração${!info.held?' durante a conjuração':''} e encerra ${old.name}. Recursos só serão gastos após confirmar.`,'Conjurar e substituir').then(ok=>{
+    if(!ok || getChar()!==char || char.spells[index]!==spell || concentration(char)?.id!==old.id)return;
+    if(JSON.stringify(spell)!==snapshot || getSelectedSpellCastLevel(char,spell,index)!==choice || (characterHasTwinned(char) && !!twinnedActiveBySpell[spell.name])!==twinned)return showToast('As escolhas mudaram. Confira a magia e tente novamente; nenhum recurso foi gasto.');
+    resume(old.id);
+  });
+  return true;
+}
 function castSpellWithUpcast(
   spellName,
   baseCircle,
   classId,
   globalSpellIdx,
+  confirmedId = null,
 ) {
   const char = getChar();
   const spObj = char.spells[globalSpellIdx];
@@ -2971,6 +3001,12 @@ function castSpellWithUpcast(
     showToast(spObj.customRoll?"A fórmula personalizada desta magia é inválida. Corrija-a antes de conjurar; nenhum recurso foi gasto.":"Não foi possível montar uma rolagem válida para esta magia. Nenhum recurso foi gasto; confira a descrição.");
     return;
   }
+
+  if(baseCircle>0 && !spObj.ritual && !spObj.limitedUse && !spObj.atWill) {
+    const available=getSpellSlotOptions(char,spObj).find(x=>x.value===chosen);
+    if(!available || available.remaining<=0)return showToast('O espaço selecionado está indisponível; nenhum recurso foi gasto.');
+  }
+  if(deferConcentrationReplacement(char,spObj,globalSpellIdx,false,confirmedId,id=>castSpellWithUpcast(spellName,baseCircle,classId,globalSpellIdx,id)))return;
 
   if (baseCircle > 0 && !spObj.ritual && !spObj.limitedUse && !spObj.atWill) {
     const option = getSpellSlotOptions(char, spObj).find((entry) => entry.value === chosen);
@@ -3002,6 +3038,7 @@ function castSpellWithUpcast(
   if (isTwinned) char.sorceryPoints.current -= twinPtCost;
   if (spObj.limitedUse) spObj.usesUsed = (spObj.usesUsed || 0) + 1;
   if (spellName === "Armadura Arcana") char.mageArmorActive = true;
+  applyCastConcentration(char,spObj,CharacterEngine);
   onSpellCast(char,spObj,numericCastLvl,CharacterEngine);
 
   const formulaToRoll = effect.formula;
@@ -3035,9 +3072,10 @@ async function longRest() {
   if(char.hpCurrent<1) return showToast('O descanso longo exige pelo menos 1 PV no início.');
   const choices = document.createElement('div');
   choices.innerHTML = '<label><input type="checkbox" data-rest-food checked> Teve alimento e bebida (reduz 1 exaustão)</label><br><label><input type="checkbox" data-rest-table> Recuperar todos os Dados de Vida (adaptação da mesa)</label>';
+  if(concentration(char))choices.insertAdjacentHTML('beforeend','<br><label><input type="checkbox" data-rest-sleep checked> Dormiu ou ficou inconsciente (encerra concentração)</label><p>Se permaneceu consciente por uma exceção, desmarque e confira a duração do efeito na mesa.</p>');
   if (!await confirmDestructiveAction('Concluir descanso longo?', 'Recupera PV e recursos conforme o livro. Dados de Vida: até metade do nível total; escolha quais recuperar depois. PV temporários serão removidos.', 'Concluir descanso', choices)) return;
   if (getChar() !== char) return;
-  if (!takeRest(char,'long',CharacterEngine,{foodAndWater:choices.querySelector('[data-rest-food]').checked,tableHitDice:choices.querySelector('[data-rest-table]').checked})) { recordStepAndSave('Frenesi terminou com exaustão 6',true); return showToast('Frenesi levou à exaustão 6. O personagem morreu antes de concluir o descanso.'); }
+  if (!takeRest(char,'long',CharacterEngine,{foodAndWater:choices.querySelector('[data-rest-food]').checked,tableHitDice:choices.querySelector('[data-rest-table]').checked,slept:choices.querySelector('[data-rest-sleep]')?.checked ?? true})) { recordStepAndSave('Frenesi terminou com exaustão 6',true); return showToast('Frenesi levou à exaustão 6. O personagem morreu antes de concluir o descanso.'); }
   recordStepAndSave('Descanso longo · PV, recursos e preparação',true);
   showToast('Descanso concluído. Preparação no grimório; recuperação de Dados de Vida junto aos PV.');
 }

@@ -399,3 +399,53 @@ consumida uma vez. Dado físico tem gasto confirmado; preparação pode ser canc
 Tudo pertence ao documento da ficha e seu histórico; notas continuam separadas.
 Não houve mudança de SQL/RLS/RPC. Concentração, condições gerais, efeitos de
 classe que evitam 0 PV e simulação do tempo de jogo continuam fora desta etapa.
+
+## Concentração e condições — 20/10/2026
+
+`src/rules/concentration.ts` guarda um único `ruleState.concentration` v1, com
+identificador, nome, duração, origem/escola e fila de testes por fonte de dano.
+Os identificadores sequenciais distinguem uma reconjuração do efeito anterior;
+resolver exige a mesma ficha, efeito e primeiro teste. Dados ilegíveis não são
+apagados nem substituídos silenciosamente. O estado segue o documento/histórico
+existente, sem migração SQL ou alteração de notas.
+
+`applyDamage` preserva seu retorno e acrescenta à fila o dano total recebido
+após Proteção Arcana, incluindo temporários e PV da besta. A CD é
+`max(10, floor(dano / 2))`. Dano que causa incapacitação encerra diretamente o
+efeito. A fila registra se a forma recebeu dano para exigir o bônus total de CON
+apropriado, mesmo após reversão; estatísticas de bestas ainda não são integradas.
+Conjuração Focada consulta a escola e o nível/subclasse de mago, sem restringir
+a origem da magia. Testes ambientais continuam disponíveis.
+
+O teste reúne fontes de vantagem/desvantagem antes de cancelar: modo escolhido,
+Conjurador de Guerra somente por dano, inspiração preparada e exaustão 3+.
+1/20 naturais não substituem a comparação com a CD. `concentration-ui.ts`
+reutiliza seleção de dado físico/virtual, animação e confirmação existentes;
+o dado virtual não altera o pool. Revalida efeito/teste e entradas antes de rolar
+ou consumir inspiração. A mesma seção é renderizada somente na aba atual.
+
+A conjuração conserva o caminho síncrono quando não há troca. Se outra magia
+exige concentração, o callback confere ficha, efeito, magia, espaço e intenção
+de Gêmea, e repete as validações de recursos antes de gastar. Repetir a mesma
+magia inicia outro registro após o gasto válido. Rituais e conjurações prolongadas
+também interrompem concentração anterior; o controle representa a conjuração
+concluída. Tempo, ações e interrupções durante sua execução permanecem manuais.
+Registro de efeito da mesa não consome recursos e informa isso no diálogo.
+
+`conditions.ts` oferece as 14 condições, explicações e estados derivados.
+Incapacitação encerra concentração e bloqueia conjuração/ativação de recursos;
+as condições pertinentes zeram movimento e causam falha automática de FOR/DES.
+Não infere modos de ataque contra alvos desconhecidos nem aplica resistência
+tipada sem conhecer o dano. Defesa recebida não é encerrada junto à concentração
+própria, pois não há identificação de seu conjurador/alvo.
+
+`syncIncapacity` centraliza a transição: morte/inconsciência revertem a forma,
+encerram Fúria e marcam queda. `endRage` processa exaustão de Frenesi uma vez;
+paralisia/atordoamento sem inconsciência não encerram Fúria. Cura não remove a
+queda. Sono informado no descanso longo encerra concentração; exceção consciente
+pode preservar o estado, mas a duração continua a cargo da mesa.
+
+`retainConditionNodes` recoloca os mesmos nós da lista antes de remontar o fluxo
+de painéis. `saveRuleStep` conserva consultas/foco e abre concentração quando
+surge a primeira pendência. Testes puros e de navegador estão em
+`tests/concentration.test.ts` e `tests/concentration-browser.cjs`.

@@ -2,6 +2,35 @@
 
 ## Não lançado
 
+### Concentração e condições de 2014 — 2026-10-20
+
+- Estado único de concentração por ficha, nos PV ou no grimório conforme a aba.
+  Troca de magia/ritual prolongado confirma antes de consumir espaços/usos;
+  cancelamento e escolhas alteradas preservam o efeito e os recursos anteriores.
+- Cada fonte de dano enfileira sua resistência de CON, CD 10 ou metade do dano,
+  o maior. Proteção Arcana não conta como dano ao personagem; temporários e
+  besta contam. Dado físico/virtual/OFF, bônus da forma, proficiência, Conjurador
+  de Guerra, exaustão e inspiração usam o fluxo existente, sem alterar o pool.
+  1/20 natural não decide esse teste automaticamente. Conjuração Focada protege
+  conjurações de quebra por dano, inclusive magias de outra classe.
+- 14 condições com ajuda e marcação compacta; incapacitação é derivada sem
+  segunda marca. Deslocamento 0 e falhas automáticas de FOR/DES entram nos
+  casos correspondentes. Outros modos de rolagem, sentidos, alvos, durações e
+  resistências a dano permanecem explícitos para a mesa.
+- Incapacitação/morte encerram concentração. Inconsciência também encerra Fúria
+  (processando Frenesi uma vez), reverte Forma Selvagem e registra queda;
+  paralisia isolada não encerra Fúria. Dormir no descanso longo encerra
+  concentração, com opção para exceções conscientes e duração manual.
+- Testes e condições pertencem à ficha/histórico e persistem offline; notas
+  continuam separadas. Lista conserva nós/foco e diálogos recusam callbacks de
+  outra ficha ou efeito. Dados ilegíveis são preservados. Sem SQL/RLS/RPC.
+- Verificação final: `npm run check`, 320 testes Node, tipos/build e os 12
+  roteiros Chromium aprovados, incluindo os 32 cenários auditados. Cobertura
+  nova: troca/cancelamento/recursos, ritual, fila/CD, proteção/temporários/forma,
+  físico/virtual/OFF, talentos/inspiração, condições/Fúria/sono, ficha antiga
+  a 0 PV, callbacks obsoletos, nós/foco, notas/histórico, isolamento e offline.
+  Três temas/320 px/GG e capturas desktop/celular conferidos; diff sem whitespace.
+
 ### Dados de Vida, morte/estabilidade e inspiração — 2026-10-19
 
 - Dados de Vida têm saldo e gasto por classe, um dado por vez, com resultado
