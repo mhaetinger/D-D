@@ -2,6 +2,23 @@
 
 ## Não lançado
 
+### Avisos dentro das janelas e ajuda de concentração — 2026-10-20
+
+- Notificações usam a janela em uso: criador/preparo, perfil, loja ou diálogo
+  nativo. O aviso fica no próprio formulário/rodapé, sem roubar foco, recriar
+  opções ou rolar a página até um erro distante. A ficha mantém seu toast normal.
+- Limite de preparo usa texto curto, sem repetir a descrição inteira do campo.
+  Avisos anteriores têm seu temporizador cancelado; fechar a janela oculta o
+  aviso para não reaparecer na próxima abertura. Textos continuam como dados;
+  falhas de gravação conservam prioridade sobre mensagens de sucesso.
+- Dica de concentração explica que combate e grimório mostram o mesmo registro
+  e que preparar magias não ativa o efeito. Regras e modos de dados preservados.
+- Conferidos 385 testes Node, tipos/build e seis scripts Chromium: quadros e
+  preparo, criação, dano de armas, concentração, revisão por setores e ataques
+  mágicos. Incluem sétima escolha recusada sem mudar ficha/nós/foco/rolagem,
+  item sem nome, validação com diálogo nativo aberto, cancelamento, modos de
+  dados, persistência/offline e 320px/GG/três temas/dois layouts.
+
 ### Saída do preparo e características agrupadas — 2026-10-20
 
 - A primeira etapa de preparo oferece Voltar à ficha. Sair com escolhas pendentes

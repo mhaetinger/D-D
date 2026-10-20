@@ -1,4 +1,5 @@
 import { sheetStore, selectCharacterWorkspace } from "../storage/character-store";
+import { showNotice } from './notices';
 import { currentWorkspaceKey, workspaceStorage } from "../storage/account-scope";
 import { ACTIVE_CHARACTER_KEY, readPreference, writePreference } from "../storage/preferences";
 import { armorClass, applyDamage, exhaustion, savingThrow, initiativeBonus, changePermanentAbility } from "../rules/combat";
@@ -2775,13 +2776,10 @@ function hideBookTooltip() {
 }
 
 function showToast(msg) {
-  const t = document.getElementById("toast");
   // Um sucesso de combate/cadastro não pode esconder a falha de gravação anterior.
-  t.textContent = ["write", "unavailable"].includes(sheetStore.issue?.kind)
+  showNotice(["write", "unavailable"].includes(sheetStore.issue?.kind)
     ? "As alterações estão em memória e não foram salvas neste navegador. Baixe um backup antes de fechar."
-    : msg;
-  t.classList.remove("hidden");
-  setTimeout(() => t.classList.add("hidden"), 3500);
+    : msg);
 }
 
 function setSpellClassFilter(cls) {

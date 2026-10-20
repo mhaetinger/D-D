@@ -328,6 +328,7 @@
     host = document.createElement("div");
     host.id = "characterWizard";
     host.className = "cw-overlay hidden";
+    host.dataset.noticeWindow = '';
     host.setAttribute("role", "dialog");
     host.setAttribute("aria-modal", "true");
     host.setAttribute("aria-labelledby", "cw-title");
@@ -723,9 +724,11 @@
           if (el.checked) selected.push(el.value);
           if (selected.length > spec.count) {
             el.checked = false;
-            // Aviso sem rolar a tela para um erro distante da lista.
+            // O aviso fica no rodapé da janela, conservando foco e rolagem.
             return root.showToast(
-              `Escolha no máximo ${spec.count} para “${spec.label}”.`,
+              id === "prepared"
+                ? `Escolha no máximo ${spec.count} magias preparadas. Desmarque uma para trocar.`
+                : `Escolha no máximo ${spec.count} para “${spec.label}”.`,
             );
           }
           draft.answers[id] = selected;
@@ -1560,7 +1563,7 @@
               : id === "review"
                 ? review()
                 : "";
-    host.innerHTML = `<section class="cw-dialog t-card-accent" data-scroll-window><header><h2 id="cw-title" tabindex="-1">${draft.mode === "create" ? "Criar personagem" : draft.mode === "prepare" ? "Preparar magias" : "Evoluir personagem"} · ${title}</h2><button data-action="close" aria-label="Fechar">×</button></header><nav aria-label="Etapas">${list.map(([, label], i) => `<span ${i === step ? 'aria-current="step"' : ""}>${i + 1}. ${label}</span>`).join("")}</nav><div class="cw-body" data-scroll-content>${draft.mode === "create" && step === 0 ? '<p class="cw-muted">Prefere preencher diretamente na ficha? <button type="button" data-action="manual" class="underline">Usar ficha em branco</button></p>' : ""}<div id="cw-errors" role="alert" hidden></div>${id !== "magic" && guide().stepHelp[id] ? `<p class="cw-muted">${escape(guide().stepHelp[id])}</p>` : ""}${body}${id === "equipment" ? "" : `<div class="cw-fields" style="display:contents">${fields.map(choice).join("")}</div>`}${!body && !fields.length ? "<p>Nenhuma escolha adicional nesta etapa para a classe e o nível selecionados.</p>" : ""}</div><p class="cw-muted cw-draft-status" data-draft-status></p><footer><div class="cw-footer-left"><button type="button" data-action="back" ${step === 0 && draft.mode !== "prepare" ? "disabled" : ""}>${step === 0 && draft.mode === "prepare" ? "Voltar à ficha" : "Voltar"}</button>${draft.mode === "create" ? `<button type="button" data-action="discardDraft" class="cw-btn-danger">Descartar rascunho</button>` : ""}</div><a href="book.html" target="_blank" rel="noopener">Consultar livro</a><button type="button" data-action="${step === list.length - 1 ? "finish" : "next"}" class="t-btn-primary">${step === list.length - 1 ? "Aplicar à ficha" : "Continuar"}</button></footer></section>`;
+    host.innerHTML = `<section class="cw-dialog t-card-accent" data-scroll-window><header><h2 id="cw-title" tabindex="-1">${draft.mode === "create" ? "Criar personagem" : draft.mode === "prepare" ? "Preparar magias" : "Evoluir personagem"} · ${title}</h2><button data-action="close" aria-label="Fechar">×</button></header><nav aria-label="Etapas">${list.map(([, label], i) => `<span ${i === step ? 'aria-current="step"' : ""}>${i + 1}. ${label}</span>`).join("")}</nav><div class="cw-body" data-scroll-content>${draft.mode === "create" && step === 0 ? '<p class="cw-muted">Prefere preencher diretamente na ficha? <button type="button" data-action="manual" class="underline">Usar ficha em branco</button></p>' : ""}<div id="cw-errors" role="alert" hidden></div>${id !== "magic" && guide().stepHelp[id] ? `<p class="cw-muted">${escape(guide().stepHelp[id])}</p>` : ""}${body}${id === "equipment" ? "" : `<div class="cw-fields" style="display:contents">${fields.map(choice).join("")}</div>`}${!body && !fields.length ? "<p>Nenhuma escolha adicional nesta etapa para a classe e o nível selecionados.</p>" : ""}</div><p class="cw-muted cw-draft-status" data-draft-status></p><footer><p class="window-notice" data-window-notice role="status" aria-live="polite" aria-atomic="true" hidden></p><div class="cw-footer-left"><button type="button" data-action="back" ${step === 0 && draft.mode !== "prepare" ? "disabled" : ""}>${step === 0 && draft.mode === "prepare" ? "Voltar à ficha" : "Voltar"}</button>${draft.mode === "create" ? `<button type="button" data-action="discardDraft" class="cw-btn-danger">Descartar rascunho</button>` : ""}</div><a href="book.html" target="_blank" rel="noopener">Consultar livro</a><button type="button" data-action="${step === list.length - 1 ? "finish" : "next"}" class="t-btn-primary">${step === list.length - 1 ? "Aplicar à ficha" : "Continuar"}</button></footer></section>`;
     renderedView = view;
     renderedChoices = new Map(fields.map((f) => [f.id, JSON.stringify(f)]));
     guide().bindAbilities(host, draft.setup, () => E.scores(ctx()), persistDraft);

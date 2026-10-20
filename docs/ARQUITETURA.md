@@ -103,6 +103,18 @@ Na ficha larga, as colunas dividem níveis inteiros, em fluxo nativo, sem separa
 uma habilidade de seus controles. Chaves de descrição conservam a abertura ao
 atualizar os cálculos e a apresentação da ficha.
 
+## Avisos durante uma edição
+
+`app/notices.ts` recebe as notificações de `showToast`. Diálogos nativos abertos
+têm prioridade; nas sobreposições marcadas com `data-notice-window`, usa a janela
+com foco ou a última sobreposição visível. `data-window-notice` reserva um aviso oculto no
+formulário/rodapé; os demais diálogos recebem uma região criada com `textContent`.
+Sem janela, mantém `#toast`. A falha de armazenamento continua prioritária no
+chamador. Trocar mensagem cancela o temporizador anterior; observar somente a
+visibilidade da janela e seu evento `close` evita avisos antigos na reabertura.
+Não remonta listas, altera seleção nem move o foco; cada aviso local é uma região
+de status com contraste e símbolo, sem depender apenas de cor.
+
 ## Tipografia da ficha
 
 `src/styles/sheet-type.css` define papéis em rem dentro do cabeçalho/área da ficha:

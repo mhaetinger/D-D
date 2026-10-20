@@ -1,0 +1,6 @@
+.window-notice { flex:none; width:100%; min-width:0; padding:.55rem .7rem; margin:0; border:1px solid var(--border-strong); border-left:3px solid var(--text-accent); border-radius:.4rem; background:var(--bg-inset); color:var(--text-main); font-size:.95rem; line-height:1.4; font-weight:600; text-align:left; overflow-wrap:anywhere; max-height:20dvh; overflow-y:auto; overscroll-behavior:contain; position:sticky; bottom:0; }
+.window-notice[hidden] { display:none; }
+.window-notice::before { content:'ⓘ '; }
+.cw-dialog > footer > .window-notice { flex-basis:100%; position:static; }
+#authAccountModal .window-notice { top:0; bottom:auto; }
+@media print { .window-notice { display:none; } }

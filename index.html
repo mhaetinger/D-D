@@ -54,6 +54,7 @@
         <h2 id="confirmationTitle" class="font-rpg font-bold t-text-accent"></h2>
         <p id="confirmationMessage" class="text-sm whitespace-pre-line"></p>
         <div id="confirmationExtra" class="text-sm" hidden></div>
+        <p class="window-notice" data-window-notice role="status" aria-live="polite" aria-atomic="true" hidden></p>
         <div class="flex flex-wrap justify-end gap-2">
           <button value="cancel" formnovalidate autofocus class="t-inset px-4 py-2 rounded-lg font-bold text-sm">Cancelar</button>
           <button id="confirmationAccept" value="confirm" class="t-btn-primary px-4 py-2 rounded-lg font-bold text-sm">Confirmar</button>
@@ -544,9 +545,10 @@
     <!-- ===================================================================== -->
     <!-- MODAL 1: TELA INICIAL DE CONTA / LOGIN / VERIFICAÇÃO E MEUS PERSONAGENS -->
     <!-- ===================================================================== -->
-    <div id="authAccountModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:#000b">
+    <div id="authAccountModal" data-notice-window class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" style="background:#000b">
     <section data-scroll-window class="t-card-accent max-w-lg w-full p-5 space-y-4 max-h-[92dvh] overflow-y-auto">
       <div class="flex justify-between gap-3"><h2 class="font-rpg font-bold">Perfil e personagens</h2><button onclick="closeAuthAccountModal()" aria-label="Fechar perfil">×</button></div>
+      <p class="window-notice" data-window-notice role="status" aria-live="polite" aria-atomic="true" hidden></p>
       <p id="workspaceDescription" class="text-sm">Suas fichas e anotações ficam neste navegador. Use um backup para levá-las a outro dispositivo.</p>
       <div id="accountAccessSlot">
       <section id="accountAccess" class="space-y-3 border-b t-border pb-3" aria-label="Acesso à conta" hidden>
@@ -644,6 +646,7 @@
     <!-- MODAL: MERCADO DE EQUIPAMENTOS -->
     <div
       id="shopModal"
+      data-notice-window
       class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4"
     >
       <div
@@ -707,6 +710,7 @@
           data-scroll-content
           class="grid grid-cols-1 md:grid-cols-2 gap-3 overflow-y-auto pr-1 flex-1"
         ></div>
+        <p class="window-notice" data-window-notice role="status" aria-live="polite" aria-atomic="true" hidden></p>
         <div class="flex justify-end pt-3 border-t t-border">
           <button
             onclick="closeShopModal()"
@@ -721,6 +725,7 @@
     <!-- TOAST -->
     <div
       id="toast"
+      role="status" aria-live="polite" aria-atomic="true"
       class="fixed bottom-5 right-5 t-card-accent px-4 py-3 rounded-xl font-bold text-xs shadow-2xl hidden transition-all z-50"
     ></div>
 

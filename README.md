@@ -79,6 +79,15 @@ a exibição não converte regras, classes ou escolhas.
 nível. Cada habilidade conserva sua descrição e seus controles de uso. No preparo
 de magias, **Voltar à ficha** permite sair sem aplicar; escolhas pendentes pedem
 confirmação antes do descarte. O lembrete do descanso só é retirado ao aplicar.
+Avisos de limite ou validação aparecem dentro da janela que estiver em uso.
+
+Concentração acompanha um efeito ativo do personagem, como Bênção. Combate e
+grimório mostram o mesmo registro. Preparar uma magia só a deixa disponível;
+conjurar registra o efeito, e outra concentração pede substituição. Ao registrar
+dano recebido, a ficha deixa o teste de CON pendente para você resolver. Duração
+e efeitos nos alvos ficam com a mesa. **Só Pool** deixa a conjuração na mesa;
+**OFF** permite registrá-la sem dados virtuais. **Registrar efeito da mesa**
+acompanha um efeito resolvido fora dos botões, sem gastar espaços ou usos.
 
 ## Dado flutuante e retratos
 

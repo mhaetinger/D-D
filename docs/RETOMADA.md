@@ -29,6 +29,16 @@ Pacto, espaços compartilhados e concentração não são duplicados. Conferidos
 testes Node, tipos/build e Chromium de quadros, regras e concentração, com preparo,
 recuperação/cancelamento, recarga offline e 320px/GG/três temas/dois layouts.
 
+**Avisos nas janelas:** `app/notices.ts` encaminha `showToast` à região de status
+da janela em uso, priorizando diálogos nativos. Criador/preparo, perfil e loja
+têm regiões próprias; a ficha continua com toast. Preserva nós/foco/rolagem,
+texto seguro e prioridade da falha de gravação. Fechar oculta o aviso e mensagens
+novas cancelam o timer anterior. Limite de preparo tem mensagem curta. A dica de
+concentração identifica o registro compartilhado das abas e distingue preparo.
+Conferidos 385 testes Node, tipos/build e seis scripts Chromium: quadros/preparo,
+criação, armas, concentração, setores e ataques mágicos; avisos reais de limite,
+item sem nome e validação nativa, modos de dados, offline e 320px/GG/temas/layouts.
+
 **Saída do preparo e características agrupadas:** a primeira etapa oferece
 Voltar à ficha, com a confirmação existente para escolhas pendentes. Abrir/cancelar
 não confirma o lembrete do descanso; aplicar confirma. Removida a introdução

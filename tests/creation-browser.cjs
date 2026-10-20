@@ -129,6 +129,7 @@ const { serve } = require('./serve.cjs');
     for(const [k,v] of Object.entries({equipment0:'Cota de malha',equipment1:'Arma marcial e escudo',equipmentWeapons1:'Alabarda',equipment2:'Besta leve e 20 virotes',equipment3:'Pacote de aventureiro'})) await w.locator(`[data-answer="${k}"]`).selectOption(v);
     assert.equal(await w.locator('[data-answer="equipment0"]').getAttribute('data-rule-tooltip'),null);
     await w.locator('.cw-adapt-box summary').click();
+    await w.locator('[data-action="addCustomItem"]').click();assert.match(await w.locator('[data-window-notice]').innerText(),/Informe o nome do item/);assert.equal(await page.locator('#toast').isVisible(),false);assert.equal(await w.locator('[data-custom-item-name]').inputValue(),'');
     await w.locator('[data-custom-item-name]').fill('Poção de cura');
     await w.locator('[data-custom-item-qty]').fill('2');
     await w.locator('[data-action="addCustomItem"]').click();
