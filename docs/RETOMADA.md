@@ -15,6 +15,12 @@ Não mesclar/publicar esta revisão sem aprovação. A branch remota `develop`
 foi restaurada após a entrega na referência de integração já aprovada
 `b1155fbc5d14a566f548814bd808374aa2383721`, merge da PR #7.
 
+**Envio pendente em 20/10:** o commit local `deec8c8` contém o preenchimento
+manual e as melhorias de PDF descritas abaixo. `git push` falhou por resolução
+DNS de `github.com`; a API/conector também estavam indisponíveis. Após recuperar
+a rede, enviar somente `feature/regras-universais` e atualizar a descrição da
+PR #9 para incluir o modo manual. Não houve merge nem publicação desta etapa.
+
 **Preenchimento manual implementado:** entrada no perfil e em + Novo → Preencher
 manualmente. Cria sem escolhas obrigatórias do assistente, dentro dos contratos
 (atributos 0–30, classes do catálogo, nível total até 20). Ajustar diretamente
