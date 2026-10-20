@@ -143,6 +143,38 @@ Uma importação para substituir dados ilegíveis exige confirmação e guarda u
 cópia separada. Falhas de quota/permissão são informadas; alterações em memória
 podem ser baixadas antes de fechar. Notas não entram nos snapshots da ficha.
 
+## Ficha manual e adaptações
+
+Em **+ Novo**, use **Preencher manualmente**, ou **Criar ficha manual** no perfil.
+Você define atributos, classes/níveis, PV, CA, proficiências, perícias e reservas,
+sem orçamento de pontos, pré-requisitos de multiclasse ou escolhas obrigatórias
+do criador. O formato da aplicação mantém atributos de 0 a 30, classes do
+catálogo e nível total até 20. O modo fica identificado como **Manual · editar**.
+O rascunho guiado anterior continua disponível; a ficha manual só é criada ao salvar.
+
+**Ajustar ficha manualmente** altera a ficha atual com um passo no histórico,
+preservando notas e escolhas. Salvar passa a usar evolução manual pelo mesmo
+editor; as reservas e magias não são refeitas pelas tabelas de classe. Descansos
+recuperam usos mantendo os máximos escolhidos. Os cálculos de rolagem e efeitos
+de jogo da ficha continuam ativos. Para revisar preservando uma ficha separada,
+use **Revisar ficha atual como cópia**. Na importação também há opção explícita
+de preenchimento livre. Bônus manuais de perícia substituem o total calculado;
+campo vazio retoma o cálculo. A CA livre já inclui equipamento e escudo, antes
+dos efeitos temporários e do ajuste explícito de CA.
+
+No grimório, **+ Magia** permite buscar no catálogo inteiro ou criar uma
+personalizada, indicando classe, habilidade, círculo, fórmula, ataque/resistência,
+concentração e forma de gasto. Origens especiais e adaptações permanecem
+identificadas. Fórmulas personalizadas não escalam automaticamente e aceitam até
+100 dados. Magias distintas podem ter o mesmo nome sem trocar seus vínculos.
+Use **+ Característica** para textos livres; escrever um efeito não programa
+sua execução. Armas, itens, moedas e biografia usam os editores já existentes.
+
+PDFs aceitam classes sem espaço antes do nível, CA escrita como soma/subtração
+de inteiros e deslocamento fracionário. A revisão permite trocar o vínculo de
+uma magia com o catálogo; magias também concedidas pela raça exigem confirmação
+da origem. Bônus de ataque ausentes continuam pendentes, sem valores inventados.
+
 ## Uso sem internet
 
 Depois do primeiro carregamento completo da versão de produção, o perfil mostra

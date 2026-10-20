@@ -20,7 +20,7 @@ export function proposeImport(backup:Backup,E:Engine):Backup {
   const copy=structuredClone(backup);
   for(const c of copy.characters as Sheet[]) {
     c.rules ||= {history:[],legacy:true};c.rules.history ||= [];
-    const race=matchOption(c.rules.raceId,E.options.races)||matchOption(c.race,E.options.races);
+    const race=matchOption(c.rules.raceId,E.options.races)||(c.rules.manualMode?'':matchOption(c.race,E.options.races));
     if(race)c.rules.raceId=race;
     for(const cls of c.classes) {
       const options=E.data.classes[cls.classId]?.subclasses || {};
@@ -28,10 +28,10 @@ export function proposeImport(backup:Backup,E:Engine):Backup {
       if(id)cls.subclassId=id;
     }
     for(const s of c.spells) {
-      const entry=findSpell(s.bookId,E)||findSpell(s.name,E);
+      const entry=s.customSpell?null:findSpell(s.bookId,E)||findSpell(s.name,E);
       if(entry)s.bookId=entry.id;
       // Uma origem já explícita prevalece sobre a lista genérica do catálogo.
-      if(!s.classId && entry) {
+      if(!s.classId && entry && !s.importOriginNeedsConfirmation) {
         const candidates=c.classes.filter((x:Sheet)=>entry.classes?.includes(x.classId));
         if(candidates.length===1)s.classId=candidates[0].classId;
       }
@@ -62,6 +62,8 @@ export function validateImport(c:Sheet,E:Engine):void {
   if(!c.name.trim())throw new Error('Informe o nome do personagem.');
   for(const w of c.weapons)if(!parseDiceFormula(w.damage))throw new Error(`Confira a fórmula de dano de ${w.name}.`);
   for(const s of c.spells) {
+    if(!Number.isInteger(s.circle))throw new Error(`Confira o círculo de ${s.name}.`);
+    if(s.customRoll&&!parseDiceFormula(s.customRoll))throw new Error(`Confira a fórmula personalizada de ${s.name}.`);
     if(!c.classes.some((x:Sheet)=>x.classId===s.classId))throw new Error(`Escolha a origem de ${s.name}.`);
     if(s.castingAbility && !['str','dex','con','int','wis','cha'].includes(s.castingAbility))throw new Error(`Confira a habilidade de ${s.name}.`);
     if(s.extraSource && !s.castingAbility)throw new Error(`Informe a habilidade da origem especial de ${s.name}.`);
@@ -70,7 +72,7 @@ export function validateImport(c:Sheet,E:Engine):void {
     if(s.ritual && !s.extraSource && !E.spell(s.bookId||s.name)?.ritual)throw new Error(`Confirme uma origem especial para o ritual ${s.name}.`);
     if(s.limitedUse!==undefined && (!Number.isInteger(s.limitedUse)||s.limitedUse<1||!Number.isInteger(s.usesUsed||0)||(s.usesUsed||0)>s.limitedUse))throw new Error(`Confira os usos de ${s.name}.`);
     const entry=findSpell(s.bookId||s.name,E);
-    if(entry && !entry.classes?.includes(s.classId) && !s.extraSource) {
+    if(entry && !entry.classes?.includes(s.classId) && !s.extraSource && !c.rules?.manualMode) {
       const sub=c.classes.find((x:Sheet)=>x.classId===s.classId)?.subclassId;
       const cls=c.classes.find((x:Sheet)=>x.classId===s.classId),tables=E.progression.subclassSpells?.[s.classId+':'+sub] || {};
       const included=Object.entries(tables).filter(([n])=>Number(n)<=cls.level).flatMap(([,list])=>list as any[]).some((id:any)=>id===entry.id || norm(id)===norm(entry.name));
@@ -79,7 +81,7 @@ export function validateImport(c:Sheet,E:Engine):void {
   }
   for(const cls of c.classes) {
     const p=preparation(c,cls.classId,E);
-    if(p.prepares && p.used>p.limit && !c.rules?.importPreparationAdapted)throw new Error(`${E.data.classes[cls.classId].name}: ${p.used} preparadas, limite ${p.limit}. Ajuste o preparo ou identifique a adaptação da mesa.`);
+    if(p.prepares && p.used>p.limit && !c.rules?.importPreparationAdapted && !c.rules?.manualMode)throw new Error(`${E.data.classes[cls.classId].name}: ${p.used} preparadas, limite ${p.limit}. Ajuste o preparo ou identifique a adaptação da mesa.`);
   }
   for(const slot of Object.values(c.standardSlots) as Sheet[])if(!Number.isInteger(slot.total)||!Number.isInteger(slot.used)||slot.total<0||slot.used<0||slot.used>slot.total)throw new Error('Confira os espaços totais e usados de Conjuração.');
   for(const key of ['pactMagic','sorceryPoints']) {

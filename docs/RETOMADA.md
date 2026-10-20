@@ -15,6 +15,24 @@ Não mesclar/publicar esta revisão sem aprovação. A branch remota `develop`
 foi restaurada após a entrega na referência de integração já aprovada
 `b1155fbc5d14a566f548814bd808374aa2383721`, merge da PR #7.
 
+**Preenchimento manual implementado:** entrada no perfil e em + Novo → Preencher
+manualmente. Cria sem escolhas obrigatórias do assistente, dentro dos contratos
+(atributos 0–30, classes do catálogo, nível total até 20). Ajustar diretamente
+passa a ficha ao modo manual, preservando ID/notas/escolhas e registrando histórico;
+UPAR abre o editor e os máximos das reservas não são refeitos. A revisão como
+cópia continua disponível. `src/manual/` contém o modo e o editor + Magia, com
+catálogo inteiro/personalizadas, origem/habilidade/usos/fórmula e ajustes de
+ataque/CD; características textuais são editáveis, sem executar efeitos escritos.
+PDFs agora aceitam níveis sem espaços, CA aritmética restrita, dados abreviados
+e deslocamento fracionário. Origens também possíveis pela raça ficam pendentes;
+o vínculo de uma magia pode ser corrigido no formulário.
+Conferidos 374 testes Node, tipos/build e Chromium manual/importação/criação/
+aplicação/continuidade local-conta/ataque de magias, com quota/conta/cancelamento,
+recarga/descanso e 320px/GG/temas (contas de teste com HTTP simulado).
+Dois PDFs adicionais de mesa passaram pela gravação em contextos descartáveis,
+com valores provisórios nos campos ambíguos. Não foram importados para contas
+reais nem incluídos no Git; isso não valida as escolhas oficiais dos jogadores.
+
 **Importação revisada implementada:** perfil aceita PDFs preenchíveis (15 MB,
 20 páginas) e backups JSON. `src/import/` lê campos por página com PDF.js local,
 propõe vínculos em cópia e abre revisão comum de identidade/classes/raça,
@@ -28,7 +46,7 @@ como cópia** recupera vínculos de importações antigas sem sobrescrever origi
 Persistência continua em `CharacterStore.importCopies`, com IDs novos e guarda
 de espaço após cada etapa assíncrona. Avisos manuais ficam em `rules.importReview`.
 Primeira etapa da compatibilidade registrada em [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md).
-Verificação: 368 testes Node, tipos/build, Chromium de importação/aplicação/auth/
+Primeira verificação: 368 testes Node, tipos/build, Chromium de importação/aplicação/auth/
 sync com HTTP simulado; PDF na raiz e `/D-D/`, offline/quota/conta/cancelamento,
 campos ausentes/origem ambígua/texto seguro e 320px/GG/três temas. Conferidos
 dois PDFs reais com revisão cancelada, sem alterar/importar fichas pessoais.

@@ -5,6 +5,8 @@ import type {CharacterPdf,PdfField} from './pdf-reader';
 
 const key=(s:string)=>norm(s).replace(/ /g,'');
 const integer=(s:unknown)=>/^[-+]?\d+$/.test(String(s).trim())?Number(s):null;
+// Aceita apenas soma/subtração de inteiros escritos; nunca executa fórmulas do PDF.
+const writtenTotal=(s:string)=>/^[+-]?\d+(?:\s*[+-]\s*\d+)*$/.test(s.trim())?s.replace(/\s/g,'').match(/[+-]?\d+/g)!.reduce((n,x)=>n+Number(x),0):undefined;
 const checked=(f?:PdfField)=>!!f && !['','off','no','false','0'].includes(f.value.trim().toLowerCase());
 const spellAliases:Record<string,string>={'nevoa de adagas':'nuvem-de-adagas','invocar familiar':'convocar-familiar','bruxaria hex':'bruxaria'};
 function spellFromLine(value:string,E:Engine) {
@@ -20,14 +22,14 @@ export function pdfToBackup(pdf:CharacterPdf,E:Engine):Backup {
   const field=(...names:string[])=>fields.find(f=>names.some(n=>key(n)===key(f.name)) && f.value.trim()) || fields.find(f=>names.some(n=>key(n)===key(f.name)));
   const value=(...names:string[])=>field(...names)?.value.trim() || '';
   c.name=value('CharacterName','Nome do Personagem');c.playerName=value('PlayerName','Nome do Jogador');c.race=value('Race','Species','Raça','Espécie');c.background=value('Background','Antecedente');c.alignment=value('Alignment','Tendência');c.xp=integer(value('XP'))??0;c.size=value('Size','Tamanho')||'Médio';
-  c.hpMax=integer(value('HPMax','HP Maximum'))??0;c.hpCurrent=integer(value('HPCurrent'))??undefined;c.hpTemp=integer(value('HPTemp'))??0;c.baseAcArmor=integer(value('AC','ArmorClass'))??undefined;
+  c.hpMax=integer(value('HPMax','HP Maximum'))??0;c.hpCurrent=integer(value('HPCurrent'))??undefined;c.hpTemp=integer(value('HPTemp'))??0;c.baseAcArmor=writtenTotal(value('AC','ArmorClass'));
   c.acFormula='legacy'; // Preserva o total escrito; não soma um escudo novamente.
   const speed=value('Speed','Deslocamento').match(/\d+(?:[.,]\d+)?/);c.speed=speed?Number(speed[0].replace(',','.')):undefined;
   c.rules.raceId=matchOption(c.race,E.options.races)||undefined;
   const header=value('ClassLevel','Class','Classe e nível','Classe'),level=value('Level','Nível');
   const classPieces=header.split(/[|/;,+]/).filter(s=>s.trim());
   for(const piece of classPieces) {
-    const match=piece.trim().match(/^(.*?)(?:\s+(\d{1,2}))?$/);if(!match)continue;
+    const match=piece.trim().match(/^(.*?)(?:\s*(\d{1,2}))?$/);if(!match)continue;
     const id=matchOption(match[1],E.data.classes);if(!id)continue;
     // Um nível geral do cabeçalho não informa quantos níveis há em cada classe.
     const n=integer(match[2]||(classPieces.length===1?level:''));
@@ -62,7 +64,8 @@ export function pdfToBackup(pdf:CharacterPdf,E:Engine):Backup {
     const damageRaw=value('Wpn'+n+' Damage'),attackRaw=value('Wpn'+n+' AtkBonus');
     // Algumas fichas guardam o dado base na coluna de ataque e a alternativa
     // versátil nas notas/dano. Preserva o primeiro dado base sem somar bônus.
-    const formula=(/\d+d\d+/i.test(attackRaw)?attackRaw+' '+damageRaw:damageRaw).match(/\d+d\d+(?:\s*[+-]\s*\d+)*(?!\d)/i)?.[0]?.replace(/\s/g,'');
+    const dieText=(/\bd\d+|\d+d\d+/i.test(attackRaw)?attackRaw+' '+damageRaw:damageRaw).match(/\b(?:\d+)?d\d+(?:\s*[+-]\s*\d+)*(?!\d)/i)?.[0]?.replace(/\s/g,'');
+    const formula=dieText?.replace(/^d/i,'1d');
     if(!formula)continue; // Escudo ou linha sem dano continua no texto de origem.
     const bonus=integer(attackRaw);
     c.weapons.push({name,calculationMode:'manual',bonus:bonus===null?'':String(bonus>=0?'+':'')+bonus,damage:formula,notes:[damageRaw,value('Wpn'+n+' Notes'),bonus===null?'Bônus de ataque não identificado: confira na revisão.':''].filter(Boolean).join(' · ')});
@@ -71,8 +74,11 @@ export function pdfToBackup(pdf:CharacterPdf,E:Engine):Backup {
   for(const f of names) {
     const entry=spellFromLine(f.value,E),explicit=c.classes.filter((cls:Sheet)=>new RegExp('(?:^| )'+norm(E.data.classes[cls.classId].name)+'(?: |$)').test(norm(f.value)));
     const candidates=entry?c.classes.filter((cls:Sheet)=>entry.classes?.includes(cls.classId)):[];
-    const origin=explicit.length===1?explicit[0].classId:candidates.length===1?candidates[0].classId:'';
+    const race=E.options.races[c.rules.raceId],total=c.classes.reduce((n:number,x:Sheet)=>n+x.level,0);
+    const racial=entry && (Object.entries(race?.racialSpells||{}).some(([n,ids])=>Number(n)<=total&&(ids as string[]).includes(entry.id)) || race?.cantrip&&entry.level===0&&entry.classes?.includes(race.cantrip));
+    const origin=explicit.length===1?explicit[0].classId:!racial&&candidates.length===1?candidates[0].classId:'';
     const s=entry?E.toSheetSpell(entry,origin):{name:f.value.trim(),classId:origin,circle:undefined,customRoll:'',dmgType:'livro',defType:'nenhuma',notes:f.value};
+    if(racial&&explicit.length!==1)s.importOriginNeedsConfirmation=true;
     s.notes=[s.notes,f.value].filter(Boolean).join('\n');s.prepared=markedBefore(f);
     const row=f.name.match(/Spell Name (\d+)/i)?.[1];
     if(!entry&&row)s.circle=integer(value('Spell Level '+row))??undefined;

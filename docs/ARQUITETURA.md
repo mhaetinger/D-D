@@ -14,6 +14,7 @@ fichas locais. Não foi adotado um novo framework de interface nesta etapa.
 | `src/styles/` | Tailwind compilado e estilos/temas preservados. |
 | `src/storage/` | Formato/validação de fichas, migração local, backup, importação e recuperação. |
 | `src/import/` | Leitura local de PDF, proposta de vínculos e revisão comum de PDF/backups/ficha atual antes de criar cópias. |
+| `src/manual/` | Criação/edição livre e editor de magias do catálogo ou personalizadas, sem escolhas automáticas do criador. |
 | `src/auth/` | Configuração pública, sessão Supabase, entrada principal e interface de cadastro/recuperação/perfil. |
 | `src/sync/` | Documentos pessoais, fila IndexedDB, cliente Supabase, datas e recuperação de versões. |
 | `supabase/migrations/` | Tabelas/RLS/RPC de salvamento pessoal; migração aplicada ao CritCall real em 16/10/2026. |
@@ -62,6 +63,25 @@ arquivo são opcionais na revisão. A identidade de `sheetStore` é conferida
 após leitura, revisão e recuperação; troca de espaço fecha o editor existente.
 Seleção de outro personagem na revisão não recalcula suas reservas. A ação de
 revisar a ficha atual também gera cópia, sem migrar a coleção em silêncio.
+
+O mesmo formulário aceita os modos `create`/`edit` do preenchimento livre.
+`rules.manualMode` marca a adaptação; `legacy` preserva números escritos. O
+motor não executa `refresh`/evolução guiada nesse modo, e `slotTable` conserva
+reservas manuais. Descansos continuam no módulo próprio, recuperando os usos.
+O editor direto conserva ID/notas/retratos e confirma a gravação antes de
+substituir a ficha em memória, registrando histórico pela ponte existente.
+Criar usa `importCopies`; conta/ficha divergente após espera cancela a aplicação.
+Editar diretamente passa ao modo manual, informado no formulário; a revisão
+em cópia permanece disponível para preservar uma ficha separada.
+
+`spell-ui.ts` valida propostas completas antes de salvar. Personalizadas têm
+`customSpell` e `bookId` próprio, impedindo que um nome igual ao catálogo seja
+religado por uma revisão ou receba a fórmula legada. Ataque/CD aceitam ajustes
+explícitos de −100 a 100; a habilidade/origem continua separada do recurso.
+Fórmulas passam pelo parser comum. Características textuais não criam ações.
+O PDF reconhece somas/subtrações restritas sem `eval`, níveis sem espaço e
+dados abreviados (`d6`); ambiguidade racial usa marcador transitório para impedir
+que a proposta religue a magia à única classe elegível antes da confirmação.
 
 ## Entrada e apresentação
 

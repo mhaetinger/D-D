@@ -88,10 +88,13 @@ export function armorClass(c: Sheet, E: Engine) {
     if (owner === 'monge' && !c.shieldEquipped) add('monk','Defesa sem Armadura · Monge',10+dex+ability(c,'wis'),`10 + DES (${dex}) + SAB (${ability(c,'wis')})`,false);
     if (subclass(c,'feiticeiro',E) === 'draconica') add('draconic','Resiliência Dracônica',13+dex,`13 + DES (${dex})`);
     if (c.mageArmorActive) add('mageArmor','Armadura Arcana',13+dex,`13 + DES (${dex})`);
-    if (c.rules?.legacy && Number.isFinite(c.baseAcArmor)) add('legacy','Base manual importada',c.baseAcArmor,String(c.baseAcArmor));
+    if (c.rules?.legacy && !c.rules.manualMode && Number.isFinite(c.baseAcArmor)) add('legacy','Base manual importada',c.baseAcArmor,String(c.baseAcArmor));
   }
+  // A CA escrita livre já inclui a defesa do equipamento/escudo. Efeitos
+  // temporários e o ajuste explícito de CA continuam sendo aplicados uma vez.
+  if(c.rules?.manualMode && Number.isFinite(c.baseAcArmor))add('legacy','CA manual',c.baseAcArmor,String(c.baseAcArmor),false);
   const styles = selections(c,E,'fighting').concat(selections(c,E,'championFighting'));
-  const defense = wearing && styles.includes('Defesa') ? 1 : 0;
+  const defense = wearing && styles.includes('Defesa') && !(c.rules?.manualMode&&c.acFormula==='legacy') ? 1 : 0;
   const spellBonuses = (active(c,'spell:shieldOfFaith') ? 2 : 0) + (active(c,'spell:shield') ? 5 : 0);
   const flat = defense + spellBonuses + Number(c.acAdjustment || 0);
   const options = choices.map(x => ({...x, total:x.base + (x.shield ? shield : 0) + flat}));

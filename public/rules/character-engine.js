@@ -2447,6 +2447,7 @@
       allAbilities.forEach((k) => (char.abilities[k].saveProf = true));
   }
   function levelUp(original, classId, answers, hpRoll = null) {
+    if(original.rules?.manualMode)throw new Error('Esta ficha usa preenchimento manual. Ajuste níveis, PV e escolhas no editor da ficha.');
     const char = clone(original);
     for (const cls of char.classes)
       if (!cls.subclassId) cls.subclassId = inferSubclass(cls);
@@ -2512,6 +2513,9 @@
     return char;
   }
   function refresh(char, fill) {
+    // Preenchimento livre conserva números e lista de magias escolhidos pela
+    // mesa. Descansos recuperam usos pelo fluxo próprio, sem refazer a ficha.
+    if (char.rules?.manualMode) return;
     const race = O.races[char.rules?.raceId];
     if (race && !char.rules.legacy) {
       const monk = classEntry(char, "monge")?.level || 0,

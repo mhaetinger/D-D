@@ -154,7 +154,7 @@ export function setupRuleUI(E: Engine) {
         r=resourcesFor(c,E).find(x=>x.id==='barbaro:rage');if(!r)return;
       }
       const s=state(c);
-      if (action==='prepare') { s.prepareReminder = false; host.CharacterWizard.openPrepare(button.dataset.class); return; }
+      if (action==='prepare') { s.prepareReminder = false;if(c.rules?.manualMode)host.editManualCharacter();else host.CharacterWizard.openPrepare(button.dataset.class); return; }
       if (action==='portentInitial') { if (s.portent.length) return; const n = resourcesFor(c,E).find(x=>x.kind==='portent')?.max; if (!n) return; s.portent = Array.from({length:n},()=>({value:rand(20),spent:false})); }
       if (action==='portent') { const p = s.portent[Number(button.dataset.index)]; if (!p || p.spent) return; p.spent = true; }
       if (action==='hitDie') { const cls = c.classes.find((x:Sheet)=>x.classId===button.dataset.class); if (!s.hitDiceRecovery || !cls?.hitDiceUsed) return; cls.hitDiceUsed--; s.hitDiceRecovery--; }

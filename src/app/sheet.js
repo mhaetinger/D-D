@@ -670,7 +670,8 @@ function getSpellcastingStats(char, classId, spell = null) {
   const ability = spell?.castingAbility || RULES_DB.classes[classId]?.spellAbility;
   if (!ability || !char.abilities[ability]) return null;
   const modifier = getMod(char.abilities[ability].score);
-  return { ability, modifier, attack: getProfBonus(char) + modifier, dc: 8 + getProfBonus(char) + modifier };
+  const adjust=key=>Number.isInteger(spell?.[key])&&Math.abs(spell[key])<=100?spell[key]:0;
+  return { ability, modifier, attack: getProfBonus(char) + modifier + adjust('attackAdjustment'), dc: 8 + getProfBonus(char) + modifier + adjust('dcAdjustment') };
 }
 
 function getSpellcastingHeader(char) {
@@ -711,6 +712,7 @@ function getSpellDefenseMeta(char, spell) {
 }
 
 function getSpellNotes(char, spell) {
+  if(spell.customSpell)return spell.notes || '';
   // Fichas antigas podem conter uma fotografia da CA nas notas. Atualiza apenas
   // esse trecho conhecido na exibição, preservando o texto armazenado do usuário.
   if (spell.name === "Armadura Arcana") return String(spell.notes || "").replace(/\(CA\s+\d+\)/gi, `(CA ${getMageArmorAC(char)})`);
@@ -1339,10 +1341,10 @@ function openNewCharacterModal() {
   if (sheetStore.issue?.kind === 'invalid') { openAuthAccountModal(); return; }
   CharacterWizard.openCreate();
 }
-function applyImportedCharacters(next) {
+function applyImportedCharacters(next, action = "Importou cópias de um backup") {
   characters = next;
   activeCharIndex = Math.max(0, characters.length - 1);
-  recordStepAndSave("Importou cópias de um backup", true);
+  recordStepAndSave(action, true);
   renderAccountCharactersList();
 }
 function closeNewCharacterModal() { return CharacterWizard.close(); }
@@ -1420,7 +1422,7 @@ function getSpellEffectDetails(char, spell, index) {
   const meta = resolveSpellMeta(spell);
   const chosen = getSelectedSpellCastLevel(char, spell, index);
   const level = getSpellSlotOptions(char,spell).find(option=>option.value===chosen)?.level ?? innateCastLevel(char,spell,CharacterEngine);
-  const book = BOOK_SPELLS_DB[spell.name];
+  const book = spell.customSpell ? null : BOOK_SPELLS_DB[spell.name];
   const canTwin=twinEligible(char,spell,level,CharacterEngine,meta.canTwin);
   const twin = !!twinnedActiveBySpell[spell.name] && canTwin && characterHasTwinned(char);
   const options={legacyFormula:book?.diceFormula?.(level,false,char,spell),legacySummary:book?.calcEffect?.(level,false,char,spell),canTwin:meta.canTwin};
@@ -1711,7 +1713,7 @@ function renderSpellsToolbar(char) {
       <button onclick="setSpellClassFilter('all')" class="px-2.5 py-1 rounded font-bold ${spellFilterClass === 'all' ? 't-btn-primary' : 't-inset'}">Todas</button>
       ${ids.map(id => `<button onclick="setSpellClassFilter('${id}')" class="px-2.5 py-1 rounded font-bold ${spellFilterClass === id ? 't-btn-primary' : 't-inset'}">${escapeHTML(RULES_DB.classes[id]?.name || id)}</button>`).join('')}
     </div>
-    <div class="flex flex-wrap gap-2">${preparationControls(char,CharacterEngine)}</div>
+    <div class="flex flex-wrap gap-2"><button type="button" class="t-inset px-2.5 py-1 rounded font-bold" onclick="openSpellEditor()">+ Magia</button>${preparationControls(char,CharacterEngine)}</div>
   </div>`;
 }
 
@@ -2028,7 +2030,7 @@ function renderFeaturesCollapsible(char, wide = false) {
     const controls=bindings.get(index) || [], disclosure=`feature:${g.classId || g.source}:${g.level}:${index}`;
     return `<section class="feature-entry"><details data-rule-disclosure="${escapeHTML(disclosure)}"><summary ${RuleTooltips.attributes(g.name, g.reference)} class="cursor-pointer"><strong>Nv. ${g.level} · ${escapeHTML(g.name)}</strong><span class="block t-text-muted text-[11px]">${escapeHTML(g.source)}</span></summary>${g.choices?.length ? `<p class="my-2 font-semibold">${g.choices.map(escapeHTML).join(" · ")}</p>` : ""}${g.reference ? `<p class="feature-description">${escapeHTML(RuleTooltips.formatText(g.reference.text))}</p><a class="underline" target="_blank" rel="noopener" href="book.html#page=${g.reference.pdfPage}">Consultar no livro · p. ${g.reference.page}</a>` : `<p class="t-text-muted">${escapeHTML(controls[0]?.note || 'Consulte a seção desta classe no livro.')}</p>`}</details>${renderResourceControls(char,CharacterEngine,controls,controls.length>1 || g.name==='Juramento Sagrado')}</section>`;
   });
-  if (char.features?.length) entries.push(`<details><summary class="cursor-pointer font-bold">Anotações e adaptações já presentes nesta ficha</summary><ul class="list-disc pl-4 space-y-2 mt-2">${char.features.map(text => `<li>${escapeHTML(readableText(text))}</li>`).join('')}</ul></details>`);
+  if (char.features?.length) entries.push(`<details><summary class="cursor-pointer font-bold">Anotações e adaptações já presentes nesta ficha</summary><ul class="list-disc pl-4 space-y-2 mt-2">${char.features.map((text,i) => `<li>${escapeHTML(readableText(text))} <button type="button" class="underline" onclick="openHomebrewModal('feature',${i})">Editar</button></li>`).join('')}</ul></details>`);
   const multiclass = CharacterEngine.multiclassNotes(char);
   if (multiclass.length) entries.push(`<details><summary class="cursor-pointer font-bold">Interações de multiclasse</summary><ul class="list-disc pl-4 space-y-2 mt-2">${multiclass.map(note => `<li><strong>${escapeHTML(note.name)}</strong>: ${escapeHTML(note.text)} <a class="underline" href="book.html#page=${note.pdfPage}" target="_blank" rel="noopener">Livro · p. ${note.page}</a></li>`).join('')}</ul></details>`);
   entries.push(`<details><summary class="cursor-pointer font-bold">Proficiências e idiomas</summary>${char.armorProficiencies ? `<p>Armaduras: ${char.armorProficiencies.map(a => ({leve: 'leves', media: 'médias', pesada: 'pesadas', escudo: 'escudos'})[a] || a).map(escapeHTML).join(', ') || 'nenhuma'}</p>` : ''}<p>Armas: ${escapeHTML(char.proficiencies.weapons)}</p><p>Ferramentas: ${escapeHTML(char.proficiencies.tools)}</p><p>Idiomas: ${escapeHTML(char.proficiencies.languages)}</p></details>`);
@@ -2037,7 +2039,7 @@ function renderFeaturesCollapsible(char, wide = false) {
   return `<div class="t-card overflow-hidden">
     <div onclick="togglePanel('features_box')" class="p-3 border-b t-border flex items-center gap-2 cursor-pointer t-hover">
       <i data-lucide="${isCollapsed ? 'chevron-right' : 'chevron-down'}" class="w-4 h-4 t-text-accent"></i>
-      <h3 class="font-rpg text-xs font-bold uppercase t-text-accent">Características & escolhas</h3>
+      <h3 class="font-rpg text-xs font-bold uppercase t-text-accent">Características & escolhas</h3><button type="button" class="ml-auto text-[10px] font-bold t-text-accent" onclick="event.stopPropagation();openHomebrewModal('feature')">+ Característica</button>
     </div>${isCollapsed ? '' : `<div data-size-motion><div data-size-content class="p-3 feature-list${wide ? ' feature-list-wide' : ''} text-xs">${content}</div></div>`}</div>`;
 }
 
@@ -2317,7 +2319,7 @@ function renderHeader(char, isModern) {
     <div class="md:col-span-5 flex items-center gap-2.5 min-w-0">
       <button type="button" class="portrait-edit shrink-0" data-avatar-edit="${escapeHTML(char.id)}" aria-label="Alterar imagem de ${escapeHTML(char.name)}" title="Alterar imagem do personagem">${avatarMarkup(char.avatar)}</button>
       <div class="w-full min-w-0">
-        <div class="text-[10px] uppercase tracking-wider t-text-muted truncate">D&D 5e • Jogador: ${escapeHTML(char.playerName)}${getSpellcastingHeader(char) ? ` • ${getSpellcastingHeader(char)}` : ""}</div>
+        <div class="text-[10px] uppercase tracking-wider t-text-muted truncate">D&D 5e ${char.rules?.manualMode ? '• <button type="button" class="underline" onclick="editManualCharacter()">Manual · editar</button>' : ""} • Jogador: ${escapeHTML(char.playerName)}${getSpellcastingHeader(char) ? ` • ${getSpellcastingHeader(char)}` : ""}</div>
         <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <input type="text" value="${escapeHTML(char.name)}" onchange="updateField('name', this.value)" class="bg-transparent text-lg sm:text-xl font-rpg font-bold t-text-main border-b t-border focus:outline-none min-w-[9rem] flex-1 leading-tight" />
           <div class="flex flex-wrap gap-1 items-center">${classChips}</div>
@@ -2364,7 +2366,7 @@ function showHomebrewError(inputId, message) {
 }
 
 function getHomebrewFormState() {
-  return JSON.stringify([...document.querySelectorAll("#hbModalBody input, #hbModalBody textarea")]
+  return JSON.stringify([...document.querySelectorAll("#hbModalBody input, #hbModalBody select, #hbModalBody textarea")]
     .map((input) => [input.id, input.value, input.checked]));
 }
 
@@ -2442,6 +2444,7 @@ async function saveCharacterLore(values, physical = {}) {
 }
 
 function openHomebrewModal(type, index = null) {
+  if (type === 'spell') return window.openSpellEditor(index);
   const char = getChar();
   const modal = document.getElementById("homebrewModal");
   const title = document.getElementById("hbModalTitle");
@@ -2543,6 +2546,10 @@ function openHomebrewModal(type, index = null) {
       closeHomebrewModal(true);
       recordStepAndSave(`${index === null ? "Adicionou" : "Editou"} item: ${name} (${qty}x)`);
     };
+  } else if (type === 'feature') {
+    title.textContent=index===null?'Adicionar característica / adaptação':'Editar característica / adaptação';
+    body.innerHTML=`<p>Texto livre da ficha. Os efeitos descritos aqui são controlados pela mesa; escrever uma regra não programa seu efeito.</p><label class="block font-bold">Característica<textarea id="hbFeatureText" rows="6" maxlength="16000" class="w-full t-inset p-2 rounded-lg">${e(index===null?'':readableText(char.features[index]))}</textarea></label>`;
+    saveBtn.onclick=()=>{const text=document.getElementById('hbFeatureText').value.trim();if(!text)return showHomebrewError('hbFeatureText','Escreva a característica.');if(index===null)char.features.push(text);else char.features[index]=text;closeHomebrewModal(true);recordStepAndSave('Editou característica manual');};
   } else if (type === "coins") {
     title.textContent = "Editar moedas";
     body.innerHTML = `<div class="grid grid-cols-2 sm:grid-cols-3 gap-3">${Object.entries(COIN_LABELS).map(([key,label]) => `<div><label for="hbCoin-${key}" class="block font-bold mb-1">${key.toUpperCase()} · ${label}</label><input id="hbCoin-${key}" type="number" min="0" max="${Number.MAX_SAFE_INTEGER}" step="1" required value="${e(char.coins?.[key] ?? 0)}" class="w-full t-inset p-2 rounded-lg"></div>`).join("")}</div>`;
@@ -2558,31 +2565,6 @@ function openHomebrewModal(type, index = null) {
       try { await saveCharacterLore(Object.fromEntries(Object.keys(LORE_LABELS).map(key => [key,document.getElementById(`hbLore-${key}`).value])),Object.fromEntries(Object.keys(PHYSICAL_LABELS).map(key => [key,document.getElementById(`hbPhysical-${key}`).value]))); }
       catch (error) { showHomebrewError(error.field || "hbLore-backstory",error.message); }
     };
-  } else if (type === "spell") {
-    const spell = char.spells[index];
-    if (!spell) return;
-    title.textContent = `Adaptação de magia: ${spell.name}`;
-    body.innerHTML = `
-      <div><label for="hbSpName" class="block font-bold mb-1">Nome da magia</label><input id="hbSpName" value="${e(spell.name)}" class="w-full t-inset p-2 rounded-lg" /></div>
-      <div class="grid grid-cols-2 gap-3">
-        <div><label for="hbSpRoll" class="block font-bold mb-1">Fórmula personalizada (opcional)</label><input id="hbSpRoll" value="${e(spell.customRoll)}" placeholder="Ex.: 6d6" class="w-full t-inset p-2 rounded-lg" /></div>
-        <div><label for="hbSpRange" class="block font-bold mb-1">Alcance</label><input id="hbSpRange" value="${e(spell.range)}" class="w-full t-inset p-2 rounded-lg" /></div>
-      </div>
-      <label class="flex items-center gap-2"><input id="hbSpTwin" type="checkbox" ${resolveSpellMeta(spell).canTwin ? "checked" : ""} />Permitir Magia Gêmea (confira elegibilidade no livro; exceções são da mesa)</label>
-      <div><label for="hbSpNotes" class="block font-bold mb-1">Descrição / notas</label><textarea id="hbSpNotes" rows="4" class="w-full t-inset p-2 rounded-lg">${e(spell.notes)}</textarea></div>`;
-    saveBtn.onclick = () => {
-      const name = document.getElementById("hbSpName").value.trim();
-      const formulaInput = document.getElementById("hbSpRoll").value.trim();
-      const parsed = formulaInput ? parseDiceFormula(formulaInput) : null;
-      if (!name) return showHomebrewError("hbSpName", "Informe o nome da magia.");
-      if (formulaInput && !parsed) return showHomebrewError("hbSpRoll", "Fórmula inválida. Use, por exemplo, 6d6 ou deixe em branco para manter o cálculo padrão.");
-      Object.assign(spell, { name, customRoll: parsed?.formula || "",
-        range: document.getElementById("hbSpRange").value.trim(),
-        canTwin: document.getElementById("hbSpTwin").checked,
-        notes: document.getElementById("hbSpNotes").value.trim() });
-      closeHomebrewModal(true);
-      recordStepAndSave(`Editou magia: ${name}`);
-    };
   } else return;
   homebrewInitialState = getHomebrewFormState();
   modal.classList.remove("hidden");
@@ -2591,11 +2573,12 @@ function openHomebrewModal(type, index = null) {
 
 async function deleteSheetEntry(type, index) {
   const char = getChar();
-  const entries = type === "weapon" ? char.weapons : type === "item" ? char.inventoryItems : type === "spell" ? char.spells : null;
+  const entries = type === "weapon" ? char.weapons : type === "item" ? char.inventoryItems : type === "spell" ? char.spells : type==='feature'?char.features:null;
   const entry = entries?.[index];
   if (!entry) return;
-  const noun = type === "weapon" ? "ataque" : type === "item" ? "item" : "magia";
-  if (!await confirmDestructiveAction(`Excluir ${noun}?`, `“${entry.name}” será removido desta ficha${type === "item" ? ` com toda a quantidade (${entry.qty}x)` : ""}. Você poderá desfazer nesta sessão.`, `Excluir ${noun}`)) return;
+  const noun = type === "weapon" ? "ataque" : type === "item" ? "item" : type==='feature'?'característica':"magia";
+  if (!await confirmDestructiveAction(`Excluir ${noun}?`, `“${entry.name || readableText(entry).slice(0,120)}” será removido desta ficha${type === "item" ? ` com toda a quantidade (${entry.qty}x)` : ""}. Você poderá desfazer nesta sessão.`, `Excluir ${noun}`)) return;
+  if(getChar()!==char || entries[index]!==entry)return;
   entries.splice(index, 1);
   if (type === "spell") {
     // Remover uma magia desloca índices; descarta somente escolhas visuais de espaços.
@@ -2677,14 +2660,14 @@ function showSpellTooltip(event, spellName, classId, baseCircle, index) {
     ...BOOK_SPELLS_DB[spellName], school: catalogEntry.school,
     duration: catalogEntry.duration, materialDesc: catalogEntry.components,
     bookDesc: cleanCatalogText, upcastRule: '',
-  } : BOOK_SPELLS_DB[spellName]) || (catalogEntry ? {
+  } : spell?.customSpell ? null : BOOK_SPELLS_DB[spellName]) || (catalogEntry ? {
     school: catalogEntry.school, duration: catalogEntry.duration, materialDesc: catalogEntry.components,
     bookDesc: cleanCatalogText, upcastRule: '', calcEffect: null
   } : {
     school: `Magia de ${baseCircle}º Círculo`,
-    duration: "Instantânea",
-    materialDesc: "V, S",
-    bookDesc: "Consulte o Capítulo 11 do Livro do Jogador.",
+    duration: spell?.conc ? 'Concentração · conferir descrição' : 'Conferir descrição',
+    materialDesc: [spell?.v?'V':'',spell?.s?'S':'',spell?.m?'M':''].filter(Boolean).join(', ') || 'Conferir descrição',
+    bookDesc: spell?.notes || "Consulte a descrição desta magia.",
     upcastRule: "",
     calcEffect: null,
   });
@@ -3049,7 +3032,7 @@ function castSpellWithUpcast(
 
   if (isTwinned) char.sorceryPoints.current -= twinPtCost;
   if (spObj.limitedUse) spObj.usesUsed = (spObj.usesUsed || 0) + 1;
-  if (spellName === "Armadura Arcana") char.mageArmorActive = true;
+  if (!spObj.customSpell && spellName === "Armadura Arcana") char.mageArmorActive = true;
   applyCastConcentration(char,spObj,CharacterEngine);
   onSpellCast(char,spObj,numericCastLvl,CharacterEngine);
 
@@ -3163,7 +3146,10 @@ function buyItem(itemId) {
   renderShopItems();
 }
 
-function openLevelUpModal() { CharacterWizard.openLevel(); }
+function openLevelUpModal() {
+  if(getChar()?.rules?.manualMode)return window.editManualCharacter();
+  CharacterWizard.openLevel();
+}
 function closeLevelUpModal() { return CharacterWizard.close(); }
 
 // Compatibilidade temporária com os eventos dos cartões e assistentes existentes.

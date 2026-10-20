@@ -577,7 +577,9 @@
       <label for="accPlayerName">Nome do jogador</label><input id="accPlayerName" value="Jogador" class="t-inset w-full p-2 rounded">
       <button onclick="saveAccountProfile()" class="t-btn-primary px-3 py-2 rounded">Salvar nome local</button>
       <div id="accountCharactersList" class="space-y-2"></div>
-      <button onclick="closeAuthAccountModal();openNewCharacterModal()" class="t-inset px-3 py-2 rounded">Criar personagem</button>
+      <button onclick="closeAuthAccountModal();openNewCharacterModal()" class="t-inset px-3 py-2 rounded">Criação guiada</button>
+      <button id="createManualCharacter" type="button" class="t-inset px-3 py-2 rounded">Criar ficha manual</button>
+      <button id="editManualCharacter" type="button" class="t-inset px-3 py-2 rounded">Ajustar ficha manualmente</button>
       <section class="space-y-2 border-t t-border pt-3" aria-label="Backups e armazenamento">
         <p id="syncStatus" class="text-xs" role="status" aria-live="polite">Preparando salvamento…</p>
         <div class="flex flex-wrap gap-2"><button id="syncNow" type="button" class="underline text-xs" hidden>Sincronizar agora</button><button id="syncVersions" type="button" class="underline text-xs" hidden>Versões salvas</button></div>

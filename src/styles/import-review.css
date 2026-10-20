@@ -9,6 +9,7 @@
 .import-grid, .import-class-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr)); gap:.6rem; margin:.5rem 0; }
 .import-review label { display:flex; flex-direction:column; gap:.25rem; min-width:0; font-size:.85rem; }
 .import-review input, .import-review select, .import-review textarea { width:100%; min-width:0; }
+.import-review textarea { background:var(--bg-inset); color:var(--text-main); border:1px solid var(--border-main); border-radius:.3rem; padding:.4rem; }
 .import-review .import-check { display:flex; flex-direction:row; align-items:center; gap:.5rem; }
 .import-review .import-check input { width:1rem; height:1rem; flex:none; margin:0; }
 .import-entry { padding:.6rem 0; border-bottom:1px solid var(--border-main); }

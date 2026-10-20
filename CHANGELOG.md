@@ -2,6 +2,29 @@
 
 ## Não lançado
 
+### Ficha manual, magias próprias e PDFs de mesa — 2026-10-20
+
+- Criação livre pelo perfil/assistente, com valores editáveis e limites técnicos
+  preservados (atributos 0–30, classes do catálogo, nível total até 20).
+  Rascunhos guiados e fichas existentes permanecem separados.
+- Editor direto com histórico/notas/ID preservados e modo manual identificado;
+  evolução abre esse editor e reservas não são refeitas automaticamente.
+  Proficiências, armaduras, especializações e totais de perícias são revisáveis.
+- + Magia usa catálogo inteiro ou magia personalizada, com origem, habilidade,
+  fórmula, círculo, ataque/resistência, concentração e usos. IDs próprios evitam
+  colisões por nome. Ajustes explícitos de ataque/CD e características textuais.
+- Revisão de PDF aceita classes sem espaços, CA aritmética restrita, dados
+  abreviados e deslocamento fracionário. Vínculo da magia pode ser corrigido;
+  origem também possível pela raça exige confirmação. Bônus ausentes não são
+  inferidos. Fórmulas e círculos são conferidos antes da confirmação.
+- Conferidos 374 testes Node, tipos/build e Chromium dos roteiros manual,
+  importação, criação, aplicação, continuidade local/conta e ataque de magias:
+  cancelamento/conta/quota, extremos,
+  catálogo/personalizada/usos, evolução/descanso/recarga, preservação de notas,
+  offline da importação, 320px/GG/três temas. Dois PDFs reais adicionais usados
+  em navegadores descartáveis, com campos ambíguos provisórios para exercitar a
+  gravação; sem alterar contas reais ou incluir fichas no repositório.
+
 ### Importação de PDF e revisão de vínculos — 2026-10-20
 
 - Perfil aceita PDF preenchível e backups JSON com revisão antes de importar.
