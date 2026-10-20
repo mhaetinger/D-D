@@ -194,15 +194,21 @@ Cada controle tem um único lugar e usa a reserva compartilhada correspondente.
 Descansos recuperam conforme a origem; o longo
 pergunta sobre alimento/bebida e a adaptação de recuperar todos os Dados de Vida.
 A recuperação de metade dos Dados de Vida permite escolher a classe em multiclasse.
-Na arma, **Crítico e adicionais** reúne a composição de um acerto confirmado.
+Na arma, marque **Crítico** para preparar a fórmula e clique no botão de dano
+para rolar em Auto Ficha. Marcar não rola nem gasta; a marca sai após confirmar
+esse dano e cancelar mantém a preparação. **Adicionais** reúne a composição de
+um acerto com características elegíveis. Sem adicionais, **Registrar dano**
+abre diretamente o registro de um resultado obtido por fora.
 O crítico dobra dados, inclusive Furtivo/Destruição, mantendo os bônus fixos.
 Crítico Brutal e Ataques Selvagens acrescentam seus dados uma vez; Destruição
 Divina Aprimorada já presente na fórmula não é acrescentada de novo.
 Ataque Furtivo e Colossos pedem confirmação das condições e do uso neste turno;
 alvos e turnos continuam na mesa. Destruição Divina permite escolher um espaço
 de Conjuração ou Pacto e indicar corruptor/morto-vivo, com prévia antes do gasto.
-Confirmar registra o resultado físico ou rola no modo virtual e desconta um único
-espaço. Cancelar preserva tudo; desfazer devolve o espaço. O dano virtual desse
+Registrar guarda o resultado físico ou de outro rolador, já incluindo bônus e
+dados extras do crítico: não lança dados novamente nem dobra o total informado.
+**Rolar aqui** usa os dados virtuais. Confirmar desconta um único espaço quando
+escolhido. Cancelar preserva tudo; desfazer devolve o espaço. O dano virtual desse
 controle preserva o pool e a inspiração. O botão **Dano** comum continua direto.
 Armas manuais mantêm a fórmula; seu crítico dobra os dados informados, sem
 adicionais automáticos. Não controla PV do alvo, limite de ataques ou munição.

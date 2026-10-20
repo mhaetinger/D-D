@@ -198,7 +198,7 @@ e capturas desktop/celular conferidos. Sem testes unitários para cosmética sim
 
 ## Sexta etapa implementada: crítico e adicionais de arma — 20/10/2026
 
-- Uma composição por acerto, na ação **Crítico e adicionais** da arma, sem outro
+- Uma composição por acerto, com crítico preparado na arma e ação de adicionais, sem outro
   cadastro. Crítico duplica dados da arma/Furtivo/Colossos/Destruição/Aprimorada,
   preserva bônus fixos e acrescenta os dados individuais de Crítico Brutal e
   Ataques Selvagens uma vez. Tipos/parcelas aparecem na prévia.
@@ -213,6 +213,12 @@ e capturas desktop/celular conferidos. Sem testes unitários para cosmética sim
   e cancelamento não gastam; mudança de ficha/arma/documento invalida envio.
   Gasto e resultado entram no histórico individual e podem ser desfeitos juntos.
   Analisador de dados extraído sem mudar contrato/limites. Sem SQL ou dados reais.
+
+Ajuste posterior de uso: marcar crítico só prepara a fórmula no botão de dano;
+o clique é que rola em Auto Ficha. OFF/Só Pool abrem o registro do total já
+rolado. Não há checkbox duplicada no diálogo. Confirmar limpa a marca e cancelar
+mantém a preparação, sem persistir esse estado efêmero. Ajuda fica acima dos
+diálogos; o registro físico não rola nem duplica o total recebido.
 
 Fonte: PHB local, [críticos de 2014](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/combat#CriticalHits)
 e [Sage Advice de 2014](https://www.dndbeyond.com/sources/dnd/sac/sage-advice-compendium).

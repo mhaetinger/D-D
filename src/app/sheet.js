@@ -11,6 +11,7 @@ import { consumeInspiration, deathStatus, healHitPoints, inspirationRollMode } f
 import { damageDescription, deathControls, hitDiceControls } from '../rules/health-ui';
 import { offerSurvivalForDamage } from '../rules/damage-ui';
 import { parseDiceFormula } from '../rules/dice-formula';
+import { renderWeaponDamageTools, rollPreparedWeaponDamage, weaponDamageLabel } from '../rules/weapon-damage-ui';
 import { applyCastConcentration, concentration, concentrationBlock, incapacityReason, needsConcentrationConfirmation, spellConcentration, validateConcentrationStart } from '../rules/concentration';
 import { concentrationControls } from '../rules/concentration-ui';
 import { automaticSaveFailure } from '../rules/conditions';
@@ -1974,14 +1975,14 @@ function renderAttacksBlock(char) {
                 </div>
                 <span class="text-[11px] t-text-muted block">${escapeHTML(w.notes)}${w.critical?` · Crítico ${w.critical}–20`:''}</span>
                 ${w.ruleWeapon && /vers[aá]til/i.test(w.properties || '') ? `<label>Mãos <select data-weapon-hands="${idx}" onchange="setWeaponHands(${idx},this.value)" aria-label="Mãos para ${escapeHTML(w.name)}"><option value="1" ${storedWeapon.hands!==2?'selected':''}>1 mão</option><option value="2" ${storedWeapon.hands===2?'selected':''}>2 mãos</option></select></label>`:''}
-                ${validDamage && w.damage!=='0'?`<button type="button" data-rule-weapon-damage="${idx}" class="mt-1 underline decoration-dotted text-left" aria-label="Crítico e adicionais de ${escapeHTML(w.name)}">Crítico e adicionais</button>`:''}
+                ${validDamage && w.damage!=='0'?renderWeaponDamageTools(char,storedWeapon,idx,CharacterEngine):''}
               </div>
               <div class="ml-auto flex max-w-full shrink-0 flex-wrap items-center justify-end gap-1.5 whitespace-nowrap">
                 <button onclick="rollWeapon(${idx}, 'attack')" class="px-2 py-1 badge-feiticeiro rounded font-bold">
                   Atq ${escapeHTML(w.bonus)}
                 </button>
-                <button onclick="rollWeapon(${idx}, 'damage')" class="px-2.5 py-1 t-btn-primary rounded font-extrabold shadow-sm">
-                  ${validDamage ? `Dano ${escapeHTML(w.damage)}` : "Corrigir dano"}
+                <button onclick="rollWeapon(${idx}, 'damage')" data-weapon-damage-label="${idx}" class="px-2.5 py-1 t-btn-primary rounded font-extrabold shadow-sm">
+                  ${validDamage ? escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine)) : "Corrigir dano"}
                 </button>
               </div>
             </div>
@@ -2591,6 +2592,7 @@ async function closeHomebrewModal(force = false) {
 }
 
 function rollWeapon(index, kind) {
+  if(kind==='damage' && rollPreparedWeaponDamage(getChar(),index,CharacterEngine,saveRuleStep))return;
   const weapon = CharacterEngine.weaponStats(getChar(), getChar().weapons[index]);
   if (!weapon) return;
   const bonus = String(weapon.bonus).trim();

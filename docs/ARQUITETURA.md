@@ -557,13 +557,28 @@ um espaço; não chama efeitos de conjuração, não cria proteção e não ence
 concentração. Destruição não é magia lançada e pode ser usada em Fúria.
 O teto é 5d8, mais 1d8 contra corruptor/morto-vivo, antes do crítico.
 
-`weapon-damage-ui.ts` substitui a consulta duplicada de adicionais por uma ação
-compacta na mesma arma. Reutiliza confirmação, balões, rolagem contida e
+`weapon-damage-ui.ts` prepara o crítico diretamente na arma e substitui a
+consulta duplicada por **Adicionais** ou **Registrar dano**. A preparação fica
+em `WeakSet` por objeto de arma: não modifica documento/histórico, sobrevive ao
+render do mesmo objeto e não é persistida. Marcar atualiza o próprio botão sem
+rolar, gastar ou substituir os nós. Auto Ficha rola o crítico simples no clique
+de dano; OFF/Só Pool encaminham à confirmação do resultado já rolado. Confirmar
+retira a preparação; cancelar mantém. O diálogo informa o crítico que veio da
+arma, sem segunda marcação. Reutiliza confirmação, balões, rolagem contida e
 animação. Alterar opções mantém os nós e não grava/gasta. Confirmação valida
 identidade, documento e arma; troca/edição concorrente invalida o envio.
 Modo físico exige total e funciona com dados OFF; virtual usa `rollWeaponFormula`,
 o motor/animação existentes sem alterar pool, vantagem de d20 ou inspiração.
 Gasto e descrição entram juntos no histórico por ficha; desfazer restaura ambos.
+
+O campo físico registra o total já obtido, incluindo modificadores e dados do
+crítico; não dobra esse número nem lança novamente. Rótulos e ação distinguem
+**Registrar dano** de **Rolar dano** e explicam a entrada no próprio formulário.
+O balão compartilhado `rule-tooltips.js` usa popover manual quando suportado,
+na [camada superior nativa](https://html.spec.whatwg.org/multipage/popover.html),
+para aparecer acima de diálogos. Mantém API, posição, teclado e eventos existentes,
+sem receber foco ou interceptar cliques; fechar um diálogo também fecha o balão.
+A margem/inset nativos são neutralizados no CSS compartilhado dos balões.
 
 Armas manuais não recebem adicionais inferidos: crítico duplica os dados da
 fórmula escolhida explicitamente. O botão de dano comum mantém seu contrato.

@@ -15,8 +15,22 @@ Não mesclar/publicar esta revisão sem aprovação. A branch remota `develop`
 foi restaurada após a entrega na referência de integração já aprovada
 `b1155fbc5d14a566f548814bd808374aa2383721`, merge da PR #7.
 
-**Estado atual, sexta etapa da auditoria:** **Crítico e adicionais** na própria
-arma monta um acerto com Furtivo, Colossos, Destruição, Aprimorada e extras do
+**Ajuste de uso após a sexta etapa:** crítico é marcado na própria arma, sem
+rolagem/gasto ao marcar. O botão de dano rola no clique em Auto Ficha e a marca
+sai depois de confirmar o dano. OFF/Só Pool abrem o registro do total já rolado;
+cancelar mantém a preparação. **Adicionais** ou **Registrar dano** abrem o fluxo
+pertinente, sem segunda checkbox de crítico. Total físico inclui bônus/crítico,
+não é duplicado nem rolado de novo. Balões usam a camada superior nativa para
+ficarem acima de diálogos, mantendo posição/foco/Esc e os módulos compartilhados.
+
+Verificação do ajuste: 360 testes Node, tipos/build e Chromium de ataques,
+regras, criação, PV e biblioteca aprovados. Confere marcação sem rolar/gastar,
+clique direto, cancelamento/limpeza, total físico sem rerrolar e ajuda na camada
+superior com Esc/foco, além dos cenários existentes. Captura da sobreposição
+conferida; sem nova bateria para mudanças puramente cosméticas.
+
+**Sexta etapa da auditoria:** a composição da própria arma monta um acerto com
+Furtivo, Colossos, Destruição, Aprimorada e extras do
 crítico. Duplica dados, mantém bônus fixos e gasta um único espaço existente de
 Conjuração/Pacto, após confirmar resultado físico ou rolar virtual. Cancelamento
 ou alteração concorrente preserva o documento. Pool, inspiração, notas e outras

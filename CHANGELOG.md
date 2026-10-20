@@ -2,6 +2,20 @@
 
 ## Não lançado
 
+### Uso de crítico e ajuda nas janelas — 2026-10-20
+
+- Crítico passa para a própria arma: marcar só prepara e atualiza a fórmula.
+  O botão de dano rola em Auto Ficha; OFF/Só Pool abrem o registro físico.
+  Confirmar limpa a marca, cancelar mantém, sem salvar esse estado no documento.
+  Adicionais/registro usam o diálogo existente sem segunda checkbox.
+- Campo físico explica que recebe o total já rolado, incluindo bônus/crítico,
+  sem nova rolagem ou multiplicação. A ação distingue registrar de rolar.
+- Balão compartilhado usa a camada superior nativa para aparecer acima de
+  diálogos, mantendo posição, foco, cliques e Esc. Sem SQL ou migração.
+- Conferidos 360 testes Node, tipos/build e Chromium de ataques/regras/criação/
+  PV/biblioteca. Regressões cobrem marcar sem rolar/gastar, clique/limpeza,
+  cancelamento, total físico sem rerrolar e ajuda acima do diálogo com Esc/foco.
+
 ### Crítico e adicionais de armas — 2026-10-20
 
 - A própria arma oferece composição de um acerto com prévia: crítico dobra

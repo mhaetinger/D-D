@@ -53,6 +53,9 @@
     box.hidden = true;
     box.setAttribute("role", "tooltip");
     box.setAttribute("data-scroll-window", "");
+    // O diálogo nativo ocupa a camada superior do navegador; z-index sozinho
+    // não faz um balão externo aparecer acima dele.
+    if (typeof box.showPopover === "function") box.setAttribute("popover", "manual");
     document.body.append(box);
   }
   function hide() {
@@ -67,7 +70,10 @@
       else active.removeAttribute("aria-describedby");
     }
     active = null;
-    if (box) box.hidden = true;
+    if (box) {
+      if (typeof box.hidePopover === "function" && box.matches(":popover-open")) box.hidePopover();
+      box.hidden = true;
+    }
   }
   function scheduleHide() {
     clearTimeout(timer);
@@ -124,6 +130,7 @@
       [...new Set([...ids, "ruleTooltip"])].join(" "),
     );
     box.hidden = false;
+    if (typeof box.showPopover === "function") box.showPopover();
     box.scrollTop = 0;
     position();
   }
@@ -296,6 +303,9 @@
       true,
     );
     window.addEventListener("resize", hide);
+    document.addEventListener("close", (event) => {
+      if (event.target instanceof HTMLDialogElement) hide();
+    }, true);
   }
   const api = { attributes, hide, show, formatText };
   root.RuleTooltips = api;
