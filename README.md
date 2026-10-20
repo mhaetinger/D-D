@@ -180,6 +180,9 @@ gastos/recuperação de recursos, equipamento, loja e histórico continuam dispo
 tem confirmação própria e respeita a permissão de edição, inclusive ao aplicar.
 Notas pessoais permanecem editáveis. Abra o cadeado para corrigir os campos e
 adicionar/editar armas, itens, características ou magias.
+Inspiração tem sua própria linha no quadro de PV. Dano detalhado registra dano
+recebido; Condições acompanha estados do personagem; Concentração acompanha
+efeitos que precisam ser mantidos e os testes causados pelo dano.
 
 Ao trocar ficha/conta ou recarregar, o cadeado volta fechado. Uma ficha nova em
 branco abre em edição para preencher. O estado não entra em backups/histórico nem

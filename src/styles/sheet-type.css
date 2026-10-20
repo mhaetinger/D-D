@@ -57,6 +57,9 @@
 #sheetViewport .combat-stat-unit { font-size:var(--sheet-secondary); font-weight:400; }
 #sheetViewport .sheet-hp-values > .sheet-value { font-size:1.3rem; font-weight:700; }
 #sheetViewport .sheet-hp-values button { font-size:var(--sheet-secondary); }
+.sheet-inspiration { flex-basis:100%; min-width:0; border-top:1px solid var(--border-main); padding-top:.5rem; }
+.sheet-inspiration > span:first-child { font-weight:700; }
+.sheet-inspiration > .rule-controls { margin-left:auto; justify-content:flex-end; }
 #sheetViewport .sheet-ability-card > span { overflow-wrap:anywhere; hyphens:auto; letter-spacing:0; line-height:1.3; }
 #sheetViewport .sheet-ability-card > button { font-size:1.75rem; }
 

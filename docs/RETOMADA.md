@@ -21,6 +21,11 @@ fluxo antigo de Criar/Ajustar ficha manual pelo perfil. A conexão foi recuperad
 a implementação `fe2dc66` foi enviada em 20/10 e a [PR #9](https://github.com/mhaetinger/D-D/pull/9)
 foi atualizada com base `develop`. Não houve merge/publicação desta etapa.
 
+**Inspiração reposicionada:** linha própria no quadro de PV, separada da
+Exaustão, sem novo cartão ou estado. Dicas explicam dano recebido, condições e
+concentração. Conferidos 385 testes Node, tipos/build e Chromium de PV e
+concentração, incluindo consumo/cancelamento e 320px/GG/três temas/dois layouts.
+
 **Cabeçalho compacto e Upar com cadeado fechado:** classes têm faixa própria,
 subclasse longa abre para leitura e identidade vira linhas no celular. Preferências
 ficam em Visual e dados, recolhidas em tela pequena; resize conserva o foco.

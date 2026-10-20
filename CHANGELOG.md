@@ -2,6 +2,17 @@
 
 ## Não lançado
 
+### Inspiração e explicações de combate — 2026-10-20
+
+- Inspiração sai da linha de Exaustão e fica em uma linha própria no quadro de
+  PV, sem criar outro cartão. Mantém receber, preparar/cancelar e usar na mesa,
+  com uma única instância nos dois layouts.
+- Títulos de Dano detalhado e Condições ganham dicas de finalidade; a ajuda de
+  Concentração começa pela explicação do que o controle acompanha.
+- Conferidos 385 testes Node, tipos/build e Chromium de PV e concentração:
+  inspiração, consumo/cancelamento, isolamento/histórico/offline e linha sem
+  transbordamento em 320px/GG, três temas e dois layouts.
+
 ### Cabeçalho compacto e evolução protegida — 2026-10-20
 
 - Classes ocupam uma faixa própria e compacta, com cores e subclasse. Texto

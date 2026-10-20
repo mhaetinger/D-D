@@ -16,6 +16,9 @@ const {confirmationActions}=require('./confirmation.cjs');
     await page.goto(server.url,{waitUntil:'networkidle'});await page.locator('#accessContinueLocal').click();
     await page.evaluate(()=>{setDiceMode('off');clearDicePool();addDieToPool(12);setTab('lore');savePrivateNotes('Nota pessoal sintética preservada.');setTab('main');});
     const button=id=>page.locator(`[data-health-action="${id}"]`),{dialog,accept,cancel}=confirmationActions(page);
+    assert.equal(await page.locator('[data-inspiration-control]').count(),1);assert.equal(await page.locator('[data-inspiration-control]').locator('..').locator('.sheet-hp-values').count(),1);assert.equal(await page.locator('[data-rule-exhaustion]').locator('..').locator('..').locator('[data-health-action^="inspiration"]').count(),0);
+    assert.match(await page.locator('[data-rule-disclosure="healthDamage"] > summary').getAttribute('title'),/dano recebido/);assert.match(await page.locator('[data-rule-disclosure="conditions"] > summary').getAttribute('title'),/envenenado/);
+    await page.locator('[data-inspiration-control]').scrollIntoViewIfNeeded();await page.screenshot({path:'/tmp/critcall-inspiration-desktop.png'});
     const spend=cls=>page.locator(`[data-health-action="hitDieSpend"][data-class="${cls}"]`).click();
     const face=n=>dialog.locator('[data-health-face]').fill(String(n));
     const physicalDeath=async n=>{await button('deathSave').click();await dialog.locator('[data-health-source]').selectOption('physical');await face(n);await accept();await dialog.waitFor({state:'hidden'});};
@@ -100,6 +103,8 @@ const {confirmationActions}=require('./confirmation.cjs');
       const damageBox=page.locator('[data-rule-disclosure="healthDamage"]');if(!await damageBox.evaluate(el=>el.open))await damageBox.locator(':scope > summary').click();
       assert.ok(await damageBox.locator('.rule-check:has([data-health-critical])').evaluate(el=>{const range=document.createRange();range.selectNodeContents(el.lastChild);return range.getBoundingClientRect().left-el.querySelector('input').getBoundingClientRect().right>=6;}),'texto do crítico separado da caixa');
       assert.equal(await page.locator('[data-health-action="inspirationUse"]').count(),1);
+      assert.equal(await page.locator('[data-inspiration-control]').count(),1);assert.equal(await page.locator('[data-inspiration-control]').evaluate(e=>e.scrollWidth>e.clientWidth),false);assert.equal(await button('inspirationUse').isVisible(),true);
+      if(layout==='classic_2014'&&theme==='pergaminho_claro'){await page.locator('[data-inspiration-control]').scrollIntoViewIfNeeded();await page.screenshot({path:'/tmp/critcall-inspiration-mobile.png'});}
     }
     await page.setViewportSize({width:1440,height:1100});await page.evaluate(()=>{setTheme('obsidiana');setFontScale(100);setTab('main');});
     await page.locator('[data-health-status]').scrollIntoViewIfNeeded();await page.screenshot({path:'/tmp/critcall-health-desktop.png'});

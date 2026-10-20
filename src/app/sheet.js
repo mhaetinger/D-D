@@ -8,7 +8,7 @@ import { featureResourceBindings, resourcesAt } from "../rules/placement";
 import { canCastNormally, canRitual, preparation, wizardPrivilege, castingRestriction, armorProficiencies } from "../rules/spellcasting";
 import { resolveSpellEffect, innateCastLevel, twinEligible } from "../rules/spell-effects";
 import { consumeInspiration, deathStatus, healHitPoints, inspirationRollMode } from '../rules/health';
-import { damageDescription, deathControls, hitDiceControls } from '../rules/health-ui';
+import { damageDescription, deathControls, hitDiceControls, inspirationControls } from '../rules/health-ui';
 import { offerSurvivalForDamage } from '../rules/damage-ui';
 import { parseDiceFormula } from '../rules/dice-formula';
 import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponDamageLabel } from '../rules/weapon-damage-ui';
@@ -1950,6 +1950,7 @@ function renderCombatBlock(char) {
               <button onclick="changeHp(5)" class="px-2 py-0.5 t-card rounded font-bold text-xs">+5</button>
             </div>
           </div>
+          <div class="sheet-inspiration rule-context rule-controls" data-inspiration-control>${inspirationControls(char)}</div>
         </div>
 
         ${deathControls(char,CharacterEngine)}

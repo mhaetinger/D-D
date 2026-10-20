@@ -4,7 +4,7 @@ import { remaining, resourcesFor, spend, refund, toggleResource, useResource, ty
 import { ability, active, escape, level, state, type Engine, type Sheet } from './model';
 import { resourcesAt } from './placement';
 import { healHitPoints, markDead, syncIncapacity } from './health';
-import { inspirationControls, setupHealthUI } from './health-ui';
+import { setupHealthUI } from './health-ui';
 import { CONDITIONS, derivedCondition, hasCondition, setCondition } from './conditions';
 import { concentration } from './concentration';
 import { concentrationControls, setupConcentrationUI } from './concentration-ui';
@@ -73,7 +73,7 @@ export function defenseControls(c:Sheet,E:Engine) {
 export function conditionControls(c:Sheet) {
   const fatigue=exhaustion(c);
   const count=CONDITIONS.filter(x=>hasCondition(c,x.id)).length;
-  return `<div class="rule-context rule-controls"><label>Exaustão <select data-rule-exhaustion aria-label="Nível de exaustão">${[0,1,2,3,4,5,6].map(n=>`<option ${n===fatigue.level?'selected':''}>${n}</option>`).join('')}</select></label>${fatigue.level?`<span>${fatigue.penalties.map(escape).join(' · ')}</span>`:''}${inspirationControls(c)}</div><details class="rule-context" data-rule-disclosure="conditions"><summary>Condições${count?` · ${count} ativa(s)`:''}</summary><div class="rule-conditions">${CONDITIONS.map(x=>{const derived=derivedCondition(c,x.id);return `<label class="rule-check" tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name:x.name,text:x.text+(derived?' Decorre do estado atual; encerre sua causa para remover.':'')}))}"><input type="checkbox" data-rule-condition="${x.id}" ${hasCondition(c,x.id)?'checked':''} ${derived?'disabled':''}><span>${x.name}${derived?' · decorrente':''}</span></label>`;}).join('')}</div><p>Concentração, impedimentos de agir/mover e falhas de FOR/DES são aplicados. Outros modos de rolagem, sentidos, alvos, dano e duração seguem a mesa; consulte cada nome.</p></details>`;
+  return `<div class="rule-context rule-controls"><label>Exaustão <select data-rule-exhaustion aria-label="Nível de exaustão">${[0,1,2,3,4,5,6].map(n=>`<option ${n===fatigue.level?'selected':''}>${n}</option>`).join('')}</select></label>${fatigue.level?`<span>${fatigue.penalties.map(escape).join(' · ')}</span>`:''}</div><details class="rule-context" data-rule-disclosure="conditions"><summary title="Marque estados como envenenado, caído ou paralisado. Consulte cada condição para conferir seus efeitos.">Condições${count?` · ${count} ativa(s)`:''}</summary><div class="rule-conditions">${CONDITIONS.map(x=>{const derived=derivedCondition(c,x.id);return `<label class="rule-check" tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name:x.name,text:x.text+(derived?' Decorre do estado atual; encerre sua causa para remover.':'')}))}"><input type="checkbox" data-rule-condition="${x.id}" ${hasCondition(c,x.id)?'checked':''} ${derived?'disabled':''}><span>${x.name}${derived?' · decorrente':''}</span></label>`;}).join('')}</div><p>Concentração, impedimentos de agir/mover e falhas de FOR/DES são aplicados. Outros modos de rolagem, sentidos, alvos, dano e duração seguem a mesa; consulte cada nome.</p></details>`;
 }
 
 export function hitDiceRecoveryControls(c:Sheet,E:Engine) {

@@ -503,6 +503,10 @@ passa a ser cobrado por `tests/audited-rules-browser.cjs` na suíte de navegador
 
 ## PV, Dados de Vida e inspiração — 19/10/2026
 
+`inspirationControls` é montado uma vez no quadro de PV, independente da linha
+de Exaustão em `conditionControls`. O estado e os eventos existentes permanecem;
+o agrupamento de ações apenas permite reorganizar a linha em telas pequenas.
+
 `src/rules/health.ts` concentra os contratos puros. `applyDamage` mantém o retorno
 de absorção existente e informa dano recebido/excesso para morte. Proteção
 externa não é dano ao personagem; temporários contam como dano a quem já está
