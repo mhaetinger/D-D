@@ -194,7 +194,18 @@ Cada controle tem um único lugar e usa a reserva compartilhada correspondente.
 Descansos recuperam conforme a origem; o longo
 pergunta sobre alimento/bebida e a adaptação de recuperar todos os Dados de Vida.
 A recuperação de metade dos Dados de Vida permite escolher a classe em multiclasse.
-Dados adicionais de ataque mostram condições; alvos e duração são controlados pelo jogador.
+Na arma, **Crítico e adicionais** reúne a composição de um acerto confirmado.
+O crítico dobra dados, inclusive Furtivo/Destruição, mantendo os bônus fixos.
+Crítico Brutal e Ataques Selvagens acrescentam seus dados uma vez; Destruição
+Divina Aprimorada já presente na fórmula não é acrescentada de novo.
+Ataque Furtivo e Colossos pedem confirmação das condições e do uso neste turno;
+alvos e turnos continuam na mesa. Destruição Divina permite escolher um espaço
+de Conjuração ou Pacto e indicar corruptor/morto-vivo, com prévia antes do gasto.
+Confirmar registra o resultado físico ou rola no modo virtual e desconta um único
+espaço. Cancelar preserva tudo; desfazer devolve o espaço. O dano virtual desse
+controle preserva o pool e a inspiração. O botão **Dano** comum continua direto.
+Armas manuais mantêm a fórmula; seu crítico dobra os dados informados, sem
+adicionais automáticos. Não controla PV do alvo, limite de ataques ou munição.
 
 Concentração tem um único estado por ficha, exibido nos PV ou no grimório
 conforme a aba aberta. Conjurar outro efeito pede confirmação antes de gastar

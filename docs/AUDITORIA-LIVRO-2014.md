@@ -8,7 +8,7 @@ A segunda passada, na base `7667ae9`, encontrou **erros reproduzíveis além das
 ausências de controles**. A prioridade passou a ser alinhar o valor mostrado com
 o rolador, corrigir bônus/escalonamento e a interação entre dano, transformação e
 descansos. Os itens 15–27 e a tabela de cenários abaixo detalham esses achados.
-Cinco etapas de correções já foram implementadas na branch de trabalho,
+Seis etapas de correções já foram implementadas na branch de trabalho,
 conforme as tabelas abaixo. O restante continua identificado como pendência.
 
 ## Primeira etapa implementada — 19/10/2026
@@ -196,6 +196,39 @@ elegibilidade, usos/recuperação, queda/concentração/Frenesi, cancelamento e
 alteração concorrente, desfazer e dados físico/virtual. Layouts/temas/320 px/GG
 e capturas desktop/celular conferidos. Sem testes unitários para cosmética simples.
 
+## Sexta etapa implementada: crítico e adicionais de arma — 20/10/2026
+
+- Uma composição por acerto, na ação **Crítico e adicionais** da arma, sem outro
+  cadastro. Crítico duplica dados da arma/Furtivo/Colossos/Destruição/Aprimorada,
+  preserva bônus fixos e acrescenta os dados individuais de Crítico Brutal e
+  Ataques Selvagens uma vez. Tipos/parcelas aparecem na prévia.
+- Ataque Furtivo exige nível próprio e arma adequada; Colossos exige Caçador
+  e escolha do nível 3. A mesa confirma vantagem/inimigo elegível, alvo ferido
+  e uso disponível neste turno. Não cria um contador por rodada incorreto.
+- Destruição Divina exige paladino 2 e ataque corpo a corpo com arma; lê os
+  espaços existentes de Conjuração/Pacto. Teto 5d8 mais 1d8 do alvo pertinente,
+  antes de duplicar no crítico. Gasta um único espaço, sem conjurar, acionar
+  proteção, exigir ação bônus ou encerrar concentração/Fúria.
+- Confirma resultado físico ou rola virtual sem alterar pool/inspiração. Prévia
+  e cancelamento não gastam; mudança de ficha/arma/documento invalida envio.
+  Gasto e resultado entram no histórico individual e podem ser desfeitos juntos.
+  Analisador de dados extraído sem mudar contrato/limites. Sem SQL ou dados reais.
+
+Fonte: PHB local, [críticos de 2014](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/combat#CriticalHits)
+e [Sage Advice de 2014](https://www.dndbeyond.com/sources/dnd/sac/sage-advice-compendium).
+O botão comum de dano e fórmulas manuais são preservados. Armas manuais só
+duplicam os dados explicitamente informados, sem bônus inferidos. Forma Selvagem,
+outros adicionais/passivos, estilos de rerrolagem, alvos/acerto/CA, duração,
+munição e limite de ataques por ação continuam manuais. Essa etapa não é um
+executor geral de combate nem certifica todos os talentos.
+
+Verificação: `npm run check`, 360 testes Node, tipos/build e 14 roteiros Chromium
+aprovados, incluindo 32 cenários auditados. Regressões novas de composição,
+elegibilidade/limites, recursos/gasto único, cancelamento/concorrência, desfazer,
+dados físico/virtual/OFF, pool/inspiração e continuidade offline. Após preservar
+a fórmula personalizada `0-3`, Node/build/roteiro de ataques passaram novamente.
+Dois layouts, três temas, 320 px/GG e capturas conferidos; diff limpo.
+
 ## Fonte, método e limites
 
 - Fonte: `public/books/livro-jogador-2014.pdf`, 314 páginas físicas,
@@ -304,12 +337,11 @@ e capturas desktop/celular conferidos. Sem testes unitários para cosmética sim
     sem tipo/origem. Fúria, traços raciais e outras resistências não reduzem esse
     dano automaticamente. Fonte: PDF 197. Pedir tipo/origem quando necessário,
     sem aplicar duas vezes uma redução já calculada pelo jogador.
-11. **Críticos e ataques extras.** Intervalo de crítico e dados adicionais são
-    mostrados, mas não há resolução completa de acerto crítico/condições nem
-    limite de ataques por ação. Ataque Furtivo e Destruição Divina apresentam
-    condições; o clique no dano comum não executa todas elas. Fontes: PDF 193–198
-    e características de classe. Preservar o cálculo comum e acrescentar escolha
-    contextual, sem outro cadastro de arma.
+11. **Críticos e ataques extras.** A sexta etapa compõe crítico, Furtivo,
+    Destruição e os adicionais enumerados acima, com escolha contextual e gasto
+    compartilhado. Acerto/condições do alvo, demais adicionais e limite de
+    ataques por ação continuam manuais. Fontes: PDF 193–198 e características
+    de classe. O clique no dano comum preserva seu comportamento anterior.
 12. **Ações/reações, cobertura e alcance.** Não existe relógio de turnos nem estado
     dos alvos. Ataque de oportunidade, combate com duas armas, agarrar/empurrar,
     combate montado/submerso, surpresa e cobertura são resolvidos na mesa.

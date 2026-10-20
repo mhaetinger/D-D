@@ -532,3 +532,45 @@ invalida a confirmação. Teste de CON compartilha proficiência/aura, inspiraç
 exaustão e modo da mesa, com `damage:false` para excluir Conjurador de Guerra.
 O dado é validado antes de rolar/gastar. `offerSurvivalForDamage` encaminha os
 atalhos de PV ao controle existente, sem consumir a defesa automaticamente.
+
+### Críticos e adicionais de armas
+
+`dice-formula.ts` extrai o analisador anterior sem mudar sua gramática, limites
+ou retorno. `sheet.js` conserva a ponte global `parseDiceFormula`; prévia e
+rolagem agora compartilham essa validação. Não há eval nem dependência nova.
+`weaponStats` expõe dado efetivo da arma, bônus fixo e origem do d8 aprimorado,
+além da fórmula já existente. Isso evita inferir o dado da arma a partir de
+adicionais ou aplicar o aprimorado duas vezes.
+
+`weapon-damage.ts` monta um plano puro de um acerto: arma, aprimorado, Furtivo,
+Colossos, Destruição, Crítico Brutal e Ataques Selvagens. Crítico duplica dados
+normais, mantém modificadores e acrescenta depois os dados próprios do crítico
+(um dado individual da arma, não toda a expressão `2d6`). Mantém parcelas/tipos
+na prévia e uma fórmula combinada para o rolador. Mínimo zero no resultado.
+Furtivo usa nível próprio/acuidade/arma à distância; usar DES por Artes Marciais
+não concede acuidade. Colossos exige a escolha do Caçador no nível 3.
+
+`smiteSlots` só lê as reservas existentes de Conjuração/Pacto, incluindo espaços
+esgotados como opções indisponíveis. Não cria espaços por multiclasse nem usa
+usos raciais/Assinatura. `commitWeaponDamage` revalida o plano e só então gasta
+um espaço; não chama efeitos de conjuração, não cria proteção e não encerra
+concentração. Destruição não é magia lançada e pode ser usada em Fúria.
+O teto é 5d8, mais 1d8 contra corruptor/morto-vivo, antes do crítico.
+
+`weapon-damage-ui.ts` substitui a consulta duplicada de adicionais por uma ação
+compacta na mesma arma. Reutiliza confirmação, balões, rolagem contida e
+animação. Alterar opções mantém os nós e não grava/gasta. Confirmação valida
+identidade, documento e arma; troca/edição concorrente invalida o envio.
+Modo físico exige total e funciona com dados OFF; virtual usa `rollWeaponFormula`,
+o motor/animação existentes sem alterar pool, vantagem de d20 ou inspiração.
+Gasto e descrição entram juntos no histórico por ficha; desfazer restaura ambos.
+
+Armas manuais não recebem adicionais inferidos: crítico duplica os dados da
+fórmula escolhida explicitamente. O botão de dano comum mantém seu contrato.
+Forma Selvagem, alvos/CA, condições para Furtivo/Colossos, turnos, munição,
+limite de ataques e outros adicionais ficam na mesa. Fontes: PHB local e
+[críticos de 2014](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/combat#CriticalHits),
+com [Sage Advice de 2014](https://www.dndbeyond.com/sources/dnd/sac/sage-advice-compendium)
+para Destruição e a distinção de arma/ataque corpo a corpo. Não aplica a ação
+bônus/restrição de usos de Destruição da edição 2024. Contratos em
+`tests/weapon-damage.test.ts` e `tests/weapon-damage-browser.cjs`.

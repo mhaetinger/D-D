@@ -2,6 +2,27 @@
 
 ## Não lançado
 
+### Crítico e adicionais de armas — 2026-10-20
+
+- A própria arma oferece composição de um acerto com prévia: crítico dobra
+  dados e mantém bônus fixos, incluindo Furtivo, Colossos e Destruição.
+  Crítico Brutal/Ataques Selvagens acrescentam seus dados uma vez; o d8 de
+  Destruição Aprimorada já presente não é repetido.
+- Destruição permite espaço de Conjuração/Pacto, teto e alvo pertinentes,
+  descontando um só espaço após confirmar. Não é conjuração nem ação bônus.
+  Furtivo/Colossos exigem confirmação das condições/uso neste turno pela mesa.
+- Resultado físico funciona com dados OFF; virtual preserva pool/inspiração.
+  Cancelar ou alterar ficha/arma durante a confirmação não gasta. Histórico e
+  desfazer incluem resultado/espaço juntos; notas e outras fichas preservadas.
+- Analisador de dados compartilhado com os contratos anteriores. Botão comum
+  continua direto; fórmulas manuais não recebem adicionais inferidos. Limites
+  e fontes na auditoria; sem SQL/RLS/RPC, migração ou dados reais alterados.
+- Verificação: `npm run check`, 360 testes Node, tipos/build e 14 roteiros
+  Chromium aprovados, com 32 cenários auditados. Após preservar também `0-3`
+  como fórmula personalizada, Node/build/roteiro de ataques passaram novamente.
+  Conferidos composição/gasto único, cancelamento/concorrência, desfazer, dados,
+  notas/fichas/offline, dois layouts/três temas/320 px/GG e capturas.
+
 ### Defesas condicionais e prevenção de queda — 2026-10-20
 
 - Maestria em Armadura Pesada reduz dano físico elegível; Esquiva Sobrenatural

@@ -15,7 +15,25 @@ Não mesclar/publicar esta revisão sem aprovação. A branch remota `develop`
 foi restaurada após a entrega na referência de integração já aprovada
 `b1155fbc5d14a566f548814bd808374aa2383721`, merge da PR #7.
 
-**Estado atual, quinta etapa da auditoria:** o dano detalhado também reconhece
+**Estado atual, sexta etapa da auditoria:** **Crítico e adicionais** na própria
+arma monta um acerto com Furtivo, Colossos, Destruição, Aprimorada e extras do
+crítico. Duplica dados, mantém bônus fixos e gasta um único espaço existente de
+Conjuração/Pacto, após confirmar resultado físico ou rolar virtual. Cancelamento
+ou alteração concorrente preserva o documento. Pool, inspiração, notas e outras
+fichas são preservados; gasto/resultado entram juntos no histórico/desfazer.
+O botão comum de dano continua direto. Turnos, alvos, limite de ataques, outros
+passivos e Forma Selvagem ainda são manuais. Contratos em `weapon-damage.ts`,
+`weapon-damage-ui.ts` e `dice-formula.ts`, em `src/rules/`; testes correspondentes
+em `tests/`. Não houve SQL, migração ou alteração de dados reais.
+
+Verificação desta etapa: `npm run check`, 360 testes Node, tipos/build e 14
+roteiros Chromium aprovados, incluindo 32 cenários auditados. Após o último
+ajuste de compatibilidade da fórmula personalizada `0-3`, Node/build/roteiro
+de ataques passaram novamente. Prévia/recursos/cancelamento/concorrência,
+desfazer, modos de dado, pool/inspiração, notas/fichas/offline e dois layouts/
+três temas/320 px/GG conferidos, com capturas desktop/celular e diff limpo.
+
+**Quinta etapa, já concluída:** o dano detalhado também reconhece
 Maestria em Armadura Pesada, Esquiva Sobrenatural e DES para metade/Evasão.
 Usa classe/nível/escolha estruturados, origem e condições; a mesa confirma
 visão/reação e a ordem de reduções/metade. Resistência/Fúria Implacável aparecem

@@ -65,7 +65,7 @@ export function weaponStats(c: Sheet, entry: Sheet, E: Engine):WeaponResult {
   if (selections(c,E,'hunter').includes('Assassino de Colossos')) extras.push({name:'Assassino de Colossos',formula:'1d8',condition:'Uma vez por turno, contra criatura que já está abaixo dos PV máximos.'});
   if (meleeAttack && level(c,'barbaro') >= 9) extras.push({name:'Crítico Brutal',formula:`${level(c,'barbaro') >= 17 ? 3 : level(c,'barbaro') >= 13 ? 2 : 1}d${die.match(/d(\d+)/)?.[1] || 6}`,condition:'Somente no acerto crítico corpo a corpo; não exige Fúria.'});
   const critical = subclass(c,'guerreiro',E) === 'campeao' && level(c,'guerreiro') >= 3 ? level(c,'guerreiro') >= 15 ? 18 : 19 : 20;
-  return { ...entry, ruleWeapon:w.name, proficient, magicBonus:magic, bonus:(attack >= 0 ? '+' : '')+attack, damage, dmgTypeLabel:w.damageType, properties:w.properties, category:w.kind, critical, ability:key, extras,
+  return { ...entry, ruleWeapon:w.name, proficient, magicBonus:magic, bonus:(attack >= 0 ? '+' : '')+attack, damage, weaponDie:die, damageBonus, improvedSmite:!!improvedSmite, meleeAttack, rangedWeapon, dmgTypeLabel:w.damageType, properties:w.properties, category:w.kind, critical, ability:key, extras,
     explanation:`Ataque: ${key.toUpperCase()} ${modifier >= 0 ? '+' : ''}${modifier} + proficiência ${pb} + magia ${magic} + Arquearia ${archery} + Arma Sagrada ${sacred}${entry.attackAdjustment ? ' + ajuste '+entry.attackAdjustment : ''} = ${attack}. Dano: ${die}${improvedSmite} + habilidade ${modifier} + magia ${magic} + Fúria ${rage} + Duelismo ${duel}${entry.damageAdjustment ? ' + ajuste '+entry.damageAdjustment : ''}. ${w.properties}. Crítico: ${critical}–20.` };
 }
 

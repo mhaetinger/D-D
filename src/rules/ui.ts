@@ -8,6 +8,7 @@ import { inspirationControls, setupHealthUI } from './health-ui';
 import { CONDITIONS, derivedCondition, hasCondition, setCondition } from './conditions';
 import { concentration } from './concentration';
 import { concentrationControls, setupConcentrationUI } from './concentration-ui';
+import { setupWeaponDamageUI } from './weapon-damage-ui';
 
 export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
   const number = (n:number) => Number.isFinite(n)?n:'∞';
@@ -110,6 +111,7 @@ export function setupRuleUI(E: Engine) {
   const host = window as any, save=saveRuleStep;
   setupHealthUI(E,save);
   setupConcentrationUI(E,save);
+  setupWeaponDamageUI(E,save);
   const rand = (sides:number) => 1+Math.floor(Math.random()*sides);
   document.addEventListener('change',event=>{
     const input = event.target as HTMLInputElement;

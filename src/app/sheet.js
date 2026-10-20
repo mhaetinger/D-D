@@ -10,6 +10,7 @@ import { resolveSpellEffect, innateCastLevel, twinEligible } from "../rules/spel
 import { consumeInspiration, deathStatus, healHitPoints, inspirationRollMode } from '../rules/health';
 import { damageDescription, deathControls, hitDiceControls } from '../rules/health-ui';
 import { offerSurvivalForDamage } from '../rules/damage-ui';
+import { parseDiceFormula } from '../rules/dice-formula';
 import { applyCastConcentration, concentration, concentrationBlock, incapacityReason, needsConcentrationConfirmation, spellConcentration, validateConcentrationStart } from '../rules/concentration';
 import { concentrationControls } from '../rules/concentration-ui';
 import { automaticSaveFailure } from '../rules/conditions';
@@ -625,38 +626,6 @@ function confirmDestructiveAction(title, message, label = "Excluir", extra = nul
   });
 }
 
-// Analisa dados sem eval. Limites de 100 dados e modificador de 10.000
-// protegem o rolador de entradas acidentais; não são limites das regras de D&D.
-function parseDiceFormula(value) {
-  const clean = String(value ?? "").toLowerCase().replace(/\s+/g, "");
-  if (!clean || clean.length > 200 || !/^(?:\d*d\d+|\d+)(?:[+-](?:\d*d\d+|\d+))*$/.test(clean)) return null;
-  const counts = {};
-  const normalized = [];
-  let modifier = 0;
-  let totalDice = 0;
-  for (const match of clean.matchAll(/([+-]?)(\d*d\d+|\d+)/g)) {
-    const sign = match[1] === "-" ? -1 : 1;
-    const term = match[2];
-    if (term.includes("d")) {
-      const [countText, sidesText] = term.split("d");
-      const count = Number(countText || 1);
-      const sides = Number(sidesText);
-      if (sign < 0 || !Number.isSafeInteger(count) || count < 1 || ![4, 6, 8, 10, 12, 20, 100].includes(sides)) return null;
-      totalDice += count;
-      if (totalDice > 100) return null;
-      counts[sides] = (counts[sides] || 0) + count;
-      normalized.push(`${normalized.length ? "+" : ""}${count}d${sides}`);
-    } else {
-      const number = Number(term);
-      if (!Number.isSafeInteger(number) || number > 10000) return null;
-      modifier += sign * number;
-      if (Math.abs(modifier) > 10000) return null;
-      normalized.push(`${normalized.length && sign > 0 ? "+" : sign < 0 ? "-" : ""}${number}`);
-    }
-  }
-  return { formula: normalized.join(""), counts, modifier };
-}
-
 function getChar() {
   return characters[activeCharIndex];
 }
@@ -1141,6 +1110,14 @@ function rollRuleDie(sides,label,mode='normal') {
   if(diceMode==='off') throw new Error('Dados virtuais desativados: registre o resultado do dado físico.');
   const result=evaluateDicePool({[sides]:1},0,mode);
   presentDiceResult(result,label);return result.total;
+}
+// Dano contextual usa a bandeja/animação, preservando o pool manual e sem
+// aplicar vantagem de d20 ou gastar inspiração em uma jogada de dano.
+function rollWeaponFormula(formula,label) {
+  if(diceMode==='off')throw new Error('Dados virtuais desativados: registre o resultado físico.');
+  const parsed=parseDiceFormula(formula);if(!parsed)throw new Error('Fórmula de dano inválida; nenhum espaço foi gasto.');
+  const result=evaluateDicePool(parsed.counts,parsed.modifier,'normal');
+  result.total=Math.max(0,result.total);presentDiceResult(result,label);return result;
 }
 function rollQuickD20() {
   if (diceMode === "off") return;
@@ -1997,7 +1974,7 @@ function renderAttacksBlock(char) {
                 </div>
                 <span class="text-[11px] t-text-muted block">${escapeHTML(w.notes)}${w.critical?` · Crítico ${w.critical}–20`:''}</span>
                 ${w.ruleWeapon && /vers[aá]til/i.test(w.properties || '') ? `<label>Mãos <select data-weapon-hands="${idx}" onchange="setWeaponHands(${idx},this.value)" aria-label="Mãos para ${escapeHTML(w.name)}"><option value="1" ${storedWeapon.hands!==2?'selected':''}>1 mão</option><option value="2" ${storedWeapon.hands===2?'selected':''}>2 mãos</option></select></label>`:''}
-                ${w.extras?.length?`<details><summary>Danos adicionais · condições</summary>${w.extras.map(extra=>`<p><strong>${escapeHTML(extra.name)} ${escapeHTML(extra.formula)}</strong> · ${escapeHTML(extra.condition)}</p>`).join('')}</details>`:''}
+                ${validDamage && w.damage!=='0'?`<button type="button" data-rule-weapon-damage="${idx}" class="mt-1 underline decoration-dotted text-left" aria-label="Crítico e adicionais de ${escapeHTML(w.name)}">Crítico e adicionais</button>`:''}
               </div>
               <div class="ml-auto flex max-w-full shrink-0 flex-wrap items-center justify-end gap-1.5 whitespace-nowrap">
                 <button onclick="rollWeapon(${idx}, 'attack')" class="px-2 py-1 badge-feiticeiro rounded font-bold">
@@ -3166,6 +3143,7 @@ Object.assign(window, {
   confirmDestructiveAction,
   ruleDiceSettings,
   rollRuleDie,
+  rollWeaponFormula,
   parseDiceFormula,
   getChar,
   loadHistoryState,

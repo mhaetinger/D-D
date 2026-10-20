@@ -21,10 +21,10 @@
 .rule-hit-dice > div { padding:.4rem .5rem; justify-content:space-between; }
 .rule-dialog-fields { display:flex; flex-direction:column; gap:.7rem; }
 .rule-dialog-fields > label { display:flex; align-items:center; flex-wrap:wrap; gap:.4rem; }
-.rule-dialog-fields [hidden] { display:none; }
 .rule-check { display:inline-flex; align-items:center; gap:.5rem; }
 .rule-check input[type=checkbox] { margin:0; width:1rem; height:1rem; }
 .rule-dialog-fields > .rule-check { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:start; }
+.rule-dialog-fields [hidden] { display:none; }
 .rule-context button:disabled { opacity:.45; }
 .rule-context [aria-pressed=true] { outline:2px solid var(--text-main); outline-offset:1px; }
 .rule-concentration { flex-basis:100%; overflow-wrap:anywhere; }
