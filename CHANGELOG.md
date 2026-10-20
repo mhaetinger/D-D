@@ -30,6 +30,10 @@
   físico/virtual/OFF, talentos/inspiração, condições/Fúria/sono, ficha antiga
   a 0 PV, callbacks obsoletos, nós/foco, notas/histórico, isolamento e offline.
   Três temas/320 px/GG e capturas desktop/celular conferidos; diff sem whitespace.
+- O roteiro de concentração aguarda o evento nativo de fechamento e sua
+  continuação antes de conferir a ficha; o estado oculto do diálogo ocorre
+  antes dessa conclusão e causava uma leitura prematura em uma execução da CI.
+  Roteiro aprovado novamente no build final após o ajuste da espera.
 
 ### Dados de Vida, morte/estabilidade e inspiração — 2026-10-19
 

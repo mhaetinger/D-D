@@ -12,7 +12,15 @@ const E=require('../public/rules/character-engine');
     await page.addInitScript(c=>{window.concentrationFixture=c;if(!localStorage.getItem('concentrationSeeded')){localStorage.setItem('critcall_characters_v1',JSON.stringify({schemaVersion:1,characters:[c]}));localStorage.setItem('concentrationSeeded','1');}},c);
     await page.goto(server.url,{waitUntil:'networkidle'});await page.locator('#accessContinueLocal').click();
     await page.evaluate(()=>{setDiceMode('off');setTab('lore');savePrivateNotes('Nota sintética de concentração.');setTab('main');});
-    const dialog=page.locator('#confirmationDialog'),accept=()=>page.locator('#confirmationAccept').click(),cancel=()=>dialog.getByRole('button',{name:'Cancelar',exact:true}).click();
+    const dialog=page.locator('#confirmationDialog');
+    // O diálogo já fica oculto antes de disparar `close`. Aguarde também a
+    // continuação da confirmação, sem usar um atraso fixo ou ler o estado cedo.
+    const chooseConfirmation=async button=>{
+      await page.evaluate(()=>{window.concentrationDialogClosed=new Promise(resolve=>document.getElementById('confirmationDialog').addEventListener('close',()=>queueMicrotask(resolve),{once:true}));});
+      await button.click();
+      if(!await dialog.evaluate(el=>el.open))await page.evaluate(()=>window.concentrationDialogClosed);
+    };
+    const accept=()=>chooseConfirmation(page.locator('#confirmationAccept')),cancel=()=>chooseConfirmation(dialog.getByRole('button',{name:'Cancelar',exact:true}));
     const panel=page.locator('[data-concentration-control]'),action=id=>page.locator(`[data-concentration-action="${id}"]`);
     const main=()=>page.evaluate(()=>setTab('main'));
     const cast=async i=>{await page.evaluate(()=>setTab('spells'));await page.locator(`[data-cast-spell="${i}"]`).click();};
