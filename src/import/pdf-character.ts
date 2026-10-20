@@ -25,10 +25,12 @@ export function pdfToBackup(pdf:CharacterPdf,E:Engine):Backup {
   const speed=value('Speed','Deslocamento').match(/\d+(?:[.,]\d+)?/);c.speed=speed?Number(speed[0].replace(',','.')):undefined;
   c.rules.raceId=matchOption(c.race,E.options.races)||undefined;
   const header=value('ClassLevel','Class','Classe e nível','Classe'),level=value('Level','Nível');
-  for(const piece of header.split(/[|/;,+]/).filter(Boolean)) {
+  const classPieces=header.split(/[|/;,+]/).filter(s=>s.trim());
+  for(const piece of classPieces) {
     const match=piece.trim().match(/^(.*?)(?:\s+(\d{1,2}))?$/);if(!match)continue;
     const id=matchOption(match[1],E.data.classes);if(!id)continue;
-    const n=integer(match[2]||level);
+    // Um nível geral do cabeçalho não informa quantos níveis há em cada classe.
+    const n=integer(match[2]||(classPieces.length===1?level:''));
     c.classes.push({classId:id,level:n??0,subclass:'',subclassId:'',hitDie:E.data.classes[id].die,hitDiceUsed:0});
   }
   if(c.classes.length===1) {

@@ -35,7 +35,7 @@ export async function reviewImport(original:Backup,E:Engine,isCurrent:()=>boolea
     return options(meta?.subclasses||{},valid?cls.subclassId:'',meta&&cls.level<meta.subLevel?'Ainda sem subclasse':'Escolha a subclasse…')+`<option value="manual" ${cls._importManualSub?'selected':''}>Manter manual / escolher depois</option>`;
   }
   function classRow(cls:Sheet,i:number) {
-    return `<div class="import-class-row" data-import-class-row="${i}"><label>Classe<select required data-import-field="classes.${i}.classId">${options(E.data.classes,cls.classId)}</select></label>${input(char(),`classes.${i}.level`,'Nível','number',true,1,20)}<label>Subclasse<select data-import-subclass="${i}">${subclassOptions(cls)}</select></label></div>`;
+    return `<div class="import-class-row" data-import-class-row="${i}"><label>Classe<select required data-import-field="classes.${i}.classId">${options(E.data.classes,cls.classId)}</select></label>${input(char(),`classes.${i}.level`,'Nível','number',true,1,20)}<label>Subclasse<select data-import-subclass="${i}">${subclassOptions(cls)}</select></label><button type="button" data-import-remove-class="${i}" ${char().classes.length<2?'disabled':''}>Remover esta classe</button></div>`;
   }
   function render() {
     const c=char();c.rules ||= {history:[],legacy:true};
@@ -85,7 +85,9 @@ export async function reviewImport(original:Backup,E:Engine,isCurrent:()=>boolea
   });
   body.addEventListener('click',e=>{
     const target=e.target as HTMLElement,c=char();
-    if(target.closest('[data-import-add-class]')) {const i=c.classes.length;if(i>=12)return;c.classes.push({classId:'',level:1,subclass:'',subclassId:'',hitDie:6,hitDiceUsed:0});body.querySelector('[data-import-classes]')!.insertAdjacentHTML('beforeend',classRow(c.classes[i],i));body.querySelector<HTMLInputElement>(`[data-import-field="classes.${i}.classId"]`)!.focus();}
+    if(target.closest('[data-import-add-class]')) {const i=c.classes.length;if(i>=12)return;c.classes.push({classId:'',level:1,subclass:'',subclassId:'',hitDie:6,hitDiceUsed:0});body.querySelector('[data-import-classes]')!.insertAdjacentHTML('beforeend',classRow(c.classes[i],i));body.querySelectorAll<HTMLButtonElement>('[data-import-remove-class]').forEach(e=>e.disabled=false);body.querySelector<HTMLInputElement>(`[data-import-field="classes.${i}.classId"]`)!.focus();}
+    const remove=target.closest<HTMLButtonElement>('[data-import-remove-class]');
+    if(remove && c.classes.length>1){const index=Number(remove.dataset.importRemoveClass);c.classes.splice(index,1);body.querySelector('[data-import-classes]')!.innerHTML=c.classes.map(classRow).join('');body.querySelectorAll<HTMLSelectElement>('[data-import-subclass]').forEach(e=>{const cls=c.classes[Number(e.dataset.importSubclass)];e.required=cls.level>=(E.data.classes[cls.classId]?.subLevel??99);});body.querySelectorAll<HTMLSelectElement>('[data-import-origin]').forEach(e=>{const s=c.spells[Number(e.dataset.importOrigin)];e.innerHTML=options(classes(c),s.classId||'','Confirme a origem…');});body.querySelector<HTMLInputElement>(`[data-import-field="classes.${Math.min(index,c.classes.length-1)}.classId"]`)!.focus();updateStatus();updatePreviews();}
     if(target.closest('[data-import-pools]')) {suggestPdfPools(c,E);body.querySelectorAll<HTMLInputElement>('[data-import-field^="standardSlots."],[data-import-field^="pactMagic."],[data-import-field^="sorceryPoints."]').forEach(input=>{const path=input.dataset.importField!;if(path.startsWith('standardSlots.')){const level=path.split('.')[1];c.standardSlots[level]||={total:0,used:0};}input.value=String(at(c,path)??0);});}
   });
   render();

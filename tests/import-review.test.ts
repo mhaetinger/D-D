@@ -28,6 +28,7 @@ test('PDF com campos de layout 2024 importa seus valores sem trocar regras',()=>
 test('PDF não inventa nível, atributos, CA ou origem quando ausentes',()=>{
  const c=pdfToBackup(pdf({CharacterName:'Incompleta',Class:'Mago','Spells 1014':'Magia desconhecida inventada'}),E).characters[0] as any;
  assert.equal(c.classes[0].level,0);assert.equal(c.abilities.str.score,undefined);assert.equal(c.baseAcArmor,undefined);assert.equal(c.spells[0].circle,undefined);assert.throws(()=>validateImport(c,E));
+ const multi=pdfToBackup(pdf({CharacterName:'Multiclasse sem distribuição',Class:'Feiticeiro | Bruxo',Level:'7'}),E).characters[0] as any;assert.deepEqual(multi.classes.map((x:any)=>x.level),[0,0]);
 });
 test('origem especial, preparo acima do limite e usos inconsistentes são verificados',()=>{
  const c=warrior();c.classes=[{classId:'paladino',level:2,subclass:'',subclassId:''}];c.spells=[E.toSheetSpell(E.spell('Raio de Fogo'),'paladino')];
