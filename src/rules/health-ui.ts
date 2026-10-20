@@ -1,4 +1,6 @@
-import { applyDamage } from './combat';
+import { applyDamage, applyTypedDamage } from './combat';
+import { damageControls, readDamagePacket, setupDamageUI } from './damage-ui';
+import { typedDamageSummary } from './damage';
 import { consumeInspiration, deathSaveBonus, deathStatus, hitDiceRemaining, hitPointMaximum, inspirationRollMode, resolveDeathSave, returnToLife, songOfRestDie, spendHitDie, stabilize, validateHitDie } from './health';
 import { ability, active, escape, state, type Engine, type Sheet } from './model';
 
@@ -12,7 +14,7 @@ export function deathControls(c:Sheet) {
   const d=deathStatus(c),shape=active(c,'druida:wildShape');
   const help=tip('Caindo a 0 PV','Três sucessos estabilizam e zeram as contagens; três falhas matam. 1 natural vale duas falhas; 20 natural recupera 1 PV. Dano a 0 PV causa uma falha, duas se crítico, mesmo quando absorvido por temporários. Proteção externa impede esse dano. Cura comum não revive. Estabilize somente após o efeito ou Medicina CD 10 resolvido na mesa.');
   const controls=d.dead?`<strong role="status" ${help}>Morto</strong>${action('revive','Registrar retorno à vida')}`:c.hpCurrent===0 && !shape?`<div role="status"><strong ${help}>${d.stable?'Estável · inconsciente':'Inconsciente · 0 PV'}</strong>${!d.stable?`<span> · Sucessos ${d.successes}/3 · Falhas ${d.failures}/3</span>`:''}</div>${!d.stable?`${action('deathSave','Teste contra a morte')}${action('stabilize','Registrar estabilização')}`:'<span>Não realiza testes contra a morte. Cura ou 1 PV após 1d4 horas encerra a inconsciência; registre a recuperação nos PV.</span>'}`:'';
-  return `${controls?`<div class="rule-context rule-controls" data-health-status>${controls}</div>`:''}${!d.dead?`<details class="rule-context" data-rule-disclosure="healthDamage"><summary>Dano detalhado</summary><div class="rule-controls"><label>Dano <input type="number" min="1" step="1" data-health-damage aria-label="Dano recebido"></label><label class="rule-check"><input type="checkbox" data-health-critical> Acerto crítico</label>${action('damage','Aplicar dano')}</div><p class="t-text-muted">Informe o dano final, após resistências e reduções da mesa. A ficha desconta proteção, temporários e forma; crítico a 0 PV conta duas falhas.</p></details>`:''}`;
+  return `${controls?`<div class="rule-context rule-controls" data-health-status>${controls}</div>`:''}${!d.dead?damageControls(c):''}`;
 }
 export function hitDiceControls(c:Sheet,E:Engine) {
   return `<div class="rule-context space-y-1.5"><p class="font-bold t-text-muted" ${tip('Dados de Vida · descanso curto','No fim de um descanso curto de ao menos 1 hora, gaste um Dado de Vida por vez e some Constituição, mínimo 0 de cura. Você pode decidir gastar outro depois do resultado. A 0 PV, resolva a estabilização antes de registrar esse descanso. Em multiclasse, escolha a classe. Resistente aplica o mínimo do talento. Canção do Descanso exige ouvir a atuação e só acrescenta uma vez no descanso. Não conclui outro descanso nem recupera recursos de classe.')}>Dados de Vida · descanso curto</p><div class="rule-hit-dice">${c.classes.map((cls:Sheet)=>`<div class="t-inset rule-controls"><span><strong>${hitDiceRemaining(cls)}/${cls.level}d${Number(cls.hitDie)||'?'}</strong> · ${escape(E.data.classes[cls.classId]?.name || cls.classId)}</span>${action('hitDieSpend','Gastar',!hitDiceRemaining(cls) || deathStatus(c).dead || c.hpCurrent<=0 && !active(c,'druida:wildShape') && !deathStatus(c).stable,`data-class="${escape(cls.classId)}" aria-label="Gastar Dado de Vida de ${escape(E.data.classes[cls.classId]?.name || cls.classId)}"`)}</div>`).join('')}</div></div>`;
@@ -39,6 +41,7 @@ export function chooseDieSource(controls:HTMLElement) {
 }
 export function setupHealthUI(E:Engine,save:(description:string)=>void) {
   const host=window as any;
+  setupDamageUI(E);
   const sourceControls=dieSourceControls,chooseSource=chooseDieSource;
   document.addEventListener('click',async event=>{
     const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-health-action]');
@@ -47,7 +50,12 @@ export function setupHealthUI(E:Engine,save:(description:string)=>void) {
     const id=button.dataset.healthAction;
     try {
       if(id==='damage') {
-        const controls=button.closest('details')!,input=controls.querySelector<HTMLInputElement>('[data-health-damage]')!,n=Number(input.value),critical=controls.querySelector<HTMLInputElement>('[data-health-critical]')!.checked;
+        const controls=button.closest<HTMLElement>('[data-damage-controls]')!;
+        if(controls.querySelector<HTMLSelectElement>('[data-damage-mode]')!.value==='typed') {
+          const result=applyTypedDamage(c,readDamagePacket(controls),E);if(!c.hpTemp)c.hpTempSource='';
+          save(`Dano por tipo · ${typedDamageSummary(result)} · ${damageDescription(c,result.absorption,result.received,result.critical)}`);return;
+        }
+        const input=controls.querySelector<HTMLInputElement>('[data-health-damage]')!,n=Number(input.value),critical=controls.querySelector<HTMLInputElement>('[data-health-critical]')!.checked;
         if(!Number.isInteger(n) || n<=0) throw new Error('Informe um dano inteiro maior que zero.');
         const result=applyDamage(c,n,{critical});if(!c.hpTemp)c.hpTempSource='';
         save(damageDescription(c,result,n,critical));return;

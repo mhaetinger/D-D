@@ -2,6 +2,35 @@
 
 ## Não lançado
 
+### Dano por tipo e defesas reconhecidas — 2026-10-20
+
+- O controle de dano detalhado permite escolher a origem e até 13 tipos distintos
+  da mesma ocorrência. Prévia explica proteção, redução, resistência/imunidade,
+  vulnerabilidade e total; crítico é informado com seus dados já rolados.
+  Resistências repetidas não acumulam e vulnerabilidade dobra depois de arredondar.
+- Integra fontes verificadas de Fúria/Urso, Proteção contra Lâminas, petrificação,
+  resistências raciais estruturadas e algumas características/estados de classe.
+  Origem de magia não equivale a toda fonte mágica; arma mágica/prata só ignora
+  a Resistência Demoníaca pertinente. Matriz e limites na auditoria do livro.
+- Proteção Arcana absorve antes das defesas próprias de 2014. Em dano misto, a
+  ordem escolhida pela mesa determina sua alocação, com setas e prévia. Depois,
+  o total usa temporários/PV e gera uma única ocorrência de concentração/morte.
+  Imunidade ou redução a zero não gera teste/falhas pelo dano inexistente.
+- Ajustes da mesa valem só para aquela ocorrência. Digitar/selecionar atualiza a
+  prévia sem reconstruir a ficha ou gastar reservas. Controles de ordem/prata
+  aparecem quando pertinentes. Resultado permanece no histórico por ficha;
+  notas, outras fichas, documentos anteriores e uso offline são preservados.
+- Modo já resolvido e atalhos mantêm o contrato anterior. Forma Selvagem/excesso,
+  outras defesas de itens/magias, Maestria em Armadura Pesada, testes de
+  resistência, reações e características para evitar 0 PV seguem na mesa.
+  Sem alteração de banco, autenticação, catálogos gerados ou dados reais.
+- Verificação final: `npm run check`, 342 testes Node, tipos/build e os 13
+  roteiros Chromium aprovados, incluindo 32 cenários auditados. Regressões de
+  fontes/limites, resistência/vulnerabilidade/imunidade, mistura/ordem/proteção,
+  temporários, concentração/morte uma vez, ajustes, nós/foco, modo resolvido/
+  forma, notas/histórico/fichas, recarga/offline e três temas/320 px/GG.
+  Capturas desktop/celular conferidas; `git diff --check` sem problemas.
+
 ### Concentração e condições de 2014 — 2026-10-20
 
 - Estado único de concentração por ficha, nos PV ou no grimório conforme a aba.

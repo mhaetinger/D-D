@@ -1931,8 +1931,8 @@ function renderCombatBlock(char) {
           <div>
             <span class="text-[10px] uppercase t-text-muted block">Pontos de Vida Atuais / Máximos</span>
             <div class="flex items-center gap-1.5 mt-1">
-              <button onclick="changeHp(-1)" class="px-2 py-0.5 t-card rounded font-bold text-xs">-1</button>
-              <button onclick="changeHp(-5)" class="px-2 py-0.5 t-card rounded font-bold text-xs">-5</button>
+              <button onclick="changeHp(-1)" title="Dano já resolvido pela mesa. Para resistências automáticas, use Dano detalhado → Calcular por tipo." class="px-2 py-0.5 t-card rounded font-bold text-xs">-1</button>
+              <button onclick="changeHp(-5)" title="Dano já resolvido pela mesa. Para resistências automáticas, use Dano detalhado → Calcular por tipo." class="px-2 py-0.5 t-card rounded font-bold text-xs">-5</button>
               <span class="text-lg font-extrabold px-2">${char.hpCurrent} / ${effective.hpMax}</span>
               <button onclick="changeHp(1)" class="px-2 py-0.5 t-card rounded font-bold text-xs">+1</button>
               <button onclick="changeHp(5)" class="px-2 py-0.5 t-card rounded font-bold text-xs">+5</button>

@@ -26,7 +26,7 @@ const E=require('../public/rules/character-engine');
     const cast=async i=>{await page.evaluate(()=>setTab('spells'));await page.locator(`[data-cast-spell="${i}"]`).click();};
     const open=async()=>{if(!await panel.evaluate(el=>el.open))await panel.locator('summary').click();};
     const reset=()=>page.evaluate(()=>{characters.splice(0,characters.length,structuredClone(window.concentrationFixture));switchCharacter(0);recordStepAndSave('Reiniciou fixture de concentração');setDiceMode('off');setRollMode('normal');setTab('main');});
-    const damage=async n=>{await main();const box=page.locator('[data-rule-disclosure="healthDamage"]');if(!await box.evaluate(el=>el.open))await box.locator('summary').click();await box.locator('[data-health-damage]').fill(String(n));await page.locator('[data-health-action="damage"]').click();};
+    const damage=async n=>{await main();const box=page.locator('[data-rule-disclosure="healthDamage"]');if(!await box.evaluate(el=>el.open))await box.locator(':scope > summary').click();await box.locator('[data-health-damage]').fill(String(n));await page.locator('[data-health-action="damage"]').click();};
     const physical=async face=>{await action('check').click();await dialog.locator('[data-health-source]').selectOption('physical');await dialog.locator('[data-health-face]').fill(String(face));await accept();await dialog.waitFor({state:'hidden'});};
     // Ficha antiga a zero não exige uma migração que regrave seus dados.
     await page.evaluate(()=>{getChar().hpCurrent=0;recordStepAndSave('Legado sintético a zero');});

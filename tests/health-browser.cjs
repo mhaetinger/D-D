@@ -20,7 +20,7 @@ const {warrior}=require('./fixture.cjs');
     const face=n=>dialog.locator('[data-health-face]').fill(String(n));
     const physicalDeath=async n=>{await button('deathSave').click();await dialog.locator('[data-health-source]').selectOption('physical');await face(n);await accept();await dialog.waitFor({state:'hidden'});};
     const damage=async(n,critical=false)=>{
-      const details=page.locator('[data-rule-disclosure="healthDamage"]');if(!await details.evaluate(el=>el.open))await details.locator('summary').click();
+      const details=page.locator('[data-rule-disclosure="healthDamage"]');if(!await details.evaluate(el=>el.open))await details.locator(':scope > summary').click();
       await details.locator('[data-health-damage]').fill(String(n));await details.locator('[data-health-critical]').setChecked(critical);await button('damage').click();
     };
     // Cancelar/erro/rolagem física não gastam por acidente nem usam o pool montado.
@@ -97,8 +97,8 @@ const {warrior}=require('./fixture.cjs');
       await page.setViewportSize({width:320,height:800});await page.evaluate(({layout,theme})=>{getChar().preferredLayout=layout;setTheme(theme);setFontScale(125);setTab('main');}, {layout,theme});
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
       await button('deathSave').click();assert.equal(await dialog.evaluate(el=>el.scrollWidth>el.clientWidth),false);await cancel();
-      const damageBox=page.locator('[data-rule-disclosure="healthDamage"]');if(!await damageBox.evaluate(el=>el.open))await damageBox.locator('summary').click();
-      assert.ok(await damageBox.locator('.rule-check').evaluate(el=>{const range=document.createRange();range.selectNodeContents(el.lastChild);return range.getBoundingClientRect().left-el.querySelector('input').getBoundingClientRect().right>=6;}),'texto do crítico separado da caixa');
+      const damageBox=page.locator('[data-rule-disclosure="healthDamage"]');if(!await damageBox.evaluate(el=>el.open))await damageBox.locator(':scope > summary').click();
+      assert.ok(await damageBox.locator('.rule-check:has([data-health-critical])').evaluate(el=>{const range=document.createRange();range.selectNodeContents(el.lastChild);return range.getBoundingClientRect().left-el.querySelector('input').getBoundingClientRect().right>=6;}),'texto do crítico separado da caixa');
       assert.equal(await page.locator('[data-health-action="inspirationUse"]').count(),1);
     }
     await page.setViewportSize({width:1440,height:1100});await page.evaluate(()=>{setTheme('obsidiana');setFontScale(100);setTab('main');});

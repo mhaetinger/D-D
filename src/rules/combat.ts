@@ -2,6 +2,7 @@ import { ability, active, level, norm, proficiency, selections, subclass, type E
 import { hitPointMaximum, syncIncapacity, trackDamageAtZero } from './health';
 import { queueConcentrationDamage } from './concentration';
 import { conditionSpeed } from './conditions';
+import { arcaneWardPoints, previewTypedDamage, type DamagePacket } from './damage';
 
 const aliases: Record<string,string> = { warhammer:'Martelo de guerra', longsword:'Espada longa', shortsword:'Espada curta', dagger:'Adaga', quarterstaff:'Bordão', rapier:'Rapieira', handaxe:'Machadinha', greataxe:'Machado grande', longbow:'Arco longo', shortbow:'Arco curto', 'light crossbow':'Besta leve', 'heavy crossbow':'Besta pesada' };
 export function catalogueWeapon(entry: Sheet, E: Engine) {
@@ -105,11 +106,21 @@ export function exhaustion(c: Sheet) {
 export function applyDamage(c: Sheet, amount: number, options={critical:false}) {
   if (!Number.isFinite(amount)) throw new Error('Informe uma quantidade finita de dano.');
   let damage = Math.max(0,Math.floor(amount));
+  const ward=arcaneWardPoints(c),absorbed=ward>0?Math.min(ward,damage):0;
+  if(absorbed)c.ruleState.pools['mago:ward']-=absorbed;
+  return applyBodyDamage(c,damage-absorbed,options.critical,absorbed);
+}
+/** O modo por tipo calcula tudo antes de alterar reservas. Não passa a proteção
+ * duas vezes e gera apenas um teste de concentração/falha de morte por evento. */
+export function applyTypedDamage(c:Sheet,packet:DamagePacket,E:Engine) {
+  const plan=previewTypedDamage(c,packet,E);
+  if(plan.ward)c.ruleState.pools['mago:ward']-=plan.ward;
+  return {...plan,absorption:applyBodyDamage(c,plan.received,plan.critical,plan.ward)};
+}
+function applyBodyDamage(c:Sheet,received:number,critical:boolean,ward:number) {
+  let damage=received;
   const wasAtZero=c.hpCurrent===0,wasShape=level(c,'druida')>=2 && active(c,'druida:wildShape');
-  const result={ward:0,temp:0,beast:0,hp:0,excess:0};
-  const hasWard = c.classes?.some((cls:Sheet)=>cls.classId==='mago' && cls.level>=2 && (cls.subclassId==='abjuracao' || norm(cls.subclass).includes('abjuracao')));
-  const ward = hasWard ? Number(c.ruleState?.pools?.['mago:ward'] || 0) : 0;
-  if (ward > 0) { const n = Math.min(ward,damage); c.ruleState.pools['mago:ward'] -= n; damage -= n; result.ward=n; }
+  const result={ward,temp:0,beast:0,hp:0,excess:0};
   // Temporários protegem os PV atuais, inclusive os da besta; a proteção é externa.
   result.temp=Math.min(c.hpTemp,damage); c.hpTemp-=result.temp; damage-=result.temp;
   if (level(c,'druida')>=2 && active(c,'druida:wildShape')) {
@@ -119,8 +130,8 @@ export function applyDamage(c: Sheet, amount: number, options={critical:false}) 
   }
   result.hp=Math.min(c.hpCurrent,damage);result.excess=damage-result.hp;
   c.hpCurrent = Math.max(0,c.hpCurrent-damage);
-  trackDamageAtZero(c,wasShape?damage:Math.max(0,Math.floor(amount))-result.ward,result.excess,wasAtZero,options.critical);
-  queueConcentrationDamage(c,Math.max(0,Math.floor(amount))-result.ward,wasShape);
+  trackDamageAtZero(c,wasShape?damage:received,result.excess,wasAtZero,critical);
+  queueConcentrationDamage(c,received,wasShape);
   return result;
 }
 /** Ajuste permanente conserva o dano já sofrido, sem reconstruir PV manuais. */

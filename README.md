@@ -209,10 +209,34 @@ conjurações prolongadas continuam sendo resolvidas pela mesa.
 
 As 14 condições do apêndice têm marcação e ajuda nos PV. Incapacitação derivada,
 impedimentos de movimento e falhas automáticas de FOR/DES entram no cálculo;
-outras vantagens/desvantagens, sentidos, alvos e reduções de dano são manuais.
+outras vantagens/desvantagens, sentidos e alvos são manuais. As defesas de dano
+reconhecidas entram no modo por tipo descrito abaixo.
 Inconsciência encerra Fúria, reverte Forma Selvagem e deixa o personagem caído;
 cura não o levanta automaticamente. Efeitos de defesa recebidos continuam
 independentes, pois sua origem pode ser outro conjurador.
+
+Em **Dano detalhado → Calcular por tipo**, escolha a origem e informe os valores
+de uma única ocorrência: por exemplo, cortante e fogo do mesmo ataque.
+A prévia mostra as defesas reconhecidas e o total recebido. Resistências não
+acumulam; resistência arredonda para baixo antes de vulnerabilidade dobrar.
+**Ajustes da mesa** permite substituir a defesa deste dano, informar redução
+adicional ou vulnerabilidade, sem criar uma defesa permanente na ficha.
+Crítico já deve estar incluído no valor rolado; a marca altera as falhas a 0 PV.
+
+São reconhecidas fontes verificadas de Fúria/Urso, Proteção contra Lâminas,
+petrificação, raça e classe, detalhadas na auditoria. A Proteção Arcana absorve
+antes das defesas próprias; havendo tipos mistos, a mesa escolhe sua ordem pelas
+setas. O total após as defesas passa aos temporários/PV e gera um só teste de
+concentração ou evento contra a morte. Ex.: 21 de fogo, proteção 10 e resistência
+a fogo deixam **5** de dano recebido. Só os 5 entram na concentração.
+
+O modo **Dano já resolvido pela mesa** e os atalhos de PV mantêm o cálculo
+anterior, sem reaplicar resistências. Com Proteção Arcana, resolva a absorção
+primeiro e as defesas do excedente depois; informe a soma da proteção absorvida
+com o dano final que restou para as outras reservas. Na Forma Selvagem, o modo
+por tipo fica indisponível: resistências/estatísticas da besta e excesso entre
+formas continuam na mesa. Itens personalizados, outras magias/reduções,
+resultados de testes de resistência e reações também são resolvidos na mesa.
 
 PV temporários protegem a forma de besta antes de seus PV; Proteção Arcana é
 externa a essas reservas. Ajustar Constituição pelos botões da ficha é uma

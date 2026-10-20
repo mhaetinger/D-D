@@ -449,3 +449,50 @@ pode preservar o estado, mas a duração continua a cargo da mesa.
 de painéis. `saveRuleStep` conserva consultas/foco e abre concentração quando
 surge a primeira pendência. Testes puros e de navegador estão em
 `tests/concentration.test.ts` e `tests/concentration-browser.cjs`.
+
+## Dano por tipo — 20/10/2026
+
+`src/rules/damage.ts` valida uma ocorrência com origem declarada e de 1 a 13
+tipos distintos. `previewTypedDamage` é puro: retorna os passos por tipo, a
+absorção externa e o total recebido. Não infere tipos/origem a partir de notas,
+nomes de equipamentos ou fórmulas livres. Cada valor/redução é inteiro e limitado
+a 1.000.000; entrada inválida ou reserva ilegível não altera a ficha.
+
+A ordem de 2014 é proteção externa, imunidade, redução adicional, uma resistência
+e uma vulnerabilidade. Arredonda depois da divisão e antes de dobrar. Fontes:
+PDF físico 197, [regras básicas de 2014](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/combat#DamageResistanceandVulnerability)
+e [Sage Advice Compendium de 2014](https://www.dndbeyond.com/sources/dnd/sac/sage-advice-compendium),
+seção Wizard, interação da Proteção Arcana com resistências. O compêndio atual
+de 2024 tem outra ordem; não usar `/sae/` para alterar este contrato.
+Em tipos mistos, a mesa declara a ordem de absorção da proteção por setas;
+o programa não escolhe uma distribuição favorável automaticamente.
+
+`damageDefenses` só reconhece fontes enumeradas/testadas. Raça exige ID e
+ancestral racial estruturados; ancestral de feiticeiro é independente. Fúria
+básica respeita armadura pesada; Espírito do Urso usa a escolha do nível 3,
+sem confundi-la com Aspecto da Besta. Estados de magias/recursos não recebem
+novas reservas. Resistência Demoníaca usa a escolha registrada na evolução;
+trocar após descanso ainda é decisão da mesa, com ajuste por ocorrência.
+Fonte desconhecida/personalizada não é prometida como calculada.
+
+`applyDamage` mantém assinatura e retorno `{ward,temp,beast,hp,excess}`. O novo
+`applyTypedDamage` valida o plano completo, desconta a proteção e entrega o total
+a `applyBodyDamage`, compartilhado com o caminho anterior. Não subtrai proteção
+duas vezes nem dispara morte/concentração por cada tipo. O histórico registra
+as parcelas e as fontes, sem copiar a ficha ou notas para a descrição.
+
+`damage-ui.ts` ocupa somente o controle já existente em `health-ui.ts`. Campos
+de modos distintos não aparecem juntos. Alterações atualizam texto/estado em
+lugar; adicionar/remover/reordenar mantém os outros nós. Ajustes da mesa são
+transitórios por ocorrência e não modificam benefícios permanentes. Campos
+de ordem/prata aparecem quando interferem no cálculo. Não há persistência de
+rascunho de dano entre trocas de aba; só a aplicação entra no documento/histórico.
+
+Forma Selvagem bloqueia o modo por tipo: sem bloco de estatísticas, não é seguro
+usar resistências humanas na besta nem calcular automaticamente o excedente.
+O modo anterior continua para a mesa resolver as parcelas. Com proteção nesse
+modo, o valor a distribuir é proteção absorvida + dano final às demais reservas,
+após resolver a absorção antes das defesas. Não há resolução automática de
+testes contra magias ou de reações/Evasão, redução de Maestria em Armadura
+Pesada, gestão de alvos ou executor geral de itens/magias. Testes:
+`damage.test.ts` e `damage-browser.cjs`.

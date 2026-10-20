@@ -15,7 +15,31 @@ Não mesclar/publicar esta revisão sem aprovação. A branch remota `develop`
 foi restaurada após a entrega na referência de integração já aprovada
 `b1155fbc5d14a566f548814bd808374aa2383721`, merge da PR #7.
 
-**Estado atual, terceira etapa da auditoria:** concentração tem estado único
+**Estado atual, quarta etapa da auditoria:** dano detalhado ganhou modo por tipo
+e origem, com até 13 tipos distintos de uma única ocorrência, prévia explicada
+e ajustes transitórios da mesa. Aplica fontes verificadas de raça, classe,
+Fúria/Urso, Proteção contra Lâminas e petrificação. Proteção Arcana absorve antes
+das defesas próprias; tipos mistos têm ordem declarada pela mesa. O total após
+imunidade/redução/resistência/vulnerabilidade usa temporários/PV e gera apenas
+um evento de concentração/morte. Resistências não acumulam.
+Contratos em `src/rules/damage.ts`, `combat.ts` e `damage-ui.ts`; regressões em
+`tests/damage.test.ts` e `tests/damage-browser.cjs`. Modo resolvido/atalhos
+mantêm o contrato antigo; a ajuda explica a parcela da proteção. Forma Selvagem
+e excesso continuam manuais, com modo por tipo bloqueado. Ainda faltam outros
+efeitos de itens/magias, redução de Maestria em Armadura Pesada, reações/testes
+e exceções para evitar 0 PV. Não houve SQL/RLS/RPC, autenticação ou dado real
+alterado. Matriz de fontes e limites em
+[AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md).
+
+Verificação final desta etapa: `npm run check`, 342 testes Node, tipos/build e
+13 roteiros Chromium aprovados, incluindo 32 cenários auditados. O novo roteiro
+confere prévia/fontes/defesas, mistura e ordem da proteção, ajustes/limites,
+concentração/morte uma vez, nós/foco, modo resolvido/forma, notas/históricos por
+ficha e offline. Três temas/320 px/GG e capturas desktop/celular conferidos.
+Roteiros antigos de PV/concentração usam seletores específicos para as novas
+abas internas. Diff sem whitespace; CI também testa PostgreSQL descartável.
+
+**Terceira etapa da auditoria, já concluída:** concentração tem estado único
 por ficha, troca confirmada antes de gastar recursos e fila de CON por fonte de
 dano. Inclui dado físico/virtual/OFF, bônus da forma, Conjurador de Guerra,
 Conjuração Focada, exaustão/inspiração e cancelamento de vantagem/desvantagem.
@@ -27,12 +51,12 @@ com duração da mesa. Lista mantém nós/foco e não há painel duplicado.
 Contratos/testes em `src/rules/concentration.ts`, `src/rules/conditions.ts`,
 `tests/concentration.test.ts` e `tests/concentration-browser.cjs`.
 Sem SQL/RLS/RPC ou alteração de dados reais. Notas, histórico por ficha e
-persistência/offline preservados. Dano tipado, outras vantagens/desvantagens de
-condições, sentidos/alvos, tempo de jogo e exceções para evitar 0 PV continuam
-pendentes. A matriz atual está em
+persistência/offline preservados. Dano por tipo recebeu os controles da etapa
+acima; outras vantagens/desvantagens de condições, sentidos/alvos, tempo de jogo
+e exceções para evitar 0 PV continuam pendentes. A matriz atual está em
 [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md).
 
-Verificação final desta etapa: `npm run check`, com 320 testes Node, tipos/build
+Verificação final daquela etapa: `npm run check`, com 320 testes Node, tipos/build
 e 12 roteiros Chromium aprovados, incluindo os 32 cenários auditados. O novo
 roteiro cobre troca/cancelamento/recursos, ritual, fila/CD, proteção/temporários/
 forma, físico/virtual/OFF, talentos/inspiração, condições/Fúria/sono, ficha antiga

@@ -8,7 +8,7 @@ A segunda passada, na base `7667ae9`, encontrou **erros reproduzíveis além das
 ausências de controles**. A prioridade passou a ser alinhar o valor mostrado com
 o rolador, corrigir bônus/escalonamento e a interação entre dano, transformação e
 descansos. Os itens 15–27 e a tabela de cenários abaixo detalham esses achados.
-Três etapas de correções já foram implementadas na branch de trabalho,
+Quatro etapas de correções já foram implementadas na branch de trabalho,
 conforme as tabelas abaixo. O restante continua identificado como pendência.
 
 ## Primeira etapa implementada — 19/10/2026
@@ -93,9 +93,9 @@ Capturas de desktop/celular conferidas. A suíte daquela etapa incluía onze rot
   exceções conscientes. Sem cronômetro real. Dados ilegíveis, notas, histórico,
   seleção/foco e pool são preservados. Sem alteração de SQL/RLS/RPC.
 
-Limites: outras vantagens/desvantagens de condições, sentidos especiais,
-identidade de alvos/origem, danos tipados, resistências/imunidades, prazos e
-economia de ações ainda exigem decisão da mesa. Não se encerram ajustes de
+Limites daquela etapa: outras vantagens/desvantagens de condições, sentidos,
+alvos/origem, dano tipado, resistências/imunidades, prazos e economia de ações.
+Dano por tipo recebeu o controle da quarta etapa abaixo. Não se encerram ajustes de
 defesa recebidos ao terminar concentração própria: podem vir de outro conjurador.
 A ficha ainda não integra blocos de estatísticas das bestas. Esta etapa não
 certifica todos os efeitos das classes/talentos/magias.
@@ -106,6 +106,57 @@ cancelamento/revalidação sem gastos, rituais, fontes/CD/fila, proteção/tempo
 forma, físico/virtual/OFF, talentos/inspiração, condições/Fúria/sono, queda de
 ficha antiga a 0 PV, nós/foco, callbacks obsoletos, notas/histórico por ficha,
 recarga/offline e três temas/320 px/GG. Capturas desktop/celular conferidas.
+
+## Quarta etapa implementada: dano por tipo — 20/10/2026
+
+O controle existente de dano tem modo por tipo, com origem declarada, até 13
+tipos distintos de uma única ocorrência e prévia. Imunidade impede dano,
+redução adicional tem piso zero, resistência divide uma vez e vulnerabilidade
+dobra depois do arredondamento. Ajustes da mesa substituem a defesa ou acrescentam
+redução/vulnerabilidade somente naquela ocorrência, sem mudar benefícios salvos.
+
+Em 2014, a Proteção Arcana é externa: recebe dano antes das defesas do personagem.
+Em dano misto, a mesa escolhe a ordem dos tipos, visível na prévia e alterável
+pelas setas. O total recebido usa temporários/PV e gera uma única ocorrência
+de concentração/morte; dano impedido integralmente não gera teste ou falhas.
+Crítico deve estar incluído nos dados informados; a marca só muda as falhas a 0.
+
+| Fonte reconhecida no modo por tipo | Condição e limite verificados |
+| --- | --- |
+| Resistência Infernal, Resiliência Anã e ancestral racial | IDs de raça estruturados; fogo de tiefling, veneno de anão e elemento escolhido do draconato. Não deduz de texto livre |
+| Fúria / Espírito do Urso | Fúria ativa; básica resiste aos três tipos físicos sem armadura pesada. Urso do nível 3 resiste a tudo exceto psíquico pelo texto próprio, sem confundir Aspecto do nível 6 |
+| Proteção contra Lâminas | Efeito marcado e origem ataque de arma, mágico ou não; só concussão/cortante/perfurante |
+| Petrificado | Condição marcada: resistência geral e imunidade ao dano de veneno. Não cura nem apaga veneno/doença registrados |
+| Pureza Corporal / Proteção Natural | Monge 10 ou druida da Terra 10: imunidade ao dano de veneno. Condições/doenças não ganham executor geral |
+| Corpo Vazio | Monge 18 e estado ativo: resistência exceto energia. Sem novo gasto automático de Chi |
+| Escudo de Pensamentos | Bruxo do Grande Antigo 10: resistência a psíquico; refletir dano ao causador é manual |
+| Resistência Demoníaca | Bruxo do Corruptor 10, tipo registrado na evolução. Arma mágica/de prata ignora só essa fonte. Troca de tipo após descanso continua manual |
+| Resistência à Magia | Mago abjurador 14, dano de magia; arma mágica não equivale a magia |
+| Pedra do Transmutador | Mago transmutador 6, pedra ativa e benefício de resistência selecionado no controle existente |
+| Afinidade Elemental | Feiticeiro dracônico 6, estado ativo e elemento do ancestral da classe; independente do ancestral racial |
+
+Fontes: PDF físico 197, capítulos de raça/classe e apêndice das condições;
+[regras básicas de 2014](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/combat#DamageResistanceandVulnerability)
+e [Sage Advice Compendium de 2014](https://www.dndbeyond.com/sources/dnd/sac/sage-advice-compendium),
+interação da proteção externa e imunidade de Pureza Corporal. O compêndio de
+2024 difere na ordem da proteção e não deve reger esta ficha.
+
+Limites: Forma Selvagem/estatísticas da besta e excesso entre formas continuam
+na mesa; o modo por tipo é bloqueado durante a forma. Modo já resolvido/atalhos
+mantêm o contrato anterior. Com proteção, a mesa resolve absorção antes das
+defesas e informa proteção absorvida + dano final às outras reservas.
+Maestria em Armadura Pesada, outras reduções de itens/magias, reações/Evasão,
+resultados de testes, alvos e gatilhos para evitar 0 PV não são automatizados
+por esta etapa. Defesas desconhecidas/importadas sem escolhas estruturadas
+exigem os ajustes da mesa. Não certifica todas as resistências/classes/magias.
+
+Verificação final: `npm run check`, com 342 testes Node, tipos/build e os 13
+roteiros Chromium aprovados, incluindo 32 cenários auditados. Roteiro novo:
+fontes/defesas/prévia, resistência/vulnerabilidade/imunidade, mistura/ordem/
+proteção/temporários, concentração/morte uma vez, ajustes/limites, nós/foco,
+modo resolvido/forma, notas/históricos por ficha, recarga/offline e três temas/
+320 px/GG. Capturas desktop/celular conferidas; diff sem whitespace. Roteiros
+anteriores de PV/concentração usam seletores específicos após as novas abas.
 
 ## Fonte, método e limites
 
@@ -137,17 +188,17 @@ recarga/offline e três temas/320 px/GG. Capturas desktop/celular conferidas.
 | --- | --- | --- |
 | Capa, índice, prefácio e introdução, 1–7 | Consulta local e navegação | Explicação do jogo; sem necessidade de novos campos |
 | Cap. 1, criação, 10–14 | Atributos, 27 pontos, conjunto padrão, rolagem, criação/evolução e multiclasse | Distinguir uma escolha cadastrada de seu efeito aplicado; ver passivos abaixo |
-| Cap. 2, raças, 16–42 | Atributos, idiomas, opções, descrições e magias raciais | Resistências, rerrolagens e gatilhos raciais não têm resolução geral automática |
+| Cap. 2, raças, 16–42 | Atributos, idiomas, opções, descrições, magias e resistências de tiefling/anão/draconato no dano por tipo | Outras resistências/condições, rerrolagens e gatilhos raciais seguem pendentes |
 | Cap. 3, classes, 44–120 | Progressão das 12 classes/41 subclasses; várias reservas e ações contextuais | Matriz por classe abaixo; contadores não controlam alvos, turnos e todos os passivos |
 | Cap. 4, personalidade/antecedentes, 122–142 | 13 antecedentes, tendências, sugestões editáveis, campos narrativos e inspiração de 2014 | Personalização completa de antecedente ainda exige adaptação manual |
 | Cap. 5, equipamento, 144–160 | Compras em cobre, quantidades/peso, armadura/escudo, armas e propriedades consultáveis | Penalidades por falta de proficiência, munição, recarga, consumíveis e detalhes de carga; ver itens abaixo |
 | Cap. 6, personalização, 164–171 | Pré-requisitos/escolhas de multiclasse/talentos, espaços combinados e Pacto separado | Vários talentos só registram a escolha; o efeito numérico não está aplicado |
 | Cap. 7, habilidades, 174–180 | Modificadores, proficiência, especialização, perícias, resistências, modo vantagem/desvantagem e bônus auditados de iniciativa | Testes passivos/condicionais, vantagem na iniciativa e rolagens mínimas ainda incompletos |
 | Cap. 8, aventuras, 182–188 | Deslocamento, inventário, descansos, exaustão e gasto/recuperação de Dados de Vida por classe | Tempo de descanso, viagem, luz, sufocamento, alimento/água e atividades entre aventuras são manuais |
-| Cap. 9, combate, 189–198 | Ataques/dano, CA, PV, temporários, reservas defensivas, morte/estabilidade e alguns adicionais condicionais | Resistências, crítico completo dos ataques, cobertura, ações/reações, alvo e exceções de classe ainda exigem controle manual |
+| Cap. 9, combate, 189–198 | Ataques/dano, CA, PV, reservas, morte/estabilidade e dano por tipo com fontes verificadas, prévia e ajuste da mesa | Outras defesas/reações, crítico completo dos ataques, cobertura, alvos e exceções de classe ainda exigem controle manual |
 | Cap. 10, conjuração, 201–205 | Preparação, rituais elegíveis, espaços por classe/Pacto, CDs, custos de feitiçaria e concentração com fila por dano | Componentes, duração, interrupções durante conjuração prolongada e economia de ações seguem manuais |
 | Cap. 11, magias, 207–288 | 361 descrições e metadados, campos longos corrigidos, fórmulas auditadas unificadas e escalonamento | Não há executor de todos os efeitos das 361 magias; consultar limitações por família |
-| Apêndice A, condições, 289–291 | Exaustão e 14 condições com ajuda; incapacitação, deslocamento 0 e falhas automáticas de FOR/DES | Outros modos de rolagem, sentidos, alvos e dano tipado seguem manuais |
+| Apêndice A, condições, 289–291 | Exaustão e 14 condições com ajuda; incapacitação, movimento, falhas de FOR/DES e defesas de dano da petrificação no modo por tipo | Outros modos de rolagem, sentidos, alvos e imunidade a condições ainda seguem manuais |
 | Apêndice B, deuses, 292–298 | Consulta no livro | Referência narrativa; não impor divindade/domínio ao jogador |
 | Apêndice C, planos, 299–302 | Consulta no livro | Referência de cenário; efeitos dependem do Mestre |
 | Apêndice D, criaturas, 303–310 | Consulta e reserva manual de PV da Forma Selvagem; companheiro separado | Sem seleção de bloco de criatura para forma/companheiro/familiar nem fusão de estatísticas |
@@ -390,16 +441,16 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 
 | Classe / PDF | Subclasses conferidas | Cobertura operacional existente | Próxima revisão necessária |
 | --- | --- | --- | --- |
-| Bárbaro, 45–49 | Furioso; Guerreiro Totêmico | Fúria, dano com FOR, Frenesi/exaustão, CA alternativa e extras de Crítico Brutal | Resistências e vantagem; duração/gatilhos; teste/CD crescente de Fúria Implacável |
+| Bárbaro, 45–49 | Furioso; Guerreiro Totêmico | Fúria, dano com FOR, resistências de Fúria/Urso por tipo, Frenesi/exaustão, CA alternativa e extras de Crítico Brutal | Vantagens situacionais; duração/gatilhos; teste/CD crescente de Fúria Implacável |
 | Bardo, 50–54 | Conhecimento; Bravura | Reserva/dado de inspiração, proficiências/especialização, segredos, conjuração, iniciativa de Versatilidade e Canção do Descanso opcional | Inspiração de Bardo recebida/Palavras de Interrupção na jogada; recuperação ao iniciar combate |
-| Bruxo, 55–61 | Arquifada; Corruptor; Grande Antigo | Pacto, Arcanum, usos de patrono/invocações e Bênção do Obscuro | Explosão Agonizante/Sorvedor de Vida; gastos de espaço de invocações não equivalem ao contador diário; efeitos contra alvos |
+| Bruxo, 55–61 | Arquifada; Corruptor; Grande Antigo | Pacto, Arcanum, usos, Bênção do Obscuro, Explosão Agonizante e resistências de patrono registradas | Sorvedor de Vida, troca da resistência após descanso e reflexão de psíquico; espaço de invocações não equivale ao contador diário; alvos |
 | Clérigo, 62–69 | Conhecimento; Enganação; Guerra; Luz; Natureza; Tempestade; Vida | Preparação/domínios, Canalizar compartilhado, usos e Intervenção | Efeitos de cada domínio no alvo, cura/dano condicionado e Expulsar/Destruir Mortos-Vivos por ND |
 | Druida, 70–75 | Terra; Lua | Preparação/círculo, Forma Selvagem/PV, cura da Lua, Recuperação Natural e concentração mantida na transformação | Bloco de besta/estatísticas e custo de elemental; CON da forma informada no teste |
-| Feiticeiro, 76–81 | Magia Selvagem; Linhagem Dracônica | Feitiçaria/metamágica compartilhada, conversão, Marés de Caos e CA dracônica | Tabela de surto/gatilhos, efeitos de Afinidade Elemental e elegibilidade completa de metamagias; adaptações devem permanecer identificadas |
-| Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico e magias | Atleta Extraordinário/iniciativa; rerrolagem de Combate com Armas Grandes; manobras/reações; Sobrevivente |
+| Feiticeiro, 76–81 | Magia Selvagem; Linhagem Dracônica | Feitiçaria/metamágica, conversão, Marés, CA e resistência ativa de Afinidade Elemental no modo por tipo | Surto/gatilhos, bônus de dano de Afinidade e elegibilidade completa de metamagias; adaptações identificadas |
+| Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa de Atleta Extraordinário | Outros testes de Atleta; rerrolagem de Combate com Armas Grandes; manobras/reações; Sobrevivente |
 | Ladino, 88–92 | Ladrão; Assassino; Trapaceiro Arcano | Especialização, dados/condições de Ataque Furtivo, usos avançados e magias | Talento Confiável na rolagem; Esquiva Sobrenatural/Evasão; surpresa/Assassinar e Ação Ardilosa |
 | Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, Dominar/Assinatura, recuperação, Proteção Arcana inclusive multiclasse, Conjuração Focada, Presságio e usos/estados de escola | Efeitos por alvo, demais bônus de escola, lacaios, pedra e Sobrecarga; fluxo de troca temporal das escolhas |
-| Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi compartilhado e gastos escolhidos, movimento/CA e curas/usos | Artes Marciais/dano desarmado em todas as condições, Atordoar/Evasão/Defletir Projéteis e recuperação ao iniciar combate |
+| Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi, movimento/CA, curas/usos e defesas de Pureza Corporal/Corpo Vazio no dano por tipo | Imunidade a condições, Artes Marciais/dano desarmado em todas as condições, Atordoar/Evasão/Defletir Projéteis e recuperação ao iniciar combate |
 | Paladino, 107–113 | Devoção; Anciões; Vingança | Cura pelas Mãos, Canalizar, Arma Sagrada, aura própria nos testes, preparação e dados de Destruição | Aplicação a aliados/consciência e condições dos juramentos; cura no alvo e consumo de espaços no fluxo de dano |
 | Patrulheiro Revisado, 114–120 | Besta; Caçador; Rastreador Subterrâneo | Progressão/seleções da adaptação, conjuração, extras condicionais e PV do companheiro | Inimigo favorito, exploração, iniciativa/primeiro turno e estatísticas/comandos do companheiro; não misturar regras do patrulheiro original |
 
@@ -411,7 +462,8 @@ Floresta/das Rochas, Meio-Elfo, Meio-Orc e Tiefling.
 
 Os ajustes/seleções de criação não bastam para executar **Sortudo dos halflings**,
 **Ataques Selvagens/Resistência Implacável do meio-orc**, sopro do draconato,
-sensibilidade solar do drow, resistências e vantagens raciais. Esses casos
+sensibilidade solar do drow e outras resistências/vantagens raciais. O dano por
+tipo já reconhece as fontes de anão/tiefling/draconato da quarta etapa. Os demais casos
 precisam de efeitos condicionais ou uso no lugar existente. Visão no escuro,
 idiomas, ferramentas, transe, máscaras naturais e características sociais podem
 permanecer como consulta quando não houver uma ação mecânica da ficha a resolver.
@@ -492,8 +544,8 @@ há tratamentos específicos; uma fórmula encontrada não equivale à execuçã
 magia. Área/alvos, componentes consumidos, alcance, cobertura, resistência do
 alvo, duração e várias curas/transformações continuam sob decisão do jogador.
 
-A concentração recebeu controle na terceira etapa acima. O trabalho seguinte
-inclui dano tipado e organização das magias por família de efeito.
+A concentração recebeu controle na terceira etapa e o dano por tipo na quarta.
+O trabalho seguinte inclui outras defesas/reações e organização das magias por família.
 Não acrescentar 361 controles separados. Reutilizar
 os campos do grimório, PV/efeitos e o rolador existentes. A Magia Gêmea adaptada
 da mesa deve ser distinguida do texto de 2014, sem mudar escolhas pessoais.
@@ -515,8 +567,9 @@ a aventura ou transformar consulta narrativa em campos obrigatórios.
 4. [x] Completar o bloco de PV: Dados de Vida, morte/estabilidade e inspiração,
    nos locais existentes e com dado físico/virtual.
 5. [ ] Unificar concentração/condições/dano tipado e a explicação dos efeitos;
-   concentração e parte das condições já integradas. Dano tipado e os demais
-   efeitos condicionais seguem pendentes; não automatizar redução sem a origem.
+   concentração, parte das condições e dano por tipo já integrados. Outras
+   fontes/reações e os demais efeitos condicionais seguem pendentes; não
+   automatizar redução sem a origem.
 6. [ ] Revisar a matriz de efeitos das 12 classes/41 subclasses, raças e 42
    talentos, marcando cada efeito como calculado, uso controlado ou manual.
 7. [ ] Ampliar famílias de magias e criaturas, após os contratos comuns estarem
