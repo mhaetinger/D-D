@@ -2,6 +2,15 @@
 
 ## Não lançado
 
+### Conferência de importações legadas — 2026-10-20
+
+- Registrada auditoria pontual de compatibilidade e próxima prioridade em
+  `docs/AUDITORIA-LIVRO-2014.md` e `docs/RETOMADA.md`: vínculos de raça/subclasse,
+  origem/preparação das magias e distinção entre arma manual e automática.
+  Conferidos motor e Chromium isolado com dois backups locais; dados pessoais
+  preservados fora do Git. Somente documentação, sem migração ou correção
+  automática de escolhas ambíguas.
+
 ### Só Pool e ataque por magia — 2026-10-20
 
 - Só Pool bloqueia conjurações/rituais antes de gastar recursos, trocar

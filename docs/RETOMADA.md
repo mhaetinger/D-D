@@ -15,6 +15,16 @@ Não mesclar/publicar esta revisão sem aprovação. A branch remota `develop`
 foi restaurada após a entrega na referência de integração já aprovada
 `b1155fbc5d14a566f548814bd808374aa2383721`, merge da PR #7.
 
+**Próxima prioridade após a conferência de importações:** implementar auditoria
+de vínculos das fichas legadas antes de ampliar mecânicas. Foram reproduzidos,
+em dois backups pessoais fora do Git, vínculos raciais ausentes, identificador
+de subclasse não canônico, magia sem preparo/origem adicional confirmada e arma
+genérica em modo manual. Estrutura válida não equivale a integração completa.
+Resultados e contratos em [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md),
+seção de compatibilidade de fichas importadas. Conferidos motor e navegador
+isolado sob `/D-D/`; não se consultou/alterou o estado atual das contas.
+Não converter escolhas ambíguas automaticamente nem sobrescrever dados pessoais.
+
 **Ajuste atual de magias:** Só Pool bloqueia conjuração/ritual antes de qualquer
 gasto/efeito/histórico, inclusive ao retomar confirmação após trocar o modo.
 Magias `atq_magico` recebem Atq +bônus no cartão em vez do indicador estático.

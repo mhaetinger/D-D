@@ -235,6 +235,43 @@ dados físico/virtual/OFF, pool/inspiração e continuidade offline. Após prese
 a fórmula personalizada `0-3`, Node/build/roteiro de ataques passaram novamente.
 Dois layouts, três temas, 320 px/GG e capturas conferidos; diff limpo.
 
+## Compatibilidade de fichas importadas — 20/10/2026
+
+Uma conferência pontual de dois backups pessoais legados encontrou fichas
+estruturalmente válidas, mas com vínculos mecânicos incompletos. Os arquivos,
+conteúdo pessoal e cópias de trabalho continuam fora do repositório. Essa
+conferência não representa o estado atual de uma conta ou do navegador do jogador.
+
+- Nome de raça preenchido não garante `rules.raceId`: defesas e gatilhos que
+  dependem do identificador podem ficar indisponíveis.
+- Um `subclassId` legado não canônico pode impedir recursos específicos mesmo
+  quando a descrição da subclasse está presente. A função `subclass` prioriza
+  o identificador preenchido; não o corrige pela descrição.
+- Magias reconhecidas pelo nome podem continuar sem `bookId`, sem preparação
+  e sem a origem adicional necessária. Reconhecer o catálogo não confirma
+  elegibilidade por juramento/talento nem seleciona magias preparadas.
+- Arma genérica ou personalizada pode conservar valores manuais. Isso é um
+  contrato de preservação; não é prova de vínculo com os cálculos automáticos.
+- Textos importados de características podem divergir dos recursos calculados.
+  O texto deve ser preservado, com a divergência apontada para revisão.
+
+**Próxima prioridade:** auditoria de vínculos na importação e nas fichas legadas,
+com identificação da origem real (classe, raça, talento ou outra característica).
+Separar vínculos confirmados, aliases conhecidos e decisões ausentes/ambíguas.
+Exibir problemas e permitir revisão sem bloquear a leitura ou sobrescrever
+ajustes pessoais. Não escolher juramento, raça com sub-raça ambígua, arma ou
+preparação em nome do jogador. Migração proposta deve preservar originais e
+ser verificada com exemplos sintéticos, incluindo persistência após recarga,
+evolução, recursos raciais, subclasses, preparação e magias de origem adicional.
+Também distinguir visualmente rituais de talento da classe usada para agrupá-los.
+
+Verificações executadas: validação estrutural e chamadas ao motor em cópias em
+memória; abertura dos dois backups em contextos Chromium isolados sob `/D-D/`,
+com chamadas externas bloqueadas. Conferidos cartões de magias, vínculo de arma,
+variação do dano em Fúria e disponibilidade dos recursos/defesas pertinentes.
+Nenhum dado foi alterado nos arquivos pessoais ou em contas. Não houve mudança
+de código de execução, SQL ou migração nesta conferência.
+
 ## Fonte, método e limites
 
 - Fonte: `public/books/livro-jogador-2014.pdf`, 314 páginas físicas,
