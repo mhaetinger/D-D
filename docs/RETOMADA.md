@@ -29,6 +29,17 @@ Pacto, espaços compartilhados e concentração não são duplicados. Conferidos
 testes Node, tipos/build e Chromium de quadros, regras e concentração, com preparo,
 recuperação/cancelamento, recarga offline e 320px/GG/três temas/dois layouts.
 
+**Saída do preparo e características agrupadas:** a primeira etapa oferece
+Voltar à ficha, com a confirmação existente para escolhas pendentes. Abrir/cancelar
+não confirma o lembrete do descanso; aplicar confirma. Removida a introdução
+genérica da etapa de magias. `rules/feature-groups.ts` organiza ganhos por
+classe/origem e nível, conservando índices, controles, escolhas e descrições.
+Colunas largas dividem níveis inteiros; fontes raciais/antecedente e anotações
+manuais permanecem separadas. Conferidos 385 testes Node, tipos/build e Chromium
+de preparo/quadros, regras, criação e edição em linha: saída/cancelamento/retorno,
+foco/nós/rolagem, preparo protegido, vínculos multiclasse, controles únicos,
+descrições abertas, persistência/offline e 320px/GG/três temas/dois layouts.
+
 **Armas com layout reorganizado:** descrição usa a largura inteira, ataque/dano
 têm colunas próprias e empunhadura/crítico/registro ficam no rodapé. Notas foram
 preservadas; crítico mantém geometria e empunhadura conserva foco. Conferidos 385

@@ -75,6 +75,11 @@ A exibição **Clássica (2014) / Moderna (2024)** fica dentro da ficha e é sal
 personagem. As regras continuam sendo de 2014 com as adaptações da mesa. Trocar
 a exibição não converte regras, classes ou escolhas.
 
+**Características & escolhas** reúne os ganhos por origem e, nas classes, por
+nível. Cada habilidade conserva sua descrição e seus controles de uso. No preparo
+de magias, **Voltar à ficha** permite sair sem aplicar; escolhas pendentes pedem
+confirmação antes do descarte. O lembrete do descanso só é retirado ao aplicar.
+
 ## Dado flutuante e retratos
 
 O dado começa recolhido ao abrir a aplicação ou trocar de conta. Mostra **20**

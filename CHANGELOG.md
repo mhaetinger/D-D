@@ -2,6 +2,23 @@
 
 ## Não lançado
 
+### Saída do preparo e características agrupadas — 2026-10-20
+
+- A primeira etapa de preparo oferece Voltar à ficha. Sair com escolhas pendentes
+  usa a confirmação de descarte existente; cancelar conserva opções, nós e
+  rolagem. Voltar da revisão mantém a seleção. O lembrete do descanso só é
+  retirado ao aplicar, e não ao abrir ou cancelar o assistente.
+- Removido o parágrafo introdutório da etapa de magias para ampliar a lista;
+  descrições e consultas por magia continuam disponíveis.
+- Características reunidas por classe/origem e nível, sem repetir esses rótulos
+  em cada habilidade. Descrições, escolhas e controles permanecem vinculados aos
+  ganhos; a origem completa de subclasse/escolha fica na descrição. Na ficha
+  larga, as colunas dividem níveis inteiros. Anotações manuais são preservadas.
+- Conferidos 385 testes Node, tipos/build e quatro scripts Chromium: quadros e
+  preparo, regras, criação e edição em linha. Incluem retorno/cancelamento/foco,
+  preparo com proteção, vínculos e controles multiclasse, descrições abertas,
+  persistência/offline e 320px/GG/três temas/dois layouts.
+
 ### Quadros de conjuração por classe — 2026-10-20
 
 - Paladino, Clérigo, Druida e Mago ganham quadros compactos no grimório, com

@@ -5,7 +5,8 @@ import { armorClass, applyDamage, exhaustion, savingThrow, initiativeBonus, chan
 import { readableText } from "../rules/text";
 import { renderResourceControls, renderResourcesAt, spellcastingStatusControls, defenseControls, conditionControls, hitDiceRecoveryControls, saveRuleStep, retainConditionNodes } from "../rules/ui";
 import { spellClassPanels } from '../rules/spell-class-panels';
-import { featureResourceBindings, resourcesAt } from "../rules/placement";
+import { resourcesAt } from "../rules/placement";
+import { featureGroups } from '../rules/feature-groups';
 import { canCastNormally, canRitual, preparation, wizardPrivilege, castingRestriction, armorProficiencies } from "../rules/spellcasting";
 import { resolveSpellEffect, innateCastLevel, twinEligible } from "../rules/spell-effects";
 import { consumeInspiration, deathStatus, healHitPoints, inspirationRollMode } from '../rules/health';
@@ -2037,27 +2038,32 @@ function renderAttacksBlock(char) {
 }
 
 function renderFeaturesCollapsible(char, wide = false) {
-  // O layout 2024 usa a largura da ficha para não concentrar os ganhos
-  // sob os ataques. As colunas usam fluxo nativo: o texto e o tópico abaixo
-  // nunca esperam ResizeObserver para deixar de se sobrepor. A leitura segue
-  // por coluna e a ordem do HTML, igual no celular e ao navegar por teclado.
+  // Cada classe aparece uma vez. Na ficha larga, a divisão acontece entre
+  // níveis inteiros, conservando a leitura por coluna e os controles do ganho.
   const isCollapsed = !!collapsedPanels.features_box;
-  const {gains,bindings} = featureResourceBindings(char,CharacterEngine);
-  const entries = gains.map((g,index) => {
-    const controls=bindings.get(index) || [], disclosure=`feature:${g.classId || g.source}:${g.level}:${index}`;
-    return `<section class="feature-entry"><details data-rule-disclosure="${escapeHTML(disclosure)}"><summary ${RuleTooltips.attributes(g.name, g.reference)} class="cursor-pointer"><strong>Nv. ${g.level} · ${escapeHTML(g.name)}</strong><span class="block t-text-muted text-[11px]">${escapeHTML(g.source)}</span></summary>${g.choices?.length ? `<p class="my-2 font-semibold">${g.choices.map(escapeHTML).join(" · ")}</p>` : ""}${g.reference ? `<p class="feature-description">${escapeHTML(RuleTooltips.formatText(g.reference.text))}</p><a class="underline" target="_blank" rel="noopener" href="book.html#page=${g.reference.pdfPage}">Consultar no livro · p. ${g.reference.page}</a>` : `<p class="t-text-muted">${escapeHTML(controls[0]?.note || 'Consulte a seção desta classe no livro.')}</p>`}</details>${renderResourceControls(char,CharacterEngine,controls,controls.length>1 || g.name==='Juramento Sagrado')}</section>`;
+  const columns = items => wide && items.length>1
+    ? `<div class="feature-levels">${[items.slice(0,Math.ceil(items.length/2)),items.slice(Math.ceil(items.length/2))].map(column=>`<div class="feature-column">${column.join('')}</div>`).join('')}</div>`
+    : items.join('');
+  const entries = featureGroups(char,CharacterEngine).map(group => {
+    const levels=group.levels.map(level=>{
+      const items=level.entries.map(({gain:g,index,controls})=>{
+        const disclosure=`feature:${g.classId || g.source}:${g.level}:${index}`;
+        return `<section class="feature-entry"><details data-rule-disclosure="${escapeHTML(disclosure)}" data-sheet-section="${escapeHTML(disclosure)}"><summary ${RuleTooltips.attributes(g.name, g.reference)} class="cursor-pointer"><strong>${escapeHTML(g.name)}</strong></summary>${g.source!==group.label?`<p class="feature-origin t-text-muted">${escapeHTML(g.source)}</p>`:''}${g.choices?.length ? `<p class="my-2 font-semibold">${g.choices.map(escapeHTML).join(" · ")}</p>` : ""}${g.reference ? `<p class="feature-description">${escapeHTML(RuleTooltips.formatText(g.reference.text))}</p><a class="underline" target="_blank" rel="noopener" href="book.html#page=${g.reference.pdfPage}">Consultar no livro · p. ${g.reference.page}</a>` : `<p class="t-text-muted">${escapeHTML(controls[0]?.note || 'Consulte a seção desta classe no livro.')}</p>`}</details>${renderResourceControls(char,CharacterEngine,controls,controls.length>1 || g.name==='Juramento Sagrado')}</section>`;
+      });
+      return `<section class="feature-level" data-feature-level="${level.level}">${group.classId?`<h5 class="feature-level-title">Nível ${level.level}</h5>`:''}${group.classId?items.join(''):columns(items)}</section>`;
+    });
+    return `<section class="feature-group" data-feature-group="${escapeHTML(group.key)}"><h4 class="feature-group-title t-text-accent">${escapeHTML(group.label)}</h4>${columns(levels)}</section>`;
   });
   if (char.features?.length) entries.push(`<details><summary class="cursor-pointer font-bold">Anotações e adaptações já presentes nesta ficha</summary><ul class="list-disc pl-4 space-y-2 mt-2">${char.features.map((text,i) => `<li data-sheet-feature-row="${i}"><span>${escapeHTML(readableText(text))}</span> <button type="button" class="underline" onclick="openHomebrewModal('feature',${i})">Editar</button></li>`).join('')}</ul></details>`);
   const multiclass = CharacterEngine.multiclassNotes(char);
   if (multiclass.length) entries.push(`<details><summary class="cursor-pointer font-bold">Interações de multiclasse</summary><ul class="list-disc pl-4 space-y-2 mt-2">${multiclass.map(note => `<li><strong>${escapeHTML(note.name)}</strong>: ${escapeHTML(note.text)} <a class="underline" href="book.html#page=${note.pdfPage}" target="_blank" rel="noopener">Livro · p. ${note.page}</a></li>`).join('')}</ul></details>`);
   entries.push(`<details data-sheet-section="proficiencies"><summary class="cursor-pointer font-bold">Proficiências e idiomas</summary><div class="flex flex-wrap gap-2">${Object.entries({leve:'Leves',media:'Médias',pesada:'Pesadas',escudo:'Escudos'}).map(([id,label])=>`<label class="flex items-center gap-1"><input type="checkbox" data-sheet-armor="${id}" ${armorProficiencies(char,CharacterEngine).includes(id)?'checked':''} ${canConfigureSheet(char)?'':'disabled'}> ${label}</label>`).join('')}</div><label>Armas: ${sheetInput(char,'proficiencies.weapons',char.proficiencies.weapons,'Proficiências · Armas','text',{wide:true})}</label><label>Ferramentas: ${sheetInput(char,'proficiencies.tools',char.proficiencies.tools,'Proficiências · Ferramentas','text',{wide:true})}</label><label>Idiomas: ${sheetInput(char,'proficiencies.languages',char.proficiencies.languages,'Proficiências · Idiomas','text',{wide:true})}</label></details>`);
-  const middle = Math.ceil(entries.length / 2);
-  const content = wide ? [entries.slice(0,middle), entries.slice(middle)].map(column => `<div class="feature-column">${column.join('')}</div>`).join('') : entries.join('');
+  const content = entries.join('');
   return `<div class="t-card overflow-hidden" data-sheet-features>
     <div onclick="togglePanel('features_box')" class="p-3 border-b t-border flex items-center gap-2 cursor-pointer t-hover">
       <i data-lucide="${isCollapsed ? 'chevron-right' : 'chevron-down'}" class="w-4 h-4 t-text-accent"></i>
       <h3 class="font-rpg text-xs font-bold uppercase t-text-accent">Características & escolhas</h3><button type="button" class="ml-auto text-[10px] font-bold t-text-accent" onclick="event.stopPropagation();openHomebrewModal('feature')">+ Característica</button>
-    </div>${isCollapsed ? '' : `<div data-size-motion><div data-size-content class="p-3 feature-list${wide ? ' feature-list-wide' : ''} text-xs">${content}</div></div>`}</div>`;
+    </div>${isCollapsed ? '' : `<div data-size-motion><div data-size-content class="p-3 feature-list feature-list-grouped${wide ? ' feature-list-wide' : ''} text-xs">${content}</div></div>`}</div>`;
 }
 
 // Notas ficam fora da ficha/snapshots, no mesmo espaço local da conta atual.

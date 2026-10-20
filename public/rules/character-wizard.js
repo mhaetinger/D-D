@@ -411,6 +411,7 @@
       if (action === "close") return close();
       if (action === "discardDraft") return discardDraft();
       if (action === "back") {
+        if (step === 0 && draft.mode === "prepare") return close();
         step = Math.max(0, step - 1);
         render();
       }
@@ -1559,7 +1560,7 @@
               : id === "review"
                 ? review()
                 : "";
-    host.innerHTML = `<section class="cw-dialog t-card-accent" data-scroll-window><header><h2 id="cw-title" tabindex="-1">${draft.mode === "create" ? "Criar personagem" : draft.mode === "prepare" ? "Preparar magias" : "Evoluir personagem"} · ${title}</h2><button data-action="close" aria-label="Fechar">×</button></header><nav aria-label="Etapas">${list.map(([, label], i) => `<span ${i === step ? 'aria-current="step"' : ""}>${i + 1}. ${label}</span>`).join("")}</nav><div class="cw-body" data-scroll-content>${draft.mode === "create" && step === 0 ? '<p class="cw-muted">Prefere preencher diretamente na ficha? <button type="button" data-action="manual" class="underline">Usar ficha em branco</button></p>' : ""}<div id="cw-errors" role="alert" hidden></div>${guide().stepHelp[id] ? `<p class="cw-muted">${escape(guide().stepHelp[id])}</p>` : ""}${body}${id === "equipment" ? "" : `<div class="cw-fields" style="display:contents">${fields.map(choice).join("")}</div>`}${!body && !fields.length ? "<p>Nenhuma escolha adicional nesta etapa para a classe e o nível selecionados.</p>" : ""}</div><p class="cw-muted cw-draft-status" data-draft-status></p><footer><div class="cw-footer-left"><button type="button" data-action="back" ${step === 0 ? "disabled" : ""}>Voltar</button>${draft.mode === "create" ? `<button type="button" data-action="discardDraft" class="cw-btn-danger">Descartar rascunho</button>` : ""}</div><a href="book.html" target="_blank" rel="noopener">Consultar livro</a><button type="button" data-action="${step === list.length - 1 ? "finish" : "next"}" class="t-btn-primary">${step === list.length - 1 ? "Aplicar à ficha" : "Continuar"}</button></footer></section>`;
+    host.innerHTML = `<section class="cw-dialog t-card-accent" data-scroll-window><header><h2 id="cw-title" tabindex="-1">${draft.mode === "create" ? "Criar personagem" : draft.mode === "prepare" ? "Preparar magias" : "Evoluir personagem"} · ${title}</h2><button data-action="close" aria-label="Fechar">×</button></header><nav aria-label="Etapas">${list.map(([, label], i) => `<span ${i === step ? 'aria-current="step"' : ""}>${i + 1}. ${label}</span>`).join("")}</nav><div class="cw-body" data-scroll-content>${draft.mode === "create" && step === 0 ? '<p class="cw-muted">Prefere preencher diretamente na ficha? <button type="button" data-action="manual" class="underline">Usar ficha em branco</button></p>' : ""}<div id="cw-errors" role="alert" hidden></div>${id !== "magic" && guide().stepHelp[id] ? `<p class="cw-muted">${escape(guide().stepHelp[id])}</p>` : ""}${body}${id === "equipment" ? "" : `<div class="cw-fields" style="display:contents">${fields.map(choice).join("")}</div>`}${!body && !fields.length ? "<p>Nenhuma escolha adicional nesta etapa para a classe e o nível selecionados.</p>" : ""}</div><p class="cw-muted cw-draft-status" data-draft-status></p><footer><div class="cw-footer-left"><button type="button" data-action="back" ${step === 0 && draft.mode !== "prepare" ? "disabled" : ""}>${step === 0 && draft.mode === "prepare" ? "Voltar à ficha" : "Voltar"}</button>${draft.mode === "create" ? `<button type="button" data-action="discardDraft" class="cw-btn-danger">Descartar rascunho</button>` : ""}</div><a href="book.html" target="_blank" rel="noopener">Consultar livro</a><button type="button" data-action="${step === list.length - 1 ? "finish" : "next"}" class="t-btn-primary">${step === list.length - 1 ? "Aplicar à ficha" : "Continuar"}</button></footer></section>`;
     renderedView = view;
     renderedChoices = new Map(fields.map((f) => [f.id, JSON.stringify(f)]));
     guide().bindAbilities(host, draft.setup, () => E.scores(ctx()), persistDraft);
@@ -1606,6 +1607,9 @@
           )
             s.prepared = values.includes(s.bookId || E.spell(s.name)?.id);
         });
+        // Abrir ou cancelar o preparo não confirma o lembrete do descanso.
+        char.ruleState ||= {};
+        char.ruleState.prepareReminder = false;
         if (root.commitLeveledCharacter(char, "Atualizou magias preparadas") === false) return;
       } else if (draft.mode === "create")
         root.commitCreatedCharacter(E.create(draft.setup, draft.answers));

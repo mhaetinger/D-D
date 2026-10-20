@@ -87,6 +87,21 @@ mínimo, sem inferir vínculos a partir de nomes importados. Não conta o agrupa
 como lista de magias conhecidas, pois ele pode conter origens especiais.
 `spellcastingStatusControls` mantém impedimentos e concentração comuns na barra;
 preparo/recuperação aparecem uma vez em cada quadro. O lembrete de descanso é único.
+Na primeira etapa do preparo, Voltar à ficha reutiliza `CharacterWizard.close`,
+inclusive confirmação de descarte e retorno de foco. O lembrete só é confirmado
+na cópia aplicada por `finish`; abrir/cancelar não altera esse estado. A etapa de
+magias dispensa o parágrafo introdutório, mantendo as descrições de cada opção.
+
+## Organização das características
+
+`rules/feature-groups.ts` agrupa os ganhos de `featureResourceBindings` por
+classe/origem e nível, preservando os índices que vinculam controles aos ganhos.
+Não consolida dados nem altera história, escolhas ou recursos. Classe e nível
+aparecem uma vez por grupo; a origem completa de subclasse/escolha fica dentro
+da descrição. Fontes de raça/antecedente e anotações manuais continuam separadas.
+Na ficha larga, as colunas dividem níveis inteiros, em fluxo nativo, sem separar
+uma habilidade de seus controles. Chaves de descrição conservam a abertura ao
+atualizar os cálculos e a apresentação da ficha.
 
 ## Tipografia da ficha
 

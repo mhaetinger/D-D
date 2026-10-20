@@ -63,6 +63,26 @@ const {warrior} = require('./fixture.cjs');
     await page.locator('.feature-list').scrollIntoViewIfNeeded();
     await page.screenshot({path:'/tmp/critcall-rules-mobile.png'});
     await page.setViewportSize({width:1440,height:1000});
+    // Reagrupar visualmente não troca controles entre classes/níveis nem perde
+    // ganhos, escolhas, fontes raciais, anotações ou descrições abertas.
+    await page.evaluate(()=>{
+      const c=getChar();c.classes=[{classId:'paladino',level:6,subclassId:'devocao',subclass:'Juramento de Devoção',hitDie:10,hitDiceUsed:0},{classId:'guerreiro',level:3,subclassId:'mestreBatalha',subclass:'Mestre de Batalha',hitDie:10,hitDiceUsed:0}];
+      c.rules.history=[{classId:'guerreiro',level:3,answers:{maneuvers:['Ataque Preciso','Ataque de Derrubar']}}];c.exhaustion=0;c.ruleState={used:{},active:{},pools:{},targets:{}};
+      recordStepAndSave('Características multiclasse sintéticas',true);setTheme('pergaminho_claro');setFontScale(100);
+    });
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('critcall_characters_v1')).characters[0].classes[0].classId),'paladino');
+    const groupedBefore=await page.evaluate(()=>JSON.stringify(getChar())),group=id=>page.locator(`[data-feature-group="class:${id}"]`);
+    for(const id of ['paladino','guerreiro']){assert.equal(await group(id).count(),1);assert.equal(await group(id).locator('.feature-group-title').count(),1);const levels=await group(id).locator('[data-feature-level]').evaluateAll(es=>es.map(e=>Number(e.dataset.featureLevel)));assert.deepEqual(levels,[...new Set(levels)].sort((a,b)=>a-b));}
+    const expectedGains=await page.evaluate(()=>CharacterEngine.features(getChar()).map((g,index)=>({key:`feature:${g.classId||g.source}:${g.level}:${index}`,name:g.name})));
+    for(const g of expectedGains)assert.equal(await page.locator(`[data-rule-disclosure="${g.key}"] > summary`).innerText(),g.name);
+    assert.ok(await page.locator('[data-feature-group^="source:"]').count()>0);assert.match(await page.locator('[data-sheet-feature-row="0"]').textContent(),/Anotação importada.*Texto legível/);
+    assert.equal(await group('paladino').locator('[data-feature-level="3"] [data-rule-control="shared:channel"]').count(),1);assert.equal(await page.locator('[data-rule-control="shared:channel"]').count(),1);
+    assert.equal(await group('guerreiro').locator('[data-feature-level="3"] [data-rule-control="guerreiro:superiority"]').count(),1);
+    const oath=group('paladino').locator('.feature-entry').filter({has:page.locator('[data-rule-control="shared:channel"]')}).locator('details');await oath.locator(':scope > summary').click();await group('paladino').locator('[data-resource="shared:channel"][data-rule-action="use"]').click();assert.equal(await page.evaluate(()=>getChar().ruleState.used['shared:channel']),1);assert.equal(await oath.evaluate(e=>e.open),true);
+    await page.locator('[data-sheet-features]').screenshot({path:'/tmp/critcall-features-grouped.png'});
+    const groupedAfter=await page.evaluate(()=>JSON.stringify(getChar()));assert.notEqual(groupedAfter,groupedBefore);const groupedData=await page.evaluate(()=>{const c=structuredClone(getChar());delete c.preferredLayout;return c;});
+    for(const layout of ['classic_2014','modern_2024'])for(const theme of ['pergaminho_claro','pergaminho_escuro','obsidiana']){await page.setViewportSize({width:320,height:900});await page.evaluate(({layout,theme})=>{setLayout(layout);setTheme(theme);setFontScale(125);},{layout,theme});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.equal(await oath.evaluate(e=>e.open),true);assert.equal(await group('paladino').locator('[data-rule-control="shared:channel"]').count(),1);assert.deepEqual(await page.evaluate(()=>{const c=structuredClone(getChar());delete c.preferredLayout;return c;}),groupedData);}
+    await page.locator('[data-sheet-features]').screenshot({path:'/tmp/critcall-features-grouped-mobile.png'});await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>{setFontScale(100);setTheme('pergaminho_claro');setLayout('classic_2014');});
     await page.evaluate(()=>{
       const c=getChar();c.classes=[{classId:'mago',level:3,subclassId:'abjuracao',subclass:'Escola de Abjuração',hitDie:6,hitDiceUsed:0}];c.rules.history=[];c.exhaustion=0;
       c.spells=[CharacterEngine.toSheetSpell(CharacterEngine.spell('detectar-magia'),'mago',{prepared:false})];c.standardSlots={1:{used:0,total:4}};
