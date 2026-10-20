@@ -25,8 +25,9 @@ import { setupAccountUI } from "./auth/ui";
 import { initializeSync } from "./sync/controller";
 import { setupAvatars } from "./media/ui";
 import { setupBookAppearance } from "./app/book-appearance";
-import {setupManualCharacters} from './manual/ui';
-import {setupSpellEditor} from './manual/spell-ui';
+import {setupSheetEditing} from './sheet-edit/ui';
+import {setupSpellEditor} from './sheet-edit/spell-editor';
+import './styles/sheet-edit.css';
 
 // A identidade define o armazenamento antes da primeira leitura da ficha.
 async function start() {
@@ -35,7 +36,7 @@ async function start() {
   initializeRules();
   await import("./app/sheet.js");
   setupBackups();
-  setupManualCharacters();
+  setupSheetEditing();
   setupSpellEditor();
   setupAccountUI(account);
   setupAvatars(account);

@@ -2,6 +2,10 @@ import {escape,type Sheet} from '../rules/model';
 import {validateImport} from '../import/character-review';
 import {parseDiceFormula} from '../rules/dice-formula';
 import {sheetStore} from '../storage/character-store';
+import {mountSheetPanel,closeSheetPanel} from './panels';
+import {canEditSheet} from './access';
+import {commitSheetEdit} from './ui';
+import {fieldOverride} from './model';
 
 const host=window as any;
 const damageTypes={utilidade:'Utilidade',cura:'Cura',defesa:'Defesa',fogo:'Fogo',frio:'Frio',eletrico:'Elétrico',acido:'Ácido',veneno:'Veneno',necrotico:'Necrótico',radiante:'Radiante',psiquico:'Psíquico',trovejante:'Trovejante',energia:'Energia',cortante:'Cortante',perfurante:'Perfurante',concussao:'Concussão'};
@@ -11,29 +15,33 @@ const defenses={nenhuma:'Sem ataque/resistência',atq_magico:'Ataque contra CA',
  * Só substitui a entrada após validar a proposta completa; não toca notas. */
 export async function openSpellEditor(index:number|null=null):Promise<void> {
   const c=host.getChar(),E=host.CharacterEngine,store=sheetStore;
-  if(!c || (document.getElementById('confirmationDialog') as HTMLDialogElement).open)return;
+  if(!c||!canEditSheet(c)){host.showToast('A edição desta ficha está bloqueada pelo mestre.');return;}
+  if(document.querySelector('[data-sheet-spell-editor]')){host.showToast('Conclua ou feche a edição de magia já aberta.');return;}
+  host.setTab('spells');
   const existing=index===null?null:c.spells[index];if(index!==null&&!existing)return;
   host.hideBookTooltip();
-  const before=JSON.stringify(c),controls=document.createElement('div');controls.className='rule-context import-review';
-  controls.dataset.spellEditor='';
-  const draft:Sheet=structuredClone(existing||{name:'',circle:0,classId:c.classes[0].classId,castingAbility:E.data.classes[c.classes[0].classId]?.ability||'',prepared:true,extraSource:'Adição manual · adaptação da mesa',customRoll:'',notes:'',dmgType:'utilidade',defType:'nenhuma',range:'',time:'1 ação',conc:false,v:false,s:false,m:false});
+  const before=JSON.stringify(existing),controls=document.createElement('form');controls.className='rule-context import-review sheet-inline-editor';
+  controls.dataset.spellEditor='';controls.dataset.sheetSpellEditor='';
+  const draft:Sheet=structuredClone(existing||{name:'',circle:0,classId:c.classes[0].classId,castingAbility:E.data.classes[c.classes[0].classId]?.ability||'',prepared:true,extraSource:'Adição livre · adaptação da mesa',customRoll:'',notes:'',dmgType:'utilidade',defType:'nenhuma',range:'',time:'1 ação',conc:false,v:false,s:false,m:false});
   const select=(id:string,label:string,values:Record<string,string>,value:any)=>`<label>${label}<select data-spell-field="${id}">${Object.entries(values).map(([k,v])=>`<option value="${escape(k)}" ${k===value?'selected':''}>${escape(v)}</option>`).join('')}</select></label>`;
   const input=(id:string,label:string,type='text',min?:number,max?:number)=>`<label>${label}<input data-spell-field="${id}" type="${type}" ${min!==undefined?`min="${min}"`:''} ${max!==undefined?`max="${max}"`:''} ${type==='number'?'step="1"':''} value="${escape(draft[id]??'')}"></label>`;
   const check=(id:string,label:string)=>`<label class="import-check"><input data-spell-field="${id}" type="checkbox" ${draft[id]?'checked':''}>${label}</label>`;
   const catalogue=!!E.spell(draft.bookId||draft.name);
   if(catalogue){const meta=E.spellMeta(E.spell(draft.bookId||draft.name));if(!draft.dmgType||draft.dmgType==='livro')draft.dmgType=meta.dmgType;if(!draft.defType||draft.defType==='nenhuma')draft.defType=meta.defType;}
-  controls.innerHTML=`<p>Magias do catálogo mantêm seus efeitos do livro. Personalizadas usam a fórmula e a descrição escritas, sem escalonamento automático. Adições livres são adaptações da mesa.</p>
+  controls.innerHTML=`<h4 class="font-bold t-text-accent">${existing?'Editar magia':'Adicionar magia'}</h4><p>Magias do catálogo mantêm seus efeitos do livro. Personalizadas usam a fórmula e a descrição escritas, sem escalonamento automático. Adições livres são adaptações da mesa.</p>
     <div class="import-grid">${select('editorMode','Magia',{catalog:'Escolher no catálogo',custom:'Criar personalizada'},catalogue||!existing?'catalog':'custom')}<label data-spell-catalog-label>Buscar no catálogo<input data-spell-catalog list="manual-spell-catalog" value="${escape(catalogue?E.spell(draft.bookId||draft.name).name:'')}"></label></div>
     <datalist id="manual-spell-catalog">${Object.values(E.spells).map((s:any)=>`<option value="${escape(s.name)}"></option>`).join('')}</datalist>
     <div class="import-grid">${input('name','Nome')}${input('circle','Círculo (0 = truque)','number',0,9)}${select('classId','Classe / agrupamento',Object.fromEntries(c.classes.map((x:Sheet)=>[x.classId,E.data.classes[x.classId].name])),draft.classId)}${select('castingAbility','Habilidade de conjuração',{'':'Da classe',...E.data.abilities},draft.castingAbility||'')}${input('extraSource','Origem / adaptação da mesa')}${check('prepared','Preparada')}${check('alwaysPrepared','Sempre preparada · adaptação confirmada')}</div>
     <div class="import-grid">${input('customRoll','Fórmula personalizada (opcional)')}${select('defType','Jogada do alvo',defenses,draft.defType||'nenhuma')}${select('dmgType','Tipo de efeito',damageTypes,draft.dmgType||'utilidade')}${input('range','Alcance')}${input('time','Tempo de conjuração')}${check('conc','Exige concentração')}</div>
     <details><summary>Usos e outros ajustes</summary><div class="import-grid">${select('castMode','Forma de lançamento',{normal:'Normal · consome espaço, exceto truques',ritual:'Somente ritual',atWill:'À vontade · sem espaço',limited:'Usos da origem · sem espaço'},draft.ritual?'ritual':draft.atWill?'atWill':draft.limitedUse?'limited':'normal')}${input('limitedUse','Máximo de usos','number',1,100)}${input('usesUsed','Usos gastos','number',0,100)}${input('castLevel','Círculo de lançamento da origem (opcional)','number',1,9)}${input('duration','Duração / limite da concentração')}${select('recovery','Recuperar usos',{long:'Descanso longo',short:'Descanso curto'},draft.recovery||'long')}${input('attackAdjustment','Ajuste de ataque','number',-100,100)}${input('dcAdjustment','Ajuste de CD','number',-100,100)}${check('v','Verbal')}${check('s','Somático')}${check('m','Material')}${check('canTwin','Permitir Magia Gêmea · conferir na mesa')}</div></details>
-    <label>Descrição / notas<textarea data-spell-field="notes" rows="4">${escape(draft.notes||'')}</textarea></label><p data-spell-error role="alert"></p>${existing?'<button type="button" data-spell-delete>Excluir magia</button>':''}`;
+    <label>Descrição / notas<textarea data-spell-field="notes" rows="4">${escape(draft.notes||'')}</textarea></label><p data-spell-error role="alert"></p><div class="flex flex-wrap justify-end gap-2">${existing?'<button type="button" data-spell-delete>Excluir magia</button>':''}<button type="button" data-spell-cancel>Fechar</button><button type="submit" class="t-btn-primary">Salvar magia</button></div>`;
   const field=(id:string)=>controls.querySelector<HTMLInputElement|HTMLSelectElement>(`[data-spell-field="${id}"]`)!;
   const book=controls.querySelector<HTMLInputElement>('[data-spell-catalog]')!,error=controls.querySelector<HTMLElement>('[data-spell-error]')!;
   const sync=()=>{const useBook=field('editorMode').value==='catalog';book.parentElement!.hidden=!useBook;book.required=useBook;field('name').required=true;field('circle').required=true;(field('name') as HTMLInputElement).readOnly=useBook;(field('circle') as HTMLInputElement).readOnly=useBook;const limited=field('castMode').value==='limited';for(const id of ['limitedUse','usesUsed','recovery']){field(id).parentElement!.hidden=!limited;field(id).disabled=!limited;}field('limitedUse').required=limited;};
   controls.addEventListener('change',e=>{
-    error.textContent='';const el=e.target as HTMLInputElement;
+    // A mensagem permanece até a próxima tentativa: removê-la no blur
+    // deslocaria o botão Salvar entre o pressionar e o soltar do mouse.
+    const el=e.target as HTMLInputElement;
     if(el===book || el===field('editorMode')&&field('editorMode').value==='catalog') {
       const entry=E.spell(book.value);book.setCustomValidity(book.value&&!entry?'Escolha o nome de uma magia do catálogo.':'');
       if(entry){const s=E.toSheetSpell(entry,field('classId').value);for(const id of ['name','circle','range','time','defType','dmgType','conc','v','s','m','canTwin']){const f=field(id) as HTMLInputElement;if(f.type==='checkbox')f.checked=!!s[id];else f.value=String(s[id]??'');}field('customRoll').value='';}
@@ -41,13 +49,13 @@ export async function openSpellEditor(index:number|null=null):Promise<void> {
     if(el===field('editorMode')&&el.value==='custom')book.setCustomValidity('');
     sync();
   });
-  let remove=false;
-  controls.querySelector('[data-spell-delete]')?.addEventListener('click',()=>{remove=true;(document.getElementById('confirmationDialog') as HTMLDialogElement).close('confirm');});
-  const dialog=document.getElementById('confirmationDialog') as HTMLDialogElement,form=dialog.querySelector('form')!;
-  let candidate:Sheet|undefined;
+  controls.querySelector('[data-spell-cancel]')!.addEventListener('click',()=>closeSheetPanel('spell'));
+  controls.querySelector('[data-spell-delete]')?.addEventListener('click',async()=>{if(!canEditSheet(c)||c!==host.getChar()||store!==sheetStore)return;closeSheetPanel('spell');await host.deleteSheetEntry('spell',index);});
   const validate=(e:SubmitEvent)=>{
-    if((e.submitter as HTMLButtonElement)?.value!=='confirm')return;
+    e.preventDefault();
     try {
+      if(!canEditSheet(c)||c!==host.getChar()||store!==sheetStore)throw new Error('A ficha ou a permissão mudou. Nenhuma magia foi alterada.');
+      if(existing&&JSON.stringify(c.spells[index!])!==before)throw new Error('Esta magia mudou durante a edição. Feche e reabra seus ajustes.');
       const s:Sheet={...draft};
       for(const el of controls.querySelectorAll<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>('[data-spell-field]')) {
         const id=el.dataset.spellField!;if(['editorMode','castMode'].includes(id))continue;
@@ -67,18 +75,14 @@ export async function openSpellEditor(index:number|null=null):Promise<void> {
       else s.usesUsed ||= 0;
       for(const k of ['castingAbility','extraSource','attackAdjustment','dcAdjustment','castLevel'])if(s[k]===undefined||s[k]==='')delete s[k];
       const copy=structuredClone(c);if(index===null)copy.spells.push(s);else copy.spells[index]=s;
-      validateImport(copy,E);candidate=s;
+      fieldOverride(copy,'preparation');validateImport(copy,E);
+      commitSheetEdit(c,copy,`${existing?'Editou':'Adicionou'} magia: ${s.name}`);closeSheetPanel('spell');
     }catch(err){e.preventDefault();error.textContent=(err as Error).message;error.scrollIntoView({block:'nearest'});}
   };
-  sync();form.addEventListener('submit',validate);dialog.classList.add('import-review-open');
-  let ok=false;
-  try {ok=await host.confirmDestructiveAction(existing?'Editar magia':'Adicionar magia','Escolha o vínculo e a origem. A ficha só muda ao salvar.','Salvar magia',controls);}
-  finally {form.removeEventListener('submit',validate);dialog.classList.remove('import-review-open');}
-  if(!ok || store!==sheetStore || c!==host.getChar() || JSON.stringify(c)!==before)return;
-  if(remove){await host.deleteSheetEntry('spell',index);return;}
-  if(!candidate)return;
-  if(index===null)c.spells.push(candidate);else c.spells[index]=candidate;
-  host.recordStepAndSave(`${existing?'Editou':'Adicionou'} magia: ${candidate.name}`);
+  sync();controls.addEventListener('submit',validate);
+  mountSheetPanel('spell',controls,existing?`[data-spell-card="${index}"]`:'[data-sheet-spell-tools]');
+  controls.querySelector<HTMLInputElement>('input:not([readonly])')?.focus({preventScroll:true});
+
 }
 
 export function setupSpellEditor():void {host.openSpellEditor=openSpellEditor;}

@@ -9,6 +9,7 @@ import { CONDITIONS, derivedCondition, hasCondition, setCondition } from './cond
 import { concentration } from './concentration';
 import { concentrationControls, setupConcentrationUI } from './concentration-ui';
 import { setupWeaponDamageUI } from './weapon-damage-ui';
+import {sheetInput} from '../sheet-edit/ui';
 
 export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
   const number = (n:number) => Number.isFinite(n)?n:'∞';
@@ -17,14 +18,15 @@ export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],sho
     return `data-rule-tooltip="${escape(JSON.stringify({name:r.name,text:r.note,page:ref?.page || E.data.classes[r.classId]?.page,pdfPage:ref?.pdfPage || E.data.classes[r.classId]?.page}))}"`;
   };
   return resources.map(r=>{
+    const maxInput=!r.cost&&Number.isFinite(r.max)&&['counter','pool','toggle'].includes(r.kind)?sheetInput(c,`resourceMax.${r.id}`,c.rules?.resourceMaxOverrides?.[r.id]??'',`Máximo de ${r.name} (vazio = automático)`,'number',{min:0,max:100,placeholder:String(r.max)}):number(r.max);
     const value = remaining(c,r), enabled = active(c,r.id);
     const source = r.cost ? r.cost[0]==='feiticeiro:sorceryPool' ? {id:r.cost[0],max:c.sorceryPoints.max,kind:'pool'} as Resource : resourcesFor(c,E).find(x=>x.id===r.cost![0]) : null;
     const affordable = !r.cost || !!source && remaining(c,source)>=r.cost[1];
     let control = '';
     if (r.kind==='portent') control = c.ruleState?.portent?.length ? c.ruleState.portent.map((p:Sheet,i:number)=>`<button type="button" data-rule-action="portent" data-index="${i}" ${p.spent?'disabled':''} aria-label="Gastar presságio ${i+1}, resultado ${p.value}">${p.value}${p.spent?' ✓':''}</button>`).join('') : '<button type="button" data-rule-action="portentInitial">Rolar dados iniciais</button>';
-    else if (r.kind==='toggle' || r.action==='rage') control = `<button type="button" data-rule-action="toggle" data-resource="${r.id}" aria-pressed="${enabled}">${enabled?'✓ Ativo · encerrar':'Ativar'}</button>${r.action==='rage'?`<span>${number(value)}/${number(r.max)} usos</span>`:''}`;
-    else if (r.kind==='pool') control = `<label>Reserva <input type="number" min="0" max="${r.max}" step="1" data-rule-pool="${r.id}" value="${value}" aria-label="${escape(r.name)} atuais"></label><span>/ ${r.max}</span>`;
-    else if (r.kind==='counter') control = `<span>${r.cost?`Custo ${r.cost[1]} ${r.cost[0]==='monge:ki'?'Chi':r.cost[0]==='feiticeiro:sorceryPool'?'pt':'uso'}`:`${number(value)}/${number(r.max)} usos`}</span><button type="button" data-rule-action="use" data-resource="${r.id}" ${value<1 || !affordable?'disabled':''}>Usar</button>${!r.cost?`<button type="button" data-rule-action="refund" data-resource="${r.id}" ${value===r.max?'disabled':''} aria-label="Devolver um uso de ${escape(r.name)}">↶</button>`:''}`;
+    else if (r.kind==='toggle' || r.action==='rage') control = `<button type="button" data-rule-action="toggle" data-resource="${r.id}" aria-pressed="${enabled}">${enabled?'✓ Ativo · encerrar':'Ativar'}</button>${r.action==='rage'?`<span>${number(value)}/${maxInput} usos</span>`:''}`;
+    else if (r.kind==='pool') control = `<label>Reserva <input type="number" min="0" max="${r.max}" step="1" data-rule-pool="${r.id}" value="${value}" aria-label="${escape(r.name)} atuais"></label><span>/ ${maxInput}</span>`;
+    else if (r.kind==='counter') control = `<span>${r.cost?`Custo ${r.cost[1]} ${r.cost[0]==='monge:ki'?'Chi':r.cost[0]==='feiticeiro:sorceryPool'?'pt':'uso'}`:`${number(value)}/${maxInput} usos`}</span><button type="button" data-rule-action="use" data-resource="${r.id}" ${value<1 || !affordable?'disabled':''}>Usar</button>${!r.cost?`<button type="button" data-rule-action="refund" data-resource="${r.id}" ${value===r.max?'disabled':''} aria-label="Devolver um uso de ${escape(r.name)}">↶</button>`:''}`;
     if (r.action==='wildShape') control += `<label>PV da forma <input type="number" min="0" data-rule-beast-hp value="${Number(c.ruleState?.pools?.[r.id] || 0)}"></label><label>PV máximos <input type="number" min="1" data-rule-beast-max value="${Number(c.ruleState?.beastMax || 1)}"></label>${enabled?`<button type="button" data-rule-action="toggle" data-resource="${r.id}">Encerrar forma</button>`:''}`;
     const needsTarget = ['paladino:sacredWeapon','paladino:enmity','mago:hypnotic'].includes(r.id);
     const target = needsTarget ? r.id==='paladino:sacredWeapon' ? `<label>Arma<select data-rule-target="${r.id}"><option value="">Escolha a arma</option>${c.weapons.map((w:Sheet)=>`<option ${c.ruleState?.targets?.[r.id]===w.name?'selected':''}>${escape(w.name)}</option>`).join('')}</select></label>` : `<input data-rule-target="${r.id}" value="${escape(c.ruleState?.targets?.[r.id] || '')}" placeholder="Alvo" aria-label="Alvo de ${escape(r.name)}">` : '';
@@ -154,7 +156,7 @@ export function setupRuleUI(E: Engine) {
         r=resourcesFor(c,E).find(x=>x.id==='barbaro:rage');if(!r)return;
       }
       const s=state(c);
-      if (action==='prepare') { s.prepareReminder = false;if(c.rules?.manualMode)host.editManualCharacter();else host.CharacterWizard.openPrepare(button.dataset.class); return; }
+      if (action==='prepare') { s.prepareReminder = false;host.CharacterWizard.openPrepare(button.dataset.class); return; }
       if (action==='portentInitial') { if (s.portent.length) return; const n = resourcesFor(c,E).find(x=>x.kind==='portent')?.max; if (!n) return; s.portent = Array.from({length:n},()=>({value:rand(20),spent:false})); }
       if (action==='portent') { const p = s.portent[Number(button.dataset.index)]; if (!p || p.spent) return; p.spent = true; }
       if (action==='hitDie') { const cls = c.classes.find((x:Sheet)=>x.classId===button.dataset.class); if (!s.hitDiceRecovery || !cls?.hitDiceUsed) return; cls.hitDiceUsed--; s.hitDiceRecovery--; }

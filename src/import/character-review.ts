@@ -81,7 +81,7 @@ export function validateImport(c:Sheet,E:Engine):void {
   }
   for(const cls of c.classes) {
     const p=preparation(c,cls.classId,E);
-    if(p.prepares && p.used>p.limit && !c.rules?.importPreparationAdapted && !c.rules?.manualMode)throw new Error(`${E.data.classes[cls.classId].name}: ${p.used} preparadas, limite ${p.limit}. Ajuste o preparo ou identifique a adaptação da mesa.`);
+    if(p.prepares && p.used>p.limit && !c.rules?.importPreparationAdapted && !c.rules?.manualMode && !c.rules?.fieldOverrides?.preparation)throw new Error(`${E.data.classes[cls.classId].name}: ${p.used} preparadas, limite ${p.limit}. Ajuste o preparo ou identifique a adaptação da mesa.`);
   }
   for(const slot of Object.values(c.standardSlots) as Sheet[])if(!Number.isInteger(slot.total)||!Number.isInteger(slot.used)||slot.total<0||slot.used<0||slot.used>slot.total)throw new Error('Confira os espaços totais e usados de Conjuração.');
   for(const key of ['pactMagic','sorceryPoints']) {

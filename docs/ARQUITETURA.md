@@ -14,7 +14,7 @@ fichas locais. Não foi adotado um novo framework de interface nesta etapa.
 | `src/styles/` | Tailwind compilado e estilos/temas preservados. |
 | `src/storage/` | Formato/validação de fichas, migração local, backup, importação e recuperação. |
 | `src/import/` | Leitura local de PDF, proposta de vínculos e revisão comum de PDF/backups/ficha atual antes de criar cópias. |
-| `src/manual/` | Criação/edição livre e editor de magias do catálogo ou personalizadas, sem escolhas automáticas do criador. |
+| `src/sheet-edit/` | Campos editáveis na ficha, painéis internos, propostas validadas, rascunhos/foco e contrato de permissão para futuras salas. |
 | `src/auth/` | Configuração pública, sessão Supabase, entrada principal e interface de cadastro/recuperação/perfil. |
 | `src/sync/` | Documentos pessoais, fila IndexedDB, cliente Supabase, datas e recuperação de versões. |
 | `supabase/migrations/` | Tabelas/RLS/RPC de salvamento pessoal; migração aplicada ao CritCall real em 16/10/2026. |
@@ -64,21 +64,40 @@ após leitura, revisão e recuperação; troca de espaço fecha o editor existen
 Seleção de outro personagem na revisão não recalcula suas reservas. A ação de
 revisar a ficha atual também gera cópia, sem migrar a coleção em silêncio.
 
-O mesmo formulário aceita os modos `create`/`edit` do preenchimento livre.
-`rules.manualMode` marca a adaptação; `legacy` preserva números escritos. O
-motor não executa `refresh`/evolução guiada nesse modo, e `slotTable` conserva
-reservas manuais. Descansos continuam no módulo próprio, recuperando os usos.
-O editor direto conserva ID/notas/retratos e confirma a gravação antes de
-substituir a ficha em memória, registrando histórico pela ponte existente.
-Criar usa `importCopies`; conta/ficha divergente após espera cancela a aplicação.
-Editar diretamente passa ao modo manual, informado no formulário; a revisão
-em cópia permanece disponível para preservar uma ficha separada.
+## Edição na própria ficha
 
-`spell-ui.ts` valida propostas completas antes de salvar. Personalizadas têm
-`customSpell` e `bookId` próprio, impedindo que um nome igual ao catálogo seja
-religado por uma revisão ou receba a fórmula legada. Ataque/CD aceitam ajustes
-explícitos de −100 a 100; a habilidade/origem continua separada do recurso.
-Fórmulas passam pelo parser comum. Características textuais não criam ações.
+`sheet-edit/model.ts` cria propostas para caminhos explicitamente permitidos;
+valida formato, números, classes, fórmulas e vínculos sem refazer a ficha pelo
+motor. Remover/trocar classe com magias vinculadas exige reatribuí-las primeiro.
+`ui.ts` confirma armazenamento antes de aplicar ao objeto em memória e registra
+um passo no histórico. A ficha mantém ID, notas, retrato e escolhas anteriores.
+Os controles são reaproveitados entre renders, com cursor, seleção e rascunhos.
+`change` disparado ao retirar um input do DOM durante render não salva o texto
+nem inicia render recursivo. Falha de quota mantém o valor digitado no campo.
+
+`panels.ts` monta os editores de armas/itens/características/magias no próprio
+bloco e conserva seus nós durante renders. Troca de ficha/espaço os encerra.
+`spell-editor.ts` valida a proposta antes de salvar, com origem/habilidade/gasto
+separados. IDs `custom_*` impedem religar uma magia própria pelo nome ao catálogo.
+Ataque/CD aceitam ajustes explícitos de −100 a 100; fórmulas usam o parser comum.
+Características textuais não programam ações. `blankCharacter` abre uma ficha
+mínima diretamente, sem apagar rascunhos guiados. A revisão de importação volta
+a ter exclusivamente a responsabilidade de importar cópias.
+
+`rules.fieldOverrides` preserva máximos de Conjuração/Pacto/Feitiçaria e
+movimento editados. O refresh e `slotTable` respeitam esses campos; recursos de
+classe usam `rules.resourceMaxOverrides`, consumidos pelo mesmo motor de usos.
+CA escrita usa uma alternativa `written`, com equipamento/escudo já incluídos
+e efeitos temporários ainda separados. Fichas da versão anterior com
+`manualMode` continuam legíveis; a interface não cria nem exige esse modo.
+
+`access.ts` recebe um provedor externo de contexto: pessoal, mestre ou jogador
+com edição liberada/bloqueada. Dados da ficha não concedem acesso. A guarda é
+consultada no render e novamente ao aplicar; cobre também as ações legadas
+ligadas aos controles. É um contrato da interface para futura integração:
+salas ainda exigirão documentos e autorização no servidor, não implementados
+nesta etapa. Não tratar o bloqueio visual como segurança de um backend de sala.
+
 O PDF reconhece somas/subtrações restritas sem `eval`, níveis sem espaço e
 dados abreviados (`d6`); ambiguidade racial usa marcador transitório para impedir
 que a proposta religue a magia à única classe elegível antes da confirmação.

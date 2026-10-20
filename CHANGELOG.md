@@ -2,28 +2,32 @@
 
 ## Não lançado
 
-### Ficha manual, magias próprias e PDFs de mesa — 2026-10-20
+### Correções e criação diretamente na ficha — 2026-10-20
 
-- Criação livre pelo perfil/assistente, com valores editáveis e limites técnicos
-  preservados (atributos 0–30, classes do catálogo, nível total até 20).
-  Rascunhos guiados e fichas existentes permanecem separados.
-- Editor direto com histórico/notas/ID preservados e modo manual identificado;
-  evolução abre esse editor e reservas não são refeitas automaticamente.
-  Proficiências, armaduras, especializações e totais de perícias são revisáveis.
-- + Magia usa catálogo inteiro ou magia personalizada, com origem, habilidade,
-  fórmula, círculo, ataque/resistência, concentração e usos. IDs próprios evitam
-  colisões por nome. Ajustes explícitos de ataque/CD e características textuais.
-- Revisão de PDF aceita classes sem espaços, CA aritmética restrita, dados
-  abreviados e deslocamento fracionário. Vínculo da magia pode ser corrigido;
-  origem também possível pela raça exige confirmação. Bônus ausentes não são
-  inferidos. Fórmulas e círculos são conferidos antes da confirmação.
-- Conferidos 374 testes Node, tipos/build e Chromium dos roteiros manual,
-  importação, criação, aplicação, continuidade local/conta e ataque de magias:
-  cancelamento/conta/quota, extremos,
-  catálogo/personalizada/usos, evolução/descanso/recarga, preservação de notas,
-  offline da importação, 320px/GG/três temas. Dois PDFs reais adicionais usados
-  em navegadores descartáveis, com campos ambíguos provisórios para exercitar a
-  gravação; sem alterar contas reais ou incluir fichas no repositório.
+- Retirados o formulário geral separado e os botões de criação/edição manual do
+  perfil. Níveis, classes/subclasses, atributos, PV, CA, deslocamento, perícias,
+  moedas e biografia são ajustados onde aparecem, com histórico da própria ficha.
+- Armas, itens, características e magias expandem seus ajustes no próprio bloco,
+  sem janela sobreposta. + Novo permite abrir uma ficha em branco para preencher
+  ali mesmo; a criação guiada e seus rascunhos continuam disponíveis.
+- Propostas validadas preservam ID/notas/retratos/escolhas. Campos mantêm seus
+  nós, foco, cursor e textos digitados durante renders. Blur da atualização
+  visual não salva rascunhos por acidente. Quota conserva o texto no campo.
+- Ajustes explícitos de máximos de reservas e movimento sobrevivem ao refresh;
+  descansos mantêm os máximos escolhidos. Máximos de recursos de classe aceitam
+  edição (vazio retoma o livro). Alterar nível diretamente não recria escolhas.
+- Contrato único para contexto de edição pessoal/mestre/jogador, conferido
+  também ao salvar editores abertos e nas ações da ponte. A permissão não vem
+  dos dados da ficha. Salas/autorização de gravação compartilhada no servidor
+  permanecem para a próxima etapa, sem SQL/migração nesta revisão.
+- Catálogo inteiro e magias próprias mantêm origem/habilidade/usos/fórmula e
+  ajustes de ataque/CD. Preservadas as melhorias de PDF: níveis sem espaços,
+  CA aritmética restrita, dados abreviados, deslocamento fracionário e confirmação
+  de origem também possível pela raça; nenhum bônus ausente é inventado.
+- Conferidos 378 testes Node, tipos/build e Chromium de edição, criação,
+  importação, aplicação, continuidade local/conta, regras, armas e ataques de
+  magias; 32 cenários auditados, quota/conta/foco/rascunhos/descanso/recarga,
+  preservação de dados e 320px/GG/três temas/dois layouts.
 
 ### Importação de PDF e revisão de vínculos — 2026-10-20
 

@@ -62,7 +62,7 @@ export function canRitual(c: Sheet, spell: Sheet, E: Engine) {
   return false;
 }
 export function slotTable(c: Sheet, E: Engine) {
-  if(c.rules?.manualMode)return c.standardSlots;
+  if(c.rules?.manualMode||c.rules?.fieldOverrides?.standardSlots)return c.standardSlots;
   const casters = c.classes.filter((x:Sheet)=>['bardo','clerigo','druida','mago','feiticeiro'].includes(x.classId) || ['paladino','patrulheiro'].includes(x.classId) && x.level>=2 || x.classId==='guerreiro' && subclass(c,'guerreiro',E)==='cavaleiroArcano' && x.level>=3 || x.classId==='ladino' && subclass(c,'ladino',E)==='trapaceiroArcano' && x.level>=3);
   if (casters.length<2) return c.standardSlots; // Tabelas de classe únicas ficam no motor existente.
   const total = casters.reduce((sum:number,x:Sheet)=>sum+(['paladino','patrulheiro'].includes(x.classId)?Math.floor(x.level/2):['guerreiro','ladino'].includes(x.classId)?Math.floor(x.level/3):x.level),0);

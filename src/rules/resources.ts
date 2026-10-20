@@ -161,6 +161,7 @@ export function resourcesFor(c: Sheet, E: Engine): Resource[] {
   if (wizard>=6 && sub('mago')==='encantamento') add('mago','instinctive','Encanto Instintivo',1,'none','Reação: escolha atacante e outra criatura ao alcance; após sucesso dele, não pode usar nesse atacante até descanso longo.','toggle');
   if (wizard>=10 && sub('mago')==='transmutacao') add('mago','shapechanger','Metamorfo',1,'short','Conjure Metamorfose em si mesmo sem espaço, virando besta ND 1 ou menor.');
   if (wizard>=14 && sub('mago')==='transmutacao') add('mago','masterTransmuter','Mestre Transmutador',1,'none','Consuma a pedra e escolha a transformação; exige ação e tocar o alvo. Recriar a pedra exige 8 horas.','toggle');
+  for(const r of list){const value=c.rules?.resourceMaxOverrides?.[r.id];if(Number.isInteger(value)&&value>=0&&value<=100&&!r.cost)r.max=value;}
   return list;
 }
 

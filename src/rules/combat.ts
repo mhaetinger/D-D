@@ -93,8 +93,9 @@ export function armorClass(c: Sheet, E: Engine) {
   // A CA escrita livre já inclui a defesa do equipamento/escudo. Efeitos
   // temporários e o ajuste explícito de CA continuam sendo aplicados uma vez.
   if(c.rules?.manualMode && Number.isFinite(c.baseAcArmor))add('legacy','CA manual',c.baseAcArmor,String(c.baseAcArmor),false);
+  if(c.rules?.fieldOverrides?.armor&&Number.isFinite(c.baseAcArmor))add('written','CA escrita na ficha',c.baseAcArmor,String(c.baseAcArmor),false);
   const styles = selections(c,E,'fighting').concat(selections(c,E,'championFighting'));
-  const defense = wearing && styles.includes('Defesa') && !(c.rules?.manualMode&&c.acFormula==='legacy') ? 1 : 0;
+  const defense = wearing && styles.includes('Defesa') && !(c.rules?.manualMode&&c.acFormula==='legacy') && c.acFormula!=='written' ? 1 : 0;
   const spellBonuses = (active(c,'spell:shieldOfFaith') ? 2 : 0) + (active(c,'spell:shield') ? 5 : 0);
   const flat = defense + spellBonuses + Number(c.acAdjustment || 0);
   const options = choices.map(x => ({...x, total:x.base + (x.shield ? shield : 0) + flat}));

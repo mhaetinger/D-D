@@ -15,29 +15,30 @@ Não mesclar/publicar esta revisão sem aprovação. A branch remota `develop`
 foi restaurada após a entrega na referência de integração já aprovada
 `b1155fbc5d14a566f548814bd808374aa2383721`, merge da PR #7.
 
-**Envio pendente em 20/10:** o commit local `deec8c8` contém o preenchimento
-manual e as melhorias de PDF descritas abaixo. `git push` falhou por resolução
-DNS de `github.com`; a API/conector também estavam indisponíveis. Após recuperar
-a rede, enviar somente `feature/regras-universais` e atualizar a descrição da
-PR #9 para incluir o modo manual. Não houve merge nem publicação desta etapa.
+**Entrega anterior substituída:** o formulário separado do commit `deec8c8`
+foi retirado. Os valores agora são editados na própria ficha; não retomar o
+fluxo antigo de Criar/Ajustar ficha manual pelo perfil. O último envio ao GitHub
+falhou por DNS; conferir a situação da branch antes de assumir que a PR #9
+inclui a revisão atual. Não houve merge/publicação desta etapa.
 
-**Preenchimento manual implementado:** entrada no perfil e em + Novo → Preencher
-manualmente. Cria sem escolhas obrigatórias do assistente, dentro dos contratos
-(atributos 0–30, classes do catálogo, nível total até 20). Ajustar diretamente
-passa a ficha ao modo manual, preservando ID/notas/escolhas e registrando histórico;
-UPAR abre o editor e os máximos das reservas não são refeitos. A revisão como
-cópia continua disponível. `src/manual/` contém o modo e o editor + Magia, com
-catálogo inteiro/personalizadas, origem/habilidade/usos/fórmula e ajustes de
-ataque/CD; características textuais são editáveis, sem executar efeitos escritos.
-PDFs agora aceitam níveis sem espaços, CA aritmética restrita, dados abreviados
-e deslocamento fracionário. Origens também possíveis pela raça ficam pendentes;
-o vínculo de uma magia pode ser corrigido no formulário.
-Conferidos 374 testes Node, tipos/build e Chromium manual/importação/criação/
-aplicação/continuidade local-conta/ataque de magias, com quota/conta/cancelamento,
-recarga/descanso e 320px/GG/temas (contas de teste com HTTP simulado).
-Dois PDFs adicionais de mesa passaram pela gravação em contextos descartáveis,
-com valores provisórios nos campos ambíguos. Não foram importados para contas
-reais nem incluídos no Git; isso não valida as escolhas oficiais dos jogadores.
+**Edição diretamente na ficha implementada:** níveis/classes/subclasses no
+cabeçalho; atributos/PV/CA/deslocamento/perícias nos blocos atuais; moedas e
+biografia no inventário/história. Armas, itens, características e magias expandem
+editores dentro do próprio bloco. + Novo → Usar ficha em branco abre a ficha
+mínima sem outra revisão; criação guiada e rascunhos anteriores continuam.
+Removidos os botões de modo manual do perfil e a janela de edição geral.
+`src/sheet-edit/` concentra propostas, persistência, foco/rascunhos e painéis.
+A atualização visual não confirma rascunhos via blur acidental, e falha de quota
+mantém o valor digitado. Ajustes por campo preservam reservas/deslocamento;
+recursos de classe aceitam máximo manual (vazio retoma o cálculo do livro).
+A guarda de acesso recebe contexto externo pessoal/mestre/jogador e confere a
+permissão novamente ao salvar. Não recebe autorização da ficha importada.
+**Salas e validação no servidor ainda não foram implementadas.**
+Conferidos 378 testes Node, tipos/build e Chromium de edição/importação/criação/
+aplicação/continuidade local-conta/regras/armas/ataques mágicos, incluindo 32
+cenários auditados, quota/foco/rascunhos/conta e 320px/GG/temas/layouts.
+PDFs de mesa foram usados na etapa anterior em contextos descartáveis, com
+valores provisórios nos campos ambíguos; originais e contas reais preservados.
 
 **Importação revisada implementada:** perfil aceita PDFs preenchíveis (15 MB,
 20 páginas) e backups JSON. `src/import/` lê campos por página com PDF.js local,

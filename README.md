@@ -143,37 +143,41 @@ Uma importação para substituir dados ilegíveis exige confirmação e guarda u
 cópia separada. Falhas de quota/permissão são informadas; alterações em memória
 podem ser baixadas antes de fechar. Notas não entram nos snapshots da ficha.
 
-## Ficha manual e adaptações
+## Edição diretamente na ficha
 
-Em **+ Novo**, use **Preencher manualmente**, ou **Criar ficha manual** no perfil.
-Você define atributos, classes/níveis, PV, CA, proficiências, perícias e reservas,
-sem orçamento de pontos, pré-requisitos de multiclasse ou escolhas obrigatórias
-do criador. O formato da aplicação mantém atributos de 0 a 30, classes do
-catálogo e nível total até 20. O modo fica identificado como **Manual · editar**.
-O rascunho guiado anterior continua disponível; a ficha manual só é criada ao salvar.
+Níveis e subclasses ficam junto às classes no cabeçalho. Nome, raça, antecedente,
+tendência, atributos, PV, CA, deslocamento, moedas, perícias e biografia são
+editáveis nos lugares em que aparecem. Confirme saindo do campo ou com Enter;
+Escape cancela o texto ainda não salvo. Cada correção entra no histórico da
+própria ficha. Notas privadas e retratos continuam separados e preservados.
 
-**Ajustar ficha manualmente** altera a ficha atual com um passo no histórico,
-preservando notas e escolhas. Salvar passa a usar evolução manual pelo mesmo
-editor; as reservas e magias não são refeitas pelas tabelas de classe. Descansos
-recuperam usos mantendo os máximos escolhidos. Os cálculos de rolagem e efeitos
-de jogo da ficha continuam ativos. Para revisar preservando uma ficha separada,
-use **Revisar ficha atual como cópia**. Na importação também há opção explícita
-de preenchimento livre. Bônus manuais de perícia substituem o total calculado;
-campo vazio retoma o cálculo. A CA livre já inclui equipamento e escudo, antes
-dos efeitos temporários e do ajuste explícito de CA.
+Armas, itens, características e magias expandem seus ajustes dentro do próprio
+bloco, sem sobrepor a página. **+ Magia** permite escolher do catálogo inteiro
+ou criar uma própria, com origem, habilidade, círculo, fórmula, concentração e
+usos. Adições livres são identificadas como adaptações da mesa; fórmulas próprias
+não escalam automaticamente e aceitam até 100 dados. Uma magia personalizada
+mantém seu vínculo mesmo quando tem o nome de outra do catálogo.
 
-No grimório, **+ Magia** permite buscar no catálogo inteiro ou criar uma
-personalizada, indicando classe, habilidade, círculo, fórmula, ataque/resistência,
-concentração e forma de gasto. Origens especiais e adaptações permanecem
-identificadas. Fórmulas personalizadas não escalam automaticamente e aceitam até
-100 dados. Magias distintas podem ter o mesmo nome sem trocar seus vínculos.
-Use **+ Característica** para textos livres; escrever um efeito não programa
-sua execução. Armas, itens, moedas e biografia usam os editores já existentes.
+Os máximos de reservas podem ser corrigidos em seus próprios indicadores.
+**+ Círculo**, **+ Pacto** e **+ Feitiçaria** mostram os controles ainda ausentes
+no grimório. Ajustes de reservas/deslocamento ficam registrados por campo e
+não são refeitos pelas tabelas de classe; descansos continuam recuperando os
+usos. Bônus manuais de perícias substituem o total; vazio retoma o cálculo.
+Os máximos dos recursos de classe também aceitam ajuste; vazio volta ao livro.
+Alterar um nível diretamente não concede escolhas nem recalcula PV/equipamento.
+A ação **UPAR** continua oferecendo a evolução guiada quando desejada.
 
-PDFs aceitam classes sem espaço antes do nível, CA escrita como soma/subtração
-de inteiros e deslocamento fracionário. A revisão permite trocar o vínculo de
-uma magia com o catálogo; magias também concedidas pela raça exigem confirmação
-da origem. Bônus de ataque ausentes continuam pendentes, sem valores inventados.
+Em **+ Novo**, **Usar ficha em branco** abre uma ficha mínima para preencher
+ali mesmo. O rascunho guiado anterior é preservado. Não há outra janela ou modo
+para editar a ficha. Os contratos técnicos continuam: atributos 0–30, classes
+do catálogo e nível total até 20. A importação de PDF mantém a revisão em cópia
+antes de salvar, com confirmação das origens ambíguas e dos bônus ausentes.
+
+A guarda de edição fica em `src/sheet-edit/access.ts`. Fichas pessoais são
+editáveis; um futuro controlador de sala poderá fornecer o papel e a permissão
+concedida pelo mestre. Salas e autorização de gravações compartilhadas no
+servidor ainda não estão implementadas. O contexto de permissão não vem do JSON
+da ficha. Revogar a permissão também bloqueia a aplicação de um editor já aberto.
 
 ## Uso sem internet
 

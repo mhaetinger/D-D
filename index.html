@@ -577,9 +577,7 @@
       <label for="accPlayerName">Nome do jogador</label><input id="accPlayerName" value="Jogador" class="t-inset w-full p-2 rounded">
       <button onclick="saveAccountProfile()" class="t-btn-primary px-3 py-2 rounded">Salvar nome local</button>
       <div id="accountCharactersList" class="space-y-2"></div>
-      <button onclick="closeAuthAccountModal();openNewCharacterModal()" class="t-inset px-3 py-2 rounded">Criação guiada</button>
-      <button id="createManualCharacter" type="button" class="t-inset px-3 py-2 rounded">Criar ficha manual</button>
-      <button id="editManualCharacter" type="button" class="t-inset px-3 py-2 rounded">Ajustar ficha manualmente</button>
+      <button onclick="closeAuthAccountModal();openNewCharacterModal()" class="t-inset px-3 py-2 rounded">Criar personagem</button>
       <section class="space-y-2 border-t t-border pt-3" aria-label="Backups e armazenamento">
         <p id="syncStatus" class="text-xs" role="status" aria-live="polite">Preparando salvamento…</p>
         <div class="flex flex-wrap gap-2"><button id="syncNow" type="button" class="underline text-xs" hidden>Sincronizar agora</button><button id="syncVersions" type="button" class="underline text-xs" hidden>Versões salvas</button></div>
@@ -618,9 +616,9 @@
       <p id="accountSwitchStatus" role="status" class="text-sm"></p>
     </dialog>
     <!-- Editor compartilhado por armas, itens e adaptações de magias. -->
-    <div id="homebrewModal" role="dialog" aria-modal="true" aria-labelledby="hbModalTitle"
-      class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-      <div data-scroll-window class="t-card-accent max-w-lg w-full p-5 space-y-4 shadow-2xl max-h-[92dvh] overflow-y-auto">
+    <div id="sheetEditorParking" hidden>
+    <section id="homebrewModal" aria-labelledby="hbModalTitle" class="sheet-inline-editor hidden">
+      <div class="t-inset w-full p-3 space-y-3 rounded-lg">
         <div class="flex justify-between items-center border-b t-border pb-2.5 gap-3">
           <h3 id="hbModalTitle" class="font-rpg font-bold text-base t-text-accent">Editar / Criar Adaptação</h3>
           <button type="button" onclick="closeHomebrewModal()" aria-label="Fechar editor" class="t-text-muted text-xl font-bold">&times;</button>
@@ -633,6 +631,7 @@
           <button type="button" id="hbSaveBtn" class="px-5 py-2 rounded-lg t-btn-primary text-xs font-extrabold">Salvar Alteração</button>
         </div>
       </div>
+    </section>
     </div>
 
     <!-- MODAL: MERCADO DE EQUIPAMENTOS -->

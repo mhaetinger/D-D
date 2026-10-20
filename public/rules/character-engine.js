@@ -2447,7 +2447,6 @@
       allAbilities.forEach((k) => (char.abilities[k].saveProf = true));
   }
   function levelUp(original, classId, answers, hpRoll = null) {
-    if(original.rules?.manualMode)throw new Error('Esta ficha usa preenchimento manual. Ajuste níveis, PV e escolhas no editor da ficha.');
     const char = clone(original);
     for (const cls of char.classes)
       if (!cls.subclassId) cls.subclassId = inferSubclass(cls);
@@ -2517,7 +2516,7 @@
     // mesa. Descansos recuperam usos pelo fluxo próprio, sem refazer a ficha.
     if (char.rules?.manualMode) return;
     const race = O.races[char.rules?.raceId];
-    if (race && !char.rules.legacy) {
+    if (race && !char.rules.legacy && !char.rules.fieldOverrides?.speed) {
       const monk = classEntry(char, "monge")?.level || 0,
         barbarian = classEntry(char, "barbaro")?.level || 0;
       const feats = selections(char, null, "feat").concat(
@@ -2561,6 +2560,7 @@
     }
     const slots = P.fullSlots[Math.min(caster, 20)] || [];
     for (let i = 1; i <= 9; i++) {
+      if(char.rules.fieldOverrides?.standardSlots)continue;
       const old = char.standardSlots[i] || { total: 0, used: 0 };
       const created = fill ? 0 : old.created || 0,
         total = (slots[i - 1] || 0) + created;
@@ -2571,7 +2571,7 @@
       };
     }
     const w = classEntry(char, "bruxo");
-    if (w) {
+    if (w && !char.rules.fieldOverrides?.pactMagic) {
       const n = w.level;
       char.pactMagic = {
         level: Math.min(5, Math.ceil(n / 2)),
@@ -2588,7 +2588,7 @@
     const max = sorc?.level >= 2 ? sorc.level : 0,
       spent =
         (char.sorceryPoints?.max || 0) - (char.sorceryPoints?.current || 0);
-    char.sorceryPoints = {
+    if(!char.rules.fieldOverrides?.sorceryPoints)char.sorceryPoints = {
       max,
       current: fill ? max : Math.max(0, max - spent),
     };
@@ -3205,6 +3205,7 @@
       : null;
   }
   function movementSpeed(char) {
+    if(char.rules?.fieldOverrides?.speed)return char.speed;
     const race = O.races[char.rules?.raceId];
     if (!race || char.rules.legacy) return char.speed ?? 9;
     const armor = armorInfo(char.armorEquipped),
