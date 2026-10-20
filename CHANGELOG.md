@@ -2,6 +2,27 @@
 
 ## Não lançado
 
+### Cadeado de edição e ajuda de preparo — 2026-10-20
+
+- Cadeado ao lado do seletor começa fechado, com valores de consulta no lugar dos
+  campos de ajuste. Abrir libera classes, atributos, máximos, proficiências e
+  editores dos cartões; a ponte e a confirmação conferem a proteção novamente.
+- Rolagens, combate, condições, preparo, uso/recuperação de recursos, equipamento,
+  loja e histórico permanecem disponíveis. Notas pessoais independem do cadeado.
+- Troca de ficha/conta e recarga protegem novamente; ficha em branco abre em edição.
+  Estado transitório, separado da autorização do mestre e dos documentos/backups.
+- Rascunhos e painéis são preservados ao fechar/reabrir, com confirmação bloqueada
+  enquanto protegidos. Captura usa o dono do controle no DOM para não transferir
+  rascunhos entre personagens durante a troca de ficha.
+- Máximos numéricos compactos em recursos como Marés de Caos e indicadores de
+  Pacto. Dicas ao passar o mouse explicam preparo, sempre preparada e a adaptação
+  para exceder o limite, sem confundir com espaços de magia.
+- Conferidos 385 testes Node, tipos/build e os 19 scripts Chromium, incluindo
+  32 cenários auditados. Cadeado/ponte/rascunhos/quota, permissões, troca de ficha
+  e conta, recarga/offline, combate/recursos/preparo, cópias/notas, SDK com HTTP
+  simulado e 320px/GG/três temas/dois layouts. Sem SQL/migração.
+
+
 ### Revisão por setores e remoção de classe — 2026-10-20
 
 - Revisão de importação separada em Identidade/classes, Atributos/combate,

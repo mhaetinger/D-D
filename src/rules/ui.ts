@@ -9,6 +9,7 @@ import { CONDITIONS, derivedCondition, hasCondition, setCondition } from './cond
 import { concentration } from './concentration';
 import { concentrationControls, setupConcentrationUI } from './concentration-ui';
 import { setupWeaponDamageUI } from './weapon-damage-ui';
+import {PREPARATION_HELP} from './spell-help';
 import {sheetInput} from '../sheet-edit/ui';
 
 export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
@@ -44,7 +45,7 @@ export function renderResourcesAt(c:Sheet,E:Engine,place:string) {
 export function preparationControls(c:Sheet,E:Engine) {
   const buttons = c.classes.filter((x:Sheet)=>preparation(c,x.classId,E).prepares).map((x:Sheet)=>{
     const p = preparation(c,x.classId,E);
-    return `<button type="button" data-rule-action="prepare" data-class="${x.classId}" class="t-inset px-2.5 py-1 rounded font-bold">Preparar magias · ${escape(E.data.classes[x.classId].name)} (${p.used}/${p.limit})</button>`;
+    return `<button type="button" title="${escape(PREPARATION_HELP)}" data-rule-action="prepare" data-class="${x.classId}" class="t-inset px-2.5 py-1 rounded font-bold">Preparar magias · ${escape(E.data.classes[x.classId].name)} (${p.used}/${p.limit})</button>`;
   }).join('');
   const blocked=castingRestriction(c,E);
   return `${blocked?`<p class="text-xs font-bold" role="status">${escape(blocked)}</p>`:''}${buttons?`<div class="flex flex-wrap items-center gap-2">${c.ruleState?.prepareReminder?'<span>Após o descanso, revise a preparação.</span>':''}${buttons}</div>`:''}${concentrationControls(c)}${renderResourcesAt(c,E,'spellbook')}`;

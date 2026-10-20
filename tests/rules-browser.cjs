@@ -1,3 +1,4 @@
+const {unlockSheet}=require('./sheet-lock-actions.cjs');
 const assert = require('node:assert/strict');
 const path = require('node:path');
 const { chromium } = require('playwright');
@@ -116,6 +117,7 @@ const {warrior} = require('./fixture.cjs');
     await page.evaluate(()=>{setTab('spells');scrollTo(0,0);});
     await page.screenshot({path:'/tmp/critcall-context-spells.png'});
     // Evolução: reutiliza a grade da criação sem listas/dicas por ponto.
+    await unlockSheet(page);
     await page.evaluate(()=>{
       const c=getChar();c.classes=[{classId:'barbaro',level:3,subclassId:'berserker',subclass:'Caminho do Furioso',hitDie:12,hitDiceUsed:0}];c.rules.history=[];c.rules.allowFeats=true;c.abilities.str.score=19;c.abilities.con.score=18;c.abilities.cha.score=20;
       c.sorceryPoints={max:0,current:0};c.pactMagic={level:0,total:0,used:0};c.ruleState={used:{},active:{},pools:{},targets:{}};

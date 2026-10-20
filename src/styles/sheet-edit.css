@@ -32,3 +32,15 @@ div:has(> .sheet-skill-value) > div:first-child { min-width:0; overflow-wrap:any
 [data-sheet-item]:has(> #homebrewModal) > :not(#homebrewModal),
 [data-sheet-feature-row]:has(> #homebrewModal) > :not(#homebrewModal) { display:none; }
 @media print { .sheet-field { border:0; background:none; } .sheet-inline-editor { display:none; } }
+/* O cadeado mostra valores de leitura e conserva os inputs ocultos: rascunhos
+ * não somem ao proteger a ficha e não são confundidos com dados já salvos. */
+.sheet-value { white-space:pre-wrap; overflow-wrap:anywhere; }
+.sheet-value.sheet-wide { display:inline-block; }
+.sheet-value[hidden],.sheet-field[hidden],#sheetViewport [hidden],#headerSection [hidden] { display:none !important; }
+[data-sheet-value="name"] { font-family:"Cinzel",serif; font-size:1.1rem; font-weight:700; }
+.rule-context input.sheet-number,.rule-inline input.sheet-number { width:4.5ch; min-width:0; padding:.1rem .2rem; }
+[aria-disabled=true][onclick] { cursor:default; }
+#sheetEditLock[aria-pressed=true] { outline:1px solid var(--text-accent); }
+@media print { #sheetEditLock { display:none; } }
+[onclick="openLevelUpModal()"]:disabled { opacity:.55; }
+.spell-preparation label[title],.import-review .import-check[title] { cursor:help; }

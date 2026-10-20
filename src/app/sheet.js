@@ -20,9 +20,10 @@ import { onSpellCast } from "../rules/resources";
 import { characterSnapshot, historyComparable as characterHistoryComparable, historyKey, HISTORY_PREFIX, isCharacterHistoryKey, migrateCharacterHistories, splitLegacyHistory, validateCharacterHistory } from '../storage/character-history';
 import { setupDiceDock } from "./dice-dock";
 import { avatarMarkup } from "../media/avatar";
-import {sheetInput,sheetSelect,sheetText,captureSheetFields,restoreSheetFields,requireSheetEdit,poolEditorVisible,beginSheetRender,endSheetRender} from '../sheet-edit/ui';
+import {sheetInput,sheetSelect,sheetText,captureSheetFields,restoreSheetFields,requireSheetEdit,requireSheetConfiguration,updateSheetLockUI,poolEditorVisible,beginSheetRender,endSheetRender} from '../sheet-edit/ui';
 import {parkSheetPanels,restoreSheetPanels,clearSheetPanels,mountSheetPanel,closeSheetPanel,canSaveSheetPanel} from '../sheet-edit/panels';
 import {canEditSheet} from '../sheet-edit/access';
+import {canConfigureSheet} from '../sheet-edit/lock';
 
 // =========================================================================
 // 1. METADADOS E CATÁLOGOS
@@ -1368,7 +1369,7 @@ function commitCreatedCharacter(char) {
   showToast(`Personagem ${char.name} criado!`);
 }
 function commitLeveledCharacter(char, action) {
-  if(!requireSheetEdit())return;
+  if(!requireSheetConfiguration())return;
   characters[activeCharIndex] = char;
   recordStepAndSave(action, true);
   showToast(action);
@@ -1709,7 +1710,7 @@ function renderPactMagicPanel(char) {
       <h3 tabindex="0" ${RuleTooltips.attributes("Magia de Pacto", CharacterEngine.reference("Magia de Pacto", "bruxo"))} class="font-rpg font-bold text-sm t-text-accent">Bruxo · Magia de Pacto</h3>
       <div class="slot-resource t-inset px-3 py-1 rounded-lg">
         ${Array.from({ length: pact.total }, (_, index) => renderSpellSlotButton("pact", pact.level, index, index >= pact.total - pact.used)).join("")}
-        ${sheetInput(char,'pactMagic.remaining',pact.total-pact.used,'Espaços disponíveis de Pacto','number',{min:0,max:100})} / ${sheetInput(char,'pactMagic.total',pact.total,'Total de espaços de Pacto','number',{min:0,max:100})} · ${sheetInput(char,'pactMagic.level',pact.level,'Círculo dos espaços de Pacto','number',{min:1,max:5})}º círculo
+        ${sheetInput(char,'pactMagic.remaining',pact.total-pact.used,'Espaços disponíveis de Pacto','number',{min:0,max:100})} / ${sheetInput(char,'pactMagic.total',pact.total,'Total de espaços de Pacto','number',{min:0,max:100})} · <span>${sheetInput(char,'pactMagic.level',pact.level,'Círculo dos espaços de Pacto','number',{min:1,max:5})}º círculo</span>
       </div>
     </div>
     <p class="text-xs t-text-muted">Espaços de magia do Bruxo. Recuperam no descanso curto ou ao dormir.</p>
@@ -1725,7 +1726,7 @@ function renderSpellsToolbar(char) {
       <button onclick="setSpellClassFilter('all')" class="px-2.5 py-1 rounded font-bold ${spellFilterClass === 'all' ? 't-btn-primary' : 't-inset'}">Todas</button>
       ${ids.map(id => `<button onclick="setSpellClassFilter('${id}')" class="px-2.5 py-1 rounded font-bold ${spellFilterClass === id ? 't-btn-primary' : 't-inset'}">${escapeHTML(RULES_DB.classes[id]?.name || id)}</button>`).join('')}
     </div>
-    <div class="flex flex-wrap items-center gap-2"><button type="button" class="t-inset px-2.5 py-1 rounded font-bold" onclick="openSpellEditor()">+ Magia</button><select class="sheet-field sheet-select" data-sheet-circle aria-label="Adicionar círculo de espaços" ${canEditSheet(char)?'':'disabled'}><option value="">+ Círculo</option>${Array.from({length:9},(_,i)=>`<option value="${i+1}">${i+1}º círculo</option>`).join('')}</select>${char.pactMagic.total<=0&&!poolEditorVisible(char,'pact')?'<button type="button" data-sheet-show-pool="pact">+ Pacto</button>':''}${char.sorceryPoints.max<=0&&!poolEditorVisible(char,'sorcery')?'<button type="button" data-sheet-show-pool="sorcery">+ Feitiçaria</button>':''}${preparationControls(char,CharacterEngine)}</div>
+    <div class="flex flex-wrap items-center gap-2"><button type="button" class="t-inset px-2.5 py-1 rounded font-bold" onclick="openSpellEditor()">+ Magia</button><select class="sheet-field sheet-select" data-sheet-circle aria-label="Adicionar círculo de espaços" ${canConfigureSheet(char)?'':'disabled'}><option value="">+ Círculo</option>${Array.from({length:9},(_,i)=>`<option value="${i+1}">${i+1}º círculo</option>`).join('')}</select>${char.pactMagic.total<=0&&!poolEditorVisible(char,'pact')?'<button type="button" data-sheet-show-pool="pact">+ Pacto</button>':''}${char.sorceryPoints.max<=0&&!poolEditorVisible(char,'sorcery')?'<button type="button" data-sheet-show-pool="sorcery">+ Feitiçaria</button>':''}${preparationControls(char,CharacterEngine)}</div>
   </div>`;
 }
 
@@ -1733,7 +1734,7 @@ function renderSpellsToolbar(char) {
 // 8. ABA 1 & ABA 3
 // =========================================================================
 function renderSkillAdjustment(char,sk,val,label) {
-  return `<div class="sheet-skill-value">${sheetInput(char,`customSkillBonuses.${sk.id}`,char.customSkillBonuses?.[sk.id]??'',`Bônus total de ${label}`,'number',{min:-1000,max:1000,placeholder:fmtMod(val)})}<button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Perícia: ${label}', true)" aria-label="Rolar ${label}" class="t-text-accent"><i data-lucide="dices" class="w-3 h-3" aria-hidden="true"></i></button><button type="button" data-sheet-expertise="${sk.id}" aria-pressed="${char.expertise?.includes(sk.id)}" title="Especialização: proficiência dobrada" aria-label="Especialização em ${label}" ${canEditSheet(char)?'':'disabled'}>${char.expertise?.includes(sk.id)?'×2':'×1'}</button></div>`;
+  return `<div class="sheet-skill-value">${sheetInput(char,`customSkillBonuses.${sk.id}`,char.customSkillBonuses?.[sk.id]??'',`Bônus total de ${label}`,'number',{min:-1000,max:1000,placeholder:fmtMod(val)})}<button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Perícia: ${label}', true)" aria-label="Rolar ${label}" class="t-text-accent"><i data-lucide="dices" class="w-3 h-3" aria-hidden="true"></i></button><button type="button" data-sheet-expertise="${sk.id}" aria-pressed="${char.expertise?.includes(sk.id)}" title="Especialização: proficiência dobrada" aria-label="Especialização em ${label}" ${canConfigureSheet(char)?'':'disabled'}>${char.expertise?.includes(sk.id)?'×2':'×1'}</button></div>`;
 }
 function renderMainClassic2014(char) {
   const pb = getProfBonus(char);
@@ -2044,7 +2045,7 @@ function renderFeaturesCollapsible(char, wide = false) {
   if (char.features?.length) entries.push(`<details><summary class="cursor-pointer font-bold">Anotações e adaptações já presentes nesta ficha</summary><ul class="list-disc pl-4 space-y-2 mt-2">${char.features.map((text,i) => `<li data-sheet-feature-row="${i}"><span>${escapeHTML(readableText(text))}</span> <button type="button" class="underline" onclick="openHomebrewModal('feature',${i})">Editar</button></li>`).join('')}</ul></details>`);
   const multiclass = CharacterEngine.multiclassNotes(char);
   if (multiclass.length) entries.push(`<details><summary class="cursor-pointer font-bold">Interações de multiclasse</summary><ul class="list-disc pl-4 space-y-2 mt-2">${multiclass.map(note => `<li><strong>${escapeHTML(note.name)}</strong>: ${escapeHTML(note.text)} <a class="underline" href="book.html#page=${note.pdfPage}" target="_blank" rel="noopener">Livro · p. ${note.page}</a></li>`).join('')}</ul></details>`);
-  entries.push(`<details data-sheet-section="proficiencies"><summary class="cursor-pointer font-bold">Proficiências e idiomas</summary><div class="flex flex-wrap gap-2">${Object.entries({leve:'Leves',media:'Médias',pesada:'Pesadas',escudo:'Escudos'}).map(([id,label])=>`<label class="flex items-center gap-1"><input type="checkbox" data-sheet-armor="${id}" ${armorProficiencies(char,CharacterEngine).includes(id)?'checked':''} ${canEditSheet(char)?'':'disabled'}> ${label}</label>`).join('')}</div><label>Armas: ${sheetInput(char,'proficiencies.weapons',char.proficiencies.weapons,'Proficiências · Armas','text',{wide:true})}</label><label>Ferramentas: ${sheetInput(char,'proficiencies.tools',char.proficiencies.tools,'Proficiências · Ferramentas','text',{wide:true})}</label><label>Idiomas: ${sheetInput(char,'proficiencies.languages',char.proficiencies.languages,'Proficiências · Idiomas','text',{wide:true})}</label></details>`);
+  entries.push(`<details data-sheet-section="proficiencies"><summary class="cursor-pointer font-bold">Proficiências e idiomas</summary><div class="flex flex-wrap gap-2">${Object.entries({leve:'Leves',media:'Médias',pesada:'Pesadas',escudo:'Escudos'}).map(([id,label])=>`<label class="flex items-center gap-1"><input type="checkbox" data-sheet-armor="${id}" ${armorProficiencies(char,CharacterEngine).includes(id)?'checked':''} ${canConfigureSheet(char)?'':'disabled'}> ${label}</label>`).join('')}</div><label>Armas: ${sheetInput(char,'proficiencies.weapons',char.proficiencies.weapons,'Proficiências · Armas','text',{wide:true})}</label><label>Ferramentas: ${sheetInput(char,'proficiencies.tools',char.proficiencies.tools,'Proficiências · Ferramentas','text',{wide:true})}</label><label>Idiomas: ${sheetInput(char,'proficiencies.languages',char.proficiencies.languages,'Proficiências · Idiomas','text',{wide:true})}</label></details>`);
   const middle = Math.ceil(entries.length / 2);
   const content = wide ? [entries.slice(0,middle), entries.slice(middle)].map(column => `<div class="feature-column">${column.join('')}</div>`).join('') : entries.join('');
   return `<div class="t-card overflow-hidden" data-sheet-features>
@@ -2161,6 +2162,7 @@ function renderAll() {
   document.documentElement.style.fontSize = `${(16 * currentFontScale) / 100}px`;
 
   const char = getChar();
+  updateSheetLockUI(char);
   document.getElementById("charSelect").innerHTML = characters
     .map((c, idx) => {
       const clsStr = c.classes
@@ -2278,9 +2280,15 @@ function renderAll() {
   restoreSheetPanels();
   restoreSheetFields(inlineFields);
   document.querySelectorAll('.rule-context input,.rule-context select,.rule-inline input,.rule-inline select,[data-sheet-show-pool]').forEach(el=>{if(!canEditSheet(char))el.disabled=true;});
+  document.querySelectorAll('[data-sheet-add-class],[data-sheet-remove-class],[data-sheet-circle],[data-sheet-show-pool]').forEach(el=>{el.hidden=!canConfigureSheet(char);el.disabled=!canConfigureSheet(char);});
+  document.querySelectorAll('[data-sheet-armor],[data-sheet-expertise],[data-rule-ac],[data-rule-defense],[data-rule-companion="name"],[data-rule-companion="max"]').forEach(el=>el.disabled=!canConfigureSheet(char));
   document.querySelectorAll('[onclick]').forEach(el=>{
-    if(/\b(?:changeAbility|toggleSave|toggleSkill|openHomebrewModal|openSpellEditor|openLevelUpModal|toggleWornArmor|undoStep|redoStep|restoreToSessionStart)\(/.test(el.getAttribute('onclick')||'')){
-      if('disabled' in el)el.disabled=!canEditSheet(char);el.setAttribute('aria-disabled',String(!canEditSheet(char)));
+    const action=el.getAttribute('onclick')||'',configuration=/\b(?:changeAbility|toggleSave|toggleSkill|openHomebrewModal|openSpellEditor|openLevelUpModal)\(/.test(action);
+    if(configuration||/\b(?:toggleWornArmor|undoStep|redoStep|restoreToSessionStart)\(/.test(action)){
+      const allowed=configuration?canConfigureSheet(char):canEditSheet(char);
+      if('disabled' in el)el.disabled=!allowed;el.setAttribute('aria-disabled',String(!allowed));
+      if(configuration&&el.tagName==='BUTTON'&&!action.includes('openLevelUpModal'))el.hidden=!allowed;
+      if(configuration&&!allowed)el.title=canEditSheet(char)?'Abra o cadeado para editar a ficha.':'Edição bloqueada pelo mestre.';
     }
   });
 
@@ -2322,7 +2330,7 @@ function resumeSavedDraftIfNeeded() {
 function renderHeader(char, isModern) {
   const totalLvl = getTotalLevel(char);
   const pb = getProfBonus(char);
-  const classChips = char.classes.map((c,i)=>`<div class="sheet-class-chip t-inset"><div class="flex flex-wrap items-center gap-1">${sheetSelect(char,`classes.${i}.classId`,c.classId,`Classe ${i+1}`,Object.fromEntries(Object.entries(PHB_DATA.classes).map(([id,v])=>[id,v.name])))}<span>Nv.</span>${sheetInput(char,`classes.${i}.level`,c.level,`Nível de ${RULES_DB.classes[c.classId]?.name}`,'number',{min:1,max:20})}<button type="button" data-sheet-remove-class="${i}" aria-label="Remover ${RULES_DB.classes[c.classId]?.name}" ${char.classes.length<2||!canEditSheet(char)?'disabled':''}>×</button></div><details data-sheet-section="subclass-${i}"><summary>${escapeHTML(c.subclass||'Escolher subclasse')}</summary>${sheetSelect(char,`classes.${i}.subclassId`,c.subclassId||'',`Subclasse de ${RULES_DB.classes[c.classId]?.name}`,{'':'Livre / a escolher',...Object.fromEntries(Object.entries(PHB_DATA.classes[c.classId]?.subclasses||{}).map(([id,v])=>[id,v.name]))})}${!c.subclassId?sheetInput(char,`classes.${i}.subclass`,c.subclass,'Subclasse escrita','text',{wide:true}):''}</details></div>`).join('')+`<button type="button" data-sheet-add-class ${canEditSheet(char)?'':'disabled'} class="text-xs underline">+ Classe</button>`;
+  const classChips = char.classes.map((c,i)=>`<div class="sheet-class-chip t-inset"><div class="flex flex-wrap items-center gap-1">${sheetSelect(char,`classes.${i}.classId`,c.classId,`Classe ${i+1}`,Object.fromEntries(Object.entries(PHB_DATA.classes).map(([id,v])=>[id,v.name])))}<span>Nv.</span>${sheetInput(char,`classes.${i}.level`,c.level,`Nível de ${RULES_DB.classes[c.classId]?.name}`,'number',{min:1,max:20})}<button type="button" data-sheet-remove-class="${i}" aria-label="Remover ${RULES_DB.classes[c.classId]?.name}" ${char.classes.length<2||!canConfigureSheet(char)?'disabled':''}>×</button></div><details data-sheet-section="subclass-${i}"><summary>${escapeHTML(c.subclass||(canConfigureSheet(char)?'Escolher subclasse':'Sem subclasse definida'))}</summary>${sheetSelect(char,`classes.${i}.subclassId`,c.subclassId||'',`Subclasse de ${RULES_DB.classes[c.classId]?.name}`,{'':'Livre / a escolher',...Object.fromEntries(Object.entries(PHB_DATA.classes[c.classId]?.subclasses||{}).map(([id,v])=>[id,v.name]))})}${!c.subclassId?sheetInput(char,`classes.${i}.subclass`,c.subclass,'Subclasse escrita','text',{wide:true}):''}</details></div>`).join('')+`<button type="button" data-sheet-add-class ${canConfigureSheet(char)?'':'disabled'} class="text-xs underline">+ Classe</button>`;
   const draftInfo = getSavedDraftInfo();
   const draftBanner = draftInfo
     ? `<div class="t-inset px-2.5 py-1.5 rounded-lg mb-2 flex flex-wrap items-center justify-between gap-2 text-xs" data-draft-banner><span><strong>Criação em andamento:</strong> ${escapeHTML(draftInfo.name)}${draftInfo.summary ? ` (${escapeHTML(draftInfo.summary)})` : ''} · Etapa ${draftInfo.stepIndex + 1} de 7 (${escapeHTML(draftInfo.stepLabel)})</span><div class="flex flex-wrap items-center gap-1.5"><button type="button" class="t-btn-primary px-2.5 py-1 rounded font-bold" onclick="openNewCharacterModal()">Continuar de onde parou</button><button type="button" class="t-card px-2.5 py-1 rounded font-bold text-rose-500 border t-border" onclick="CharacterWizard.discardDraft()">Descartar rascunho</button></div></div>`
@@ -2426,7 +2434,7 @@ function renderWeaponDamageBuilder(modifierChanged = false) {
 }
 
 function saveCharacterCoins(values) {
-  if(!requireSheetEdit())return;
+  if(!requireSheetConfiguration())return;
   // Validar o conjunto inteiro antes de alterar qualquer moeda. Não converte unidades.
   const next = {};
   for (const key of Object.keys(COIN_LABELS)) {
@@ -2443,7 +2451,7 @@ function saveCharacterCoins(values) {
   recordStepAndSave("Editou as quantidades de moedas");
 }
 async function saveCharacterLore(values, physical = {}) {
-  if(!requireSheetEdit())return false;
+  if(!requireSheetConfiguration())return false;
   const char = getChar(), lore = { ...char.lore }, body = { ...char.physical }, cleared = [];
   for (const [group,labels,target,previous] of [[values,LORE_LABELS,lore,char.lore || {}],[physical,PHYSICAL_LABELS,body,char.physical || {}]]) {
     for (const [key,label] of Object.entries(labels)) {
@@ -2454,7 +2462,7 @@ async function saveCharacterLore(values, physical = {}) {
     }
   }
   if (cleared.length && !await confirmDestructiveAction("Apagar textos preenchidos?", `Estes campos ficarão vazios: ${cleared.join(", ")}. Você poderá desfazer nesta sessão.`, "Apagar e salvar")) return false;
-  if(char!==getChar()||!canEditSheet(char))return false;
+  if(char!==getChar()||!canConfigureSheet(char))return false;
   // Biografia pertence à ficha; nunca modifica o armazenamento das notas privadas.
   char.lore = lore; char.physical = body;
   closeHomebrewModal(true);
@@ -2463,7 +2471,7 @@ async function saveCharacterLore(values, physical = {}) {
 }
 
 function openHomebrewModal(type, index = null) {
-  if(!requireSheetEdit())return;
+  if(!requireSheetConfiguration())return;
   if (type === 'spell') return window.openSpellEditor(index);
   if(!document.getElementById('homebrewModal').classList.contains('hidden')&&homebrewInitialState!==getHomebrewFormState()){showToast('Conclua ou feche a edição já aberta na ficha.');return;}
   closeSheetPanel('homebrew');
@@ -2591,7 +2599,7 @@ function openHomebrewModal(type, index = null) {
     };
   } else return;
   const saveAction=saveBtn.onclick;
-  saveBtn.onclick=event=>{if(!requireSheetEdit()||getChar()!==char||!canSaveSheetPanel('homebrew'))return;return saveAction?.call(saveBtn,event);};
+  saveBtn.onclick=event=>{if(!requireSheetConfiguration()||getChar()!==char||!canSaveSheetPanel('homebrew'))return;return saveAction?.call(saveBtn,event);};
   homebrewInitialState = getHomebrewFormState();
   modal.classList.remove("hidden");
   const parent=type==='weapon'?'[data-sheet-weapons]':type==='feature'?'[data-sheet-features]':type==='lore'?'[data-sheet-lore]':'[data-sheet-inventory]';
@@ -2601,14 +2609,14 @@ function openHomebrewModal(type, index = null) {
 }
 
 async function deleteSheetEntry(type, index) {
-  if(!requireSheetEdit())return;
+  if(!requireSheetConfiguration())return;
   const char = getChar();
   const entries = type === "weapon" ? char.weapons : type === "item" ? char.inventoryItems : type === "spell" ? char.spells : type==='feature'?char.features:null;
   const entry = entries?.[index];
   if (!entry) return;
   const noun = type === "weapon" ? "ataque" : type === "item" ? "item" : type==='feature'?'característica':"magia";
   if (!await confirmDestructiveAction(`Excluir ${noun}?`, `“${entry.name || readableText(entry).slice(0,120)}” será removido desta ficha${type === "item" ? ` com toda a quantidade (${entry.qty}x)` : ""}. Você poderá desfazer nesta sessão.`, `Excluir ${noun}`)) return;
-  if(getChar()!==char || entries[index]!==entry||!canEditSheet(char))return;
+  if(getChar()!==char || entries[index]!==entry||!canConfigureSheet(char))return;
   entries.splice(index, 1);
   if (type === "spell") {
     // Remover uma magia desloca índices; descarta somente escolhas visuais de espaços.
@@ -2822,12 +2830,12 @@ function switchCharacter(idx) {
   renderAll();
 }
 function updateField(field, value) {
-  if(!requireSheetEdit())return;
+  if(!requireSheetConfiguration())return;
   getChar()[field] = value;
   recordStepAndSave(`Alterou ${field} para "${value}"`);
 }
 function changeAbility(key, delta) {
-  if(!requireSheetEdit())return;
+  if(!requireSheetConfiguration())return;
   const char = getChar();
   changePermanentAbility(char,key,delta);
   recordStepAndSave(
@@ -2835,12 +2843,12 @@ function changeAbility(key, delta) {
   );
 }
 function toggleSave(key) {
-  if(!requireSheetEdit())return;
+  if(!requireSheetConfiguration())return;
   getChar().abilities[key].saveProf = !getChar().abilities[key].saveProf;
   recordStepAndSave(`Salvaguarda de ${RULES_DB.abilities[key].name}`);
 }
 function toggleSkill(id) {
-  if(!requireSheetEdit())return;
+  if(!requireSheetConfiguration())return;
   const char = getChar();
   const idx = char.skillsProf.indexOf(id);
   if (idx === -1) char.skillsProf.push(id);
@@ -3184,7 +3192,7 @@ function buyItem(itemId) {
 }
 
 function openLevelUpModal() {
-  if(!requireSheetEdit())return;
+  if(!requireSheetConfiguration())return;
   CharacterWizard.openLevel();
 }
 function closeLevelUpModal() { return CharacterWizard.close(); }

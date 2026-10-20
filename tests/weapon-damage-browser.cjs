@@ -66,7 +66,7 @@ const {confirmationActions}=require('./confirmation.cjs');
     // Registrar dano de uma arma sem adicionais é sempre físico, mesmo em Auto.
     await open(1);assert.equal(await dialog.locator('[data-weapon-source]').count(),0);const manualRolls=await page.evaluate(()=>window.weaponRolls.length);await dialog.locator('[data-weapon-total]').fill('7');await accept();assert.equal(await page.evaluate(()=>window.weaponRolls.length),manualRolls);
     // A descrição, os botões e o rodapé mantêm as posições ao marcar crítico.
-    const geometry=()=>page.locator('[data-weapon-card="0"]').evaluate(card=>[card,...card.querySelectorAll('.t-text-muted,[data-weapon-damage-label],[data-weapon-critical-toggle]')].map(e=>{const r=e.getBoundingClientRect(),c=card.getBoundingClientRect();return [r.x-c.x,r.y-c.y,r.width,r.height];}));
+    const geometry=()=>page.locator('[data-weapon-card="0"]').evaluate(card=>[card,...card.querySelectorAll('.t-text-muted,[data-weapon-damage-label],[data-weapon-critical-toggle]')].filter(e=>e.getClientRects().length).map(e=>{const r=e.getBoundingClientRect(),c=card.getBoundingClientRect();return [r.x-c.x,r.y-c.y,r.width,r.height];}));
     await page.locator('[data-weapon-critical-toggle="0"]').scrollIntoViewIfNeeded();const desktopGeometry=await geometry();await prepare();assert.deepEqual(await geometry(),desktopGeometry);await page.locator('[data-weapon-card="0"]').screenshot({path:'/tmp/critcall-weapon-stable-desktop.png'});await page.locator('[data-weapon-critical-toggle="0"]').uncheck();
     // Layouts/temas/GG com todos os seletores, rolagem contida e foco preservado.
     for(const layout of ['classic_2014','modern_2024'])for(const theme of ['pergaminho_claro','pergaminho_escuro','obsidiana']){

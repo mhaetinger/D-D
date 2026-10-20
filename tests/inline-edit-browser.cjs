@@ -1,3 +1,4 @@
+const {unlockSheet}=require('./sheet-lock-actions.cjs');
 const assert=require('node:assert/strict'),path=require('node:path');
 const {chromium}=require('playwright'),{serve}=require('./serve.cjs'),{warrior}=require('./fixture.cjs');
 const {confirmationActions}=require('./confirmation.cjs');
@@ -7,7 +8,7 @@ const {confirmationActions}=require('./confirmation.cjs');
   const context=await browser.newContext({viewport:{width:1440,height:1050}}),page=await context.newPage(),errors=[];
   page.on('pageerror',e=>errors.push(e.message));await page.route('**/*',r=>new URL(r.request().url()).origin===new URL(server.url).origin?r.continue():r.abort());
   await page.addInitScript(c=>{if(!localStorage.getItem('inlineSeeded')){localStorage.setItem('critcall_characters_v1',JSON.stringify({schemaVersion:1,characters:[c]}));localStorage.setItem('inlineSeeded','1');}},warrior());
-  await page.goto(server.url,{waitUntil:'networkidle'});await page.locator('#accessContinueLocal').click();await page.evaluate(()=>{setTab('lore');savePrivateNotes('Nota privada preservada');setTab('main');});
+  await page.goto(server.url,{waitUntil:'networkidle'});await page.locator('#accessContinueLocal').click();await unlockSheet(page);await page.evaluate(()=>{setTab('lore');savePrivateNotes('Nota privada preservada');setTab('main');});
   const field=p=>page.locator(`[data-sheet-field="${p}"]`),set=async(p,value)=>{await field(p).fill(String(value));await field(p).dispatchEvent('change');},noDialog=async()=>assert.equal(await page.locator('#confirmationDialog').evaluate(e=>e.open),false);
   assert.equal(await page.locator('#createManualCharacter,#editManualCharacter').count(),0);
   const id=await page.evaluate(()=>getChar().id),before=await page.evaluate(()=>JSON.parse(JSON.stringify(getChar())));

@@ -133,7 +133,9 @@ pode permanecer manual, com aviso aceito e registrado na cópia. Armas do PDF
 mantêm seus valores manuais até o jogador escolher explicitamente o catálogo.
 CA do PDF permanece como total manual, sem somar escudo de novo. Reservas de
 PDF são sugeridas pelas classes: confira os usos atuais antes de confirmar.
-Perícias com bônus escritos mantêm ajustes manuais; confira ao evoluir.
+As opções de preparo têm dicas ao passar o mouse, distinguindo preparo, espaços
+e a adaptação para exceder o limite. Perícias com bônus escritos mantêm ajustes
+manuais; confira ao evoluir.
 Remover classe, na revisão ou no cabeçalho da ficha, pede confirmação. Se houver
 magias vinculadas, escolha remover junto ou manter como adaptação, com habilidade
 e origem anterior registradas e agrupamento em outra classe. PV, atributos,
@@ -156,7 +158,21 @@ podem ser baixadas antes de fechar. Notas não entram nos snapshots da ficha.
 
 ## Edição diretamente na ficha
 
-Níveis e subclasses ficam junto às classes no cabeçalho. Nome, raça, antecedente,
+O cadeado ao lado do seletor alterna **Protegida** e **Editando**. Fechado, mostra
+os valores para consulta e protege classes, atributos, máximos, proficiências e
+ajustes dos cartões. Rolagens, PV pelos controles de combate, condições, preparo,
+gastos/recuperação de recursos, equipamento, loja e histórico continuam disponíveis.
+Notas pessoais permanecem editáveis. Abra o cadeado para corrigir os campos e
+adicionar/editar armas, itens, características ou magias.
+
+Ao trocar ficha/conta ou recarregar, o cadeado volta fechado. Uma ficha nova em
+branco abre em edição para preencher. O estado não entra em backups/histórico nem
+altera permissões da sala: o cadeado nunca libera uma edição negada pelo mestre.
+Fechar preserva rascunhos e painéis abertos, bloqueando sua confirmação; reabrir
+permite continuar. Os valores de consulta mostram os dados atuais da ficha, separados dos
+rascunhos ainda não confirmados.
+
+Com o cadeado aberto, níveis e subclasses ficam junto às classes no cabeçalho. Nome, raça, antecedente,
 tendência, atributos, PV, CA, deslocamento, moedas, perícias e biografia são
 editáveis nos lugares em que aparecem. Confirme saindo do campo ou com Enter;
 Escape cancela o texto ainda não salvo. Cada correção entra no histórico da

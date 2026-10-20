@@ -1,0 +1,4 @@
+/** Explicações curtas da interface; preparo e reserva de espaços são distintos. */
+export const PREPARATION_HELP='Nas classes que exigem preparo, você escolhe quais magias ficam disponíveis para conjurar. O limite depende da classe, do nível e da habilidade de conjuração. Isso não aumenta nem gasta seus espaços de magia; classes de magias conhecidas não precisam dessa seleção.';
+export const ALWAYS_PREPARED_HELP='Marque apenas quando uma característica disser que esta magia está sempre preparada. Ela não ocupa o limite de preparo, mas continua usando espaços ou os usos indicados pela origem.';
+export const PREPARATION_ADAPTATION_HELP='Preparar é escolher as magias disponíveis para conjurar nas classes que exigem isso. Esta opção permite ultrapassar o limite de preparo, como adaptação combinada com o mestre. Não concede novas magias nem espaços extras. Desmarcada, vale o limite do livro.';

@@ -71,6 +71,17 @@ revisar a ficha atual também gera cópia, sem migrar a coleção em silêncio.
 
 ## Edição na própria ficha
 
+`lock.ts` separa proteção contra edição acidental e autorização (`access.ts`).
+O estado é transitório por ficha/espaço, fechado após troca/recarga e ausente do
+documento/backup. `canConfigureSheet` exige permissão e cadeado aberto; as ações
+de jogo continuam usando a autorização existente. Ficha em branco abre em edição.
+Campos e painéis conservam nós/rascunhos ao proteger: controles ocultos/desativados,
+valores salvos em spans de consulta, confirmação bloqueada até reabrir. O proprietário
+capturado dos controles vem do DOM, impedindo transferir um rascunho ao trocar de
+ficha. Fórmula/bônus de defesa são ajustes; efeitos recebidos e condições são jogo.
+As guardas também cobrem a ponte antiga e confirmações após espera. Histórico,
+equipar, loja, preparar e usar recursos continuam disponíveis com o cadeado fechado.
+
 `sheet-edit/model.ts` cria propostas para caminhos explicitamente permitidos;
 valida formato, números, classes, fórmulas e vínculos sem refazer a ficha pelo
 motor. Trocar classe com magias vinculadas exige reatribuí-las primeiro.

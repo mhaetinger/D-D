@@ -1,3 +1,4 @@
+const {unlockSheet}=require('./sheet-lock-actions.cjs');
 // Usa o SDK real com respostas HTTP controladas; nunca cria usuários reais.
 const {confirmImportReview}=require('./import-confirmation.cjs');
 const assert = require('node:assert/strict');
@@ -305,7 +306,7 @@ async function verify(prefix) {
     await context.setOffline(false);
     await login('a@example.test');
     await page.waitForFunction((id) => getChar()?.id === id, idA);
-    await page.evaluate(() => { closeAuthAccountModal(); openLevelUpModal(); });
+    await page.evaluate(() => closeAuthAccountModal());await unlockSheet(page);await page.evaluate(() => openLevelUpModal());
     revoked = true;
     await page.evaluate(() => window.dispatchEvent(new Event('online')));
     await page.locator('#accountWorkspaceChanged[open]').waitFor();

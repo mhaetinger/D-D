@@ -1,3 +1,4 @@
+const {unlockSheet}=require('./sheet-lock-actions.cjs');
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -147,6 +148,7 @@ async function importBackup(page, value) {
     assert.equal(await page.evaluate(() => characters.length), 3);
     assert.equal(await page.evaluate(() => window.importExecuted), undefined);
     await page.evaluate(() => switchCharacter(0));
+    await unlockSheet(page);
     await page.evaluate(() => openLevelUpModal());
     const wizard = page.locator("#characterWizard");
     for (let i = 0; i < 4; i++) await wizard.locator('[data-action="next"]').click();
@@ -157,6 +159,7 @@ async function importBackup(page, value) {
     assert.equal(await page.evaluate(() => getChar().classes[0].level), 2);
     assert.equal(await page.evaluate((key) => localStorage.getItem(key), LEGACY), old);
     assert.deepEqual(external, [], "fontes, ícones e código são servidos pelo aplicativo");
+    await unlockSheet(page);
     await page.evaluate(() => {
       const original = Storage.prototype.setItem;
       Storage.prototype.setItem = function(key, value) {
@@ -234,6 +237,7 @@ async function importBackup(page, value) {
         });
         assert.equal(entries.redirected, true, "servidor reproduz redirecionamento do Pages");
         assert.ok(entries.urls.every((url) => !new URL(url).pathname.endsWith(".pdf") && new URL(url).origin === new URL(clean.url).origin));
+        await unlockSheet(offline);
         await offline.evaluate(() => updateField("name", "Ficha offline na Cloudflare"));
         await visitor.setOffline(true);
         await offline.reload({ waitUntil: "networkidle" });

@@ -1,3 +1,4 @@
+const {unlockSheet}=require('./sheet-lock-actions.cjs');
 // Regressão da ficha usando somente a edição pública e perfis isolados.
 const assert = require("node:assert/strict");
 const path = require("node:path");
@@ -67,13 +68,12 @@ const { serve } = require("./serve.cjs");
       "Aventureira do teste",
     );
     await page.evaluate(() => setTab("lore"));
-    await page
-      .getByRole("button", { name: "Editar moedas: PO", exact: true })
-      .click();
-    await page.locator("#hbCoin-po").fill("42");
-    await page.locator("#hbSaveBtn").click();
+    await unlockSheet(page);
+    await page.locator('[data-sheet-field="coins.po"]').fill('42');
+    await page.locator('[data-sheet-field="coins.po"]').dispatchEvent('change');
     await page.reload({ waitUntil: "networkidle" });
     assert.equal(await page.evaluate(() => getChar().coins.po), 42);
+    await unlockSheet(page);
     await page.evaluate(() => openLevelUpModal());
     for (let i = 0; i < 4; i++) await next();
     await wizard.locator('[data-action="finish"]').click();

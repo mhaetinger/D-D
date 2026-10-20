@@ -70,7 +70,7 @@ async function auditScenarios() {
       record('explosao-agonizante', '1d10+3', cast(c, 'Rajada Mística').roll);
       c = use(fixtures.mage);c.standardSlots[2].used=0;cast(c,'Raio Ardente',2);rollSpellRay(0);rollSpellRay(0);
       record('raios-sem-repetir-gasto',1,c.standardSlots[2].used);
-      c = use(fixtures.fighter); const before = c.hpMax; changeAbility('con', 2);
+      c = use(fixtures.fighter); const before = c.hpMax; document.getElementById('sheetEditLock').click(); changeAbility('con', 2);
       record('con-manual', before + 5, c.hpMax);
       c = use(fixtures.tiefling); const racial = c.spells.find(s => s.bookId === 'repreensao-infernal');
       record('tiefling-nivel-fixo', 2, getSelectedSpellCastLevel(c, racial, c.spells.indexOf(racial)));

@@ -21,6 +21,18 @@ fluxo antigo de Criar/Ajustar ficha manual pelo perfil. A conexão foi recuperad
 a implementação `fe2dc66` foi enviada em 20/10 e a [PR #9](https://github.com/mhaetinger/D-D/pull/9)
 foi atualizada com base `develop`. Não houve merge/publicação desta etapa.
 
+**Cadeado da ficha:** ao lado do seletor, alterna Protegida/Editando. Valores de
+consulta com o cadeado fechado; classes/atributos/máximos/proficiências/cartões
+editáveis quando aberto. Rolagens, combate, preparo, gastos/recuperação, equipar,
+loja e histórico continuam disponíveis; notas privadas independentes. Troca de
+ficha/conta e recarga fecham; ficha em branco abre para preencher. `lock.ts` não
+salva estado no documento nem substitui a permissão do mestre. Campos/painéis
+retêm rascunhos ao fechar/reabrir e não gravam enquanto protegidos. Dicas nativas
+explicam preparo e limite; máximos numéricos de recursos foram compactados.
+Conferidos 385 testes Node, tipos/build e 19 scripts Chromium (32 cenários auditados),
+incluindo cadeado/rascunhos/quota, permissões, troca de ficha/conta, offline,
+combate/preparo/importação/notas e 320px/GG/três temas/dois layouts. Sem SQL novo.
+
 **Revisão de importação por setores:** cinco setores com cartões, perícias em
 linhas e reservas compactas. Grimório reaproveita `spell-fields.ts` da própria
 ficha e permite adicionar/remover entradas do catálogo ou personalizadas.

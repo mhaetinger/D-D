@@ -304,6 +304,10 @@
             class="t-inset t-text-main text-[11px] rounded-md px-2 py-1 font-bold focus:outline-none max-w-[13rem] truncate"
           ></select>
 
+          <button id="sheetEditLock" type="button" class="t-inset px-2 py-1 rounded-md text-[11px] font-bold flex items-center gap-1" aria-pressed="false" aria-label="Liberar edição da ficha" title="Ficha protegida. Abra o cadeado para editar classes, atributos e outros ajustes.">
+            <i data-lucide="lock-keyhole" class="w-3.5 h-3.5" aria-hidden="true"></i><span>Protegida</span>
+          </button>
+
           <button
             onclick="openNewCharacterModal()"
             class="t-inset t-text-accent hover:opacity-80 text-[11px] px-2 py-1 rounded-md font-extrabold flex items-center gap-1"
