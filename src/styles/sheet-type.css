@@ -1,0 +1,83 @@
+/* A escala P/M/G/GG continua no rem da página. Papéis visuais têm medidas
+ * próprias: títulos do grimório, texto de leitura, rótulos e números de jogo.
+ * O escopo evita alterar login, livro e diálogos independentes. */
+#sheetApp {
+  --sheet-text:1rem;
+  --sheet-secondary:.875rem;
+  --sheet-caption:.8125rem;
+  --sheet-heading:1.0625rem;
+}
+:is(#headerSection,#sheetViewport) { font-size:var(--sheet-text); line-height:1.5; }
+:is(#headerSection,#sheetViewport) .text-xs { font-size:var(--sheet-text); }
+:is(#headerSection,#sheetViewport) .text-sm { font-size:var(--sheet-text); }
+:is(#headerSection,#sheetViewport) :is([class~="text-[9px]"],[class~="text-[10px]"]) { font-size:var(--sheet-caption); }
+:is(#headerSection,#sheetViewport) [class~="text-[11px]"] { font-size:var(--sheet-secondary); }
+#sheetViewport :is(h2,h3).font-rpg { font-size:var(--sheet-heading); line-height:1.4; letter-spacing:.015em; }
+#sheetViewport :is(.rule-context,.rule-inline) { font-size:var(--sheet-text); }
+#sheetViewport :is(button,select,input) { line-height:1.35; }
+#sheetViewport :is(.rule-controls button,.spell-action-button,.spell-slot-select) { font-size:var(--sheet-secondary); }
+#sheetViewport :is(.sheet-skill-value button,.slot-resource) { font-size:var(--sheet-secondary); }
+#sheetViewport .sheet-skill-value { gap:.3rem; }
+#sheetViewport .sheet-skill-value .sheet-value { font-weight:700; font-size:var(--sheet-text); }
+#sheetViewport .sheet-skill-value .sheet-number { font-size:var(--sheet-text); }
+
+.sheet-header-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.3fr); gap:1rem; align-items:center; }
+.sheet-header-person { display:flex; gap:.8rem; align-items:center; min-width:0; }
+#headerSection .sheet-header-meta { font-size:var(--sheet-secondary); line-height:1.4; }
+.sheet-header-name { display:flex; flex-direction:column; align-items:flex-start; gap:.5rem; margin-top:.3rem; min-width:0; }
+#headerSection :is([data-sheet-value="name"],[data-sheet-field="name"]) { font:700 1.5rem/1.25 "Cinzel",serif; margin:0; }
+#headerSection .sheet-casting-summary { font-size:var(--sheet-secondary); line-height:1.45; overflow-wrap:anywhere; }
+.sheet-header-classes { display:flex; flex-wrap:wrap; align-items:flex-start; gap:.5rem; }
+#headerSection .sheet-class-chip { border-radius:.5rem; padding:.4rem .65rem; font-size:.9375rem; max-width:100%; }
+.sheet-class-main { display:flex; align-items:center; flex-wrap:wrap; gap:.35rem; font-weight:700; }
+.sheet-class-level { display:inline-flex; align-items:baseline; gap:.2rem; white-space:nowrap; }
+#headerSection .sheet-class-chip .sheet-field { color:inherit; }
+#headerSection .sheet-class-chip .sheet-select { max-width:min(12rem,65vw); }
+#headerSection .sheet-class-subclass { margin-top:.2rem; font-size:var(--sheet-secondary); line-height:1.4; }
+.sheet-header-facts { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.6rem; align-items:stretch; }
+.sheet-identity-card { display:flex; flex-direction:column; justify-content:flex-start; gap:.35rem; min-height:5.6rem; padding:.7rem .8rem; border-radius:.55rem; min-width:0; }
+#headerSection .sheet-identity-label { font-size:var(--sheet-caption); text-transform:uppercase; letter-spacing:.035em; line-height:1.25; }
+#headerSection .sheet-identity-value { font-size:1.0625rem; font-weight:700; line-height:1.4; overflow-wrap:anywhere; }
+#headerSection .sheet-level-card { flex-direction:row; justify-content:space-between; align-items:stretch; gap:.6rem; }
+#headerSection .sheet-level-card > div { display:flex; flex-direction:column; gap:.3rem; min-width:0; }
+#headerSection .sheet-xp { display:flex; align-items:baseline; gap:.2rem; font-size:var(--sheet-caption); }
+#headerSection .sheet-proficiency-value { font-size:1.4rem; font-weight:800; line-height:1.2; }
+
+/* Valor de jogo mantém o mesmo destaque com o cadeado aberto ou fechado. */
+#sheetViewport .combat-stat { align-items:center; padding:.65rem .4rem; row-gap:.35rem; }
+#sheetViewport .combat-stat-value { display:flex; align-items:baseline; justify-content:center; gap:.15rem; font-size:2rem; font-weight:800; line-height:1.2; font-variant-numeric:tabular-nums; }
+#sheetViewport .combat-stat-value .sheet-number { width:3.3ch; max-width:100%; font-size:inherit; }
+#sheetViewport .sheet-combat-summary { white-space:nowrap; margin-left:auto; font-size:var(--sheet-secondary); }
+#sheetViewport .spell-effect-badge { font-size:var(--sheet-secondary); }
+#sheetViewport .combat-stat-unit { font-size:var(--sheet-secondary); font-weight:400; }
+#sheetViewport .sheet-hp-values > .sheet-value { font-size:1.3rem; font-weight:700; }
+#sheetViewport .sheet-hp-values button { font-size:var(--sheet-secondary); }
+#sheetViewport .sheet-ability-card > span { overflow-wrap:anywhere; hyphens:auto; letter-spacing:0; line-height:1.3; }
+#sheetViewport .sheet-ability-card > button { font-size:1.75rem; }
+
+#sheetViewport .sheet-inventory-load { font-size:var(--sheet-secondary); line-height:1.5; }
+#sheetViewport .sheet-coins .sheet-value { font-size:1.2rem; font-weight:700; }
+#sheetViewport [data-sheet-item] { padding-block:.65rem; line-height:1.5; }
+#sheetViewport [data-sheet-item] > button { font-size:var(--sheet-text); }
+#sheetViewport .sheet-backstory { line-height:1.65; }
+#sheetViewport .sheet-narrative { font-size:var(--sheet-text); line-height:1.65; }
+#sheetViewport [data-sheet-lore] strong { font-weight:700; }
+#sheetViewport .sheet-backstory > strong { font-family:"Cinzel",serif; font-size:var(--sheet-secondary); }
+#sheetViewport .sheet-pact-description { font-size:var(--sheet-text); line-height:1.55; }
+#sheetViewport .feature-entry summary { line-height:1.5; }
+#sheetViewport .feature-entry summary > strong { font-weight:700; }
+
+@media(max-width:1100px) { .sheet-header-layout { grid-template-columns:1fr; } }
+@media(max-width:639px) {
+  .sheet-header-facts { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .sheet-header-person { align-items:flex-start; }
+  .sheet-classic-sidebar { grid-template-columns:1fr; }
+  .sheet-abilities { grid-column:1/-1; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.6rem; }
+  .sheet-abilities > * + * { margin-top:0; }
+  .sheet-proficiencies { grid-column:1/-1; }
+  #sheetViewport .combat-stat-value { font-size:1.7rem; }
+}
+@media(max-width:400px) { .sheet-abilities { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+/* Os textos maiores não cabem na antiga altura fixa dos botões de magia. */
+#sheetViewport .spell-action-button { flex-basis:6.5rem; width:6.5rem; max-width:100%; height:auto; min-height:2.25rem; padding:.3rem .4rem; line-height:1.25; }
+#sheetViewport .spell-slot-select { height:2.25rem; }

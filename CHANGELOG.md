@@ -2,6 +2,25 @@
 
 ## Não lançado
 
+### Legibilidade e hierarquia visual da ficha — 2026-10-20
+
+- Recuperadas as cores anteriores por classe, com nível e subclasse visível.
+  Cartões do cabeçalho alinham rótulos/valores; nome e dados de conjuração têm
+  linhas próprias, sem texto truncado em um único rótulo.
+- Texto principal em M passa a 16px, apoio 14px e títulos Cinzel distintos do
+  corpo. CA, deslocamento e PV recuperam destaque também com o cadeado fechado;
+  a unidade m acompanha seu valor. Inventário, história e regras mais legíveis.
+- Nova folha de tipografia restrita à ficha, mantendo tema D&D e escala P/M/G/GG.
+  Atributos clássicos se reorganizam em grade nas telas pequenas. Botões de magia
+  acomodam o texto maior, sem limitar a leitura à altura fixa anterior.
+- Seletores guardam seu valor confirmado, preservando foco/nós e evitando avisos
+  incorretos de rascunho ao fechar o cadeado sem ter alterado a ficha.
+- Conferidos 385 testes Node, tipos/build e 10 scripts Chromium pertinentes:
+  tipografia, cadeado, edição, armas, ataques mágicos, PV, regras, revisão de
+  importação, aplicação e ficha. Inspeção das três abas/temas em M, M/GG em 320px
+  nos dois layouts, foco/rascunhos e preservação de dados. Sem SQL/migração.
+
+
 ### Cadeado de edição e ajuda de preparo — 2026-10-20
 
 - Cadeado ao lado do seletor começa fechado, com valores de consulta no lugar dos

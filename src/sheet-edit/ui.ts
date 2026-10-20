@@ -40,7 +40,7 @@ export function sheetInput(c:Sheet,path:string,value:unknown,label:string,type='
   return readout(c,path,value===undefined||value===null||value===''?o.placeholder??'—':value,label,o.wide)+`<input ${attributes(c,path,label)} class="sheet-field ${type==='number'?'sheet-number':'sheet-text'} ${o.wide?'sheet-wide':''}" type="${type}" value="${escape(value??'')}" data-sheet-saved="${escape(value??'')}" ${o.min!==undefined?`min="${o.min}"`:''} ${o.max!==undefined?`max="${o.max}"`:''} ${type==='number'?`step="${o.step||'1'}"`:''} ${o.placeholder!==undefined?`placeholder="${escape(o.placeholder)}"`:''}>`;
 }
 export function sheetSelect(c:Sheet,path:string,value:unknown,label:string,values:Record<string,string>):string {
-  return readout(c,path,values[String(value)]||'—',label)+`<select ${attributes(c,path,label)} class="sheet-field sheet-select">${Object.entries(values).map(([id,name])=>`<option value="${escape(id)}" ${id===value?'selected':''}>${escape(name)}</option>`).join('')}</select>`;
+  return readout(c,path,values[String(value)]||'—',label)+`<select ${attributes(c,path,label)} data-sheet-saved="${escape(value??'')}" class="sheet-field sheet-select">${Object.entries(values).map(([id,name])=>`<option value="${escape(id)}" ${id===value?'selected':''}>${escape(name)}</option>`).join('')}</select>`;
 }
 export function sheetText(c:Sheet,path:string,value:unknown,label:string):string {
   return readout(c,path,value||'—',label,true)+`<textarea ${attributes(c,path,label)} class="sheet-field sheet-narrative" rows="${path==='lore.backstory'?5:2}" data-sheet-saved="${escape(value??'')}" placeholder="${escape(label)}">${escape(value??'')}</textarea>`;

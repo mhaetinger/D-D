@@ -1713,7 +1713,7 @@ function renderPactMagicPanel(char) {
         ${sheetInput(char,'pactMagic.remaining',pact.total-pact.used,'Espaços disponíveis de Pacto','number',{min:0,max:100})} / ${sheetInput(char,'pactMagic.total',pact.total,'Total de espaços de Pacto','number',{min:0,max:100})} · <span>${sheetInput(char,'pactMagic.level',pact.level,'Círculo dos espaços de Pacto','number',{min:1,max:5})}º círculo</span>
       </div>
     </div>
-    <p class="text-xs t-text-muted">Espaços de magia do Bruxo. Recuperam no descanso curto ou ao dormir.</p>
+    <p class="sheet-pact-description t-text-muted">Espaços de magia do Bruxo. Recuperam no descanso curto ou ao dormir.</p>
     ${renderResourcesAt(char,CharacterEngine,'pact')}
   </section>`;
 }
@@ -1743,7 +1743,7 @@ function renderMainClassic2014(char) {
       const score = char.abilities[key].score;
       const mod = getMod(score);
       return `
-    <div class="t-card-accent p-2.5 text-center flex flex-col items-center justify-center">
+    <div class="sheet-ability-card t-card-accent p-2.5 text-center flex flex-col items-center justify-center">
       <span class="text-[10px] font-bold uppercase tracking-wider t-text-muted">${meta.name}</span>
       <button onclick="triggerSheetRoll('1d20${fmtMod(mod)}', 'Teste de ${meta.name}', true)" class="text-2xl font-extrabold t-text-main my-0.5 hover:scale-110 transition">
         ${fmtMod(mod)}
@@ -1794,9 +1794,9 @@ function renderMainClassic2014(char) {
 
   return `
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-    <div class="lg:col-span-4 grid grid-cols-12 gap-3">
-      <div class="col-span-4 space-y-2.5">${abilitiesHtml}</div>
-      <div class="col-span-8 space-y-3">
+    <div class="sheet-classic-sidebar lg:col-span-4 grid grid-cols-12 gap-3">
+      <div class="sheet-abilities col-span-4 space-y-2.5">${abilitiesHtml}</div>
+      <div class="sheet-proficiencies col-span-8 space-y-3">
         <div class="t-card p-3">
           <h3 class="text-[11px] font-rpg font-bold uppercase text-center t-text-accent border-b t-border pb-1 mb-2">Testes de Resistência</h3>
           <div class="space-y-0.5">${savesHtml}</div>
@@ -1910,7 +1910,7 @@ function renderCombatBlock(char) {
         <i data-lucide="${isCollapsed ? "chevron-right" : "chevron-down"}" class="w-4 h-4 t-text-accent"></i>
         <h3 class="font-rpg text-xs font-bold uppercase t-text-accent">Status de Combate & Pontos de Vida</h3>
       </div>
-      <span class="text-xs font-bold">PV: ${char.hpCurrent}/${effective.hpMax} | CA: ${ac}</span>
+      <span class="sheet-combat-summary font-bold">PV: ${char.hpCurrent}/${effective.hpMax} | CA: ${ac}</span>
     </div>
 
     ${
@@ -1920,18 +1920,18 @@ function renderCombatBlock(char) {
         <div class="grid grid-cols-3 gap-2.5 text-center">
           <div class="combat-stat t-inset p-2 rounded-lg">
             <span tabindex="0" ${RuleTooltips.attributes('Cálculo da CA', { text: getArmorExplanation(char) })} class="text-[10px] uppercase t-text-muted block cursor-help">CA</span>
-            ${sheetInput(char,'armorTotal',ac,'CA atual (equipamento, escudo e efeitos inclusos)','number',{min:0})}
+            <div class="combat-stat-value">${sheetInput(char,'armorTotal',ac,'CA atual (equipamento, escudo e efeitos inclusos)','number',{min:0})}</div>
             ${char.spells.some(s => s.name === 'Armadura Arcana' || s.bookId === 'armadura-arcana') ? `<button onclick="toggleMageArmor()" class="text-[10px] underline block mx-auto mt-0.5">
               ${char.mageArmorActive ? `Arcana: CA ${getMageArmorAC(char)}` : "Ativar Arcana"}
             </button>` : ''}
           </div>
           <button onclick="triggerSheetRoll('1d20${fmtMod(dexMod)}', 'Iniciativa', true)" class="combat-stat t-inset p-2 rounded-lg hover:scale-105 transition">
             <span class="text-[10px] uppercase t-text-muted block">Iniciativa</span>
-            <span class="text-2xl font-extrabold">${fmtMod(dexMod)}</span>
+            <span class="combat-stat-value">${fmtMod(dexMod)}</span>
           </button>
           <div class="combat-stat t-inset p-2 rounded-lg">
             <span class="text-[10px] uppercase t-text-muted block">Desloc.</span>
-            ${sheetInput(char,'speed',char.speed,'Deslocamento base em metros','number',{min:0,step:'any'})}m${effective.speed!==char.speed?`<small class="block">Em jogo: ${effective.speed} m</small>`:''}
+            <div class="combat-stat-value">${sheetInput(char,'speed',char.speed,'Deslocamento base em metros','number',{min:0,step:'any'})}<span class="combat-stat-unit">m</span></div>${effective.speed!==char.speed?`<small class="block">Em jogo: ${effective.speed} m</small>`:''}
           </div>
         </div>
         ${defenseControls(char,CharacterEngine)}
@@ -1939,7 +1939,7 @@ function renderCombatBlock(char) {
         <div class="t-inset p-3 rounded-lg flex flex-wrap items-center justify-between gap-2">
           <div>
             <span class="text-[10px] uppercase t-text-muted block">Pontos de Vida Atuais / Máximos</span>
-            <div class="flex items-center gap-1.5 mt-1">
+            <div class="sheet-hp-values flex flex-wrap items-center gap-1.5 mt-1">
               <button onclick="changeHp(-1)" title="Dano já resolvido pela mesa. Para resistências automáticas, use Dano detalhado → Calcular por tipo." class="px-2 py-0.5 t-card rounded font-bold text-xs">-1</button>
               <button onclick="changeHp(-5)" title="Dano já resolvido pela mesa. Para resistências automáticas, use Dano detalhado → Calcular por tipo." class="px-2 py-0.5 t-card rounded font-bold text-xs">-5</button>
               ${sheetInput(char,'hpCurrent',char.hpCurrent,'PV atuais','number',{min:0})} / ${sheetInput(char,'hpMax',char.hpMax,'PV máximos base','number',{min:1})}${effective.hpMax!==char.hpMax?`<small>Limite atual: ${effective.hpMax}</small>`:''}
@@ -2096,8 +2096,8 @@ function renderLoreSection(char) {
         <h3 class="font-rpg font-bold uppercase t-text-accent">Equipamento, Tesouros & Moedas</h3>
         <button onclick="openHomebrewModal('item')" class="font-bold t-text-accent underline">+ Novo item</button>
       </div>
-      <p class="t-text-muted">${char.inventoryItems.some(item => item.weightUnreviewed) ? "Carga conhecida" : "Carga"}: ${curLoadKg.toFixed(1)} / ${maxLoadKg} kg (inclui moedas) · Passe o mouse ou toque no nome para ver a descrição.</p>
-      <div class="grid grid-cols-5 gap-2 text-center">
+      <p class="sheet-inventory-load t-text-muted">${char.inventoryItems.some(item => item.weightUnreviewed) ? "Carga conhecida" : "Carga"}: ${curLoadKg.toFixed(1)} / ${maxLoadKg} kg (inclui moedas) · Passe o mouse ou toque no nome para ver a descrição.</p>
+      <div class="sheet-coins grid grid-cols-5 gap-2 text-center">
         ${Object.entries(char.coins)
           .map(
             ([coin, val]) => `
@@ -2128,7 +2128,7 @@ function renderLoreSection(char) {
         <div><strong class="t-text-accent">Ligações:</strong> ${sheetText(char,'lore.bonds',char.lore.bonds,'Ligações')}</div>
         <div><strong class="t-text-accent">Defeitos:</strong> ${sheetText(char,'lore.flaws',char.lore.flaws,'Defeitos')}</div>
       </div>
-      <div class="t-inset p-3 rounded-lg leading-relaxed">
+      <div class="sheet-backstory t-inset p-3 rounded-lg">
         <strong class="t-text-accent block mb-1 uppercase text-[10px]">História do Personagem</strong>
         ${sheetText(char,'lore.backstory',char.lore.backstory,'História do personagem')}
       </div>
@@ -2330,7 +2330,7 @@ function resumeSavedDraftIfNeeded() {
 function renderHeader(char, isModern) {
   const totalLvl = getTotalLevel(char);
   const pb = getProfBonus(char);
-  const classChips = char.classes.map((c,i)=>`<div class="sheet-class-chip t-inset"><div class="flex flex-wrap items-center gap-1">${sheetSelect(char,`classes.${i}.classId`,c.classId,`Classe ${i+1}`,Object.fromEntries(Object.entries(PHB_DATA.classes).map(([id,v])=>[id,v.name])))}<span>Nv.</span>${sheetInput(char,`classes.${i}.level`,c.level,`Nível de ${RULES_DB.classes[c.classId]?.name}`,'number',{min:1,max:20})}<button type="button" data-sheet-remove-class="${i}" aria-label="Remover ${RULES_DB.classes[c.classId]?.name}" ${char.classes.length<2||!canConfigureSheet(char)?'disabled':''}>×</button></div><details data-sheet-section="subclass-${i}"><summary>${escapeHTML(c.subclass||(canConfigureSheet(char)?'Escolher subclasse':'Sem subclasse definida'))}</summary>${sheetSelect(char,`classes.${i}.subclassId`,c.subclassId||'',`Subclasse de ${RULES_DB.classes[c.classId]?.name}`,{'':'Livre / a escolher',...Object.fromEntries(Object.entries(PHB_DATA.classes[c.classId]?.subclasses||{}).map(([id,v])=>[id,v.name]))})}${!c.subclassId?sheetInput(char,`classes.${i}.subclass`,c.subclass,'Subclasse escrita','text',{wide:true}):''}</details></div>`).join('')+`<button type="button" data-sheet-add-class ${canConfigureSheet(char)?'':'disabled'} class="text-xs underline">+ Classe</button>`;
+  const classChips = char.classes.map((c,i)=>`<div class="sheet-class-chip ${RULES_DB.classes[c.classId]?.badgeColor||'t-inset'}"><div class="sheet-class-main">${sheetSelect(char,`classes.${i}.classId`,c.classId,`Classe ${i+1}`,Object.fromEntries(Object.entries(PHB_DATA.classes).map(([id,v])=>[id,v.name])))}<span class="sheet-class-level">Nv. ${sheetInput(char,`classes.${i}.level`,c.level,`Nível de ${RULES_DB.classes[c.classId]?.name}`,'number',{min:1,max:20})}</span><button type="button" data-sheet-remove-class="${i}" aria-label="Remover ${RULES_DB.classes[c.classId]?.name}" ${char.classes.length<2||!canConfigureSheet(char)?'disabled':''}>×</button></div><details class="sheet-class-subclass" data-sheet-section="subclass-${i}"><summary>${escapeHTML(c.subclass||(canConfigureSheet(char)?'Escolher subclasse':'Sem subclasse definida'))}</summary>${sheetSelect(char,`classes.${i}.subclassId`,c.subclassId||'',`Subclasse de ${RULES_DB.classes[c.classId]?.name}`,{'':'Livre / a escolher',...Object.fromEntries(Object.entries(PHB_DATA.classes[c.classId]?.subclasses||{}).map(([id,v])=>[id,v.name]))})}${!c.subclassId?sheetInput(char,`classes.${i}.subclass`,c.subclass,'Subclasse escrita','text',{wide:true}):''}</details></div>`).join('')+`<button type="button" data-sheet-add-class ${canConfigureSheet(char)?'':'disabled'} class="text-xs underline">+ Classe</button>`;
   const draftInfo = getSavedDraftInfo();
   const draftBanner = draftInfo
     ? `<div class="t-inset px-2.5 py-1.5 rounded-lg mb-2 flex flex-wrap items-center justify-between gap-2 text-xs" data-draft-banner><span><strong>Criação em andamento:</strong> ${escapeHTML(draftInfo.name)}${draftInfo.summary ? ` (${escapeHTML(draftInfo.summary)})` : ''} · Etapa ${draftInfo.stepIndex + 1} de 7 (${escapeHTML(draftInfo.stepLabel)})</span><div class="flex flex-wrap items-center gap-1.5"><button type="button" class="t-btn-primary px-2.5 py-1 rounded font-bold" onclick="openNewCharacterModal()">Continuar de onde parou</button><button type="button" class="t-card px-2.5 py-1 rounded font-bold text-rose-500 border t-border" onclick="CharacterWizard.discardDraft()">Descartar rascunho</button></div></div>`
@@ -2339,38 +2339,39 @@ function renderHeader(char, isModern) {
   const headerEl = document.getElementById("headerSection");
   headerEl.className = "px-3 py-2.5 t-card-accent";
   headerEl.innerHTML = `${draftBanner}
-  <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-center">
-    <div class="md:col-span-5 flex items-center gap-2.5 min-w-0">
+  <div class="sheet-header-layout">
+    <div class="sheet-header-person">
       <button type="button" class="portrait-edit shrink-0" data-avatar-edit="${escapeHTML(char.id)}" aria-label="Alterar imagem de ${escapeHTML(char.name)}" title="Alterar imagem do personagem">${avatarMarkup(char.avatar)}</button>
       <div class="w-full min-w-0">
-        <div class="text-[10px] uppercase tracking-wider t-text-muted truncate">D&D 5e • Jogador: ${sheetInput(char,'playerName',char.playerName,'Jogador')}${getSpellcastingHeader(char) ? ` • ${getSpellcastingHeader(char)}` : ""}${canEditSheet(char)?'':' • Edição bloqueada pelo mestre'}</div>
-        <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+        <div class="sheet-header-meta t-text-muted">D&D 5e · Jogador: ${sheetInput(char,'playerName',char.playerName,'Jogador')}${canEditSheet(char)?'':' · Edição bloqueada pelo mestre'}</div>
+        <div class="sheet-header-name">
           ${sheetInput(char,'name',char.name,'Nome do personagem','text',{wide:true})}
-          <div class="flex flex-wrap gap-1 items-center">${classChips}</div>
+          ${getSpellcastingHeader(char)?`<div class="sheet-casting-summary t-text-muted">${getSpellcastingHeader(char)}</div>`:""}
+          <div class="sheet-header-classes">${classChips}</div>
         </div>
       </div>
     </div>
-    <div class="md:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
-      <div class="t-inset px-2.5 py-1.5 rounded-lg">
-        <div class="t-text-muted text-[9px] uppercase leading-tight">${isModern ? "Espécie" : "Raça"}</div>
-        <div class="font-bold text-xs sm:text-sm">${sheetInput(char,'race',char.race,'Raça / espécie','text',{wide:true})}</div>
+    <div class="sheet-header-facts">
+      <div class="sheet-identity-card t-inset">
+        <div class="sheet-identity-label t-text-muted">${isModern ? "Espécie" : "Raça"}</div>
+        <div class="sheet-identity-value">${sheetInput(char,'race',char.race,'Raça / espécie','text',{wide:true})}</div>
       </div>
-      <div class="t-inset px-2.5 py-1.5 rounded-lg">
-        <div class="t-text-muted text-[9px] uppercase leading-tight">Antecedente</div>
-        <div class="font-bold text-xs sm:text-sm">${sheetInput(char,'background',char.background,'Antecedente','text',{wide:true})}</div>
+      <div class="sheet-identity-card t-inset">
+        <div class="sheet-identity-label t-text-muted">Antecedente</div>
+        <div class="sheet-identity-value">${sheetInput(char,'background',char.background,'Antecedente','text',{wide:true})}</div>
       </div>
-      <div class="t-inset px-2.5 py-1.5 rounded-lg">
-        <div class="t-text-muted text-[9px] uppercase leading-tight">Tendência</div>
-        <div class="font-bold text-xs sm:text-sm">${sheetInput(char,'alignment',char.alignment,'Tendência','text',{wide:true})}</div>
+      <div class="sheet-identity-card t-inset">
+        <div class="sheet-identity-label t-text-muted">Tendência</div>
+        <div class="sheet-identity-value">${sheetInput(char,'alignment',char.alignment,'Tendência','text',{wide:true})}</div>
       </div>
-      <div class="t-inset px-2.5 py-1.5 rounded-lg flex justify-between items-center gap-1">
+      <div class="sheet-identity-card sheet-level-card t-inset">
         <div>
-          <div class="t-text-muted text-[9px] uppercase leading-tight">Nível</div>
-          <div class="font-bold text-xs sm:text-sm t-text-accent">Nv. ${totalLvl}</div><label class="text-[9px] t-text-muted">XP ${sheetInput(char,'xp',char.xp||0,'Pontos de experiência','number',{min:0})}</label>
+          <div class="sheet-identity-label t-text-muted">Nível</div>
+          <div class="sheet-identity-value t-text-accent">Nv. ${totalLvl}</div><label class="sheet-xp t-text-muted">XP ${sheetInput(char,'xp',char.xp||0,'Pontos de experiência','number',{min:0})}</label>
         </div>
         <div class="text-right">
-          <div class="t-text-muted text-[9px] uppercase leading-tight">Prof.</div>
-          <div class="font-extrabold text-sm sm:text-base t-text-accent leading-none">+${pb}</div>
+          <div class="sheet-identity-label t-text-muted">Prof.</div>
+          <div class="sheet-proficiency-value t-text-accent">+${pb}</div>
         </div>
       </div>
     </div>

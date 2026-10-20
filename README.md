@@ -61,6 +61,11 @@ se já tiver fichas, pergunta se deseja acrescentar novas. A identidade precisa
 estar confirmada e a coleção remota precisa ter sido consultada. Os originais
 locais são preservados; o perfil informa falhas e permite retomar a cópia.
 
+A ficha mantém cores por classe, com a subclasse visível. A tipografia distingue
+nome, títulos, texto de leitura, rótulos e números de combate. Em M, o texto
+principal usa 16 px e o apoio 14 px; CA e deslocamento têm destaque também com o
+cadeado fechado. P/G/GG continuam ampliando ou reduzindo essa mesma hierarquia.
+
 Cores, textura, tamanho de fonte e dados são preferências do usuário. No modo
 local ficam neste navegador; na conta entram também na fila de sincronização.
 A exibição **Clássica (2014) / Moderna (2024)** fica dentro da ficha e é salva por

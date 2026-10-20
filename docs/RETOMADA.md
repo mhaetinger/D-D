@@ -21,6 +21,18 @@ fluxo antigo de Criar/Ajustar ficha manual pelo perfil. A conexão foi recuperad
 a implementação `fe2dc66` foi enviada em 20/10 e a [PR #9](https://github.com/mhaetinger/D-D/pull/9)
 foi atualizada com base `develop`. Não houve merge/publicação desta etapa.
 
+**Legibilidade e padrão visual da ficha:** cores antigas de classe recuperadas,
+subclasse mantida visível e cabeçalho alinhado. `sheet-type.css` concentra a
+hierarquia da ficha: M com texto principal 16px, apoio 14px, títulos Cinzel e
+números de combate grandes, iguais em consulta/edição. Unidade do deslocamento
+fica junto ao valor. Inventário/história e descrições foram ampliados. Em telas
+pequenas, atributos clássicos usam grade acima das proficiências; P/M/G/GG e os
+três temas preservados. Seletores guardam o valor confirmado, evitando classificá-los
+como rascunho sem mudança. Conferidos 385 testes Node, tipos/build e 10 scripts
+Chromium pertinentes, incluindo inspeção das três abas/temas em M, M/GG em 320px
+nos dois layouts, campos abertos/protegidos e preservação de dados. Nada de
+ficha/notas é migrado nesta etapa.
+
 **Cadeado da ficha:** ao lado do seletor, alterna Protegida/Editando. Valores de
 consulta com o cadeado fechado; classes/atributos/máximos/proficiências/cartões
 editáveis quando aberto. Rolagens, combate, preparo, gastos/recuperação, equipar,

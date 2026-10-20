@@ -69,6 +69,18 @@ após leitura, revisão e recuperação; troca de espaço fecha o editor existen
 Seleção de outro personagem na revisão não recalcula suas reservas. A ação de
 revisar a ficha atual também gera cópia, sem migrar a coleção em silêncio.
 
+## Tipografia da ficha
+
+`src/styles/sheet-type.css` define papéis em rem dentro do cabeçalho/área da ficha:
+leitura 1rem, apoio .875rem, rótulos .8125rem e títulos 1.0625rem. Nome e números
+de combate têm destaque próprio. Não altera a escala global P/M/G/GG nem o livro,
+login ou diálogos independentes. Classes reutilizam `CLASS_BADGE_STYLES` e suas
+cores por tema; o cartão guarda os mesmos controles e a subclasse visível.
+Cabeçalho usa grade para identidade e cartões com rótulos alinhados. CA e movimento
+agrupam valor/unidade para conservar as três linhas do cartão de combate; spans de
+leitura e inputs recebem a mesma hierarquia. Em telas pequenas, atributos clássicos
+passam a uma grade acima das proficiências. Botões de magia aceitam a altura do texto.
+
 ## Edição na própria ficha
 
 `lock.ts` separa proteção contra edição acidental e autorização (`access.ts`).
