@@ -128,6 +128,10 @@ digitalizações e PDFs achatados ainda não têm leitura automática.
 Antes de salvar, **Revisar importação** separa Identidade e classes, Atributos e
 combate, Proficiências, Grimório e Inventário e história. Os setores mantêm seus
 rascunhos; as observações explicam cada consequência no setor correspondente.
+A revisão usa texto/campos de 16px em M e títulos distintos, acompanhando P/M/G/GG.
+Reservas zeradas começam recolhidas; Conjuração, Pacto e Feitiçaria podem ser
+abertas separadamente para conferir ou corrigir. Reservas preenchidas ou com campos
+inválidos começam abertas; a confirmação revela qualquer campo obrigatório recolhido.
 Magias usam o mesmo editor da ficha, com adicionar/remover, catálogo ou criação
 personalizada. **Comparar máximos com o livro** mostra os valores atuais e os
 calculados antes de aplicar; não recupera espaços gastos nem pontos atuais.
@@ -138,6 +142,8 @@ pode permanecer manual, com aviso aceito e registrado na cópia. Armas do PDF
 mantêm seus valores manuais até o jogador escolher explicitamente o catálogo.
 CA do PDF permanece como total manual, sem somar escudo de novo. Reservas de
 PDF são sugeridas pelas classes: confira os usos atuais antes de confirmar.
+Ataques especiais, como sopros, exigem conferência pela regra de sua origem;
+não são convertidos em armas do catálogo automaticamente.
 As opções de preparo têm dicas ao passar o mouse, distinguindo preparo, espaços
 e a adaptação para exceder o limite. Perícias com bônus escritos mantêm ajustes
 manuais; confira ao evoluir.

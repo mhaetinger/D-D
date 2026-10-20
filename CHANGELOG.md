@@ -2,6 +2,24 @@
 
 ## Não lançado
 
+### Leitura e reservas na revisão de importação — 2026-10-20
+
+- Revisão com texto principal e campos de 16px em M, rótulos de 15px e títulos
+  Cinzel distintos. Avisos, abas, perícias e editores de magia seguem a hierarquia;
+  P/M/G/GG e os três temas continuam disponíveis.
+- Reservas de magia iniciam recolhidas quando zeradas. Conjuração, Pacto e
+  Feitiçaria abrem separadamente conforme seus valores, sem depender apenas da
+  classe. Reservas com erro ficam para conferir; a confirmação revela campos
+  inválidos mesmo dentro de blocos recolhidos. A edição não fecha o grupo do
+  usuário; aplicar máximos abre reservas novas, preservando nós, usos e pontos.
+- Avisos distinguem armas do catálogo de ataques especiais, como sopros, e
+  explicam que incluir o texto extraído depende das anotações pessoais opcionais.
+- Conferidos 385 testes Node, tipos/build e três scripts Chromium de importação,
+  setores e edição em linha: cópias/notas/cancelamento, preservação de campos,
+  comparação de reservas, validação oculta, offline sob /D-D/ e 320px/GG/três temas.
+  Um PDF real autorizado também foi aberto/cancelado em contexto isolado para
+  conferir reservas zeradas e ataques manuais. Sem dados pessoais no repositório.
+
 ### Legibilidade e hierarquia visual da ficha — 2026-10-20
 
 - Recuperadas as cores anteriores por classe, com nível e subclasse visível.

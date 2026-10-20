@@ -68,6 +68,34 @@
 [data-import-error]:not(:empty) { padding:.45rem; border:2px solid var(--text-accent); font-weight:700; }
 [data-import-status] { font-size:.8rem; }
 .import-review [hidden],.spell-fields [hidden] { display:none; }
+/* A revisão tem a mesma escala de leitura da ficha. O escopo mantém os
+ * formulários compartilhados da edição em linha com sua própria tipografia. */
+#confirmationDialog.import-review-open { font-size:1rem; line-height:1.5; }
+#confirmationDialog.import-review-open .import-review { font-size:1rem; line-height:1.5; }
+#confirmationDialog.import-review-open #confirmationTitle { font-size:1.25rem; line-height:1.35; }
+#confirmationDialog.import-review-open #confirmationMessage { font-size:1rem; line-height:1.5; }
+#confirmationDialog.import-review-open :is(.import-sector-title h2,.import-card > h3,.import-spell-card h3,.import-weapon h4) { font-family:"Cinzel",serif; line-height:1.4; }
+#confirmationDialog.import-review-open .import-sector-title h2 { font-size:1.1875rem; }
+#confirmationDialog.import-review-open :is(.import-card > h3,.import-spell-card h3,.import-weapon h4) { font-size:1.0625rem; }
+#confirmationDialog.import-review-open :is(label,summary,legend) { font-size:.9375rem; line-height:1.45; }
+#confirmationDialog.import-review-open :is(input,select,textarea) { font-size:1rem; line-height:1.4; }
+#confirmationDialog.import-review-open .import-stat input { font-size:1.375rem; }
+#confirmationDialog.import-review-open .import-stat label { font-size:.875rem; }
+#confirmationDialog.import-review-open button { font-size:.9375rem; line-height:1.4; }
+#confirmationDialog.import-review-open .import-nav button { min-height:2.6rem; }
+#confirmationDialog.import-review-open :is(.import-notice,.import-review table) { font-size:1rem; }
+#confirmationDialog.import-review-open :is([data-import-status],.import-spell-card header p,.import-skill-head,.import-weapon output) { font-size:.875rem; line-height:1.5; }
+#confirmationDialog.import-review-open .import-skill-row > label { font-size:0; }
+.import-review .import-pools { padding:0; }
+.import-review .import-pools > summary { margin:0; padding:.75rem .8rem; background:var(--bg-inset); color:var(--text-accent); font:700 1.0625rem/1.4 "Cinzel",serif; }
+#confirmationDialog.import-review-open .import-pools > summary { font-size:1.0625rem; }
+.import-review .import-pools[open] > summary { border-bottom:1px solid var(--border-main); }
+.import-review .import-pool-body { display:grid; gap:.8rem; }
+.import-pool-body > button { justify-self:start; }
+.import-review .import-pool { min-width:0; margin:0; }
+.import-review .import-pool-groups { align-items:start; }
+.import-review [data-import-pool-state] { display:block; margin-left:1.1rem; font:400 .875rem/1.5 var(--font-body); color:var(--text-muted); }
+.import-review .import-pool-body > [data-import-pool-comparison]:empty { display:none; }
 @media (max-width:700px) {
   .import-review .import-nav { display:none; }
   .import-review .import-mobile-sector { display:flex; position:sticky; top:0; z-index:2; padding:.4rem; background:var(--bg-card); border-bottom:1px solid var(--border-main); }
@@ -78,12 +106,12 @@
   .import-skill-row { grid-template-columns:minmax(0,1fr) 6rem; }
   .import-skill-row strong { grid-column:1/-1; }
   .import-skill-row > label { align-self:end; font-size:.7rem; gap:.3rem; }
+  #confirmationDialog.import-review-open .import-skill-row > label { font-size:.875rem; }
   .import-skill-head { display:none; }
 }
 @media (max-width:400px) {
   #confirmationDialog.import-review-open { padding:.65rem; }
   #confirmationDialog.import-review-open form { max-height:calc(100dvh - 3.5rem); }
-  #confirmationDialog.import-review-open #confirmationMessage { font-size:.85rem; line-height:1.35; }
   .import-nav button { flex-basis:100%; }
   .import-nav { position:static; }
   .import-slots { grid-template-columns:1fr; }

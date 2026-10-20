@@ -58,6 +58,14 @@ origem especial/habilidade, usos, preparo e recursos. `review-ui.ts` reutiliza
 confirmação, foco e rolagem existentes, sem recriar linhas ao mudar opções.
 Cinco setores mantêm os controles montados; navegação compacta em telas pequenas.
 A validação revela o setor e os detalhes antes de focar o primeiro campo inválido.
+`pool-fields.ts` monta os campos de reservas e sincroniza apenas os resumos e
+aberturas. Todos permanecem no formulário. Quantidades exatamente zeradas e
+válidas começam recolhidas por reserva; o círculo de Pacto também deve ser válido.
+Dados ausentes/inconsistentes não são tratados como zero. Durante a edição não
+recolhe o grupo do usuário; novas reservas após comparação abrem sem recriar nós.
+O recolhimento considera os valores, não a classe, para preservar adaptações.
+A tipografia da revisão fica restrita ao diálogo em `import-review.css`, com
+16px de leitura/campos em M, rótulos de 15px e títulos Cinzel; a escala usa rem.
 `importNotices` gera explicações por setor e a lista textual compatível gravada no
 histórico. `applySuggestedPools` aplica máximos após comparação, preserva usos e
 pontos atuais e recusa toda a proposta se algum valor não couber no novo máximo.

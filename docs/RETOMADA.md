@@ -21,6 +21,16 @@ fluxo antigo de Criar/Ajustar ficha manual pelo perfil. A conexão foi recuperad
 a implementação `fe2dc66` foi enviada em 20/10 e a [PR #9](https://github.com/mhaetinger/D-D/pull/9)
 foi atualizada com base `develop`. Não houve merge/publicação desta etapa.
 
+**Revisão de importação mais legível e compacta:** texto/campos 16px em M,
+rótulos 15px e títulos distintos. `src/import/pool-fields.ts` recolhe reservas
+zeradas; Conjuração/Pacto/Feitiçaria têm aberturas independentes. Dados inválidos
+não viram zero, campos recolhidos continuam validados e são revelados antes do
+foco. Nós e rascunhos são preservados; aplicar máximos abre reservas novas sem
+recuperar usos. Avisos diferenciam armas e ataques especiais e explicam as notas
+opcionais. Conferidos 385 testes Node, tipos/build e Chromium de importação,
+setores e edição em linha, inclusive offline /D-D/, 320px/GG/três temas. Um PDF
+real autorizado foi aberto e cancelado em contexto isolado, sem importá-lo.
+
 **Legibilidade e padrão visual da ficha:** cores antigas de classe recuperadas,
 subclasse mantida visível e cabeçalho alinhado. `sheet-type.css` concentra a
 hierarquia da ficha: M com texto principal 16px, apoio 14px, títulos Cinzel e
