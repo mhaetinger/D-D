@@ -170,7 +170,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     await nobody.page.locator('#accPlayerName').fill('Nome que precisa ser preservado');
     assert.equal(await nobody.page.locator('#accPlayerName').inputValue(),'Nome que precisa ser preservado');
     assert.equal(await nobody.page.locator('#currentUserBadge').textContent(),'Jogador');
-    assert.ok((await nobody.page.locator('#toast').textContent()).includes('não pôde ser salvo'));
+    assert.ok((await nobody.page.locator('#authAccountModal [data-window-notice]').textContent()).includes('não pôde ser salvo'));assert.equal(await nobody.page.locator('#toast').isVisible(),false);
     assert.ok((await nobody.page.locator('#syncStatus').textContent()).includes('não foram salvas'),'um envio anterior não pode esconder falha local de perfil');
     await b.page.evaluate(async()=>{await navigator.serviceWorker.ready;});
     await b.page.waitForFunction(()=>!!navigator.serviceWorker.controller);
@@ -230,6 +230,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     await confirmImportReview(a.page);
     await a.page.waitForFunction(()=>characters.length===2);
     const copyId=await a.page.evaluate(id=>characters.find(char=>char.id!==id).id,source.id);
+    await a.page.locator('[data-account-tab="characters"]').click();
     await uploadPhoto(a.page,`#accountCharactersList [data-avatar-edit="${copyId}"]`);
     assert.equal(await a.page.evaluate(id=>characters.find(char=>char.id===id).avatar.id,source.id),source.avatar.id);
     assert.notEqual(await a.page.evaluate(id=>characters.find(char=>char.id===id).avatar.id,copyId),source.avatar.id);

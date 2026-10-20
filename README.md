@@ -61,6 +61,11 @@ se já tiver fichas, pergunta se deseja acrescentar novas. A identidade precisa
 estar confirmada e a coleção remota precisa ter sido consultada. Os originais
 locais são preservados; o perfil informa falhas e permite retomar a cópia.
 
+A janela **Perfil e personagens** abre em Perfil, com nome, imagem e acesso à
+conta. A aba Personagens oferece Lista ou Cartões, com os mesmos retratos e
+ações de abrir/excluir ficha. A visualização é lembrada neste navegador;
+backup e armazenamento continuam no rodapé comum das duas abas.
+
 A ficha mantém cores por classe, com a subclasse visível. A tipografia distingue
 nome, títulos, texto de leitura, rótulos e números de combate. Em M, o texto
 principal usa 16 px e o apoio 14 px; CA e deslocamento têm destaque também com o

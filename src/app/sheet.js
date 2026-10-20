@@ -1,5 +1,6 @@
 import { sheetStore, selectCharacterWorkspace } from "../storage/character-store";
 import { showNotice } from './notices';
+import { selectAccountTab, refreshAccountView } from './account-panel';
 import { currentWorkspaceKey, workspaceStorage } from "../storage/account-scope";
 import { ACTIVE_CHARACTER_KEY, readPreference, writePreference } from "../storage/preferences";
 import { armorClass, applyDamage, exhaustion, savingThrow, initiativeBonus, changePermanentAbility } from "../rules/combat";
@@ -1206,6 +1207,7 @@ function triggerSheetRoll(formula, label, inspirationEligible = false, context =
 // =========================================================================
 function openAuthAccountModal() {
   renderAccountCharactersList();
+  selectAccountTab('profile');
   document.getElementById("authAccountModal").classList.remove("hidden");
   if (window.lucide) window.lucide.createIcons();
 }
@@ -1314,22 +1316,23 @@ function renderAccountCharactersList() {
         .join(" | ");
       const isCurrent = idx === activeCharIndex;
       return `
-    <div class="t-inset p-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-      <div class="min-w-0 flex-1 flex items-center gap-2">
+    <div class="account-character t-inset p-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2" data-account-character="${escapeHTML(c.id)}">
+      <div class="account-character-person min-w-0 flex-1 flex items-center gap-2">
       <button type="button" class="portrait-edit account-character-avatar shrink-0" data-avatar-edit="${escapeHTML(c.id)}" aria-label="Alterar imagem de ${escapeHTML(c.name)}">${avatarMarkup(c.avatar)}</button>
       <div class="min-w-0">
-        <div class="font-rpg font-bold text-sm t-text-main break-words">${escapeHTML(c.name)} ${isCurrent ? '<span class="px-1.5 py-0.5 rounded badge-utilidade text-[9px] ml-1">Ativo</span>' : ""}</div>
-        <div class="text-[11px] t-text-muted">${escapeHTML(c.race)} • ${clsStr} • PV: ${c.hpCurrent}/${c.hpMax}</div>
+        <div class="account-character-name font-rpg font-bold t-text-main break-words">${escapeHTML(c.name)} ${isCurrent ? '<span class="account-character-active px-1.5 py-0.5 rounded badge-utilidade text-[9px] ml-1">Ativo</span>' : ""}</div>
+        <div class="account-character-meta t-text-muted"><span>${escapeHTML(c.race)}</span><span>${escapeHTML(clsStr)}</span><span>PV: ${c.hpCurrent}/${c.hpMax}</span></div>
       </div>
       </div>
-      <div class="flex items-center justify-end gap-1.5 shrink-0">
-        <button onclick="switchCharacter(${idx}); closeAuthAccountModal();" class="t-btn-primary px-3 py-1 rounded-lg font-bold text-xs">Abrir Ficha</button>
-        ${characters.length > 1 ? `<button onclick="deleteCharacter(${idx})" class="t-card px-2 py-1 rounded text-rose-500 font-bold" title="Excluir personagem">&times;</button>` : ""}
+      <div class="account-character-actions flex items-center justify-end gap-1.5 shrink-0">
+        <button onclick="switchCharacter(${idx}); closeAuthAccountModal();" class="account-character-open t-btn-primary px-3 py-1 rounded-lg font-bold text-xs">Abrir Ficha</button>
+        ${characters.length > 1 ? `<button onclick="deleteCharacter(${idx})" class="t-card px-2 py-1 rounded text-rose-500 font-bold" title="Excluir personagem" aria-label="Excluir ${escapeHTML(c.name)}">&times;</button>` : ""}
       </div>
     </div>
   `;
     })
     .join("");
+  refreshAccountView();
 }
 
 async function deleteCharacter(idx) {

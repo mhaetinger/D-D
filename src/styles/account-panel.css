@@ -1,0 +1,23 @@
+.account-tabs { display:flex; gap:.5rem; border-bottom:1px solid var(--border-main); padding-bottom:.5rem; }
+.account-tabs button,.account-character-view button { border:1px solid var(--border-main); border-radius:.4rem; padding:.4rem .7rem; background:var(--bg-inset); color:var(--text-main); font-size:.9375rem; }
+.account-tabs button { flex:1 1 auto; min-width:0; padding-inline:.45rem; font-weight:700; }
+.account-tabs [aria-selected=true],.account-character-view [aria-pressed=true] { background:var(--btn-primary-bg); color:var(--btn-primary-text); border-color:var(--text-accent); font-weight:700; }
+.account-tabs [aria-selected=true] { text-decoration:underline; text-underline-offset:.2em; }
+.account-character-view { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:.4rem; }
+.account-character-view [aria-pressed=true]::before { content:'✓ '; }
+[data-account-panel][hidden] { display:none; }
+.account-characters { display:grid; grid-template-columns:minmax(0,1fr); gap:.6rem; }
+.account-character { min-width:0; }
+.account-character-name { font-size:1rem; line-height:1.35; }
+.account-character-meta { font-size:.875rem; line-height:1.4; overflow-wrap:anywhere; }
+.account-character-meta > span + span::before { content:' · '; }
+.account-characters[data-character-view=cards] .account-character { aspect-ratio:1; position:relative; flex-direction:column; align-items:stretch; gap:.6rem; }
+.account-characters[data-character-view=cards] .account-character-person { flex-direction:column; text-align:center; justify-content:center; gap:.5rem; }
+.account-characters[data-character-view=cards] .account-character-avatar .portrait { width:3rem; height:3rem; }
+.account-characters[data-character-view=cards] .account-character-avatar .portrait svg { width:1.5rem; height:1.5rem; }
+.account-characters[data-character-view=cards] .account-character-meta > span { display:block; }
+.account-characters[data-character-view=cards] .account-character-meta > span + span::before { content:none; }
+.account-characters[data-character-view=cards] .account-character-active { position:absolute; top:.4rem; right:.4rem; }
+.account-characters[data-character-view=cards] .account-character-actions { justify-content:center; }
+.account-characters[data-character-view=cards] .account-character-open { flex:1; }
+@media(min-width:480px) { .account-characters[data-character-view=cards] { grid-template-columns:repeat(2,minmax(0,1fr)); } }

@@ -2,6 +2,20 @@
 
 ## Não lançado
 
+### Perfil separado da coleção e visualização em cartões — 2026-10-20
+
+- Perfil e Personagens ficam em abas da mesma janela. A abertura começa em
+  Perfil, com nome, imagem e acesso à conta; backup/armazenamento mantêm o rodapé
+  comum. Navegação por teclado e formulários preservados durante a troca.
+- Personagens oferece Lista ou Cartões, lembrando a escolha neste navegador.
+  A mudança de visual conserva nós, retratos e ações; cartões se adaptam a nomes
+  longos e fonte ampliada, com uma coluna no celular. Estado Ativo é identificado
+  por texto, e os seletores têm marcas além da cor.
+- Conferidos 385 testes Node, tipos/build e quatro scripts Chromium: perfil e
+  coleção, aplicação, autenticação e sincronização com HTTP simulado. Incluem
+  abrir/excluir/cancelar após mudança de índices, retratos, nome, dados, backup,
+  isolamento/recuperação/falha de gravação, offline e 320px/GG/três temas.
+
 ### Avisos dentro das janelas e ajuda de concentração — 2026-10-20
 
 - Notificações usam a janela em uso: criador/preparo, perfil, loja ou diálogo

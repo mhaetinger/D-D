@@ -27,6 +27,8 @@ import { initializeSync } from "./sync/controller";
 import { setupAvatars } from "./media/ui";
 import { setupBookAppearance } from "./app/book-appearance";
 import { setupCompactTopbar } from "./app/compact-topbar";
+import { setupAccountPanel } from './app/account-panel';
+import './styles/account-panel.css';
 import {setupSheetEditing} from './sheet-edit/ui';
 import {setupSpellEditor} from './sheet-edit/spell-editor';
 import './styles/sheet-edit.css';
@@ -45,6 +47,7 @@ async function start() {
   setupAvatars(account);
   setupBookAppearance();
   setupCompactTopbar();
+  setupAccountPanel();
   registerOffline();
 }
 void start();

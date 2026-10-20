@@ -127,6 +127,7 @@ async function importBackup(page, value) {
       const panel = await page.locator('#authAccountModal > section').boundingBox();
       assert.ok(panel.x >= 0 && panel.x + panel.width <= 320);
       assert.ok(await page.locator('#authAccountModal > section').evaluate((el) => el.scrollWidth <= el.clientWidth));
+      await page.locator('[data-account-tab="characters"]').click();
       const nameArea = await page.locator('#accountCharactersList > div:first-child > .min-w-0').boundingBox();
       assert.ok(nameArea.width >= 130, "nome mantém largura legível no perfil em 320 px/GG");
       if (process.env.DND_TEST_ARTIFACTS) {

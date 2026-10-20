@@ -115,6 +115,19 @@ visibilidade da janela e seu evento `close` evita avisos antigos na reabertura.
 Não remonta listas, altera seleção nem move o foco; cada aviso local é uma região
 de status com contraste e símbolo, sem depender apenas de cor.
 
+## Perfil e coleção de personagens
+
+`app/account-panel.ts` alterna as abas Perfil/Personagens sem remontar os
+formulários. Cada abertura começa em Perfil, inclusive retornos de acesso à
+conta; campos e rodapé comum mantêm seus próprios nós. Abas usam navegação por
+teclado, `aria-selected` e painéis associados. Lista/Cartões alterna somente um
+atributo da coleção, conservando retratos, foco e ações dos cartões existentes.
+`critcall_character_list_view_v1` é uma preferência deste navegador, fora dos
+documentos pessoais/backup. `styles/account-panel.css` mantém cartões quadrados
+quando o conteúdo cabe; nomes longos e fonte ampliada podem aumentar a altura
+para preservar a leitura. Alterações reais na coleção continuam pelo renderizador
+e pelos contratos existentes de abrir/excluir/importar.
+
 ## Tipografia da ficha
 
 `src/styles/sheet-type.css` define papéis em rem dentro do cabeçalho/área da ficha:

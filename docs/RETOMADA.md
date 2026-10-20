@@ -29,6 +29,16 @@ Pacto, espaços compartilhados e concentração não são duplicados. Conferidos
 testes Node, tipos/build e Chromium de quadros, regras e concentração, com preparo,
 recuperação/cancelamento, recarga offline e 320px/GG/três temas/dois layouts.
 
+**Perfil e personagens em abas:** `app/account-panel.ts` mantém Perfil na primeira
+aba e coleção na segunda, com Lista/Cartões e preferência deste navegador. Não
+remonta formulários nem os cartões ao alternar visual; retratos e ações ficam
+preservados. Backup/armazenamento têm rodapé comum e cada abertura começa em
+Perfil. Cartões quadrados ampliam altura para nomes longos/GG; uma coluna no
+celular. Conferidos 385 testes Node, tipos/build e Chromium de perfil/coleção,
+aplicação, autenticação e sincronização com HTTP simulado: teclado/campos,
+retratos, abrir/excluir/cancelar após reordenação, dados/backup, isolamento e
+falhas, offline e 320px/GG/três temas.
+
 **Avisos nas janelas:** `app/notices.ts` encaminha `showToast` à região de status
 da janela em uso, priorizando diálogos nativos. Criador/preparo, perfil e loja
 têm regiões próprias; a ficha continua com toast. Preserva nós/foco/rolagem,

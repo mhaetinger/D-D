@@ -549,6 +549,11 @@
     <section data-scroll-window class="t-card-accent max-w-lg w-full p-5 space-y-4 max-h-[92dvh] overflow-y-auto">
       <div class="flex justify-between gap-3"><h2 class="font-rpg font-bold">Perfil e personagens</h2><button onclick="closeAuthAccountModal()" aria-label="Fechar perfil">×</button></div>
       <p class="window-notice" data-window-notice role="status" aria-live="polite" aria-atomic="true" hidden></p>
+      <div class="account-tabs" role="tablist" aria-label="Perfil e personagens">
+        <button type="button" id="accountTabProfile" role="tab" data-account-tab="profile" aria-controls="accountPanelProfile" aria-selected="true">Perfil</button>
+        <button type="button" id="accountTabCharacters" role="tab" data-account-tab="characters" aria-controls="accountPanelCharacters" aria-selected="false" tabindex="-1">Personagens</button>
+      </div>
+      <section id="accountPanelProfile" data-account-panel="profile" role="tabpanel" aria-labelledby="accountTabProfile" class="space-y-3">
       <p id="workspaceDescription" class="text-sm">Suas fichas e anotações ficam neste navegador. Use um backup para levá-las a outro dispositivo.</p>
       <div id="accountAccessSlot">
       <section id="accountAccess" class="space-y-3 border-b t-border pb-3" aria-label="Acesso à conta" hidden>
@@ -585,8 +590,15 @@
       <p id="avatarSyncStatus" class="text-xs" role="status"></p><button id="avatarRetry" type="button" class="underline text-xs">Atualizar imagens / tentar envio</button>
       <label for="accPlayerName">Nome do jogador</label><input id="accPlayerName" value="Jogador" class="t-inset w-full p-2 rounded">
       <button onclick="saveAccountProfile()" class="t-btn-primary px-3 py-2 rounded">Salvar nome local</button>
-      <div id="accountCharactersList" class="space-y-2"></div>
+      </section>
+      <section id="accountPanelCharacters" data-account-panel="characters" role="tabpanel" aria-labelledby="accountTabCharacters" class="space-y-3" hidden>
+        <div class="account-character-view" role="group" aria-label="Exibição dos personagens">
+          <button type="button" data-account-view="list" aria-pressed="true" aria-label="Lista">Lista</button>
+          <button type="button" data-account-view="cards" aria-pressed="false" aria-label="Cartões">Cartões</button>
+        </div>
+      <div id="accountCharactersList" class="account-characters" data-character-view="list"></div>
       <button onclick="closeAuthAccountModal();openNewCharacterModal()" class="t-inset px-3 py-2 rounded">Criar personagem</button>
+      </section>
       <section class="space-y-2 border-t t-border pt-3" aria-label="Backups e armazenamento">
         <p id="syncStatus" class="text-xs" role="status" aria-live="polite">Preparando salvamento…</p>
         <div class="flex flex-wrap gap-2"><button id="syncNow" type="button" class="underline text-xs" hidden>Sincronizar agora</button><button id="syncVersions" type="button" class="underline text-xs" hidden>Versões salvas</button></div>
