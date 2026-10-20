@@ -281,7 +281,14 @@
         ? ["Sintonia Elemental"]
         : [];
     for (const e of (char?.rules?.history || []).filter(
-      (e) => !classId || e.classId === classId,
+      (e) => {
+        if (classId && e.classId !== classId) return false;
+        // O histórico continua guardado após correções de classe/nível. Só
+        // escolhas da classe ainda presente concedem bônus.
+        // Raça e antecedente independem da classe usada na criação inicial.
+        if (/^(race|racial|background)/.test(key) || !e.classId) return true;
+        return !!classEntry(char, e.classId);
+      },
     )) {
       if (["invocations", "maneuvers", "disciplines"].includes(key))
         values = values.filter(

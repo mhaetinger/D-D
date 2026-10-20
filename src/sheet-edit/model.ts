@@ -1,3 +1,4 @@
+import {removeClass,type ClassRemoval} from './class-removal';
 import type {Engine,Sheet} from '../rules/model';
 import {validateCharacters} from '../storage/validation';
 import {emptyImportedCharacter,matchOption} from '../import/character-review';
@@ -76,11 +77,11 @@ export function editSheetField(original:Sheet,path:string,raw:unknown,E:Engine):
   return validateSheet(c);
 }
 
-export function changeClassList(original:Sheet,index:number|null,E:Engine):Sheet {
+export function changeClassList(original:Sheet,index:number|null,E:Engine,resolution?:ClassRemoval):Sheet {
   if(!canEditSheet(original))throw new Error('A edição desta ficha está bloqueada pelo mestre.');
   const c=structuredClone(original);
   if(index===null){const id=Object.keys(E.data.classes).find(id=>!c.classes.some((x:Sheet)=>x.classId===id));if(!id)throw new Error('Todas as classes já estão na ficha.');c.classes.push({classId:id,level:1,subclass:'',subclassId:'',hitDie:E.data.classes[id].die,hitDiceUsed:0});}
-  else {if(c.classes.length===1)throw new Error('Mantenha ao menos uma classe.');const cls=c.classes[index];if(!cls)throw new Error('Classe desconhecida.');if(c.spells.some((s:Sheet)=>s.classId===cls.classId))throw new Error('Reatribua as magias desta classe antes de removê-la.');c.classes.splice(index,1);}
+  else return validateSheet(removeClass(c,index,E,resolution));
   return validateSheet(c);
 }
 export function blankCharacter(playerName='Jogador',layout='classic_2014'):Sheet {

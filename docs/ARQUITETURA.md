@@ -56,6 +56,11 @@ adicionais podem ser guardados como texto em `privateNotes`, nunca pixels ou PDF
 reescrever sua origem. Não infere sub-raça/juramento/preparo ausentes; confere
 origem especial/habilidade, usos, preparo e recursos. `review-ui.ts` reutiliza
 confirmação, foco e rolagem existentes, sem recriar linhas ao mudar opções.
+Cinco setores mantêm os controles montados; navegação compacta em telas pequenas.
+A validação revela o setor e os detalhes antes de focar o primeiro campo inválido.
+`importNotices` gera explicações por setor e a lista textual compatível gravada no
+histórico. `applySuggestedPools` aplica máximos após comparação, preserva usos e
+pontos atuais e recusa toda a proposta se algum valor não couber no novo máximo.
 Permite manter vínculos manuais com aceite dos avisos, registrados em
 `rules.importReview`. Só edita a proposta; a persistência continua exclusivamente
 em `CharacterStore.importCopies`, com IDs novos e notas separadas. Notas do
@@ -68,7 +73,15 @@ revisar a ficha atual também gera cópia, sem migrar a coleção em silêncio.
 
 `sheet-edit/model.ts` cria propostas para caminhos explicitamente permitidos;
 valida formato, números, classes, fórmulas e vínculos sem refazer a ficha pelo
-motor. Remover/trocar classe com magias vinculadas exige reatribuí-las primeiro.
+motor. Trocar classe com magias vinculadas exige reatribuí-las primeiro.
+`class-removal.ts` compartilha proposta pura e confirmação inline entre ficha e
+importação: remover magias junto ou mantê-las como adaptação com origem anterior,
+habilidade explícita e agrupamento numa classe restante. Conserva dados e fixa
+máximos atuais para não perdê-los no refresh; não reconstrói escolhas. Confere
+classes/magias novamente ao confirmar e mantém a guarda de acesso da ficha.
+Efeitos ativos com prefixo da classe são desligados. `selections` ignora escolhas
+de classes ausentes, mantendo o histórico armazenado;
+escolhas raciais e de antecedente continuam independentes da classe inicial.
 `ui.ts` confirma armazenamento antes de aplicar ao objeto em memória e registra
 um passo no histórico. A ficha mantém ID, notas, retrato e escolhas anteriores.
 Os controles são reaproveitados entre renders, com cursor, seleção e rascunhos.
@@ -77,6 +90,8 @@ nem inicia render recursivo. Falha de quota mantém o valor digitado no campo.
 
 `panels.ts` monta os editores de armas/itens/características/magias no próprio
 bloco e conserva seus nós durante renders. Troca de ficha/espaço os encerra.
+`spell-fields.ts` fornece os mesmos campos/leitura ao cartão da ficha e à revisão
+de importação, sem acessar armazenamento/global nem criar forms aninhados.
 `spell-editor.ts` valida a proposta antes de salvar, com origem/habilidade/gasto
 separados. IDs `custom_*` impedem religar uma magia própria pelo nome ao catálogo.
 Ataque/CD aceitam ajustes explícitos de −100 a 100; fórmulas usam o parser comum.

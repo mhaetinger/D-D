@@ -4,6 +4,8 @@ import {currentWorkspaceKey} from '../storage/account-scope';
 import {canEditSheet,setSheetAuthorityProvider} from './access';
 import {editSheetField,changeClassList,blankCharacter} from './model';
 import {canSaveSheetPanel} from './panels';
+import {classRemovalControls} from './class-removal';
+import {mountSheetPanel,closeSheetPanel} from './panels';
 import {armorProficiencies} from '../rules/spellcasting';
 
 const host=globalThis as any;
@@ -97,7 +99,19 @@ export function setupSheetEditing():void {
     if(expertise){if(!requireSheetEdit())return;const c=host.getChar(),next=structuredClone(c),id=expertise.dataset.sheetExpertise!;if(!host.CharacterEngine.data.skills[id])return;next.expertise ||= [];next.expertise=next.expertise.includes(id)?next.expertise.filter((x:string)=>x!==id):[...next.expertise,id];if(next.expertise.includes(id)&&!next.skillsProf.includes(id))next.skillsProf.push(id);try{commitSheetEdit(c,next,'Ajustou especialização de perícia');}catch(e){host.showToast((e as Error).message);}return;}
     const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-sheet-add-class],[data-sheet-remove-class]');if(!button)return;
     const c=host.getChar();if(!c)return;
-    try{commitSheetEdit(c,changeClassList(c,button.hasAttribute('data-sheet-add-class')?null:Number(button.dataset.sheetRemoveClass),host.CharacterEngine),'Ajustou as classes da ficha');}catch(e){host.showToast((e as Error).message);}
+    try{
+      if(!requireSheetEdit())return;
+      if(button.hasAttribute('data-sheet-add-class'))commitSheetEdit(c,changeClassList(c,null,host.CharacterEngine),'Adicionou classe à ficha');
+      else {
+        const index=Number(button.dataset.sheetRemoveClass),store=sheetStore,before=JSON.stringify(c.classes);
+        if(c.classes.length<2)throw new Error('Adicione outra classe antes de remover a única classe.');
+        const panel=classRemovalControls(c,index,host.CharacterEngine,resolution=>{
+          if(c!==host.getChar()||store!==sheetStore||JSON.stringify(c.classes)!==before)throw new Error('A ficha ou as classes mudaram. Feche e revise novamente.');
+          const next=changeClassList(c,index,host.CharacterEngine,resolution);commitSheetEdit(c,next,'Removeu classe da ficha');closeSheetPanel('class-removal');
+        },()=>closeSheetPanel('class-removal'));
+        mountSheetPanel('class-removal',panel,'#headerSection');
+      }
+    }catch(e){host.showToast((e as Error).message);}
   });
   window.addEventListener('critcall-sheet-access-changed',()=>host.renderAll());
 }

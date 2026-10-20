@@ -2,6 +2,29 @@
 
 ## Não lançado
 
+### Revisão por setores e remoção de classe — 2026-10-20
+
+- Revisão de importação separada em Identidade/classes, Atributos/combate,
+  Proficiências, Grimório e Inventário/história. Cartões e linhas de perícias
+  alinhados; navegação compacta no celular, rascunhos e nós mantidos por setor.
+- Magias usam os mesmos campos da ficha, com catálogo/personalizada, adicionar,
+  remover, origem/habilidade, preparo e usos. Sem formulários aninhados; erro de
+  validação revela o setor e os detalhes antes de focar um campo oculto.
+- Avisos explicados por setor: CA escrita, totais fixos, itens em texto e vínculos
+  manuais. A lista textual registrada no histórico vem dessas mesmas explicações.
+- Comparar máximos com o livro mostra os valores atuais e propostos. Aplicar não
+  recupera espaços usados/pontos atuais e recusa toda a proposta se não couberem.
+- Remoção de classe na ficha e na revisão compartilha confirmação inline. Magias
+  vinculadas podem ser removidas junto ou mantidas como adaptação com origem e
+  habilidade anteriores registradas. Exige classe restante; preserva atributos,
+  PV, reservas, textos e histórico. Escolhas e efeitos da classe removida deixam
+  de conceder bônus; escolhas raciais/antecedente continuam independentes.
+- Conferidos 382 testes Node, tipos/build e Chromium de importação, setores,
+  edição na ficha, criação, aplicação e 32 cenários auditados. Incluem cópias/notas,
+  cancelamento/quota/conta/offline, origens, remoção/desfazer, foco/rascunhos,
+  validação em setor oculto e todos os setores em 320px/GG/três temas.
+
+
 ### Correções e criação diretamente na ficha — 2026-10-20
 
 - Retirados o formulário geral separado e os botões de criação/edição manual do

@@ -24,7 +24,7 @@ test('máximos e reservas ajustados sobrevivem ao refresh e ao descanso sem alte
 });
 test('classe com magias não é removida ou trocada silenciosamente e duplicação/nível total são validados',()=>{
   let c=blankCharacter();c.classes[0].classId='mago';c.spells=[E.toSheetSpell(E.spell('Raio de Fogo'),'mago')];c=changeClassList(c,null,E);
-  assert.throws(()=>changeClassList(c,0,E),/Reatribua/);assert.throws(()=>editSheetField(c,'classes.0.classId','bruxo',E),/Reatribua/);
+  assert.throws(()=>changeClassList(c,0,E),/Escolha/);assert.throws(()=>editSheetField(c,'classes.0.classId','bruxo',E),/Reatribua/);
   assert.throws(()=>editSheetField(c,'classes.1.classId','mago',E),/repetida/);assert.throws(()=>editSheetField(c,'classes.0.level','20',E),/total/);
   c=changeClassList(c,1,E);assert.equal(c.classes.length,1);assert.equal(c.spells.length,1);
 });

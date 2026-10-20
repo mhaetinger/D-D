@@ -1,131 +1,160 @@
 import {escape,type Engine,type Sheet} from '../rules/model';
 import {preparation,armorProficiencies} from '../rules/spellcasting';
 import {catalogueWeapon,weaponStats} from '../rules/combat';
-import {proposeImport,importWarnings,validateImport,suggestPdfPools} from './character-review';
+import {proposeImport,importWarnings,importNotices,validateImport,suggestPdfPools,applySuggestedPools} from './character-review';
+import {createSpellFields} from '../sheet-edit/spell-fields';
+import {classRemovalControls,removeClass} from '../sheet-edit/class-removal';
 import type {Backup} from '../storage/validation';
 
 const host=window as any;
+const sectors={identity:'Identidade e classes',combat:'Atributos e combate',skills:'Proficiências',spells:'Grimório',equipment:'Inventário e história'};
+type Sector=keyof typeof sectors;
 const options=(values:Record<string,Sheet>,selected:string,empty='Escolha…')=>`<option value="">${empty}</option>`+Object.entries(values).map(([id,o])=>`<option value="${escape(id)}" ${id===selected?'selected':''}>${escape(o.name)}</option>`).join('');
 const at=(c:Sheet,path:string)=>path.split('.').reduce((v,k)=>v?.[k],c);
-function put(c:Sheet,path:string,value:any) {const keys=path.split('.'),last=keys.pop()!;let target=c;for(const k of keys)target=target[k];target[last]=value;}
+function put(c:Sheet,path:string,value:any){const keys=path.split('.'),last=keys.pop()!;let target=c;for(const k of keys)target=target[k];target[last]=value;}
 const input=(c:Sheet,path:string,label:string,type='text',required=false,min?:number,max?:number)=>`<label>${label}<input data-import-field="${path}" type="${type}" ${required?'required':''} ${min!==undefined?`min="${min}"`:''} ${max!==undefined?`max="${max}"`:''} ${type==='number'?`step="${path==='speed'?'any':'1'}"`:''} value="${escape(at(c,path)??'')}"></label>`;
 const check=(c:Sheet,path:string,label:string)=>`<label class="import-check"><input type="checkbox" data-import-field="${path}" ${at(c,path)?'checked':''}>${label}</label>`;
-const abilityOptions=(value:string)=>options({str:{name:'Força'},dex:{name:'Destreza'},con:{name:'Constituição'},int:{name:'Inteligência'},wis:{name:'Sabedoria'},cha:{name:'Carisma'}},value,'Da classe');
+const card=(title:string,content:string)=>`<section class="import-card"><h3>${title}</h3>${content}</section>`;
 
-/** A confirmação compartilha o diálogo/foco/rolagem existentes. Todas as
- * edições ficam na proposta; cancelamento e troca de conta descartam a cópia. */
-export async function reviewImport(original:Backup,E:Engine,isCurrent:()=>boolean):Promise<Backup|null> {
+/** Só a proposta é editada. Setores conservam seus nós e rascunhos; usam a
+ * mesma confirmação, campos de magia e controles da ficha, sem forms aninhados. */
+export async function reviewImport(original:Backup,E:Engine,isCurrent:()=>boolean):Promise<Backup|null>{
   if(!original.characters.length)throw new Error('O arquivo não contém personagens.');
-  const proposal=proposeImport(original,E),controls=document.createElement('div');controls.className='rule-context import-review';
-  controls.setAttribute('data-import-review','');
-  let current=0;const reviewedManual=new Set<number>();
-  controls.innerHTML=`<label ${proposal.characters.length===1?'hidden':''}>Personagem <select data-import-person>${proposal.characters.map((c,i)=>`<option value="${i}">${escape(c.name||'Sem nome')} (${i+1}/${proposal.characters.length})</option>`).join('')}</select></label><p>Confira os vínculos e os valores. A importação cria fichas novas; valores manuais e textos existentes são preservados.</p><datalist id="import-spell-catalog">${Object.values(E.spells).map((s:any)=>`<option value="${escape(s.name)}"></option>`).join('')}</datalist><div data-import-body data-scroll-content></div><p data-import-error role="alert"></p><p data-import-status role="status"></p><label class="import-check"><input type="checkbox" data-import-ack>Conferi os avisos; manter os itens indicados como manuais.</label><label class="import-check"><input type="checkbox" data-import-notes ${proposal.privateNotes?'checked':''} ${proposal.privateNotes?'':'disabled'}>Incluir anotações pessoais${(proposal.characters[0] as Sheet).rules?.pdfImport?' e texto extraído do PDF':''}</label>`;
+  const proposal=proposeImport(original,E),controls=document.createElement('div');controls.className='rule-context import-review';controls.dataset.importReview='';
+  let current=0,active:Sector='identity';const reviewedManual=new Set<number>(),positions=new Map<string,number>();
+  let spellFields:ReturnType<typeof createSpellFields>[]=[];
+  controls.innerHTML=`<label ${proposal.characters.length===1?'hidden':''}>Personagem<select data-import-person>${proposal.characters.map((c,i)=>`<option value="${i}">${escape(c.name||'Sem nome')} (${i+1}/${proposal.characters.length})</option>`).join('')}</select></label><label class="import-mobile-sector">Setor da revisão<select data-import-sector-select>${Object.entries(sectors).map(([id,name],i)=>`<option value="${id}">${i+1}. ${name}</option>`).join('')}</select></label><nav class="import-nav" aria-label="Setores da revisão">${Object.entries(sectors).map(([id,name],i)=>`<button type="button" data-import-sector="${id}" aria-controls="import-panel-${id}">${i+1}. ${name}</button>`).join('')}</nav><div data-import-body data-scroll-content></div><p data-import-error role="alert"></p><div class="import-review-footer"><p data-import-status role="status"></p><label class="import-check"><input type="checkbox" data-import-ack>Conferi os itens mantidos manualmente, indicados em cada setor.</label><label class="import-check"><input type="checkbox" data-import-notes ${proposal.privateNotes?'checked':''} ${proposal.privateNotes?'':'disabled'}>Incluir anotações pessoais${(proposal.characters[0] as Sheet).rules?.pdfImport?' e texto original do PDF':''}</label></div>`;
   const body=controls.querySelector<HTMLElement>('[data-import-body]')!,status=controls.querySelector<HTMLElement>('[data-import-status]')!,error=controls.querySelector<HTMLElement>('[data-import-error]')!,ack=controls.querySelector<HTMLInputElement>('[data-import-ack]')!;
   const char=()=>proposal.characters[current] as Sheet;
-  const classes=(c:Sheet)=>Object.fromEntries(c.classes.filter((x:Sheet)=>E.data.classes[x.classId]).map((x:Sheet)=>[x.classId,E.data.classes[x.classId]]));
-  function updateStatus() {
-    const c=char(),warnings=importWarnings(c,E);
-    const counts=c.classes.filter((x:Sheet)=>E.data.classes[x.classId]).map((x:Sheet)=>{const p=preparation(c,x.classId,E);return p.prepares?`${E.data.classes[x.classId].name}: ${p.used}/${p.limit} preparadas.`:'';}).filter(Boolean);
-    status.textContent=[...counts,...warnings].join(' ');
-    ack.parentElement!.hidden=!warnings.length;
-    ack.checked=reviewedManual.has(current);
+  const scroll=()=>controls.closest<HTMLElement>('#confirmationExtra');
+  function showSector(id:Sector,remember=true){
+    if(remember)positions.set(current+':'+active,scroll()?.scrollTop||0);
+    active=id;(controls.querySelector('[data-import-sector-select]') as HTMLSelectElement).value=id;body.querySelectorAll<HTMLElement>('[data-import-panel]').forEach(e=>e.hidden=e.dataset.importPanel!==id);
+    controls.querySelectorAll<HTMLElement>('[data-import-sector]').forEach(e=>{const selected=e.dataset.importSector===id;e.setAttribute('aria-current',selected?'step':'false');});
+    if(scroll())scroll()!.scrollTop=positions.get(current+':'+id)||0;
   }
-  function subclassOptions(cls:Sheet) {
-    const meta=E.data.classes[cls.classId],valid=!!meta?.subclasses?.[cls.subclassId];
-    return options(meta?.subclasses||{},valid?cls.subclassId:'',meta&&cls.level<meta.subLevel?'Ainda sem subclasse':'Escolha a subclasse…')+`<option value="manual" ${cls._importManualSub?'selected':''}>Manter manual / escolher depois</option>`;
+  function reveal(el:HTMLElement){const panel=el.closest<HTMLElement>('[data-import-panel]');if(panel)showSector(panel.dataset.importPanel as Sector);for(let parent=el.parentElement;parent&&parent!==body;parent=parent.parentElement)if(parent instanceof HTMLDetailsElement)parent.open=true;}
+  function updateStatus(){
+    const c=char(),notices=importNotices(c,E);
+    for(const [id] of Object.entries(sectors)){
+      const target=body.querySelector<HTMLElement>(`[data-import-notices="${id}"]`),items=notices.filter(n=>n.sector===id);
+      if(target){target.hidden=!items.length;target.querySelector('summary')!.textContent=`ⓘ ${items.length} ${items.length===1?'observação':'observações'} para conferir`;
+        target.querySelector('[data-import-notice-content]')!.innerHTML=items.map(n=>`<div class="import-notice"><strong>${escape(n.title)}</strong><p>${escape(n.detail)}</p></div>`).join('');}
+    }
+    const pending=c.spells.filter((s:Sheet)=>!c.classes.some((x:Sheet)=>x.classId===s.classId)).length;
+    status.textContent=`${c.name||'Sem nome'} · ${c.classes.length} ${c.classes.length===1?'classe':'classes'} · ${c.spells.length} ${c.spells.length===1?'magia':'magias'}. ${pending?`${pending} ${pending===1?'magia precisa':'magias precisam'} de origem. `:''}${notices.length?`${notices.length} ${notices.length===1?'observação explicada':'observações explicadas'} nos setores.`:'Vínculos prontos para conferir.'}`;
+    ack.parentElement!.hidden=!notices.length;ack.checked=reviewedManual.has(current);
+    const prep=body.querySelector('[data-import-preparation]');if(prep)prep.textContent=c.classes.filter((x:Sheet)=>E.data.classes[x.classId]).map((x:Sheet)=>{const p=preparation(c,x.classId,E);return p.prepares?`${E.data.classes[x.classId].name}: ${p.used}/${p.limit} preparadas`:'';}).filter(Boolean).join(' · ');
   }
-  function classRow(cls:Sheet,i:number) {
-    return `<div class="import-class-row" data-import-class-row="${i}"><label>Classe<select required data-import-field="classes.${i}.classId">${options(E.data.classes,cls.classId)}</select></label>${input(char(),`classes.${i}.level`,'Nível','number',true,1,20)}<label>Subclasse<select data-import-subclass="${i}">${subclassOptions(cls)}</select></label><button type="button" data-import-remove-class="${i}" ${char().classes.length<2?'disabled':''}>Remover esta classe</button></div>`;
-  }
-  function render() {
-    const c=char();c.rules ||= {history:[],legacy:true};
+  function subclassOptions(cls:Sheet){const meta=E.data.classes[cls.classId];return options(meta?.subclasses||{},cls.subclassId||'',meta&&cls.level<meta.subLevel?'Ainda sem subclasse':'Escolha a subclasse…')+`<option value="manual" ${cls._importManualSub?'selected':''}>Manter manual / escolher depois</option>`;}
+  function classRow(cls:Sheet,i:number){return `<div class="import-class-row" data-import-class-row="${i}"><label>Classe<select required data-import-field="classes.${i}.classId">${options(E.data.classes,cls.classId)}</select></label>${input(char(),`classes.${i}.level`,'Nível','number',true,1,20)}<label>Subclasse<select data-import-subclass="${i}" ${cls.level>=(E.data.classes[cls.classId]?.subLevel??99)?'required':''}>${subclassOptions(cls)}</select></label><button type="button" data-import-remove-class="${i}" ${char().classes.length<2?'disabled title="Adicione outra classe antes de remover a única classe."':''}>Remover classe</button></div>`;}
+  function panel(id:Sector,content:string){return `<section id="import-panel-${id}" data-import-panel="${id}" aria-label="${sectors[id]}"><div class="import-sector-title"><h2>${sectors[id]}</h2></div><details class="import-notices" data-import-notices="${id}" hidden><summary></summary><div data-import-notice-content></div></details>${content}</section>`;}
+  function render(){
+    const c=char();c.rules ||= {history:[],legacy:true};c.customSkillBonuses ||= {};
     if(!c.classes.length)c.classes.push({classId:'',level:0,subclass:'',subclassId:'',hitDie:6,hitDiceUsed:0});
-    const isPdf=!!c.rules.pdfImport;
-    c.customSkillBonuses ||= {};
+    for(let n=1;n<=9;n++)c.standardSlots[n] ||= {total:0,used:0};
     if(c.rules.manualMode){c._importManualRace=!c.rules.raceId;for(const cls of c.classes)cls._importManualSub=!cls.subclassId;}
-    body.innerHTML=`${isPdf?'<p>PDF: confira especialmente os espaços sugeridos por classe e seus usos atuais. Valores de perícias foram preservados como ajustes manuais. Retratos podem ser adicionados depois.</p>':''}
-    <details open><summary>Identidade, classes e raça</summary><div class="import-grid">${input(c,'name','Nome', 'text',true)}${input(c,'playerName','Jogador')}${input(c,'race','Raça / espécie escrita')}<label>Vínculo da raça<select required data-import-race>${options(E.options.races,c.rules.raceId||'','Escolha a raça…')}<option value="manual" ${c._importManualRace?'selected':''}>Personalizada / manter manual</option></select></label>${input(c,'background','Antecedente')}${input(c,'alignment','Tendência')}${input(c,'xp','Experiência','number',false,0)}</div><div data-import-classes>${c.classes.map(classRow).join('')}</div><button type="button" data-import-add-class>+ Outra classe</button></details>
-    <details ${isPdf?'open':''}><summary>Atributos, PV e recursos atuais</summary><div class="import-grid">${Object.entries({str:'Força',dex:'Destreza',con:'Constituição',int:'Inteligência',wis:'Sabedoria',cha:'Carisma'}).map(([id,name])=>input(c,`abilities.${id}.score`,name,'number',true,0,30)).join('')}${input(c,'hpMax','PV máximos','number',true,1)}${input(c,'hpCurrent','PV atuais','number',true,0)}${input(c,'hpTemp','PV temporários','number',true,0)}${input(c,'baseAcArmor','CA escrita / base manual','number',true,0)}${input(c,'speed','Deslocamento','number',true,0)}</div><details ${isPdf?'open':''}><summary>Reservas de magia · Conjuração, Pacto e Feitiçaria</summary><p>Confira as reservas: não tratamos espaços usados como espaços disponíveis.</p>${isPdf?'<button type="button" data-import-pools>Sugerir reservas pelas classes</button>':''}<div class="import-grid">${Array.from({length:9},(_,i)=>{const n=i+1;return `<div><strong>${n}º círculo</strong>${input(c,`standardSlots.${n}.total`,'Total','number',true,0,100)}${input(c,`standardSlots.${n}.used`,'Usados','number',true,0,100)}</div>`;}).join('')}${input(c,'pactMagic.level','Pacto · círculo','number',true,1,5)}${input(c,'pactMagic.total','Pacto · total','number',true,0,100)}${input(c,'pactMagic.used','Pacto · usados','number',true,0,100)}${input(c,'sorceryPoints.max','Feitiçaria · máximo','number',true,0,100)}${input(c,'sorceryPoints.current','Feitiçaria · atuais','number',true,0,100)}</div></details></details>
-    <details><summary>Proficiências e perícias</summary><div class="import-grid">${Object.entries(E.data.abilities).map(([id,name])=>check(c,`abilities.${id}.saveProf`,`Resistência de ${escape(name)}`)).join('')}${Object.entries(c.proficiencies).filter(([id])=>['weapons','tools','languages'].includes(id)).map(([id])=>input(c,`proficiencies.${id}`,({weapons:'Armas',tools:'Ferramentas',languages:'Idiomas'} as any)[id]||escape(id))).join('')}</div><fieldset><legend>Armaduras</legend><div class="import-grid">${Object.entries({leve:'Leves',media:'Médias',pesada:'Pesadas',escudo:'Escudos'}).map(([id,name])=>`<label class="import-check"><input type="checkbox" data-import-armor="${id}" ${armorProficiencies(c,E).includes(id)?'checked':''}>${name}</label>`).join('')}</div><button type="button" data-import-armor-auto>Detectar pela classe e escolhas</button></fieldset><p>O bônus manual substitui o total da perícia; deixe vazio para calcular pelos atributos e proficiência.</p><div class="import-grid">${Object.entries(E.data.skills).map(([id,name])=>`<div><strong>${escape(name)}</strong><label class="import-check"><input type="checkbox" data-import-skill="${id}" ${c.skillsProf.includes(id)?'checked':''}>Proficiente</label><label class="import-check"><input type="checkbox" data-import-expertise="${id}" ${c.expertise.includes(id)?'checked':''}>Especialização</label>${input(c,`customSkillBonuses.${id}`,'Bônus total manual','number',false,-1000,1000)}</div>`).join('')}</div></details>
-    <details ${c.spells.length?'open':''}><summary>Magias: origem e preparo (${c.spells.length})</summary><p>Escolher o recurso de Pacto/Conjuração não muda a origem da magia. Magias de talento, raça ou outra exceção precisam dessa origem e da habilidade indicadas.</p><div data-import-spells>${c.spells.map((s:Sheet,i:number)=>`<div class="import-entry"><strong>${escape(s.name)}</strong>${s.importOriginNeedsConfirmation?'<p>Esta magia também pode vir da raça. Confirme a origem, a habilidade e se usa espaços ou usos próprios.</p>':''}<div class="import-grid">${input(c,`spells.${i}.name`,'Nome escrito','text',true)}<label>Vínculo do catálogo (vazio = personalizada)<input list="import-spell-catalog" data-import-book="${i}" value="${escape(s.customSpell?'':E.spell(s.bookId||s.name)?.name||'')}"></label><label>Classe / agrupamento<select required data-import-origin="${i}">${options(classes(c),s.classId||'','Confirme a origem…')}</select></label>${input(c,`spells.${i}.circle`,'Círculo','number',true,0,9)}${check(c,`spells.${i}.prepared`,'Preparada')}${check(c,`spells.${i}.alwaysPrepared`,'Sempre preparada · característica confirmada')}</div><details ${s.extraSource?'open':''}><summary>Origem especial e usos</summary><div class="import-grid">${input(c,`spells.${i}.extraSource`,'Raça, talento ou característica que concede a magia')}<label>Habilidade da origem<select data-import-field="spells.${i}.castingAbility">${abilityOptions(s.castingAbility||'')}</select></label>${check(c,`spells.${i}.ritual`,'Somente como ritual')}${check(c,`spells.${i}.atWill`,'À vontade · sem espaço')}${input(c,`spells.${i}.limitedUse`,'Usos limitados (vazio se não houver)','number',false,1,100)}${input(c,`spells.${i}.usesUsed`,'Usos já gastos','number',false,0,100)}${input(c,`spells.${i}.castLevel`,'Círculo de lançamento da origem (opcional)','number',false,1,9)}${input(c,`spells.${i}.customRoll`,'Fórmula personalizada (opcional)')}</div></details></div>`).join('')}</div>${check(c,'rules.importPreparationAdapted','Manter preparo acima do limite · adaptação da mesa')}</details>
-    <details><summary>Armas e ataques (${c.weapons.length})</summary><p>Manter manual conserva o ataque/dano do arquivo. Vincular ao catálogo ativa os cálculos da ficha; confira a prévia.</p>${c.weapons.map((w:Sheet,i:number)=>{const catalog=catalogueWeapon(w,E);return `<div class="import-entry"><strong>${escape(w.name)}</strong><label>Cálculo<select data-import-weapon="${i}"><option value="">Manter valores manuais</option>${E.progression.weapons.map((entry:Sheet)=>`<option value="${escape(entry.name)}" ${catalog?.name===entry.name&&w.calculationMode!=='manual'?'selected':''}>${escape(entry.name)}</option>`).join('')}</select></label><div class="import-grid">${input(c,`weapons.${i}.bonus`,'Ataque manual','text',true)}${input(c,`weapons.${i}.damage`,'Dano manual','text',true)}</div><output data-import-weapon-preview="${i}"></output></div>`;}).join('')}</details>
-    <details><summary>Textos preservados e origem do arquivo</summary><p>História, aparência, equipamentos, características e ajustes existentes são mantidos. Campos adicionais do PDF ficam nas anotações pessoais, se incluídas.</p>${Object.entries(c.lore).filter(([k])=>["traits","ideals","bonds","flaws","backstory","appearance","allies","treasure"].includes(k)).map(([k,v])=>`<label>${escape({traits:'Personalidade',ideals:'Ideais',bonds:'Ligações',flaws:'Defeitos',backstory:'História',appearance:'Aparência',allies:'Aliados',treasure:'Tesouro'}[k as 'traits']||k)}<textarea rows="2" data-import-field="lore.${k}">${escape(v)}</textarea></label>`).join('')}</details>`;
-    for(const n of Array.from({length:9},(_,i)=>i+1))c.standardSlots[n] ||= {total:0,used:0};
-    // Os campos ausentes de círculos sem espaços são exibidos como zero, sem
-    // apagar as reservas originais ou recalculá-las ao navegar entre fichas.
-    body.querySelectorAll<HTMLInputElement>('[data-import-field^="standardSlots."]').forEach(e=>{e.value=String(at(c,e.dataset.importField!)??0);});
-    body.querySelectorAll<HTMLSelectElement>('[data-import-subclass]').forEach(e=>{const cls=c.classes[Number(e.dataset.importSubclass)];e.required=cls.level>=(E.data.classes[cls.classId]?.subLevel??99);});
-    updatePreviews();updateStatus();
+    body.innerHTML=panel('identity',card('Quem é o personagem',`<div class="import-grid">${input(c,'name','Nome','text',true)}${input(c,'playerName','Jogador')}${input(c,'race','Raça / espécie escrita')}<label>Vínculo da raça<select required data-import-race>${options(E.options.races,c.rules.raceId||'','Escolha a raça…')}<option value="manual" ${c._importManualRace?'selected':''}>Personalizada / manter manual</option></select></label>${input(c,'background','Antecedente')}${input(c,'alignment','Tendência')}${input(c,'xp','Experiência','number',false,0)}</div>`)+card('Classes e níveis',`<div data-import-classes>${c.classes.map(classRow).join('')}</div><button type="button" data-import-add-class>+ Adicionar classe</button><div data-import-class-removal></div>`))+
+    panel('combat',card('Atributos',`<div class="import-abilities">${Object.entries(E.data.abilities).map(([id,name])=>`<div class="import-stat">${input(c,`abilities.${id}.score`,escape(name),'number',true,0,30)}</div>`).join('')}</div>`)+card('Vida e defesa',`<div class="import-grid import-vitals">${input(c,'hpMax','PV máximos','number',true,1)}${input(c,'hpCurrent','PV atuais','number',true,0)}${input(c,'hpTemp','PV temporários','number',true,0)}${input(c,'baseAcArmor','CA escrita / total manual','number',true,0)}${input(c,'speed','Deslocamento (metros)','number',true,0)}</div>`)+card('Reservas de magia',`<p>Total é o máximo; usados são os espaços já gastos. Pontos de Feitiçaria mostram a quantidade atual.</p><button type="button" data-import-pools>Comparar máximos com o livro</button><div data-import-pool-comparison></div><h4>Conjuração</h4><div class="import-slots">${Array.from({length:9},(_,i)=>{const n=i+1;return `<div class="import-slot"><strong>${n}º círculo</strong><div class="import-slot-values">${input(c,`standardSlots.${n}.total`,'Total','number',true,0,100)}${input(c,`standardSlots.${n}.used`,'Usados','number',true,0,100)}</div></div>`;}).join('')}</div><div class="import-pool-groups"><fieldset><legend>Magia de Pacto</legend><div class="import-grid">${input(c,'pactMagic.level','Círculo','number',true,1,5)}${input(c,'pactMagic.total','Total','number',true,0,100)}${input(c,'pactMagic.used','Usados','number',true,0,100)}</div></fieldset><fieldset><legend>Pontos de Feitiçaria</legend><div class="import-grid">${input(c,'sorceryPoints.max','Máximo','number',true,0,100)}${input(c,'sorceryPoints.current','Atuais','number',true,0,100)}</div></fieldset></div>`))+
+    panel('skills',card('Resistências',`<div class="import-saves">${Object.entries(E.data.abilities).map(([id,name])=>check(c,`abilities.${id}.saveProf`,escape(name))).join('')}</div>`)+card('Proficiências e idiomas',`<div class="import-grid">${['weapons','tools','languages'].map(id=>input(c,`proficiencies.${id}`,({weapons:'Armas',tools:'Ferramentas',languages:'Idiomas'} as any)[id])).join('')}</div><fieldset><legend>Armaduras</legend><div class="import-saves">${Object.entries({leve:'Leves',media:'Médias',pesada:'Pesadas',escudo:'Escudos'}).map(([id,name])=>`<label class="import-check"><input type="checkbox" data-import-armor="${id}" ${armorProficiencies(c,E).includes(id)?'checked':''}>${name}</label>`).join('')}</div><button type="button" data-import-armor-auto>Usar proficiências da classe e escolhas</button></fieldset>`)+card('Perícias',`<p>Proficiência soma o bônus; especialização dobra esse bônus. O total manual substitui o cálculo. Deixe vazio para calcular automaticamente.</p><div class="import-skill-list"><div class="import-skill-head" aria-hidden="true"><span>Perícia</span><span>Treino</span><span>Total manual</span></div>${Object.entries(E.data.skills).map(([id,name])=>`<div class="import-skill-row"><strong>${escape(name)}</strong><div class="import-skill-training"><label class="import-check"><input type="checkbox" data-import-skill="${id}" ${c.skillsProf.includes(id)?'checked':''}>Proficiente</label><label class="import-check"><input type="checkbox" data-import-expertise="${id}" ${c.expertise.includes(id)?'checked':''}>Especialização</label></div>${input(c,`customSkillBonuses.${id}`,'Total manual','number',false,-1000,1000)}</div>`).join('')}</div>`))+
+    panel('spells',`<div class="import-actions"><p data-import-preparation></p><button type="button" data-import-add-spell>+ Adicionar magia</button></div><p>Abra um cartão para corrigir catálogo, origem, preparo ou usos. Você também pode criar uma magia personalizada.</p><div data-import-spells></div>${check(c,'rules.importPreparationAdapted','Preparo acima do limite · adaptação da mesa')}`)+
+    panel('equipment',card('Armas e ataques',`<p>Manter manual conserva o ataque/dano escrito. Vincular ao catálogo ativa os cálculos da ficha; confira a prévia.</p>${c.weapons.length?c.weapons.map((w:Sheet,i:number)=>{const catalog=catalogueWeapon(w,E);return `<article class="import-entry import-weapon"><h4>${escape(w.name)}</h4><label>Cálculo<select data-import-weapon="${i}"><option value="">Manter valores manuais</option>${E.progression.weapons.map((entry:Sheet)=>`<option value="${escape(entry.name)}" ${catalog?.name===entry.name&&w.calculationMode!=='manual'?'selected':''}>${escape(entry.name)}</option>`).join('')}</select></label><div class="import-grid">${input(c,`weapons.${i}.bonus`,'Ataque manual','text',true)}${input(c,`weapons.${i}.damage`,'Dano manual','text',true)}</div><output data-import-weapon-preview="${i}"></output></article>`;}).join(''):'<p>Nenhuma arma no arquivo. Você pode adicioná-las depois, diretamente na ficha.</p>'}`)+card('História e textos preservados',`<p>Equipamentos, características e demais ajustes existentes serão mantidos. Texto extraído do PDF pode acompanhar as anotações pessoais.</p>${Object.entries(c.lore).filter(([k])=>['traits','ideals','bonds','flaws','backstory','appearance','allies','treasure'].includes(k)).map(([k,v])=>`<details><summary>${escape(({traits:'Personalidade',ideals:'Ideais',bonds:'Ligações',flaws:'Defeitos',backstory:'História',appearance:'Aparência',allies:'Aliados',treasure:'Tesouro'} as any)[k])}</summary><textarea aria-label="${escape(({traits:'Personalidade',ideals:'Ideais',bonds:'Ligações',flaws:'Defeitos',backstory:'História',appearance:'Aparência',allies:'Aliados',treasure:'Tesouro'} as any)[k])}" rows="3" data-import-field="lore.${k}">${escape(v)}</textarea></details>`).join('')}`));
+    renderSpells();updatePreviews();updateStatus();showSector(active,false);
   }
-  function updatePreviews() {
-    const c=char();body.querySelectorAll<HTMLOutputElement>('[data-import-weapon-preview]').forEach(e=>{const i=Number(e.dataset.importWeaponPreview),w=weaponStats(c,c.weapons[i],E);e.textContent=`${w.calculationMode==='manual'?'Manual':'Catálogo'}: ataque ${w.bonus}; dano ${w.damage}.`;for(const k of ['bonus','damage']){const input=body.querySelector<HTMLInputElement>(`[data-import-field="weapons.${i}.${k}"]`)!;input.disabled=w.calculationMode!=='manual';}});
+  function spellTitle(article:HTMLElement,s:Sheet){
+    article.querySelector('[data-import-spell-title]')!.textContent=s.name||'Nova magia';
+    article.querySelector('[data-import-spell-meta]')!.textContent=`${s.circle===0?'Truque':`${s.circle??'?'}º círculo`} · ${E.data.classes[s.classId]?.name||'⚠ Escolha a origem'}${s.extraSource?' · Origem especial':''}`;
   }
+  function renderSpells(){
+    const c=char(),list=body.querySelector('[data-import-spells]')!;list.replaceChildren();spellFields=[];
+    if(!c.spells.length){list.innerHTML='<p class="import-empty">Nenhuma magia. Use Adicionar magia para escolher no catálogo ou criar uma própria.</p>';return;}
+    c.spells.forEach((s:Sheet,i:number)=>{
+      const article=document.createElement('article');article.className='spell-card import-spell-card';article.dataset.importSpell=String(i);
+      article.innerHTML=`<header><div><h3 data-import-spell-title></h3><p data-import-spell-meta></p></div><button type="button" data-import-remove-spell="${i}" aria-label="Remover ${escape(s.name||'nova magia')}">Remover</button></header>${s.importOriginNeedsConfirmation?'<p class="import-notice">⚠ Também pode vir da raça. Confirme a origem e a habilidade; usos raciais precisam de sua característica indicada.</p>':''}<details ${!s.classId||!s.name?'open':''}><summary>Revisar / editar magia</summary></details>`;
+      const fields=createSpellFields(c,s,E);spellFields.push(fields);article.querySelector('details')!.append(fields.element);
+      fields.element.querySelectorAll<HTMLInputElement>('[data-spell-field]').forEach(el=>{const id=el.dataset.spellField!;if(!['editorMode','castMode'].includes(id))el.dataset.importField=`spells.${i}.${id}`;});
+      fields.field('classId').dataset.importOrigin=String(i);fields.field('classId').required=true;
+      fields.element.querySelector<HTMLInputElement>('[data-spell-catalog]')!.dataset.importBook=String(i);
+      const update=()=>{c.spells[i]=fields.read(true);spellTitle(article,c.spells[i]);updateStatus();};
+      fields.element.addEventListener('input',update);fields.element.addEventListener('change',update);
+      list.append(article);spellTitle(article,s);
+    });
+  }
+  function updatePreviews(){
+    const c=char();body.querySelectorAll<HTMLOutputElement>('[data-import-weapon-preview]').forEach(e=>{const i=Number(e.dataset.importWeaponPreview),w=weaponStats(c,c.weapons[i],E);e.textContent=`${w.calculationMode==='manual'?'Manual':'Catálogo'}: ataque ${w.bonus}; dano ${w.damage}.`;for(const k of ['bonus','damage'])body.querySelector<HTMLInputElement>(`[data-import-field="weapons.${i}.${k}"]`)!.disabled=w.calculationMode!=='manual';});
+  }
+  function refreshClasses(){
+    spellFields.forEach((fields,i)=>{fields.refreshClasses();char().spells[i]=fields.read(true);spellTitle(body.querySelector(`[data-import-spell="${i}"]`)!,char().spells[i]);});updateStatus();
+  }
+  controls.addEventListener('click',e=>{const tab=(e.target as HTMLElement).closest<HTMLElement>('[data-import-sector]');if(tab)showSector(tab.dataset.importSector as Sector);});
+  controls.querySelector('[data-import-sector-select]')!.addEventListener('change',e=>showSector((e.target as HTMLSelectElement).value as Sector));
   controls.querySelector('[data-import-person]')!.addEventListener('change',e=>{current=Number((e.target as HTMLSelectElement).value);error.textContent='';render();});
   ack.addEventListener('change',()=>{if(ack.checked)reviewedManual.add(current);else reviewedManual.delete(current);});
   body.addEventListener('input',e=>{
-    const el=(e.target as HTMLElement).closest<HTMLInputElement>('[data-import-field]');if(!el)return;
-    const path=el.dataset.importField!,value=el.type==='checkbox'?el.checked:el.type==='number'?el.value===''?undefined:Number(el.value):el.value;
-    put(char(),path,value);
-    if(path==='baseAcArmor'&&char().rules.manualMode)char().acFormula='legacy';
+    const el=e.target as HTMLInputElement;if(el.closest('.spell-fields')||!el.hasAttribute('data-import-field'))return;
+    const path=el.dataset.importField!,c=char(),value=el.type==='checkbox'?el.checked:el.type==='number'?el.value===''?undefined:Number(el.value):el.value;
+    put(c,path,value);if(/^(classes|standardSlots|pactMagic|sorceryPoints)\./.test(path))body.querySelector('[data-import-pool-comparison]')?.replaceChildren();if(path==='baseAcArmor'&&c.rules.manualMode)c.acFormula='legacy';
+    // Correções explícitas não devem desaparecer no próximo refresh do motor.
+    const pool=path.match(/^(standardSlots|pactMagic|sorceryPoints)\./);if(pool){c.rules.fieldOverrides ||= {};c.rules.fieldOverrides[pool[1]]=true;}
     error.textContent='';updateStatus();updatePreviews();
   });
   body.addEventListener('change',e=>{
-    const el=e.target as HTMLSelectElement,c=char();
-    if(el.hasAttribute('data-import-field')) {
-      const path=el.dataset.importField!;
-      if(el.tagName==='SELECT')put(c,path,el.value||undefined);
+    const el=e.target as HTMLSelectElement,c=char();if(el.closest('.spell-fields'))return;
+    if(el.hasAttribute('data-import-field')){
+      const path=el.dataset.importField!;if(el.tagName==='SELECT')put(c,path,el.value||undefined);
       const match=path.match(/^classes\.(\d+)\.(classId|level)$/);
-      if(match) {
-        const cls=c.classes[Number(match[1])],meta=E.data.classes[cls.classId];cls.hitDie=meta?.die||6;
-        if(!meta?.subclasses?.[cls.subclassId]){cls.subclassId='';cls.subclass='';}
-        const sub=body.querySelector<HTMLSelectElement>(`[data-import-subclass="${match[1]}"]`)!;sub.innerHTML=subclassOptions(cls);sub.required=!!meta&&cls.level>=meta.subLevel;
-        body.querySelectorAll<HTMLSelectElement>('[data-import-origin]').forEach(s=>{const spell=c.spells[Number(s.dataset.importOrigin)];s.innerHTML=options(classes(c),spell.classId||'','Confirme a origem…');});
-      }
+      if(match){body.querySelector('[data-import-pool-comparison]')?.replaceChildren();const cls=c.classes[Number(match[1])],meta=E.data.classes[cls.classId];cls.hitDie=meta?.die||6;if(!meta?.subclasses?.[cls.subclassId]){cls.subclassId='';cls.subclass='';}const sub=body.querySelector<HTMLSelectElement>(`[data-import-subclass="${match[1]}"]`)!;sub.innerHTML=subclassOptions(cls);sub.required=!!meta&&cls.level>=meta.subLevel;refreshClasses();}
     }
-    if(el.hasAttribute('data-import-book')) {
-      const entry=E.spell(el.value),spell=c.spells[Number(el.dataset.importBook)];
-      (el as unknown as HTMLInputElement).setCustomValidity(el.value&&!entry?'Escolha uma magia do catálogo ou deixe vazio para manter personalizada.':'');
-      if(entry){const preserved={classId:spell.classId,notes:spell.notes,extraSource:spell.extraSource,castingAbility:spell.castingAbility,prepared:spell.prepared,alwaysPrepared:spell.alwaysPrepared};Object.assign(spell,E.toSheetSpell(entry,spell.classId),preserved);delete spell.customSpell;}
-      else if(!el.value){spell.bookId='custom_'+crypto.randomUUID();spell.customSpell=true;}
-      const i=Number(el.dataset.importBook);for(const k of ['name','circle']){const input=body.querySelector<HTMLInputElement>(`[data-import-field="spells.${i}.${k}"]`)!;input.value=String(spell[k]??'');}
-    }
-    for(const [key,list] of [['importSkill','skillsProf'],['importExpertise','expertise']])if(el.dataset[key]){const id=el.dataset[key];c[list]=c[list].filter((x:string)=>x!==id);if((el as unknown as HTMLInputElement).checked)c[list].push(id);}
+    for(const [key,list] of [['importSkill','skillsProf'],['importExpertise','expertise']])if(el.dataset[key]){const id=el.dataset[key];c[list]=c[list].filter((x:string)=>x!==id);if((el as unknown as HTMLInputElement).checked)c[list].push(id);if(key==='importSkill'&&!(el as unknown as HTMLInputElement).checked){c.expertise=c.expertise.filter((x:string)=>x!==id);body.querySelector<HTMLInputElement>(`[data-import-expertise="${id}"]`)!.checked=false;}if(key==='importExpertise'&&(el as unknown as HTMLInputElement).checked&&!c.skillsProf.includes(id)){c.skillsProf.push(id);body.querySelector<HTMLInputElement>(`[data-import-skill="${id}"]`)!.checked=true;}}
     if(el.hasAttribute('data-import-armor')){const list=armorProficiencies(c,E),id=el.dataset.importArmor!;c.armorProficiencies=list.filter((x:string)=>x!==id);if((el as unknown as HTMLInputElement).checked)c.armorProficiencies.push(id);}
-    if(el.hasAttribute('data-import-race')) {c._importManualRace=el.value==='manual';if(c._importManualRace)delete c.rules.raceId;else {c.rules.raceId=el.value;c.race=E.options.races[el.value]?.name||c.race;body.querySelector<HTMLInputElement>('[data-import-field="race"]')!.value=c.race;}}
-    if(el.hasAttribute('data-import-subclass')) {const cls=c.classes[Number(el.dataset.importSubclass)];cls._importManualSub=el.value==='manual';cls.subclassId=cls._importManualSub?'':el.value;if(!cls._importManualSub)cls.subclass=E.data.classes[cls.classId]?.subclasses[el.value]?.name||cls.subclass;}
-    if(el.hasAttribute('data-import-origin'))c.spells[Number(el.dataset.importOrigin)].classId=el.value;
-    if(el.hasAttribute('data-import-weapon')) {const w=c.weapons[Number(el.dataset.importWeapon)];w.calculationMode=el.value?'auto':'manual';if(el.value)w.ruleWeapon=el.value;}
+    if(el.hasAttribute('data-import-race')){c._importManualRace=el.value==='manual';if(c._importManualRace)delete c.rules.raceId;else{c.rules.raceId=el.value;c.race=E.options.races[el.value]?.name||c.race;body.querySelector<HTMLInputElement>('[data-import-field="race"]')!.value=c.race;}}
+    if(el.hasAttribute('data-import-subclass')){const cls=c.classes[Number(el.dataset.importSubclass)];cls._importManualSub=el.value==='manual';cls.subclassId=cls._importManualSub?'':el.value;if(!cls._importManualSub)cls.subclass=E.data.classes[cls.classId]?.subclasses[el.value]?.name||cls.subclass;}
+    if(el.hasAttribute('data-import-weapon')){const w=c.weapons[Number(el.dataset.importWeapon)];w.calculationMode=el.value?'auto':'manual';if(el.value)w.ruleWeapon=el.value;}
     error.textContent='';updateStatus();updatePreviews();
   });
   body.addEventListener('click',e=>{
     const target=e.target as HTMLElement,c=char();
-    if(target.closest('[data-import-add-class]')) {const i=c.classes.length;if(i>=12)return;c.classes.push({classId:'',level:1,subclass:'',subclassId:'',hitDie:6,hitDiceUsed:0});body.querySelector('[data-import-classes]')!.insertAdjacentHTML('beforeend',classRow(c.classes[i],i));body.querySelectorAll<HTMLButtonElement>('[data-import-remove-class]').forEach(e=>e.disabled=false);body.querySelector<HTMLInputElement>(`[data-import-field="classes.${i}.classId"]`)!.focus();}
+    if(target.closest('[data-import-add-class]')){const i=c.classes.length;if(i>=12)return;c.classes.push({classId:'',level:1,subclass:'',subclassId:'',hitDie:6,hitDiceUsed:0});body.querySelector('[data-import-classes]')!.insertAdjacentHTML('beforeend',classRow(c.classes[i],i));body.querySelectorAll<HTMLButtonElement>('[data-import-remove-class]').forEach(e=>e.disabled=false);body.querySelector<HTMLInputElement>(`[data-import-field="classes.${i}.classId"]`)!.focus();}
     const remove=target.closest<HTMLButtonElement>('[data-import-remove-class]');
-    if(remove && c.classes.length>1){const index=Number(remove.dataset.importRemoveClass);c.classes.splice(index,1);body.querySelector('[data-import-classes]')!.innerHTML=c.classes.map(classRow).join('');body.querySelectorAll<HTMLSelectElement>('[data-import-subclass]').forEach(e=>{const cls=c.classes[Number(e.dataset.importSubclass)];e.required=cls.level>=(E.data.classes[cls.classId]?.subLevel??99);});body.querySelectorAll<HTMLSelectElement>('[data-import-origin]').forEach(e=>{const s=c.spells[Number(e.dataset.importOrigin)];e.innerHTML=options(classes(c),s.classId||'','Confirme a origem…');});body.querySelector<HTMLInputElement>(`[data-import-field="classes.${Math.min(index,c.classes.length-1)}.classId"]`)!.focus();updateStatus();updatePreviews();}
+    if(remove&&c.classes.length>1){const index=Number(remove.dataset.importRemoveClass),mount=body.querySelector('[data-import-class-removal]')!;
+      const apply=(resolution?:Parameters<typeof removeClass>[3])=>{const next=removeClass(c,index,E,resolution);Object.assign(c,next);body.querySelector('[data-import-classes]')!.innerHTML=c.classes.map(classRow).join('');mount.replaceChildren();reviewedManual.delete(current);renderSpells();updateStatus();updatePreviews();body.querySelector('[data-import-pool-comparison]')?.replaceChildren();};
+      // Uma classe nova/vazia não possui efeitos; removê-la não pede confirmação.
+      if(!c.classes[index].classId)apply();else{mount.replaceChildren(classRemovalControls(c,index,E,apply,()=>mount.replaceChildren()));mount.scrollIntoView({block:'nearest'});}
+    }
     if(target.closest('[data-import-armor-auto]')){delete c.armorProficiencies;const list=armorProficiencies(c,E);body.querySelectorAll<HTMLInputElement>('[data-import-armor]').forEach(input=>input.checked=list.includes(input.dataset.importArmor!));}
-    if(target.closest('[data-import-pools]')) {suggestPdfPools(c,E);body.querySelectorAll<HTMLInputElement>('[data-import-field^="standardSlots."],[data-import-field^="pactMagic."],[data-import-field^="sorceryPoints."]').forEach(input=>{const path=input.dataset.importField!;if(path.startsWith('standardSlots.')){const level=path.split('.')[1];c.standardSlots[level]||={total:0,used:0};}input.value=String(at(c,path)??0);});}
+    if(target.closest('[data-import-add-spell]')){c.spells.push({name:'',circle:0,classId:c.classes[0].classId,extraSource:'Adição livre · adaptação da mesa',castingAbility:E.data.classes[c.classes[0].classId]?.ability||'',prepared:true});renderSpells();const last=body.querySelector<HTMLElement>(`[data-import-spell="${c.spells.length-1}"]`)!;(last.querySelector('details') as HTMLDetailsElement).open=true;last.querySelector<HTMLInputElement>('[data-spell-catalog]')!.focus();updateStatus();}
+    const removeSpell=target.closest<HTMLButtonElement>('[data-import-remove-spell]');if(removeSpell){c.spells.splice(Number(removeSpell.dataset.importRemoveSpell),1);renderSpells();updateStatus();body.querySelector<HTMLButtonElement>('[data-import-add-spell]')!.focus({preventScroll:true});}
+    if(target.closest('[data-import-pools]')){
+      const predicted=structuredClone(c);suggestPdfPools(predicted,E);const rows=[];
+      for(let n=1;n<=9;n++)if(c.standardSlots[n]?.total||predicted.standardSlots[n]?.total)rows.push([`${n}º círculo`,c.standardSlots[n]?.total||0,predicted.standardSlots[n]?.total||0]);
+      rows.push(['Pacto · círculo',c.pactMagic.level,predicted.pactMagic.level],['Pacto · total',c.pactMagic.total,predicted.pactMagic.total],['Feitiçaria · máximo',c.sorceryPoints.max,predicted.sorceryPoints.max]);
+      body.querySelector('[data-import-pool-comparison]')!.innerHTML=`<div class="import-notice"><strong>Máximos pelas classes e níveis atuais</strong><p>Compara Conjuração, Magia de Pacto e Feitiçaria pelas regras de 2014. Não escolhe magias nem recupera usos gastos. Se você mudou classes ou níveis, recalcule a comparação.</p><table><thead><tr><th>Reserva</th><th>Na ficha</th><th>Livro</th></tr></thead><tbody>${rows.map(r=>`<tr>${r.map((v,i)=>`<${i?'td':'th'}>${escape(v)}</${i?'td':'th'}>`).join('')}</tr>`).join('')}</tbody></table><button type="button" data-import-apply-pools>Aplicar máximos do livro</button></div>`;
+    }
+    if(target.closest('[data-import-apply-pools]')){try{Object.assign(c,applySuggestedPools(c,E));body.querySelectorAll<HTMLInputElement>('[data-import-field^="standardSlots."],[data-import-field^="pactMagic."],[data-import-field^="sorceryPoints."]').forEach(el=>el.value=String(at(c,el.dataset.importField!)??0));error.textContent='';body.querySelector('[data-import-pool-comparison]')!.innerHTML='<p role="status">Máximos aplicados. Espaços usados e pontos atuais foram mantidos.</p>';}catch(err){error.textContent=(err as Error).message;}}
   });
   render();
-  const dialog=document.getElementById('confirmationDialog') as HTMLDialogElement,form=dialog.querySelector('form')!;
+  const dialog=document.getElementById('confirmationDialog') as HTMLDialogElement,form=dialog.querySelector('form')!,previousNoValidate=form.noValidate;
+  form.noValidate=true; // Primeiro revela o setor do campo inválido, depois pede foco nativo.
+  const invalid=(event:Event)=>{const el=event.target as HTMLElement;if(controls.contains(el))reveal(el);};form.addEventListener('invalid',invalid,true);
   const validate=(event:SubmitEvent)=>{
     if((event.submitter as HTMLButtonElement)?.value!=='confirm')return;
-    try {
+    const firstInvalid=controls.querySelector<HTMLInputElement>('input:invalid,select:invalid,textarea:invalid');
+    if(firstInvalid){event.preventDefault();reveal(firstInvalid);firstInvalid.reportValidity();return;}
+    try{
       if(!isCurrent())throw new Error('A conta mudou. Reabra a importação no espaço desejado.');
-      for(let i=0;i<proposal.characters.length;i++) {
-        try {const c=proposal.characters[i] as Sheet;for(const w of c.weapons){if(w.calculationMode!=='manual'&&catalogueWeapon(w,E)&&!w.bonus)w.bonus=weaponStats(c,w,E).bonus;}validateImport(c,E);if(importWarnings(c,E).length&&!reviewedManual.has(i))throw new Error('Confira e aceite os avisos dos itens manuais desta ficha.');}
-        catch(e){if(current!==i){current=i;(controls.querySelector('[data-import-person]') as HTMLSelectElement).value=String(i);render();}throw e;}
+      // Releitura estrita cobre rascunhos inválidos sem perder os controles.
+      for(let j=0;j<spellFields.length;j++){try{char().spells[j]=spellFields[j].read();}catch(err){reveal(spellFields[j].element);throw err;}}
+      for(let i=0;i<proposal.characters.length;i++){
+        try{const c=proposal.characters[i] as Sheet;for(const w of c.weapons)if(w.calculationMode!=='manual'&&catalogueWeapon(w,E)&&!w.bonus)w.bonus=weaponStats(c,w,E).bonus;validateImport(c,E);if(importNotices(c,E).length&&!reviewedManual.has(i))throw new Error('Confira as observações nos setores e marque o aceite dos itens mantidos manualmente.');}
+        catch(err){if(current!==i){current=i;(controls.querySelector('[data-import-person]') as HTMLSelectElement).value=String(i);render();}const message=(err as Error).message,spell=char().spells.findIndex((s:Sheet)=>s.name&&message.includes(s.name));if(spell>=0)reveal(body.querySelector(`[data-import-spell="${spell}"] .spell-fields`)!);throw err;}
       }
-    }catch(e){event.preventDefault();error.textContent=(e as Error).message;error.scrollIntoView({block:'nearest'});}
+    }catch(err){event.preventDefault();error.textContent=(err as Error).message;error.scrollIntoView({block:'nearest'});}
   };
   form.addEventListener('submit',validate);dialog.classList.add('import-review-open');
-  try {
-    const ok=await host.confirmDestructiveAction('Revisar importação','Escolhas não identificadas precisam ser confirmadas. Nada é gravado até importar.','Importar como novas fichas',controls);
+  try{
+    const ok=await host.confirmDestructiveAction('Revisar importação','Revise por setor. A importação cria cópias; seus originais são preservados.','Importar como novas fichas',controls);
     if(!ok)return null;if(!isCurrent())throw new Error('A conta mudou durante a revisão. Nenhuma ficha foi importada.');
-    for(const c of proposal.characters as Sheet[]) {
-      const pending=importWarnings(c,E),pdfSource=!!c.rules.pdfImport||c.rules.importReview?.source==='pdf';c.rules.importReview={version:1,pending,...pdfSource?{source:'pdf'}:{}};delete c.rules.pdfImport;delete c._importManualRace;for(const cls of c.classes)delete cls._importManualSub;
-      for(const s of c.spells){delete s.importOriginNeedsConfirmation;for(const k of ['castingAbility','limitedUse','usesUsed','extraSource','castLevel'])if(s[k]===undefined||s[k]==='')delete s[k];}
-    }
-    if(!(controls.querySelector('[data-import-notes]') as HTMLInputElement).checked)delete proposal.privateNotes;
-    return proposal;
-  }finally {form.removeEventListener('submit',validate);dialog.classList.remove('import-review-open');}
+    for(const c of proposal.characters as Sheet[]){const pending=importWarnings(c,E),pdfSource=!!c.rules.pdfImport||c.rules.importReview?.source==='pdf';c.rules.importReview={version:1,pending,...pdfSource?{source:'pdf'}:{}};delete c.rules.pdfImport;delete c._importManualRace;for(const cls of c.classes)delete cls._importManualSub;for(const s of c.spells){delete s.importOriginNeedsConfirmation;for(const k of ['castingAbility','limitedUse','usesUsed','extraSource','castLevel'])if(s[k]===undefined||s[k]==='')delete s[k];}}
+    if(!(controls.querySelector('[data-import-notes]') as HTMLInputElement).checked)delete proposal.privateNotes;return proposal;
+  }finally{form.noValidate=previousNoValidate;form.removeEventListener('submit',validate);form.removeEventListener('invalid',invalid,true);dialog.classList.remove('import-review-open');}
 }

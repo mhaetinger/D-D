@@ -120,8 +120,13 @@ formulários cujos campos só podem ser recuperados por página. Aceita PDF até
 15 MB/20 páginas e conserva a importação de backups JSON do CritCall. Fotos,
 digitalizações e PDFs achatados ainda não têm leitura automática.
 
-Antes de salvar, **Revisar importação** mostra identidade, atributos/PV, classes,
-raça/subclasse, reservas, origem/preparo das magias e armas. Vínculos inequívocos
+Antes de salvar, **Revisar importação** separa Identidade e classes, Atributos e
+combate, Proficiências, Grimório e Inventário e história. Os setores mantêm seus
+rascunhos; as observações explicam cada consequência no setor correspondente.
+Magias usam o mesmo editor da ficha, com adicionar/remover, catálogo ou criação
+personalizada. **Comparar máximos com o livro** mostra os valores atuais e os
+calculados antes de aplicar; não recupera espaços gastos nem pontos atuais.
+Vínculos inequívocos
 são propostos pelo catálogo; ambiguidades exigem escolha. A origem da magia
 fica separada do recurso usado para lançá-la. Raça ou subclasse personalizada
 pode permanecer manual, com aviso aceito e registrado na cópia. Armas do PDF
@@ -129,6 +134,12 @@ mantêm seus valores manuais até o jogador escolher explicitamente o catálogo.
 CA do PDF permanece como total manual, sem somar escudo de novo. Reservas de
 PDF são sugeridas pelas classes: confira os usos atuais antes de confirmar.
 Perícias com bônus escritos mantêm ajustes manuais; confira ao evoluir.
+Remover classe, na revisão ou no cabeçalho da ficha, pede confirmação. Se houver
+magias vinculadas, escolha remover junto ou manter como adaptação, com habilidade
+e origem anterior registradas e agrupamento em outra classe. PV, atributos,
+reservas, textos e histórico ficam preservados para revisão manual; a ação não
+reconstrói a ficha. Escolhas e efeitos ativos da classe removida deixam de conceder
+bônus automáticos. Mantenha ao menos uma classe.
 
 Textos reconhecidos de história/aparência são mantidos na ficha. O texto dos
 campos preenchidos, inclusive os não associados, pode ser incluído nas anotações

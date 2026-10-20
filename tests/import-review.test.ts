@@ -45,3 +45,25 @@ test('magia de juramento exige subclasse e nível suficientes; entradas iguais n
  const c=warrior();c.classes=[{classId:'paladino',level:3,subclass:'Juramento de Devoção',subclassId:'devocao'}];c.spells=[E.toSheetSpell(E.spell('Santuário'),'paladino',{prepared:true})];validateImport(c,E);c.classes[0].level=2;assert.throws(()=>validateImport(c,E),/lista comum/);
  const other=warrior();other.classes=[{classId:'mago',level:2,subclass:'',subclassId:''},{classId:'feiticeiro',level:2,subclass:'',subclassId:''}];other.spells=[E.toSheetSpell(E.spell('Raio de Fogo'),'mago'),E.toSheetSpell(E.spell('Raio de Fogo'),'feiticeiro')];const p=proposeImport(backup(other),E);assert.equal((p.characters[0].spells as any[]).length,2);assert.deepEqual((p.characters[0].spells as any[]).map(s=>s.classId),['mago','feiticeiro']);
 });
+
+import {applySuggestedPools,importNotices} from '../src/import/character-review';
+import {removeClass} from '../src/sheet-edit/class-removal';
+test('comparação de reservas não descansa e recusa máximos abaixo dos usos sem alterar a origem',()=>{
+ const c=warrior();c.classes=[{classId:'feiticeiro',level:6},{classId:'bruxo',level:1}];c.standardSlots={1:{total:5,used:2,created:1}};c.pactMagic={level:3,total:3,used:1};c.sorceryPoints={max:9,current:2};c.rules.fieldOverrides={standardSlots:true,pactMagic:true,sorceryPoints:true,speed:true};const before=structuredClone(c);
+ const next=applySuggestedPools(c,E);assert.deepEqual(c,before);assert.deepEqual(next.standardSlots[1],{total:4,used:2});assert.deepEqual(next.pactMagic,{level:1,total:1,used:1});assert.deepEqual(next.sorceryPoints,{max:6,current:2});assert.deepEqual(next.rules.fieldOverrides,{speed:true});
+ c.pactMagic.used=2;assert.throws(()=>applySuggestedPools(c,E),/usos de Pacto/);assert.equal(c.standardSlots[1].total,5);c.pactMagic.used=1;c.sorceryPoints.current=7;assert.throws(()=>applySuggestedPools(c,E),/pontos atuais/);c.sorceryPoints.current=2;c.standardSlots[1].used=5;assert.throws(()=>applySuggestedPools(c,E),/1º círculo/);
+});
+test('remoção explícita mantém ou exclui só magias vinculadas e preserva os dados e a origem',()=>{
+ const c=warrior();c.classes=[{classId:'feiticeiro',level:6},{classId:'bruxo',level:1}];c.spells=[E.toSheetSpell(E.spell('Raio de Fogo'),'feiticeiro'),E.toSheetSpell(E.spell('Rajada Mística'),'bruxo',{notes:'Nota da magia',limitedUse:2,usesUsed:1,extraSource:'Dádiva'})];c.rules.history=[{original:true}];c.lore.backstory='Preservar';c.pactMagic={level:1,total:1,used:1};const before=structuredClone(c);
+ assert.throws(()=>removeClass(c,1,E),/Escolha/);assert.throws(()=>removeClass(c,1,E,{spells:'keep',group:'bruxo'}),/restante/);
+ const next=removeClass(c,1,E,{spells:'keep',group:'feiticeiro'});assert.deepEqual(c,before);assert.equal(next.classes.length,1);assert.equal(next.spells[1].classId,'feiticeiro');assert.equal(next.spells[1].castingAbility,'cha');assert.match(next.spells[1].extraSource,/Dádiva.*Classe anterior: Bruxo/);assert.equal(next.spells[1].notes,'Nota da magia');assert.equal(next.spells[1].usesUsed,1);assert.equal(next.hpMax,c.hpMax);assert.deepEqual(next.pactMagic,c.pactMagic);assert.deepEqual(next.rules.history,c.rules.history);assert.equal(next.lore.backstory,c.lore.backstory);
+ const deleted=removeClass(c,1,E,{spells:'remove'});assert.equal(deleted.spells.length,1);assert.deepEqual(deleted.spells[0],c.spells[0]);assert.throws(()=>removeClass(deleted,0,E),/ao menos uma/);
+});
+test('observações explicam valores fixos e vínculos pendentes no setor correspondente',()=>{
+ const c=warrior();c.acFormula='legacy';c.rules.pdfImport={};c.customSkillBonuses={arcanismo:5};c.weapons[0].calculationMode='manual';const notices=importNotices(c,E);
+ assert.ok(notices.some(n=>n.sector==='combat'&&n.title.includes('CA')));assert.ok(notices.some(n=>n.sector==='skills'&&n.detail.includes('Apagar um total manual')));assert.ok(notices.some(n=>n.sector==='equipment'&&n.detail.includes('Não acompanham mudanças')));
+});
+test('classe removida não continua concedendo escolhas/efeitos pelo histórico preservado',()=>{
+ const c=warrior();c.classes.push({classId:'bruxo',level:1,hitDie:8});c.ruleState={active:{'guerreiro:secondWind':true,'spell:shield':true}};const before=structuredClone(c);
+ assert.deepEqual(E.selections(c,null,'fighting'),['Arquearia']);const next=removeClass(c,0,E);assert.equal(next.classes[0].classId,'bruxo');assert.deepEqual(E.selections(next,null,'fighting'),[]);assert.deepEqual(E.selections(next,null,'raceLanguages'),E.selections(c,null,'raceLanguages'));assert.deepEqual(next.rules.history,c.rules.history);assert.equal(next.ruleState.active['guerreiro:secondWind'],false);assert.equal(next.ruleState.active['spell:shield'],true);assert.deepEqual(c,before);
+});

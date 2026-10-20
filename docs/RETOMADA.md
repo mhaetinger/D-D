@@ -21,6 +21,19 @@ fluxo antigo de Criar/Ajustar ficha manual pelo perfil. A conexão foi recuperad
 a implementação `fe2dc66` foi enviada em 20/10 e a [PR #9](https://github.com/mhaetinger/D-D/pull/9)
 foi atualizada com base `develop`. Não houve merge/publicação desta etapa.
 
+**Revisão de importação por setores:** cinco setores com cartões, perícias em
+linhas e reservas compactas. Grimório reaproveita `spell-fields.ts` da própria
+ficha e permite adicionar/remover entradas do catálogo ou personalizadas.
+Observações agrupadas explicam CA, bônus fixos, itens em texto e vínculos manuais.
+Comparação com o livro mostra máximos antes de aplicar, sem recuperar usos/pontos.
+Remoção de classe compartilha confirmação inline: magias vinculadas são removidas
+junto ou mantidas como adaptação com origem/habilidade anteriores registradas.
+PV, atributos, reservas, textos e histórico preservados; requer uma classe restante.
+Correção livre, sem refazer escolhas de criação/evolução. Escolhas/efeitos da
+classe removida deixam de conceder bônus automáticos; histórico fica guardado.
+Conferidos 382 testes Node, tipos/build e Chromium de importação/setores/edição/
+criação/aplicação/32 cenários auditados, com 320px/GG/três temas. Sem SQL/migração.
+
 **Edição diretamente na ficha implementada:** níveis/classes/subclasses no
 cabeçalho; atributos/PV/CA/deslocamento/perícias nos blocos atuais; moedas e
 biografia no inventário/história. Armas, itens, características e magias expandem

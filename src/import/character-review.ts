@@ -39,21 +39,10 @@ export function proposeImport(backup:Backup,E:Engine):Backup {
   }
   return copy;
 }
-export function importWarnings(c:Sheet,E:Engine):string[] {
-  const warnings:string[]=[];
-  if(c.acFormula==='legacy')warnings.push('CA manual importada: confira armadura/escudo antes de trocar para cálculo automático.');
-  if(c.rules?.pdfImport || c.rules?.importReview?.source==='pdf')warnings.push('Equipamentos e características do PDF foram preservados em texto; confira pesos, itens e escolhas de talentos antes de usar seus efeitos automáticos.');
-  if(c.rules?.pdfImport?.conflicts?.length)warnings.push('Há campos repetidos com valores diferentes no PDF. Confira os valores; todas as versões estão no texto de origem.');
-  if(!E.options.races[c.rules?.raceId])warnings.push('Raça sem vínculo automático: efeitos raciais continuam manuais.');
-  for(const cls of c.classes) {
-    const meta=E.data.classes[cls.classId];
-    if(meta && cls.level>=meta.subLevel && !meta.subclasses?.[cls.subclassId])warnings.push(`${meta.name}: subclasse ainda manual; seus recursos específicos podem não aparecer.`);
-  }
-  for(const s of c.spells)if(!findSpell(s.bookId||s.name,E))warnings.push(`Magia personalizada: ${s.name}; confira fórmula, círculo e efeito.`);
-  for(const w of c.weapons)if(w.calculationMode==='manual' || !catalogueWeapon(w,E))warnings.push(`Ataque manual: ${w.name}; os valores não recebem bônus automáticos da arma.`);
-  if(Object.keys(c.customSkillBonuses||{}).length)warnings.push('Há bônus manuais de perícias: confira esses ajustes ao evoluir o personagem.');
-  if(c.spells.some((s:Sheet)=>s.circle>0 && !s.extraSource && preparation(c,s.classId,E).prepares && s.prepared!==true))warnings.push('Há magias não preparadas: ficam no preparo, sem lançamento normal até serem escolhidas.');
-  return warnings;
+/** O histórico conserva a lista textual legada a partir das mesmas explicações
+ * exibidas por setor, sem duas fontes de avisos com significados diferentes. */
+export function importWarnings(c:Sheet,E:Engine):string[]{
+  return importNotices(c,E).map(n=>n.title+': '+n.detail);
 }
 /** Além do formato de armazenamento, confere vínculos consumidos pelos
  * controles. Exceções da mesa precisam de origem explícita, sem apagar dados. */
@@ -106,4 +95,39 @@ export function suggestPdfPools(c:Sheet,E:Engine):void {
   c.pactMagic={level:Math.min(5,Math.max(1,Math.ceil(warlock/2))),total,used:0};
   const sorcerer=c.classes.find((x:Sheet)=>x.classId==='feiticeiro')?.level || 0;
   c.sorceryPoints={max:sorcerer>=2?sorcerer:0,current:sorcerer>=2?sorcerer:0};
+}
+
+export type ImportNotice={sector:string;title:string;detail:string};
+/** Explica consequências por setor, sem transformar valores preservados em um
+ * único aviso genérico. As mensagens não autorizam descartar dados. */
+export function importNotices(c:Sheet,E:Engine):ImportNotice[] {
+  const notices:ImportNotice[]=[];
+  if(c.acFormula==='legacy')notices.push({sector:'combat',title:'CA mantida como no arquivo',detail:'O total escrito foi preservado. Armadura e escudo precisam ser conferidos antes de ativar o cálculo automático.'});
+  if(c.rules?.pdfImport||c.rules?.importReview?.source==='pdf')notices.push({sector:'equipment',title:'Equipamentos e características em texto',detail:'O PDF não identifica todos os itens e escolhas de classe. O texto foi guardado; peso, talentos e efeitos só serão automáticos depois de cadastrados nos blocos da ficha.'});
+  if(c.rules?.pdfImport?.conflicts?.length)notices.push({sector:'identity',title:'Campos diferentes no PDF',detail:'Alguns campos repetidos têm valores diferentes. Confira os valores exibidos; as versões originais ficam no texto extraído, nas anotações pessoais, se incluídas.'});
+  if(!E.options.races[c.rules?.raceId])notices.push({sector:'identity',title:'Raça mantida manualmente',detail:'O nome será preservado. Efeitos raciais dependem de um vínculo com o catálogo ou de ajustes feitos na ficha.'});
+  for(const cls of c.classes){const meta=E.data.classes[cls.classId];if(meta&&cls.level>=meta.subLevel&&!meta.subclasses?.[cls.subclassId])notices.push({sector:'identity',title:meta.name+' · subclasse por conferir',detail:'Você pode escolher uma subclasse acima ou manter manual. Sem esse vínculo, os recursos específicos da subclasse não serão acrescentados automaticamente.'});}
+  const manual=c.weapons.filter((w:Sheet)=>w.calculationMode==='manual'||!catalogueWeapon(w,E));
+  if(manual.length)notices.push({sector:'equipment',title:'Ataques com valores fixos',detail:manual.map((w:Sheet)=>w.name).join(', ')+': ataque e dano ficam como escritos. Não acompanham mudanças de atributos, proficiência ou bônus da arma até vincular ao catálogo.'});
+  if(Object.values(c.customSkillBonuses||{}).some(v=>v!==undefined))notices.push({sector:'skills',title:'Totais de perícias preservados',detail:'Os números do arquivo substituem o cálculo automático. Ao evoluir, confira esses totais. Apagar um total manual retoma o cálculo da ficha.'});
+  const custom=c.spells.filter((s:Sheet)=>s.customSpell||!findSpell(s.bookId||s.name,E));
+  if(custom.length)notices.push({sector:'spells',title:'Magias personalizadas',detail:custom.map((s:Sheet)=>s.name||'Sem nome').join(', ')+': usam a fórmula e a descrição escritas. Abra o cartão para conferir ou escolher a magia correta no catálogo.'});
+  if(c.spells.some((s:Sheet)=>s.circle>0&&!s.extraSource&&preparation(c,s.classId,E).prepares&&s.prepared!==true))notices.push({sector:'spells',title:'Magias não preparadas',detail:'Continuam no grimório. Para lançar normalmente, marque Preparada respeitando o limite da classe.'});
+  return notices;
+}
+
+/** A comparação do livro altera somente máximos, nunca descansa o personagem.
+ * Se um máximo não comporta usos/quantidades atuais, exige correção explícita. */
+export function applySuggestedPools(c:Sheet,E:Engine):Sheet {
+  const suggested=structuredClone(c);suggestPdfPools(suggested,E);
+  for(let n=1;n<=9;n++){
+    const old=c.standardSlots[n]||{total:0,used:0},total=suggested.standardSlots[n]?.total||0;
+    if(old.used>total)throw new Error(`${n}º círculo: há ${old.used} espaços usados, mas o livro prevê ${total}. Corrija os usos antes de aplicar.`);
+    suggested.standardSlots[n]={...old,total,used:old.used};delete suggested.standardSlots[n].created;
+  }
+  if(c.pactMagic.used>suggested.pactMagic.total)throw new Error('Os usos de Pacto superam o máximo calculado. Corrija os usos antes de aplicar.');
+  if(c.sorceryPoints.current>suggested.sorceryPoints.max)throw new Error('Os pontos atuais de Feitiçaria superam o máximo calculado. Corrija-os antes de aplicar.');
+  suggested.pactMagic.used=c.pactMagic.used;suggested.sorceryPoints.current=c.sorceryPoints.current;
+  if(suggested.rules.fieldOverrides)for(const key of ['standardSlots','pactMagic','sorceryPoints'])delete suggested.rules.fieldOverrides[key];
+  return suggested;
 }
