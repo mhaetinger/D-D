@@ -2,6 +2,25 @@
 
 ## Não lançado
 
+### Defesas condicionais e prevenção de queda — 2026-10-20
+
+- Maestria em Armadura Pesada reduz dano físico elegível; Esquiva Sobrenatural
+  oferece reação por ataque e ordem explícita com reduções. DES para metade
+  aplica Evasão conforme classe/nível/escolha e respeita falhas automáticas.
+- Resistência Implacável do meio-orc e Fúria Implacável do bárbaro 11 evitam
+  a queda antes de inconsciência/Frenesi. Teste físico/virtual, CD crescente
+  por tentativa, usos/recuperação e alternativa racial; concentração continua
+  usando o dano recebido. Atalhos de PV abrem a decisão quando pertinente.
+- Campos existentes, sem painel paralelo. Cancelar ou alterar a ficha durante
+  a confirmação preserva PV/usos; desfazer restaura ambos. Notas, outras fichas,
+  modo já resolvido e regras manuais da forma são preservados. Sem SQL/RLS/RPC.
+- Fontes, convenções de ordem/tipos mistos e limites documentados na auditoria;
+  outras reações, Proteção contra a Morte e efeitos não enumerados ficam na mesa.
+- Verificado com `npm run check`: 351 testes Node, tipos/build e 13 roteiros
+  Chromium, incluindo 32 cenários auditados. Novas regressões cobrem ordem,
+  elegibilidade, queda/usos/recuperação, cancelamento/concorrência, desfazer e
+  dados físico/virtual. Dois layouts/três temas/320 px/GG e capturas conferidos.
+
 ### Alinhamento das ações de armas — 2026-10-20
 
 - Ataque e dano ficam juntos à direita de cada arma nos dois layouts. Descrições

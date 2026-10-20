@@ -1,6 +1,7 @@
 import { ability, active, level, norm, selections, state, subclass, type Engine, type Sheet } from './model';
 import { deathStatus, endRage, requireConscious } from './health';
 import { endConcentration } from './concentration';
+import { relentlessDC } from './survival';
 export interface Resource { id:string; classId:string; name:string; max:number; recovery:'short'|'long'|'none'; kind:'counter'|'pool'|'toggle'|'note'|'portent'; note:string; cost?:[string,number]; action?:string }
 
 /** Cada definição usa nível da própria classe, nunca nível total. Sem ficha-modelo. */
@@ -18,7 +19,11 @@ export function resourcesFor(c: Sheet, E: Engine): Resource[] {
       const bear = norm(c.rules?.history?.find((h:Sheet)=>h.classId==='barbaro' && h.level===3)?.answers?.totem)==='urso';
       add('barbaro','totem','Totem da Fúria',0,'none',bear ? 'Urso: durante a Fúria, resistência a todos os danos exceto psíquico.' : 'Consulte o Totem Espiritual escolhido: os benefícios só se aplicam nas condições do livro.','note');
     }
-    if (b>=11) add('barbaro','relentless','Fúria Implacável · CD',0,'none','Ao cair a 0 PV em Fúria sem morrer, teste CON CD 10; cada sucesso aumenta a CD em 5 até descanso curto/longo.','note');
+    if (b>=11) {
+      const uses=c.ruleState?.used?.['barbaro:relentless'] ?? 0;
+      const dc=Number.isSafeInteger(uses) && uses>=0 && uses<=100000?relentlessDC(c):'conferir registro';
+      add('barbaro','relentless',`Fúria Implacável · CD ${dc}`,0,'none','Ao cair a 0 PV em Fúria sem morrer instantaneamente, escolha testar CON no dano detalhado. Cada tentativa aumenta a próxima CD em 5; descanso curto/longo volta a CD 10.','note');
+    }
   }
   const bard = level(c,'bardo');
   if (bard) {
@@ -231,6 +236,8 @@ export function resetResources(c: Sheet, kind:'short'|'long', E: Engine, random=
   // Terminar uma Fúria com Frenesi causa exaustão antes da recuperação do descanso.
   if (active(c,'barbaro:rage')) toggleResource(c,resourcesFor(c,E).find(r=>r.id==='barbaro:rage')!,E);
   if(deathStatus(c).dead)return;
+  s.used['barbaro:relentless']=0;
+  if(kind==='long')s.used['race:endurance']=0;
   for (const r of resourcesFor(c,E)) if (r.recovery===kind || kind==='long' && r.recovery==='short') {
     s.used[r.id] = 0;
     if (r.kind==='pool') s.pools[r.id] = r.max;

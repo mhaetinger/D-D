@@ -15,7 +15,26 @@ Não mesclar/publicar esta revisão sem aprovação. A branch remota `develop`
 foi restaurada após a entrega na referência de integração já aprovada
 `b1155fbc5d14a566f548814bd808374aa2383721`, merge da PR #7.
 
-**Estado atual, quarta etapa da auditoria:** dano detalhado ganhou modo por tipo
+**Estado atual, quinta etapa da auditoria:** o dano detalhado também reconhece
+Maestria em Armadura Pesada, Esquiva Sobrenatural e DES para metade/Evasão.
+Usa classe/nível/escolha estruturados, origem e condições; a mesa confirma
+visão/reação e a ordem de reduções/metade. Resistência/Fúria Implacável aparecem
+antes de um dano elegível levar de PV positivos a 0, incluindo os atalhos −1/−5.
+Uso racial recupera no longo e tentativas da Fúria elevam CD até curto/longo.
+Cancelamento/alteração concorrente não aplicam; sucesso evita inconsciência
+transitória e preserva Fúria/Frenesi, sem ignorar o dano para concentração.
+Fonte e limites em `docs/AUDITORIA-LIVRO-2014.md`; contratos em `survival.ts`,
+`damage.ts`, `combat.ts`, `damage-ui.ts` e `health-ui.ts`, dentro de `src/rules/`.
+Usos opcionais pertencem ao documento/histórico por ficha; sem migração ou SQL.
+Outros testes/reações, Proteção contra a Morte, outras reduções e Forma Selvagem
+continuam na mesa. Não há controle de turnos. Não mesclar/publicar sem aprovação.
+
+Verificação desta etapa: `npm run check`, 351 testes Node, tipos/build e 13
+roteiros Chromium aprovados. Cobertura direcionada em `tests/damage.test.ts`
+e `tests/damage-browser.cjs`, além das regressões de PV/concentração e 32 cenários
+auditados. Dois layouts, três temas, 320 px/GG e capturas conferidos; diff limpo.
+
+**Quarta etapa, já concluída:** dano detalhado ganhou modo por tipo
 e origem, com até 13 tipos distintos de uma única ocorrência, prévia explicada
 e ajustes transitórios da mesa. Aplica fontes verificadas de raça, classe,
 Fúria/Urso, Proteção contra Lâminas e petrificação. Proteção Arcana absorve antes

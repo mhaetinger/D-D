@@ -1,5 +1,6 @@
-import { active, level, norm, subclass, type Engine, type Sheet } from './model';
+import { active, level, norm, selections, subclass, type Engine, type Sheet } from './model';
 import { incapacityReason } from './concentration';
+import { automaticSaveFailure, hasCondition } from './conditions';
 
 export const DAMAGE_TYPES = [
   ['acid','Ácido'],['bludgeoning','Concussão'],['slashing','Cortante'],['lightning','Elétrico'],
@@ -16,12 +17,22 @@ export const DAMAGE_SOURCES = [
 export type DamageSource=typeof DAMAGE_SOURCES[number][0];
 export type DamageDefense='auto'|'normal'|'resistance'|'immunity';
 export interface DamagePart { type:DamageType; amount:number; defense?:DamageDefense; vulnerable?:boolean; reduction?:number }
-export interface DamagePacket { source:DamageSource; parts:DamagePart[]; critical?:boolean; silvered?:boolean }
+export interface DamagePacket { source:DamageSource; parts:DamagePart[]; critical?:boolean; silvered?:boolean; uncannyDodge?:boolean; dexteritySave?:'success'|'failure'; modifierOrder?:'reduceFirst'|'halveFirst' }
 export const damageTypeName=(type:string)=>DAMAGE_TYPES.find(x=>x[0]===type)?.[1] || '';
 const typeFromText=(text:unknown)=>DAMAGE_TYPES.find(([id,name])=>norm(text)===id || norm(text)===norm(name))?.[0];
 const lastChoice=(c:Sheet,E:Engine,cls:string|null,key:string)=>E.selections(c,cls,key)?.at(-1);
 const dragonType=(choice:unknown)=>typeFromText(String(choice || '').split(/[—–]/).at(-1));
 export const fiendResistanceType=(c:Sheet,E:Engine)=>level(c,'bruxo')>=10 && subclass(c,'bruxo',E)==='corruptor'?typeFromText(lastChoice(c,E,'bruxo','fiendResistance')):undefined;
+export const isDamageAttack=(source:string)=>['weapon','magicWeapon','spellAttack','attack','magicAttack'].includes(source);
+function hunterDefense(c:Sheet,E:Engine,name:string) {
+  return level(c,'patrulheiro')>=15 && subclass(c,'patrulheiro',E)==='cacador' && c.rules?.history?.some((h:Sheet)=>h.classId==='patrulheiro' && h.level===15 && [h.answers?.hunter].flat().includes(name));
+}
+export const hasEvasion=(c:Sheet,E:Engine)=>level(c,'ladino')>=7 || level(c,'monge')>=7 || hunterDefense(c,E,'Evasão');
+export const hasUncannyDodge=(c:Sheet,E:Engine)=>level(c,'ladino')>=5 || hunterDefense(c,E,'Esquiva Sobrenatural');
+export function canUncannyDodge(c:Sheet,E:Engine,source:string) {
+  return hasUncannyDodge(c,E) && isDamageAttack(source) && !incapacityReason(c) && !hasCondition(c,'cego');
+}
+export const heavyArmorReduction=(c:Sheet,E:Engine,source:string)=>['weapon','attack'].includes(source) && E.armorInfo(c.armorEquipped)?.type==='pesada' && selections(c,E,'feat').concat(selections(c,E,'racialFeat')).includes('Maestria em Armadura Pesada')?3:0;
 
 export function arcaneWardPoints(c:Sheet) {
   const abjurer=c.classes?.some((x:Sheet)=>x.classId==='mago' && x.level>=2 && (x.subclassId==='abjuracao' || norm(x.subclass).includes('abjuracao')));
@@ -69,6 +80,13 @@ export function previewTypedDamage(c:Sheet,packet:DamagePacket,E:Engine) {
   if(active(c,'druida:wildShape'))throw new Error('Resolva o dano e o excesso da Forma Selvagem na mesa; use o modo já resolvido. As resistências da besta ainda não estão integradas.');
   if(!packet || !DAMAGE_SOURCES.some(x=>x[0]===packet.source) || !Array.isArray(packet.parts) || !packet.parts.length || packet.parts.length>13)throw new Error('Informe a origem e de 1 a 13 tipos de uma única ocorrência de dano.');
   if(packet.critical!==undefined && typeof packet.critical!=='boolean' || packet.silvered!==undefined && typeof packet.silvered!=='boolean')throw new Error('Confira a origem e o crítico do dano.');
+  if(packet.uncannyDodge!==undefined && typeof packet.uncannyDodge!=='boolean' || packet.dexteritySave!==undefined && !['success','failure'].includes(packet.dexteritySave) || packet.modifierOrder!==undefined && !['reduceFirst','halveFirst'].includes(packet.modifierOrder))throw new Error('Confira o teste, a reação e a ordem dos modificadores.');
+  if(packet.uncannyDodge && !canUncannyDodge(c,E,packet.source))throw new Error('Esquiva Sobrenatural exige a característica, um ataque, visão do atacante e capacidade de usar a reação.');
+  if(packet.dexteritySave && isDamageAttack(packet.source))throw new Error('Separe o dano do ataque e o efeito com resistência de DES para metade.');
+  if(packet.dexteritySave==='success' && automaticSaveFailure(c,'dex'))throw new Error('A condição atual causa falha automática na resistência de DES.');
+  const evasion=!!packet.dexteritySave && hasEvasion(c,E),zero=evasion && packet.dexteritySave==='success';
+  const saveHalf=packet.dexteritySave==='success' || evasion && packet.dexteritySave==='failure';
+  let heavyRemaining=heavyArmorReduction(c,E,packet.source);
   let wardRemaining=arcaneWardPoints(c);
   if(!Number.isSafeInteger(wardRemaining) || wardRemaining<0)throw new Error('Reserva de Proteção Arcana inválida preservada; confira a ficha.');
   const seen=new Set<string>();
@@ -78,18 +96,29 @@ export function previewTypedDamage(c:Sheet,packet:DamagePacket,E:Engine) {
     seen.add(part.type);
     const reduction=part.reduction ?? 0,defense=part.defense ?? 'auto';
     if(!Number.isSafeInteger(part.amount) || part.amount<1 || part.amount>1_000_000 || !Number.isSafeInteger(reduction) || reduction<0 || reduction>1_000_000 || !['auto','normal','resistance','immunity'].includes(defense) || part.vulnerable!==undefined && typeof part.vulnerable!=='boolean')throw new Error('Informe dano inteiro de 1 a 1.000.000 e redução inteira não negativa, até 1.000.000.');
-    const ward=Math.min(wardRemaining,part.amount);wardRemaining-=ward;
+    // O resultado do teste define o dano do efeito antes de atingir a proteção.
+    // As defesas pessoais seguintes não protegem os PV próprios da Proteção Arcana.
+    const afterSave=zero?0:saveHalf?Math.floor(part.amount/2):part.amount;
+    const ward=Math.min(wardRemaining,afterSave);wardRemaining-=ward;
     const automatic=damageDefenses(c,part.type,packet,E);
     const immunity=defense==='auto'?automatic.immunity:defense==='immunity'?['Imunidade · mesa']:[];
     const resistance=defense==='auto'?automatic.resistance:defense==='resistance'?['Resistência · mesa']:[];
-    const afterWard=part.amount-ward,afterReduction=immunity.length?0:Math.max(0,afterWard-reduction);
+    const afterWard=afterSave-ward;
+    // Um ataque misto recebe 3 pontos de redução no total, alocados pela ordem
+    // dos tipos físicos. A mesa pode ordenar as linhas antes de confirmar.
+    const beforeReduction=packet.uncannyDodge && packet.modifierOrder==='halveFirst'?Math.floor(afterWard/2):afterWard;
+    const heavyReduction=immunity.length || !['bludgeoning','piercing','slashing'].includes(part.type)?0:Math.min(heavyRemaining,Math.max(0,beforeReduction-reduction));heavyRemaining-=heavyReduction;
+    const reduced=immunity.length?0:Math.max(0,beforeReduction-reduction-heavyReduction);
+    const afterReduction=packet.uncannyDodge && packet.modifierOrder!=='halveFirst'?Math.floor(reduced/2):reduced;
     const afterResistance=resistance.length?Math.floor(afterReduction/2):afterReduction;
-    return {...part,defense,reduction,ward,immunity,resistance,afterWard,afterReduction,received:afterResistance*(part.vulnerable?2:1)};
+    return {...part,defense,reduction,heavyReduction,ward,immunity,resistance,afterSave,afterWard,afterReduction,received:afterResistance*(part.vulnerable?2:1)};
   });
-  return {source:packet.source,critical:!!packet.critical,silvered:!!packet.silvered,parts,
+  return {source:packet.source,critical:!!packet.critical,silvered:!!packet.silvered,uncannyDodge:!!packet.uncannyDodge,dexteritySave:packet.dexteritySave,evasion,modifierOrder:packet.modifierOrder || 'reduceFirst',parts,
     raw:parts.reduce((n,p)=>n+p.amount,0),ward:parts.reduce((n,p)=>n+p.ward,0),received:parts.reduce((n,p)=>n+p.received,0)};
 }
 export type DamagePlan=ReturnType<typeof previewTypedDamage>;
 export function typedDamageSummary(plan:DamagePlan) {
-  return plan.parts.map(p=>`${p.amount} ${damageTypeName(p.type)}${p.ward?` − proteção ${p.ward}`:''}${p.immunity.length?` · ${p.immunity.join(', ')} = 0`:`${p.reduction?` − redução ${p.reduction}`:''}${p.resistance.length?` · resistência (${p.resistance.join(', ')}) ÷2`:p.defense==='normal'?' · sem defesa (mesa)':''}${p.vulnerable?' · vulnerabilidade ×2 (mesa)':''} = ${p.received}`}`).join('; ');
+  const reaction=plan.uncannyDodge?`Esquiva Sobrenatural · usa reação · ${plan.modifierOrder==='halveFirst'?'metade antes das reduções':'reduções antes da metade'}; `:'';
+  const save=plan.dexteritySave?`DES para metade · ${plan.dexteritySave==='success'?'sucesso':'falha'}${plan.evasion?' · Evasão':''}; `:'';
+  return reaction+save+plan.parts.map(p=>`${p.amount} ${damageTypeName(p.type)}${plan.dexteritySave?` → teste ${p.afterSave}`:''}${p.ward?` − proteção ${p.ward}`:''}${p.immunity.length?` · ${p.immunity.join(', ')} = 0`:`${p.reduction?` − redução ${p.reduction}`:''}${p.heavyReduction?` − Maestria em Armadura Pesada ${p.heavyReduction}`:''}${p.resistance.length?` · resistência (${p.resistance.join(', ')}) ÷2`:p.defense==='normal'?' · sem defesa (mesa)':''}${p.vulnerable?' · vulnerabilidade ×2 (mesa)':''} = ${p.received}`}`).join('; ');
 }

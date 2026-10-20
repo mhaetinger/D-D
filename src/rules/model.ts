@@ -12,6 +12,13 @@ export function subclass(c: Sheet, id: string, E: Engine) {
 }
 export const selections = (c: Sheet, E: Engine, key: string) => E.selections(c, null, key) || [];
 export function active(c: Sheet, id: string) { return !!c.ruleState?.active?.[id]; }
+/** Bônus compartilhado pelos testes da ficha e pelas defesas ao receber dano. */
+export function savingThrowBonus(c:Sheet,key:string) {
+  const stone=active(c,'mago:stone') && c.ruleState?.targets?.['mago:stone']==='constitution';
+  const trained=c.abilities[key].saveProf || level(c,'monge')>=14 || stone && key==='con';
+  const aura=level(c,'paladino')>=6 && c.hpCurrent>0 && c.conscious!==false && !c.ruleState?.conditions?.inconsciente?Math.max(1,ability(c,'cha')):0;
+  return ability(c,key)+(trained?proficiency(c):0)+aura;
+}
 export function state(c: Sheet) {
   c.ruleState ||= { version:1, used:{}, active:{}, pools:{}, portent:[], targets:{} };
   for (const key of ['used','active','pools','targets']) c.ruleState[key] ||= {};

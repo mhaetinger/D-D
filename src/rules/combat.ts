@@ -1,8 +1,9 @@
-import { ability, active, level, norm, proficiency, selections, subclass, type Engine, type Sheet } from './model';
+import { ability, active, level, norm, proficiency, savingThrowBonus, selections, subclass, type Engine, type Sheet } from './model';
 import { hitPointMaximum, syncIncapacity, trackDamageAtZero } from './health';
 import { queueConcentrationDamage } from './concentration';
 import { conditionSpeed } from './conditions';
 import { arcaneWardPoints, previewTypedDamage, type DamagePacket } from './damage';
+import { commitSurvival, previewSurvival, type SurvivalChoice, type SurvivalPlan } from './survival';
 
 const aliases: Record<string,string> = { warhammer:'Martelo de guerra', longsword:'Espada longa', shortsword:'Espada curta', dagger:'Adaga', quarterstaff:'Bordão', rapier:'Rapieira', handaxe:'Machadinha', greataxe:'Machado grande', longbow:'Arco longo', shortbow:'Arco curto', 'light crossbow':'Besta leve', 'heavy crossbow':'Besta pesada' };
 export function catalogueWeapon(entry: Sheet, E: Engine) {
@@ -103,21 +104,23 @@ export function exhaustion(c: Sheet) {
   return {level:value, penalties:penalties.slice(0,value), speed:value >= 5 ? 0 : Math.max(0,Number(c.speed || 0)) / (value >= 2 ? 2 : 1), hpMax:hitPointMaximum(c)};
 }
 /** Proteção Arcana, forma de besta, PV temporários e PV reais são reservas separadas. */
-export function applyDamage(c: Sheet, amount: number, options={critical:false}) {
+export function applyDamage(c: Sheet, amount: number, options:{critical?:boolean;survival?:SurvivalChoice}={critical:false}) {
   if (!Number.isFinite(amount)) throw new Error('Informe uma quantidade finita de dano.');
   let damage = Math.max(0,Math.floor(amount));
   const ward=arcaneWardPoints(c),absorbed=ward>0?Math.min(ward,damage):0;
+  const survival=previewSurvival(c,damage-absorbed,options.survival);
   if(absorbed)c.ruleState.pools['mago:ward']-=absorbed;
-  return applyBodyDamage(c,damage-absorbed,options.critical,absorbed);
+  return applyBodyDamage(c,damage-absorbed,!!options.critical,absorbed,survival);
 }
 /** O modo por tipo calcula tudo antes de alterar reservas. Não passa a proteção
  * duas vezes e gera apenas um teste de concentração/falha de morte por evento. */
-export function applyTypedDamage(c:Sheet,packet:DamagePacket,E:Engine) {
+export function applyTypedDamage(c:Sheet,packet:DamagePacket,E:Engine,choice?:SurvivalChoice) {
   const plan=previewTypedDamage(c,packet,E);
+  const survival=previewSurvival(c,plan.received,choice);
   if(plan.ward)c.ruleState.pools['mago:ward']-=plan.ward;
-  return {...plan,absorption:applyBodyDamage(c,plan.received,plan.critical,plan.ward)};
+  return {...plan,absorption:applyBodyDamage(c,plan.received,plan.critical,plan.ward,survival),survival};
 }
-function applyBodyDamage(c:Sheet,received:number,critical:boolean,ward:number) {
+function applyBodyDamage(c:Sheet,received:number,critical:boolean,ward:number,survival:SurvivalPlan=null) {
   let damage=received;
   const wasAtZero=c.hpCurrent===0,wasShape=level(c,'druida')>=2 && active(c,'druida:wildShape');
   const result={ward,temp:0,beast:0,hp:0,excess:0};
@@ -129,7 +132,9 @@ function applyBodyDamage(c:Sheet,received:number,critical:boolean,ward:number) {
     if (c.ruleState.pools['druida:wildShape'] <= 0) c.ruleState.active['druida:wildShape'] = false;
   }
   result.hp=Math.min(c.hpCurrent,damage);result.excess=damage-result.hp;
-  c.hpCurrent = Math.max(0,c.hpCurrent-damage);
+  commitSurvival(c,survival);
+  if(survival?.saved) {result.hp=Math.max(0,c.hpCurrent-1);result.excess=0;c.hpCurrent=1;}
+  else c.hpCurrent = Math.max(0,c.hpCurrent-damage);
   trackDamageAtZero(c,wasShape?damage:received,result.excess,wasAtZero,critical);
   queueConcentrationDamage(c,received,wasShape);
   return result;
@@ -152,10 +157,7 @@ export function initiativeBonus(c:Sheet,E:Engine) {
   return ability(c,'dex')+(half?Math.floor(proficiency(c)/2):0)+(feats.includes('Alerta')?5:0);
 }
 export function savingThrow(c: Sheet, key:string, E:Engine) {
-  const stone = active(c,'mago:stone') && c.ruleState?.targets?.['mago:stone']==='constitution';
-  const trained = c.abilities[key].saveProf || level(c,'monge')>=14 || stone && key==='con';
-  const aura = level(c,'paladino')>=6 && c.hpCurrent>0 && c.conscious!==false && !c.ruleState?.conditions?.inconsciente ? Math.max(1,ability(c,'cha')) : 0;
-  return ability(c,key)+(trained?proficiency(c):0)+aura;
+  return savingThrowBonus(c,key);
 }
 export function movementWithEffects(c:Sheet,base:number) {
   return conditionSpeed(c,base+(active(c,'mago:stone') && c.ruleState?.targets?.['mago:stone']==='speed'?3:0));

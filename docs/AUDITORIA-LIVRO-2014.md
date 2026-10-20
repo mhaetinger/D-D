@@ -8,7 +8,7 @@ A segunda passada, na base `7667ae9`, encontrou **erros reproduzíveis além das
 ausências de controles**. A prioridade passou a ser alinhar o valor mostrado com
 o rolador, corrigir bônus/escalonamento e a interação entre dano, transformação e
 descansos. Os itens 15–27 e a tabela de cenários abaixo detalham esses achados.
-Quatro etapas de correções já foram implementadas na branch de trabalho,
+Cinco etapas de correções já foram implementadas na branch de trabalho,
 conforme as tabelas abaixo. O restante continua identificado como pendência.
 
 ## Primeira etapa implementada — 19/10/2026
@@ -157,6 +157,44 @@ proteção/temporários, concentração/morte uma vez, ajustes/limites, nós/foc
 modo resolvido/forma, notas/históricos por ficha, recarga/offline e três temas/
 320 px/GG. Capturas desktop/celular conferidas; diff sem whitespace. Roteiros
 anteriores de PV/concentração usam seletores específicos após as novas abas.
+
+## Quinta etapa implementada: reduções, Esquiva/Evasão e queda — 20/10/2026
+
+- Maestria em Armadura Pesada: vestindo armadura pesada, reduz até 3 contra
+  dano físico de um ataque não mágico, conforme a errata de 2014. Não protege
+  de queda, fogo ou ataque mágico. Em tipos físicos mistos, a convenção da
+  ficha é uma reserva de 3 por ataque, alocada pela ordem declarada das linhas.
+- Esquiva Sobrenatural: ladino 5 ou escolha do Caçador 15; um ataque, inclusive
+  de magia, visão e reação disponível confirmadas pelo jogador. Incapacitação
+  e cegueira impedem a escolha automática. A mesa declara a ordem entre a
+  metade e as reduções fixas; resistência/vulnerabilidade vêm depois.
+- DES para metade: resultado informado pela mesa, dano bruto antes do teste.
+  Evasão do ladino/monge 7 ou escolha do Caçador 15 zera no sucesso/divide na
+  falha, sem ação/reação. Falhas automáticas das condições são respeitadas.
+  Resultado do teste precede a proteção; cada tipo arredonda separadamente.
+- Resistência Implacável do meio-orc e Fúria Implacável do bárbaro 11 em Fúria:
+  escolha antes da queda, com 1 PV no sucesso, sem inconsciência transitória.
+  Uso racial recupera no longo; tentativas da Fúria elevam CD em 5 até curto/
+  longo. Teste físico/virtual, bônus, modo, exaustão e inspiração; não recebe
+  Conjurador de Guerra nem sucesso/falha automáticos por 1/20. Alternativa
+  racial após falha é opcional. Dano maciço, morte prévia e forma não aceitam
+  essas escolhas. Atalhos de PV abrem a decisão sem descontar antes.
+- Usa os campos de dano/PV existentes; opções transitórias não viram estados
+  permanentes. Cancelamento/alteração concorrente preservam o documento; uso,
+  dano e histórico entram juntos. Sem SQL/RLS/RPC ou dados reais alterados.
+
+Fontes adicionais: [errata do PHB de 2014](https://media.wizards.com/2020/dnd/downloads/PH-Errata.pdf),
+[Sage Advice de 2014](https://media.wizards.com/2020/dnd/downloads/SA-Compendium.pdf)
+e [SRD 5.1](https://media.dndbeyond.com/compendium-images/srd/5.1/SRD-OGL_V5.1.pdf),
+além do exemplar local. Outros testes/reações, Proteção contra a Morte, outras
+reduções de itens/magias e efeitos que matam sem dano continuam manuais.
+Não há relógio de turnos ou estatísticas completas de Forma Selvagem.
+
+Verificação: `npm run check`, 351 testes Node, tipos/build e 13 roteiros Chromium
+aprovados, incluindo 32 cenários auditados. Regressões novas focam nas ordens e
+elegibilidade, usos/recuperação, queda/concentração/Frenesi, cancelamento e
+alteração concorrente, desfazer e dados físico/virtual. Layouts/temas/320 px/GG
+e capturas desktop/celular conferidos. Sem testes unitários para cosmética simples.
 
 ## Fonte, método e limites
 
@@ -513,7 +551,7 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 | Líder Inspirador | Registro | PV temporários CAR+nível e elegibilidade por destinatário |
 | Maestria em Arma de Haste | Registro | Ataque bônus d4 e oportunidade ao entrar no alcance |
 | Maestria em Armadura Média | Teto de DES +3 na CA | Remover desvantagem de Furtividade; não há aplicação integrada dela |
-| Maestria em Armadura Pesada | +1 FOR | Redução 3 contra tipos/origens elegíveis |
+| Maestria em Armadura Pesada | +1 FOR; redução 3 no dano por tipo da quinta etapa | Outras interações continuam na mesa |
 | Matador de Conjuradores | Registro | Reação, concentração do alvo e vantagem situacional |
 | Mente Afiada | +1 INT | Orientação, horário e memória consultáveis |
 | Mestre de Armas | +1 FOR/DES, quatro proficiências | Demais condições do ataque usam o fluxo comum |
@@ -567,8 +605,8 @@ a aventura ou transformar consulta narrativa em campos obrigatórios.
 4. [x] Completar o bloco de PV: Dados de Vida, morte/estabilidade e inspiração,
    nos locais existentes e com dado físico/virtual.
 5. [ ] Unificar concentração/condições/dano tipado e a explicação dos efeitos;
-   concentração, parte das condições e dano por tipo já integrados. Outras
-   fontes/reações e os demais efeitos condicionais seguem pendentes; não
+   concentração, parte das condições, dano por tipo, Esquiva/Evasão e duas
+   defesas de queda já integrados. Outras fontes/reações e efeitos seguem pendentes; não
    automatizar redução sem a origem.
 6. [ ] Revisar a matriz de efeitos das 12 classes/41 subclasses, raças e 42
    talentos, marcando cada efeito como calculado, uso controlado ou manual.

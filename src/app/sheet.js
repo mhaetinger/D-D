@@ -9,6 +9,7 @@ import { canCastNormally, canRitual, preparation, wizardPrivilege, castingRestri
 import { resolveSpellEffect, innateCastLevel, twinEligible } from "../rules/spell-effects";
 import { consumeInspiration, deathStatus, healHitPoints, inspirationRollMode } from '../rules/health';
 import { damageDescription, deathControls, hitDiceControls } from '../rules/health-ui';
+import { offerSurvivalForDamage } from '../rules/damage-ui';
 import { applyCastConcentration, concentration, concentrationBlock, incapacityReason, needsConcentrationConfirmation, spellConcentration, validateConcentrationStart } from '../rules/concentration';
 import { concentrationControls } from '../rules/concentration-ui';
 import { automaticSaveFailure } from '../rules/conditions';
@@ -1940,7 +1941,7 @@ function renderCombatBlock(char) {
           </div>
         </div>
 
-        ${deathControls(char)}
+        ${deathControls(char,CharacterEngine)}
         ${conditionControls(char)}
         ${concentrationControls(char)}
         ${renderResourcesAt(char,CharacterEngine,'health')}
@@ -2829,7 +2830,10 @@ function changeHp(delta) {
   // Livro, p. 200: dano consome PV temporários antes dos PV reais.
   // Cura altera somente PV reais; não recompõe a reserva temporária.
   let result;
-  try { if(delta<0) result=applyDamage(char,-delta);else healHitPoints(char,delta); }
+  try {
+    if(delta<0) {if(offerSurvivalForDamage(char,-delta))return;result=applyDamage(char,-delta);}
+    else healHitPoints(char,delta);
+  }
   catch(error) { showToast(error.message);return; }
   if (char.hpTemp === 0) char.hpTempSource = "";
   saveRuleStep(delta<0?damageDescription(char,result,-delta):`Recebeu ${delta} de cura · PV: ${char.hpCurrent}/${exhaustion(char).hpMax} · temporários: ${char.hpTemp}`);

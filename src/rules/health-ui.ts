@@ -1,6 +1,7 @@
-import { applyDamage, applyTypedDamage } from './combat';
+import { applyDamage, applyTypedDamage, concentrationSaveDetails } from './combat';
 import { damageControls, readDamagePacket, setupDamageUI } from './damage-ui';
-import { typedDamageSummary } from './damage';
+import { arcaneWardPoints, previewTypedDamage, typedDamageSummary } from './damage';
+import { previewSurvival, survivalOptions, type SurvivalChoice } from './survival';
 import { consumeInspiration, deathSaveBonus, deathStatus, hitDiceRemaining, hitPointMaximum, inspirationRollMode, resolveDeathSave, returnToLife, songOfRestDie, spendHitDie, stabilize, validateHitDie } from './health';
 import { ability, active, escape, state, type Engine, type Sheet } from './model';
 
@@ -10,11 +11,11 @@ export function inspirationControls(c:Sheet) {
   const ready=c.heroicInspiration && c.ruleState?.inspirationReady;
   return `<span ${tip('Inspiração · regras de 2014','Você tem ou não tem inspiração; ela não acumula e não é Inspiração de Bardo. Gaste antes de um ataque, teste de habilidade ou resistência para dar vantagem. Vantagem e desvantagem se cancelam. O arremesso rápido do dado continua sendo um d20 normal. Não permite rerrolar depois de ver o resultado.')}>★ Inspiração</span>${c.heroicInspiration?`${action('inspirationUse',ready?'✓ Preparada · cancelar':'Usar',false,`aria-pressed="${!!ready}"`)}${action('inspirationPhysical','Usar na mesa')}`:action('inspirationReceive','Receber')}`;
 }
-export function deathControls(c:Sheet) {
+export function deathControls(c:Sheet,E:Engine) {
   const d=deathStatus(c),shape=active(c,'druida:wildShape');
   const help=tip('Caindo a 0 PV','Três sucessos estabilizam e zeram as contagens; três falhas matam. 1 natural vale duas falhas; 20 natural recupera 1 PV. Dano a 0 PV causa uma falha, duas se crítico, mesmo quando absorvido por temporários. Proteção externa impede esse dano. Cura comum não revive. Estabilize somente após o efeito ou Medicina CD 10 resolvido na mesa.');
   const controls=d.dead?`<strong role="status" ${help}>Morto</strong>${action('revive','Registrar retorno à vida')}`:c.hpCurrent===0 && !shape?`<div role="status"><strong ${help}>${d.stable?'Estável · inconsciente':'Inconsciente · 0 PV'}</strong>${!d.stable?`<span> · Sucessos ${d.successes}/3 · Falhas ${d.failures}/3</span>`:''}</div>${!d.stable?`${action('deathSave','Teste contra a morte')}${action('stabilize','Registrar estabilização')}`:'<span>Não realiza testes contra a morte. Cura ou 1 PV após 1d4 horas encerra a inconsciência; registre a recuperação nos PV.</span>'}`:'';
-  return `${controls?`<div class="rule-context rule-controls" data-health-status>${controls}</div>`:''}${!d.dead?damageControls(c):''}`;
+  return `${controls?`<div class="rule-context rule-controls" data-health-status>${controls}</div>`:''}${!d.dead?damageControls(c,E):''}`;
 }
 export function hitDiceControls(c:Sheet,E:Engine) {
   return `<div class="rule-context space-y-1.5"><p class="font-bold t-text-muted" ${tip('Dados de Vida · descanso curto','No fim de um descanso curto de ao menos 1 hora, gaste um Dado de Vida por vez e some Constituição, mínimo 0 de cura. Você pode decidir gastar outro depois do resultado. A 0 PV, resolva a estabilização antes de registrar esse descanso. Em multiclasse, escolha a classe. Resistente aplica o mínimo do talento. Canção do Descanso exige ouvir a atuação e só acrescenta uma vez no descanso. Não conclui outro descanso nem recupera recursos de classe.')}>Dados de Vida · descanso curto</p><div class="rule-hit-dice">${c.classes.map((cls:Sheet)=>`<div class="t-inset rule-controls"><span><strong>${hitDiceRemaining(cls)}/${cls.level}d${Number(cls.hitDie)||'?'}</strong> · ${escape(E.data.classes[cls.classId]?.name || cls.classId)}</span>${action('hitDieSpend','Gastar',!hitDiceRemaining(cls) || deathStatus(c).dead || c.hpCurrent<=0 && !active(c,'druida:wildShape') && !deathStatus(c).stable,`data-class="${escape(cls.classId)}" aria-label="Gastar Dado de Vida de ${escape(E.data.classes[cls.classId]?.name || cls.classId)}"`)}</div>`).join('')}</div></div>`;
@@ -39,6 +40,33 @@ export function chooseDieSource(controls:HTMLElement) {
   };
   source.addEventListener('change',update);update();
 }
+async function chooseDamageSurvival(c:Sheet,received:number,form:HTMLElement,E:Engine) {
+  const host=window as any,kind=form.querySelector<HTMLSelectElement>('[data-damage-survival]')?.value;
+  if(!kind)return {choice:undefined as SurvivalChoice|undefined,description:'',inspired:false};
+  if(kind==='endurance') {
+    const choice:SurvivalChoice={kind:'endurance'};
+    return {choice,description:previewSurvival(c,received,choice)!.description,inspired:false};
+  }
+  if(kind!=='rage')throw new Error('Escolha uma defesa disponível.');
+  const options=survivalOptions(c,received);if(options.rageDC===null)throw new Error('Fúria Implacável indisponível para este dano.');
+  const before=JSON.stringify(c),fields=()=>JSON.stringify([...form.querySelectorAll<HTMLInputElement|HTMLSelectElement>('input,select')].map(e=>[e.value,'checked' in e?e.checked:null])),beforeFields=fields();
+  const controls=document.createElement('div');controls.className='rule-context rule-dialog-fields';
+  controls.innerHTML=`${dieSourceControls(20)}<label>Outros bônus recebidos <input type="number" min="-100" max="100" step="1" value="0" data-survival-extra></label><label>Modo da mesa <select data-survival-mode><option value="normal">Normal</option><option value="adv">Vantagem</option><option value="dis">Desvantagem</option></select></label>${options.endurance?'<label class="rule-check"><input type="checkbox" data-survival-fallback> Se falhar, usar Resistência Implacável</label>':''}<p data-survival-preview></p><p>1/20 natural não decide sozinho. No dado físico, registre a face escolhida no modo indicado.</p>`;
+  chooseDieSource(controls);
+  const mode=controls.querySelector<HTMLSelectElement>('[data-survival-mode]')!;mode.value=host.ruleDiceSettings().mode;
+  // Mesmo cálculo de CON, inspiração e exaustão dos testes existentes, sem
+  // Conjurador de Guerra: este teste não é para manter concentração.
+  const details=()=>concentrationSaveDetails(c,E,{mode:mode.value as 'normal'|'adv'|'dis',damage:false,extra:Number(controls.querySelector<HTMLInputElement>('[data-survival-extra]')!.value)});
+  const update=()=>{try {const d=details();controls.querySelector<HTMLElement>('[data-survival-preview]')!.textContent=`CON ${d.bonus>=0?'+':''}${d.bonus} · ${d.mode==='adv'?'vantagem':d.mode==='dis'?'desvantagem':'normal'}${d.inspired?' · inspiração preparada':''}${d.exhausted?' · exaustão':''}`;}catch(e){controls.querySelector<HTMLElement>('[data-survival-preview]')!.textContent=(e as Error).message;}};
+  controls.addEventListener('input',update);controls.addEventListener('change',update);update();
+  if(!await host.confirmDestructiveAction('Fúria Implacável',`CON CD ${options.rageDC} para ficar com 1 PV. Próxima tentativa: CD ${options.rageDC+5} até descanso curto/longo. Cancelar mantém o dano pendente, sem gastar usos.`,'Testar e aplicar',controls))return null;
+  if(host.getChar()!==c || JSON.stringify(c)!==before || !form.isConnected || fields()!==beforeFields)throw new Error('A ficha ou o dano mudou durante o teste. Confira a prévia e tente novamente.');
+  const d=details(),virtual=controls.querySelector<HTMLSelectElement>('[data-health-source]')!.value==='virtual';
+  const choice:SurvivalChoice={kind:'rage',natural:virtual?1:Number(controls.querySelector<HTMLInputElement>('[data-health-face]')!.value),extraBonus:Number(controls.querySelector<HTMLInputElement>('[data-survival-extra]')!.value),fallbackEndurance:!!controls.querySelector<HTMLInputElement>('[data-survival-fallback]')?.checked};
+  previewSurvival(c,received,choice); // Valida antes de rolar ou gastar qualquer coisa.
+  if(virtual)choice.natural=host.rollRuleDie(20,'Fúria Implacável',d.mode);
+  return {choice,description:previewSurvival(c,received,choice)!.description,inspired:d.inspired};
+}
 export function setupHealthUI(E:Engine,save:(description:string)=>void) {
   const host=window as any;
   setupDamageUI(E);
@@ -51,14 +79,20 @@ export function setupHealthUI(E:Engine,save:(description:string)=>void) {
     try {
       if(id==='damage') {
         const controls=button.closest<HTMLElement>('[data-damage-controls]')!;
-        if(controls.querySelector<HTMLSelectElement>('[data-damage-mode]')!.value==='typed') {
-          const result=applyTypedDamage(c,readDamagePacket(controls),E);if(!c.hpTemp)c.hpTempSource='';
-          save(`Dano por tipo · ${typedDamageSummary(result)} · ${damageDescription(c,result.absorption,result.received,result.critical)}`);return;
-        }
+        const typed=controls.querySelector<HTMLSelectElement>('[data-damage-mode]')!.value==='typed';
         const input=controls.querySelector<HTMLInputElement>('[data-health-damage]')!,n=Number(input.value),critical=controls.querySelector<HTMLInputElement>('[data-health-critical]')!.checked;
-        if(!Number.isInteger(n) || n<=0) throw new Error('Informe um dano inteiro maior que zero.');
-        const result=applyDamage(c,n,{critical});if(!c.hpTemp)c.hpTempSource='';
-        save(damageDescription(c,result,n,critical));return;
+        if(!typed && (!Number.isInteger(n) || n<=0)) throw new Error('Informe um dano inteiro maior que zero.');
+        const packet=typed?readDamagePacket(controls):null,received=packet?previewTypedDamage(c,packet,E).received:Math.max(0,n-arcaneWardPoints(c));
+        const survival=await chooseDamageSurvival(c,received,controls,E);if(!survival)return;
+        if(host.getChar()!==c || !controls.isConnected)return;
+        let description:string;
+        if(packet) {
+          const result=applyTypedDamage(c,packet,E,survival.choice);
+          description=`Dano por tipo · ${typedDamageSummary(result)} · ${damageDescription(c,result.absorption,result.received,result.critical)}`;
+        }else description=damageDescription(c,applyDamage(c,n,{critical,survival:survival.choice}),n,critical);
+        if(!c.hpTemp)c.hpTempSource='';
+        if(survival.inspired)consumeInspiration(c);
+        save(description+(survival.description?' · '+survival.description:'')+(survival.inspired?' · usou inspiração':''));return;
       }
       if(id==='inspirationReceive') { c.heroicInspiration=true;save('Recebeu inspiração · 2014');return; }
       if(id==='inspirationUse') {

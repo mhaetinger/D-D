@@ -492,7 +492,43 @@ Forma Selvagem bloqueia o modo por tipo: sem bloco de estatísticas, não é seg
 usar resistências humanas na besta nem calcular automaticamente o excedente.
 O modo anterior continua para a mesa resolver as parcelas. Com proteção nesse
 modo, o valor a distribuir é proteção absorvida + dano final às demais reservas,
-após resolver a absorção antes das defesas. Não há resolução automática de
-testes contra magias ou de reações/Evasão, redução de Maestria em Armadura
-Pesada, gestão de alvos ou executor geral de itens/magias. Testes:
+após resolver a absorção antes das defesas. Não há gestão de alvos ou executor
+geral de itens/magias. Testes:
 `damage.test.ts` e `damage-browser.cjs`.
+
+### Defesas condicionais e prevenção de queda
+
+`DamagePacket` admite `dexteritySave` (somente DES para metade), `uncannyDodge`
+e `modifierOrder`. O resultado de DES/Evasão define o dano antes da proteção;
+depois entram imunidade, reduções/Esquiva e resistência/vulnerabilidade.
+Esquiva exige classe/nível/escolha estruturados, ataque, visão e ausência de
+incapacitação; a mesa confirma que ainda dispõe da reação. Não cria relógio de
+turnos. Evasão não exige reação e respeita falhas automáticas de DES. Os valores
+de cada tipo são arredondados separadamente. Maestria em Armadura Pesada usa
+a errata de 2014: ataques não mágicos, inclusive sem arma, com armadura pesada.
+
+Para tipos físicos mistos, a convenção explícita da ficha é uma reserva de 3
+por ataque, alocada pela ordem das linhas. Se Esquiva e redução fixa coincidirem,
+a mesa declara qual vem primeiro. Essa ordem não altera a posição posterior de
+resistência/vulnerabilidade. Decisões diferentes podem usar o modo já resolvido.
+Fontes: PHB local, [errata de 2014](https://media.wizards.com/2020/dnd/downloads/PH-Errata.pdf)
+e [Sage Advice de 2014](https://media.wizards.com/2020/dnd/downloads/SA-Compendium.pdf),
+seções Rogue, Wizard e Combat. Não importar a Evasão de 2024.
+
+`survival.ts` faz a prévia pura de Resistência/Fúria Implacável antes de qualquer
+desconto. `applyDamage` mantém seu retorno e aceita `options.survival` opcional;
+`applyTypedDamage` aceita a escolha no quarto argumento. Só depois de validar o
+plano completo são descontadas proteção/temporários e gravados os usos. Sucesso
+substitui a queda por 1 PV antes de inconsciência/Fúria/Frenesi; concentração usa
+o dano recebido normalmente. Falha continua pelo fluxo anterior. Não é cura,
+ressurreição ou proteção contra morte instantânea. Forma Selvagem fica excluída.
+`used['race:endurance']` recupera no longo; `used['barbaro:relentless']` conta
+tentativas (inclusive falhas) e recupera no curto/longo. São chaves opcionais
+do registro já existente; não há migração nem alteração de dados antigos.
+
+`health-ui.ts` reutiliza confirmação/dados existentes. Cancelamento não aplica
+dano; troca de ficha, alteração do documento ou do formulário durante o diálogo
+invalida a confirmação. Teste de CON compartilha proficiência/aura, inspiração,
+exaustão e modo da mesa, com `damage:false` para excluir Conjurador de Guerra.
+O dado é validado antes de rolar/gastar. `offerSurvivalForDamage` encaminha os
+atalhos de PV ao controle existente, sem consumir a defesa automaticamente.

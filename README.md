@@ -223,6 +223,15 @@ acumulam; resistência arredonda para baixo antes de vulnerabilidade dobrar.
 adicional ou vulnerabilidade, sem criar uma defesa permanente na ficha.
 Crítico já deve estar incluído no valor rolado; a marca altera as falhas a 0 PV.
 
+Maestria em Armadura Pesada reduz até 3 de dano físico por ataque não mágico,
+somente vestindo armadura pesada. Esquiva Sobrenatural aparece para quem tem a
+característica: marque se vê o atacante e tem reação disponível, inclusive contra
+ataques de magia. A reação vale só para esse ataque; os turnos continuam na mesa.
+Se houver redução fixa, a mesa escolhe sua ordem em relação à Esquiva.
+Para um efeito que exige **DES para metade**, informe o dano antes do teste e
+registre sucesso/falha. Evasão reconhecida zera no sucesso e divide na falha,
+sem gastar reação. Resistência/vulnerabilidade entram depois desses modificadores.
+
 São reconhecidas fontes verificadas de Fúria/Urso, Proteção contra Lâminas,
 petrificação, raça e classe, detalhadas na auditoria. A Proteção Arcana absorve
 antes das defesas próprias; havendo tipos mistos, a mesa escolhe sua ordem pelas
@@ -235,8 +244,18 @@ anterior, sem reaplicar resistências. Com Proteção Arcana, resolva a absorç�
 primeiro e as defesas do excedente depois; informe a soma da proteção absorvida
 com o dano final que restou para as outras reservas. Na Forma Selvagem, o modo
 por tipo fica indisponível: resistências/estatísticas da besta e excesso entre
-formas continuam na mesa. Itens personalizados, outras magias/reduções,
-resultados de testes de resistência e reações também são resolvidos na mesa.
+formas continuam na mesa. Itens personalizados e outras magias/reduções,
+testes e reações não enumerados na auditoria continuam na mesa.
+
+Se o dano levar de PV positivos a 0 sem morte instantânea, o controle oferece
+**Resistência Implacável** do meio-orc (uma vez por descanso longo) e/ou
+**Fúria Implacável** do bárbaro 11 em Fúria (CON, CD crescente por tentativa,
+restaurada no descanso curto/longo). O teste usa dado físico ou virtual, bônus,
+exaustão e inspiração preparada. No meio-orc bárbaro, pode escolher o uso racial
+como alternativa se o teste falhar. Um sucesso deixa com 1 PV antes de aplicar
+inconsciência; o dano ainda conta para concentração. Os atalhos −1/−5 abrem essa
+escolha antes de descontar um dano elegível. Cancelar preserva os usos e os PV.
+Forma Selvagem, Proteção contra a Morte e outros gatilhos ainda são manuais.
 
 PV temporários protegem a forma de besta antes de seus PV; Proteção Arcana é
 externa a essas reservas. Ajustar Constituição pelos botões da ficha é uma
