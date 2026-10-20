@@ -2,6 +2,14 @@
 
 ## Não lançado
 
+### Alinhamento das ações de armas — 2026-10-20
+
+- Ataque e dano ficam juntos à direita de cada arma nos dois layouts. Descrições
+  longas quebram no espaço disponível; em cartões estreitos, os botões passam
+  juntos para a linha de baixo e continuam alinhados à direita.
+- Conferidos 342 testes Node, build, roteiro de regras no Chromium e alinhamento
+  em 12 combinações dos dois layouts/três temas, desktop e 320 px com fonte GG.
+
 ### Dano por tipo e defesas reconhecidas — 2026-10-20
 
 - O controle de dano detalhado permite escolher a origem e até 13 tipos distintos

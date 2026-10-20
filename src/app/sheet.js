@@ -1989,16 +1989,16 @@ function renderAttacksBlock(char) {
             const validDamage = !!parseDiceFormula(w.damage);
             return `
             <div class="t-inset p-2.5 rounded-lg flex flex-wrap items-center justify-between gap-2 text-xs">
-              <div>
+              <div class="min-w-0 flex-[1_1_12rem] break-words">
                 <div class="flex items-center gap-1.5">
-                  <button class="font-bold underline decoration-dotted text-left" onmouseenter="showEquipmentTooltip(event, 'weapon', ${idx})" onmousemove="positionTooltip(event)" onmouseleave="hideBookTooltip()" onfocus="showEquipmentTooltip(event, 'weapon', ${idx})" onblur="hideBookTooltip()" onclick="showEquipmentTooltip(event, 'weapon', ${idx})" aria-label="Descrição de ${escapeHTML(w.name)}">${escapeHTML(w.name)}</button>
-                  <button onclick="openHomebrewModal('weapon', ${idx})" class="t-text-muted hover:opacity-100" aria-label="Editar ataque ${escapeHTML(w.name)}"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+                  <button class="min-w-0 font-bold underline decoration-dotted text-left" onmouseenter="showEquipmentTooltip(event, 'weapon', ${idx})" onmousemove="positionTooltip(event)" onmouseleave="hideBookTooltip()" onfocus="showEquipmentTooltip(event, 'weapon', ${idx})" onblur="hideBookTooltip()" onclick="showEquipmentTooltip(event, 'weapon', ${idx})" aria-label="Descrição de ${escapeHTML(w.name)}">${escapeHTML(w.name)}</button>
+                  <button onclick="openHomebrewModal('weapon', ${idx})" class="shrink-0 t-text-muted hover:opacity-100" aria-label="Editar ataque ${escapeHTML(w.name)}"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
                 </div>
                 <span class="text-[11px] t-text-muted block">${escapeHTML(w.notes)}${w.critical?` · Crítico ${w.critical}–20`:''}</span>
                 ${w.ruleWeapon && /vers[aá]til/i.test(w.properties || '') ? `<label>Mãos <select data-weapon-hands="${idx}" onchange="setWeaponHands(${idx},this.value)" aria-label="Mãos para ${escapeHTML(w.name)}"><option value="1" ${storedWeapon.hands!==2?'selected':''}>1 mão</option><option value="2" ${storedWeapon.hands===2?'selected':''}>2 mãos</option></select></label>`:''}
                 ${w.extras?.length?`<details><summary>Danos adicionais · condições</summary>${w.extras.map(extra=>`<p><strong>${escapeHTML(extra.name)} ${escapeHTML(extra.formula)}</strong> · ${escapeHTML(extra.condition)}</p>`).join('')}</details>`:''}
               </div>
-              <div class="flex items-center gap-1.5">
+              <div class="ml-auto flex max-w-full shrink-0 flex-wrap items-center justify-end gap-1.5 whitespace-nowrap">
                 <button onclick="rollWeapon(${idx}, 'attack')" class="px-2 py-1 badge-feiticeiro rounded font-bold">
                   Atq ${escapeHTML(w.bonus)}
                 </button>
