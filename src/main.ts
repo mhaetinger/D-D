@@ -16,6 +16,7 @@ import "./app/icons";
 import "./wizard/bridge";
 import "./styles/wizard-guide.css";
 import "./styles/rules.css";
+import "./styles/import-review.css";
 import { initializeRules } from "./rules/bridge";
 import { setupBackups } from "./storage/backup-ui";
 import { registerOffline } from "./pwa/register";

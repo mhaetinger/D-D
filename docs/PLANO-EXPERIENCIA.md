@@ -23,9 +23,12 @@ acompanha a implementação na branch `feature/criacao-guiada`.
   trabalho local como novas fichas. Nunca sobrescrever a coleção da conta.
 - [x] Impedir cópias repetidas em recargas, reconexões e autenticações duplicadas.
   Manter a origem local; só anunciar sincronização após confirmação do serviço.
-- [ ] Importar uma ficha existente a partir de PDF, preservando os campos
+- [x] Importar uma ficha existente a partir de PDF preenchível, com revisão antes
+  de salvar (campos recuperados por página, modelos comuns 2014/2024), preservando os campos
   preenchidos, escolhas manuais, história, magias e anotações antes de oferecer
-  sua cópia à conta confirmada. O PDF do Kael continua fora do Git.
+  sua cópia à conta confirmada. Campos não associados podem ficar nas notas
+  pessoais; escolhas ambíguas exigem revisão. OCR/PDF achatado não implementados.
+  O PDF do Kael continua fora do Git.
 - [x] A ficha pessoal solicitada já foi encontrada na conta indicada em consulta
   pontual de 19/10/2026; a cópia existente foi preservada, sem nova importação ou
   sobrescrita. Dados reais e endereços da conta ficam fora do Git.

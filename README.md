@@ -109,12 +109,36 @@ histórico coletivo antigo é copiado por personagem sem apagar o original.
 
 No perfil local, **Baixar backup** salva suas fichas em JSON. As anotações pessoais
 ficam fora do arquivo por padrão; marque a opção para incluí-las em um backup
-privado. **Importar backup** cria cópias com novos identificadores, mantendo as
+privado. **Importar ficha · PDF / JSON** cria cópias com novos identificadores, mantendo as
 fichas existentes e remapeando as notas incluídas. O limite do arquivo é 20 MB.
 
 Os dados da versão anterior, no mesmo endereço, são lidos e copiados para o
 formato local versionado; a chave antiga é preservada. Se os dados não puderem
 ser lidos, o aplicativo informa o problema e oferece download para recuperação.
+No perfil, a importação de **PDF preenchível** lê os campos localmente, inclusive
+formulários cujos campos só podem ser recuperados por página. Aceita PDF até
+15 MB/20 páginas e conserva a importação de backups JSON do CritCall. Fotos,
+digitalizações e PDFs achatados ainda não têm leitura automática.
+
+Antes de salvar, **Revisar importação** mostra identidade, atributos/PV, classes,
+raça/subclasse, reservas, origem/preparo das magias e armas. Vínculos inequívocos
+são propostos pelo catálogo; ambiguidades exigem escolha. A origem da magia
+fica separada do recurso usado para lançá-la. Raça ou subclasse personalizada
+pode permanecer manual, com aviso aceito e registrado na cópia. Armas do PDF
+mantêm seus valores manuais até o jogador escolher explicitamente o catálogo.
+CA do PDF permanece como total manual, sem somar escudo de novo. Reservas de
+PDF são sugeridas pelas classes: confira os usos atuais antes de confirmar.
+Perícias com bônus escritos mantêm ajustes manuais; confira ao evoluir.
+
+Textos reconhecidos de história/aparência são mantidos na ficha. O texto dos
+campos preenchidos, inclusive os não associados, pode ser incluído nas anotações
+pessoais; há uma opção explícita na revisão. Retratos são enviados depois pelo
+controle de imagens existente. O PDF original não é enviado nem armazenado.
+**Revisar ficha atual como cópia** oferece o mesmo fluxo para fichas antigas,
+preservando a original. Cancelar não importa; trocar de conta cancela a revisão.
+Escolhas de talentos, equipamento e efeitos em texto não são todas reconstruídas
+automaticamente: os avisos da revisão identificam essa parte manual.
+
 Uma importação para substituir dados ilegíveis exige confirmação e guarda uma
 cópia separada. Falhas de quota/permissão são informadas; alterações em memória
 podem ser baixadas antes de fechar. Notas não entram nos snapshots da ficha.

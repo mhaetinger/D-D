@@ -1,7 +1,12 @@
 import { sheetStore } from "./character-store";
 import { MAX_BACKUP_BYTES, parseBackup, type CharacterRecord } from "./validation";
+import { reviewImport } from '../import/review-ui';
+import { readCharacterPdf } from '../import/pdf-reader';
+import { pdfToBackup } from '../import/pdf-character';
 interface SheetHost {
   characters: CharacterRecord[];
+  getChar: () => CharacterRecord;
+  CharacterEngine: Record<string, any>;
   applyImportedCharacters: (characters: CharacterRecord[]) => void;
   openAuthAccountModal: () => void;
   confirmDestructiveAction: (title: string, message: string, label: string) => Promise<boolean>;
@@ -16,6 +21,7 @@ function download(text: string, name: string) {
 export function setupBackups() {
   const exportButton = document.getElementById("exportBackup") as HTMLButtonElement;
   const importButton = document.getElementById("importBackup") as HTMLButtonElement;
+  const reviewButton = document.getElementById('reviewImportedCharacter') as HTMLButtonElement;
   const input = document.getElementById("backupFile") as HTMLInputElement;
   const notes = document.getElementById("backupIncludeNotes") as HTMLInputElement;
   const message = document.getElementById("backupStatus")!;
@@ -47,21 +53,36 @@ export function setupBackups() {
     if (sheetStore.raw !== null) download(sheetStore.raw, "critcall-dados-para-recuperacao.json");
   });
   importButton.addEventListener("click", () => input.click());
+  let importing=false;
+  async function importReviewed(read:()=>Promise<ReturnType<typeof parseBackup>>) {
+    if(importing)return;
+    importing=true;importButton.disabled=true;reviewButton.disabled=true;
+    const importingStore=sheetStore;
+    try {
+      message.textContent='Lendo o arquivo neste navegador…';
+      const backup=await read();
+      if(importingStore!==sheetStore)throw new Error('A conta mudou durante a leitura. Reabra a importação no espaço desejado.');
+      if((document.getElementById('confirmationDialog') as HTMLDialogElement).open)throw new Error('Feche a janela em edição antes de revisar a importação.');
+      const reviewed=await reviewImport(backup,host.CharacterEngine,()=>importingStore===sheetStore);
+      if(!reviewed){message.textContent='Importação cancelada. As fichas existentes foram mantidas.';return;}
+      const replacing=sheetStore.issue?.kind==='invalid';
+      if(replacing && !await host.confirmDestructiveAction('Recuperar fichas de um backup?','Os dados ilegíveis serão guardados separadamente antes de importar as cópias revisadas.','Importar cópias revisadas'))return;
+      if(importingStore!==sheetStore)throw new Error('A conta mudou durante a revisão. Nenhuma ficha foi importada.');
+      const combined=sheetStore.importCopies(reviewed,host.characters,replacing);
+      host.applyImportedCharacters(combined);
+      message.textContent=`${reviewed.characters.length} personagem(ns) importado(s) como cópias revisadas. Suas fichas anteriores foram mantidas.`;
+    }catch(error){message.textContent=(error as Error).message;}
+    finally {importing=false;importButton.disabled=false;reviewButton.disabled=false;}
+  }
+  reviewButton.addEventListener('click',()=>void importReviewed(async()=>{const c=host.getChar();if(!c)throw new Error('Não há uma ficha atual para revisar.');return sheetStore.backup([c],true);}));
   input.addEventListener("change", async () => {
     const file = input.files?.[0];
     input.value = "";
     if (!file) return;
-    const importingStore = sheetStore;
-    try {
+    await importReviewed(async()=>{
       if (file.size > MAX_BACKUP_BYTES) throw new Error("O backup deve ter até 20 MB. Nenhum dado foi alterado.");
-      const backup = parseBackup(await file.text());
-      if (importingStore !== sheetStore) throw new Error("A conta mudou durante a leitura. Importe novamente no espaço desejado.");
-      const replacing = sheetStore.issue?.kind === "invalid";
-      if (replacing && !await host.confirmDestructiveAction("Recuperar fichas de um backup?", "Os dados que não puderam ser lidos serão guardados separadamente neste navegador. Depois, as fichas deste backup serão importadas. Você também pode baixar os dados originais antes de continuar.", "Importar backup")) return;
-      if (importingStore !== sheetStore) throw new Error("A conta mudou durante a confirmação. Nenhuma ficha foi importada.");
-      const combined = sheetStore.importCopies(backup, host.characters, replacing);
-      host.applyImportedCharacters(combined);
-      message.textContent = `${backup.characters.length} personagem(ns) importado(s) como cópias. Suas fichas anteriores foram mantidas.`;
-    } catch (error) { message.textContent = (error as Error).message; }
+      const pdf=file.type==='application/pdf'||/\.pdf$/i.test(file.name)||(await file.slice(0,1024).text()).includes('%PDF-');
+      return pdf?pdfToBackup(await readCharacterPdf(file),host.CharacterEngine):parseBackup(await file.text());
+    });
   });
 }

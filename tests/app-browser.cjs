@@ -5,6 +5,7 @@ const os = require("node:os");
 const { chromium } = require(process.env.DND_PLAYWRIGHT_MODULE || "playwright");
 const { serve } = require("./serve.cjs");
 const { warrior } = require("./fixture.cjs");
+const {confirmImportReview}=require('./import-confirmation.cjs');
 const LEGACY = "dnd_sheet_public_v1", KEY = "critcall_characters_v1", NOTES = "dnd_player_private_notes_v1";
 async function downloadBackup(page) {
   const pending = page.waitForEvent("download");
@@ -13,7 +14,9 @@ async function downloadBackup(page) {
   return JSON.parse(fs.readFileSync(await download.path(), "utf8"));
 }
 async function importBackup(page, value) {
+  await page.waitForFunction(()=>!document.getElementById('importBackup').disabled);
   await page.locator("#backupFile").setInputFiles({ name: "fichas.json", mimeType: "application/json", buffer: Buffer.from(typeof value === "string" ? value : JSON.stringify(value)) });
+  if(typeof value==='object')await confirmImportReview(page);
 }
 (async () => {
   const server = await serve(process.env.DND_TEST_ROOT || path.join(__dirname, "../dist"));
@@ -95,8 +98,8 @@ async function importBackup(page, value) {
     importedResources.standardSlots[1] = { used: 0, total: 1 };
     importedResources.coins[resourceMarkup] = resourceMarkup;
     importedResources.spells = [
-      { name: 'Usos importados', circle: 1, classId: 'feiticeiro', limitedUse: resourceMarkup },
-      { name: 'Custo importado', circle: 1, classId: 'feiticeiro', limitedUse: 1, canTwin: true, castLevel: resourceMarkup },
+      { name: 'Usos importados '+resourceMarkup, circle: 1, classId: 'guerreiro', limitedUse: 1, usesUsed:0, extraSource:'Talento fictício', castingAbility:'int' },
+      { name: 'Custo importado', circle: 1, classId: 'guerreiro', limitedUse: 1, usesUsed:0, extraSource:'Talento fictício', castingAbility:'int', canTwin: true, castLevel: resourceMarkup },
     ];
     importedResources.rules.history.push({ classId: 'feiticeiro', level: 3, answers: { metamagic: ['Magia Duplicada'] } });
     await importBackup(page, hostile);

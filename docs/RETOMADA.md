@@ -15,15 +15,25 @@ Não mesclar/publicar esta revisão sem aprovação. A branch remota `develop`
 foi restaurada após a entrega na referência de integração já aprovada
 `b1155fbc5d14a566f548814bd808374aa2383721`, merge da PR #7.
 
-**Próxima prioridade após a conferência de importações:** implementar auditoria
-de vínculos das fichas legadas antes de ampliar mecânicas. Foram reproduzidos,
-em dois backups pessoais fora do Git, vínculos raciais ausentes, identificador
-de subclasse não canônico, magia sem preparo/origem adicional confirmada e arma
-genérica em modo manual. Estrutura válida não equivale a integração completa.
-Resultados e contratos em [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md),
-seção de compatibilidade de fichas importadas. Conferidos motor e navegador
-isolado sob `/D-D/`; não se consultou/alterou o estado atual das contas.
-Não converter escolhas ambíguas automaticamente nem sobrescrever dados pessoais.
+**Importação revisada implementada:** perfil aceita PDFs preenchíveis (15 MB,
+20 páginas) e backups JSON. `src/import/` lê campos por página com PDF.js local,
+propõe vínculos em cópia e abre revisão comum de identidade/classes/raça,
+atributos/PV, reservas, origens/preparo e armas. Campos obrigatórios ausentes e
+origens ambíguas exigem escolha. Caixas de texto do PDF permanecem na ficha ou,
+se incluídas, nas notas pessoais; PDF/imagens não são enviados pelo importador.
+Retratos usam o fluxo de imagens existente. OCR/fotos/PDF achatado não suportados.
+Valores manuais/CA são preservados; armas só mudam para catálogo por escolha.
+Reservas sugeridas e usos precisam ser conferidos. A ação **Revisar ficha atual
+como cópia** recupera vínculos de importações antigas sem sobrescrever originais.
+Persistência continua em `CharacterStore.importCopies`, com IDs novos e guarda
+de espaço após cada etapa assíncrona. Avisos manuais ficam em `rules.importReview`.
+Primeira etapa da compatibilidade registrada em [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md).
+Verificação: 368 testes Node, tipos/build, Chromium de importação/aplicação/auth/
+sync com HTTP simulado; PDF na raiz e `/D-D/`, offline/quota/conta/cancelamento,
+campos ausentes/origem ambígua/texto seguro e 320px/GG/três temas. Conferidos
+dois PDFs reais com revisão cancelada, sem alterar/importar fichas pessoais.
+Próxima ampliação: revisão assistida de equipamento/talentos/escolhas de classe
+que os PDFs só descrevem em texto; não anunciar reconstrução integral dessas escolhas.
 
 **Ajuste atual de magias:** Só Pool bloqueia conjuração/ritual antes de qualquer
 gasto/efeito/histórico, inclusive ao retomar confirmação após trocar o modo.

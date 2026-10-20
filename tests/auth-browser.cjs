@@ -1,4 +1,5 @@
 // Usa o SDK real com respostas HTTP controladas; nunca cria usuários reais.
+const {confirmImportReview}=require('./import-confirmation.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -132,6 +133,7 @@ async function verify(prefix) {
     assert.equal(await page.evaluate(() => characters.length), 0, 'o histórico anterior não atravessa a conta');
     const imported = { format: 'critcall.character-backup', version: 1, exportedAt: new Date().toISOString(), characters: [{ ...guest, name: 'Ficha da conta A' }], privateNotes: { [guest.id]: 'Nota da conta A' } };
     await page.locator('#backupFile').setInputFiles({ name: 'teste.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(imported)) });
+    await confirmImportReview(page);
     await page.waitForFunction(() => characters.length === 1);
     const idA = await page.evaluate(() => getChar().id);
     await page.evaluate(() => closeAuthAccountModal());
@@ -325,6 +327,7 @@ async function verify(prefix) {
     await login('a@example.test');
     await page.waitForFunction((id) => getChar()?.id === id, idA);
     await page.locator('#backupFile').setInputFiles({ name: 'copia.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(imported)) });
+    await confirmImportReview(page);
     await page.waitForFunction(() => characters.length === 2);
     await page.evaluate(() => { void deleteCharacter(0); });
     await page.locator('#confirmationDialog[open]').waitFor();

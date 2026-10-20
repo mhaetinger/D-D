@@ -586,10 +586,12 @@
         <button id="downloadRecovery" type="button" class="t-inset px-3 py-2 rounded text-xs" hidden>Baixar dados para recuperação</button>
         <div class="grid grid-cols-2 gap-2">
           <button id="exportBackup" type="button" class="t-inset px-3 py-2 rounded font-bold text-xs">Baixar backup</button>
-          <button id="importBackup" type="button" class="t-inset px-3 py-2 rounded font-bold text-xs">Importar backup</button>
-          <input id="backupFile" type="file" accept=".json,application/json" hidden />
+          <button id="importBackup" type="button" class="t-inset px-3 py-2 rounded font-bold text-xs">Importar ficha · PDF / JSON</button>
+          <button id="reviewImportedCharacter" type="button" class="t-inset px-3 py-2 rounded font-bold text-xs">Revisar ficha atual como cópia</button>
+          <input id="backupFile" type="file" accept=".pdf,.json,application/pdf,application/json" hidden />
         </div>
         <label class="flex items-center gap-2 text-xs"><input id="backupIncludeNotes" type="checkbox" /> Incluir anotações pessoais</label>
+        <p class="text-xs t-text-muted">Importe PDFs preenchíveis de até 15 MB / 20 páginas ou backups JSON do CritCall. Você revisa os dados antes de salvar. Fotos e PDFs achatados ainda não têm leitura automática.</p>
         <p class="text-xs t-text-muted">A importação cria cópias e mantém as fichas que já estão aqui.</p>
         <p id="backupStatus" class="text-xs" role="status"></p>
       </section>

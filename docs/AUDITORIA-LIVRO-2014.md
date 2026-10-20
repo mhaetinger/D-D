@@ -255,7 +255,7 @@ conferência não representa o estado atual de uma conta ou do navegador do joga
 - Textos importados de características podem divergir dos recursos calculados.
   O texto deve ser preservado, com a divergência apontada para revisão.
 
-**Próxima prioridade:** auditoria de vínculos na importação e nas fichas legadas,
+**Contrato adotado para a importação:** auditoria de vínculos na importação e nas fichas legadas,
 com identificação da origem real (classe, raça, talento ou outra característica).
 Separar vínculos confirmados, aliases conhecidos e decisões ausentes/ambíguas.
 Exibir problemas e permitir revisão sem bloquear a leitura ou sobrescrever
@@ -269,8 +269,26 @@ Verificações executadas: validação estrutural e chamadas ao motor em cópias
 memória; abertura dos dois backups em contextos Chromium isolados sob `/D-D/`,
 com chamadas externas bloqueadas. Conferidos cartões de magias, vínculo de arma,
 variação do dano em Fúria e disponibilidade dos recursos/defesas pertinentes.
-Nenhum dado foi alterado nos arquivos pessoais ou em contas. Não houve mudança
-de código de execução, SQL ou migração nesta conferência.
+Nenhum dado foi alterado nos arquivos pessoais ou em contas. Essa conferência
+inicial foi somente diagnóstica, sem SQL ou migração.
+
+**Entrega seguinte implementada:** `src/import/` lê PDFs preenchíveis, inclusive
+widgets recuperáveis por página em formulários comuns 2014/2024, e abre revisão
+também para backups JSON e ficha atual. Vínculos são propostos em cópia; origem
+ambígua, atributos ausentes e escolhas necessárias não viram valores definitivos
+sem revisão. Armas, CA e bônus escritos podem permanecer manuais. Textos extras
+podem ser guardados nas notas pessoais. A importação gera IDs novos pelo contrato
+existente, com cancelamento, recuperação e troca de conta preservados.
+O original PDF e os retratos não são enviados pelo importador. Fotos/OCR/PDF
+achatado não são suportados. Escolhas de talentos, equipamento e características
+em prosa continuam na revisão manual; não se certifica reconstrução integral.
+
+Verificação da entrega: 368 testes Node, tipos/build e roteiros Chromium de
+importação, aplicação, autenticação e sincronização aprovados; autenticação em
+`/` e `/D-D/`, SDK real com HTTP simulado. A importação foi conferida nas duas
+bases de URL e offline, com falha de quota/conta/cancelamento, texto não executável,
+origem ambígua, campos ausentes e três temas/320px/GG. Dois PDFs pessoais foram
+lidos na tela nova e a revisão cancelada, sem importar ou alterar dados reais.
 
 ## Fonte, método e limites
 

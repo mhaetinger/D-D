@@ -1,0 +1,23 @@
+#confirmationDialog.import-review-open { width:min(56rem,calc(100vw - 1.5rem)); }
+#confirmationDialog.import-review-open form { display:flex; flex-direction:column; gap:.65rem; max-height:calc(100dvh - 5rem); }
+#confirmationDialog.import-review-open form > * { margin-top:0; }
+#confirmationDialog.import-review-open #confirmationExtra { flex:1; min-height:0; overflow:auto; overscroll-behavior:contain; }
+.import-review { display:flex; flex-direction:column; gap:.7rem; }
+[data-import-body] { padding:.15rem .4rem .15rem .1rem; }
+.import-review details { border:1px solid var(--border-main); border-radius:.4rem; padding:.6rem; margin-bottom:.6rem; }
+.import-review summary { cursor:pointer; font-weight:700; margin-bottom:.45rem; }
+.import-grid, .import-class-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr)); gap:.6rem; margin:.5rem 0; }
+.import-review label { display:flex; flex-direction:column; gap:.25rem; min-width:0; font-size:.85rem; }
+.import-review input, .import-review select, .import-review textarea { width:100%; min-width:0; }
+.import-review .import-check { display:flex; flex-direction:row; align-items:center; gap:.5rem; }
+.import-review .import-check input { width:1rem; height:1rem; flex:none; margin:0; }
+.import-entry { padding:.6rem 0; border-bottom:1px solid var(--border-main); }
+.import-entry strong { overflow-wrap:anywhere; }
+[data-import-error]:not(:empty) { padding:.45rem; border:2px solid var(--text-accent); font-weight:700; }
+[data-import-status] { font-size:.8rem; }
+.import-review [hidden] { display:none; }
+@media (max-width:640px) {
+  #confirmationDialog.import-review-open { padding:.8rem; }
+  #confirmationDialog.import-review-open form { max-height:calc(100dvh - 3.5rem); }
+  #confirmationDialog.import-review-open #confirmationMessage { font-size:.85rem; line-height:1.35; }
+}

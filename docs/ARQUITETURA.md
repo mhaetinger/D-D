@@ -13,6 +13,7 @@ fichas locais. Não foi adotado um novo framework de interface nesta etapa.
 | `src/app/sheet.js` | Interface anterior extraída, ainda com ponte global para eventos dos cartões/assistentes. |
 | `src/styles/` | Tailwind compilado e estilos/temas preservados. |
 | `src/storage/` | Formato/validação de fichas, migração local, backup, importação e recuperação. |
+| `src/import/` | Leitura local de PDF, proposta de vínculos e revisão comum de PDF/backups/ficha atual antes de criar cópias. |
 | `src/auth/` | Configuração pública, sessão Supabase, entrada principal e interface de cadastro/recuperação/perfil. |
 | `src/sync/` | Documentos pessoais, fila IndexedDB, cliente Supabase, datas e recuperação de versões. |
 | `supabase/migrations/` | Tabelas/RLS/RPC de salvamento pessoal; migração aplicada ao CritCall real em 16/10/2026. |
@@ -29,6 +30,38 @@ Os scripts clássicos de regras permanecem compatíveis com Node para seus teste
 A ponte em `sheet.js` conserva os eventos existentes durante a extração; novos
 módulos devem usar APIs explícitas e listeners, reduzindo essa ponte aos poucos.
 Regras não devem depender de DOM, armazenamento ou rede.
+
+## Importação revisada
+
+`pdf-reader.ts` usa o PDF.js local fixado do leitor, com worker/recursos relativos
+ao endereço do aplicativo (raiz ou `/D-D/`). Recupera widgets por página mesmo
+quando a árvore AcroForm não expõe seus campos. Não executa ações/JavaScript,
+links ou anexos, não lê pixels de retratos e não envia o PDF. Limites: 15 MB,
+20 páginas, 4.000 campos, nome até 512 caracteres, valor até 100.000 e texto
+agregado até 2 milhões; carregamento interrompido após 25 segundos. PDF sem
+campos preenchidos é recusado com orientação; OCR/PDF achatado não implementados.
+
+`pdf-character.ts` associa nomes dos formulários comuns 2014/2024 ao contrato
+atual, mantendo regras de 2014. Atributo/nível/valor obrigatório ausente exige
+revisão; não vira um personagem pronto com valores inventados. Magias usam o
+catálogo por ID/nome/aliases e deixam origem ambígua vazia. CA é o total manual
+do arquivo; não se duplica escudo. Bônus de perícias e ataques escritos são
+preservados; arma só passa a cálculo automático por escolha explícita. Reservas
+são propostas por classe sem confundir Pacto com Conjuração; os usos são
+conferidos na revisão. História/aparência mapeadas ficam na ficha e campos
+adicionais podem ser guardados como texto em `privateNotes`, nunca pixels ou PDF.
+
+`character-review.ts` propõe correções inequívocas em clone de `Backup`, sem
+reescrever sua origem. Não infere sub-raça/juramento/preparo ausentes; confere
+origem especial/habilidade, usos, preparo e recursos. `review-ui.ts` reutiliza
+confirmação, foco e rolagem existentes, sem recriar linhas ao mudar opções.
+Permite manter vínculos manuais com aceite dos avisos, registrados em
+`rules.importReview`. Só edita a proposta; a persistência continua exclusivamente
+em `CharacterStore.importCopies`, com IDs novos e notas separadas. Notas do
+arquivo são opcionais na revisão. A identidade de `sheetStore` é conferida
+após leitura, revisão e recuperação; troca de espaço fecha o editor existente.
+Seleção de outro personagem na revisão não recalcula suas reservas. A ação de
+revisar a ficha atual também gera cópia, sem migrar a coleção em silêncio.
 
 ## Entrada e apresentação
 

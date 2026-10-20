@@ -2,6 +2,24 @@
 
 ## Não lançado
 
+### Importação de PDF e revisão de vínculos — 2026-10-20
+
+- Perfil aceita PDF preenchível e backups JSON com revisão antes de importar.
+  Leitor local recupera campos por página em formulários 2014/2024, com limites
+  de tamanho/páginas/campos/tempo; fotos e PDFs achatados não têm OCR.
+- A revisão reúne identidade, classes, raça/subclasse, atributos/PV, reservas,
+  origem/preparo das magias e cálculo das armas. Propõe aliases inequívocos e
+  exige confirmar ambiguidades; escolhas manuais ficam identificadas na cópia.
+- Campos adicionais do PDF podem ser preservados nas notas pessoais. Texto é
+  tratado como dado; retratos/PDF original não são embutidos. CA/ataques/perícias
+  escritos são preservados, e o catálogo de armas só é ativado por escolha.
+- Revisar a ficha atual também cria cópia. Cancelamento, troca de conta,
+  recuperação e falha de quota preservam a coleção anterior. Sem SQL/migração.
+- Conferidos 368 testes Node, tipos/build e Chromium de importação/aplicação/
+  autenticação/sincronização; SDK real com HTTP simulado, raiz e `/D-D/`, PDF
+  offline, quota/conta/cancelamento, texto não executável e 320px/GG/três temas.
+  Leitura de dois PDFs reais conferida em contextos isolados, sem importar.
+
 ### Conferência de importações legadas — 2026-10-20
 
 - Registrada auditoria pontual de compatibilidade e próxima prioridade em

@@ -1,4 +1,5 @@
 // SDK e duas instalações de navegador reais; somente o HTTP do Supabase é simulado.
+const {confirmImportReview}=require('./import-confirmation.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -114,6 +115,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     const char=warrior();
     const backup={format:'critcall.character-backup',version:1,exportedAt:new Date().toISOString(),characters:[char],privateNotes:{[char.id]:'Nota particular sincronizada'}};
     await a.page.locator('#backupFile').setInputFiles({name:'teste.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(backup))});
+    await confirmImportReview(a.page);
     await a.page.waitForFunction(()=>characters.length===1); await a.sync();
     const id=await a.page.evaluate(()=>getChar().id);
     await a.page.evaluate(()=>{closeAuthAccountModal();});
@@ -225,6 +227,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     const copied={format:'critcall.character-backup',version:1,exportedAt:new Date().toISOString(),characters:[source]};
     await a.page.evaluate(()=>openAuthAccountModal());
     await a.page.locator('#backupFile').setInputFiles({name:'copia.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(copied))});
+    await confirmImportReview(a.page);
     await a.page.waitForFunction(()=>characters.length===2);
     const copyId=await a.page.evaluate(id=>characters.find(char=>char.id!==id).id,source.id);
     await uploadPhoto(a.page,`#accountCharactersList [data-avatar-edit="${copyId}"]`);
