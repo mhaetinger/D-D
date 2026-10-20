@@ -84,7 +84,12 @@ leitura 1rem, apoio .875rem, rótulos .8125rem e títulos 1.0625rem. Nome e núm
 de combate têm destaque próprio. Não altera a escala global P/M/G/GG nem o livro,
 login ou diálogos independentes. Classes reutilizam `CLASS_BADGE_STYLES` e suas
 cores por tema; o cartão guarda os mesmos controles e a subclasse visível.
-Cabeçalho usa grade para identidade e cartões com rótulos alinhados. CA e movimento
+Cabeçalho usa grade para identidade e uma faixa própria para as classes. Subclasse
+longa usa resumo de uma linha, aberto para leitura completa; no celular os dados
+de identidade viram linhas compactas. `app/compact-topbar.ts` recolhe preferências
+no celular e as abre no desktop, preservando o controle com foco ao reduzir a
+largura. Não recria nós nem grava esse estado no documento.
+CA e movimento
 agrupam valor/unidade para conservar as três linhas do cartão de combate; spans de
 leitura e inputs recebem a mesma hierarquia. Em telas pequenas, atributos clássicos
 passam a uma grade acima das proficiências. Botões de magia aceitam a altura do texto.
@@ -101,6 +106,10 @@ capturado dos controles vem do DOM, impedindo transferir um rascunho ao trocar d
 ficha. Fórmula/bônus de defesa são ajustes; efeitos recebidos e condições são jogo.
 As guardas também cobrem a ponte antiga e confirmações após espera. Histórico,
 equipar, loja, preparar e usar recursos continuam disponíveis com o cadeado fechado.
+Evolução guiada também usa `canEditSheet`, independente do cadeado: abertura e
+confirmação revalidam a autoridade. `commitLeveledCharacter` recusa IDs diferentes
+da ficha selecionada e retorna `false` nas recusas. O assistente conserva seu
+rascunho e permanece aberto nesse caso, inclusive no preparo de magias.
 
 `sheet-edit/model.ts` cria propostas para caminhos explicitamente permitidos;
 valida formato, números, classes, fórmulas e vínculos sem refazer a ficha pelo

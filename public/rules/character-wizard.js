@@ -1606,14 +1606,13 @@
           )
             s.prepared = values.includes(s.bookId || E.spell(s.name)?.id);
         });
-        root.commitLeveledCharacter(char, "Atualizou magias preparadas");
+        if (root.commitLeveledCharacter(char, "Atualizou magias preparadas") === false) return;
       } else if (draft.mode === "create")
         root.commitCreatedCharacter(E.create(draft.setup, draft.answers));
-      else
-        root.commitLeveledCharacter(
+      else if (root.commitLeveledCharacter(
           E.levelUp(draft.char, draft.classId, draft.answers, draft.hpRoll),
           `${E.multiclassEligibility(draft.char, draft.classId).adding ? "Adicionou" : "Evoluiu"} ${D.classes[draft.classId].name}`,
-        );
+        ) === false) return;
       const creating = draft.mode === "create";
       close(true);
       if (creating) guide().completeDraft();

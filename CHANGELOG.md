@@ -2,6 +2,22 @@
 
 ## Não lançado
 
+### Cabeçalho compacto e evolução protegida — 2026-10-20
+
+- Classes ocupam uma faixa própria e compacta, com cores e subclasse. Texto
+  longo não aumenta o cartão inteiro: o resumo abre para leitura completa.
+  Nome/retrato e conjuração ficam separados dos dados de identidade.
+- No celular, raça/antecedente/tendência/nível usam linhas compactas. Visual e
+  dados começam recolhidos; os controles permanecem acessíveis e montados.
+  Redimensionar mantém aberto um controle de preferência que esteja com foco.
+- Upar abre e aplica a evolução mesmo com o cadeado fechado, sem liberar os
+  campos de ajuste. Confere permissão ao abrir e confirmar; recusa uma proposta
+  de outra ficha. Recusa mantém o assistente e suas escolhas abertos.
+- Conferidos 385 testes Node, tipos/build e cinco scripts Chromium: tipografia,
+  cadeado, criação, edição em linha e aplicação. Incluem evolução com proteção,
+  revogação antes da confirmação, mestre/jogador, subclasse longa, 320/390/768/1140px,
+  M/GG/três temas/dois layouts, foco/rascunhos e evolução offline.
+
 ### Leitura e reservas na revisão de importação — 2026-10-20
 
 - Revisão com texto principal e campos de 16px em M, rótulos de 15px e títulos

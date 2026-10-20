@@ -21,6 +21,15 @@ fluxo antigo de Criar/Ajustar ficha manual pelo perfil. A conexão foi recuperad
 a implementação `fe2dc66` foi enviada em 20/10 e a [PR #9](https://github.com/mhaetinger/D-D/pull/9)
 foi atualizada com base `develop`. Não houve merge/publicação desta etapa.
 
+**Cabeçalho compacto e Upar com cadeado fechado:** classes têm faixa própria,
+subclasse longa abre para leitura e identidade vira linhas no celular. Preferências
+ficam em Visual e dados, recolhidas em tela pequena; resize conserva o foco.
+Upar usa autorização de edição na abertura/confirmação, sem destravar campos.
+Recusa da confirmação mantém escolhas abertas; IDs diferentes são rejeitados.
+Conferidos 385 testes Node, tipos/build e Chromium de tipografia, cadeado, criação,
+edição em linha e aplicação: M/GG, três temas/dois layouts, 320/390/768/1140px,
+rascunhos/foco, evolução protegida, revogação, mestre/jogador e evolução offline.
+
 **Revisão de importação mais legível e compacta:** texto/campos 16px em M,
 rótulos 15px e títulos distintos. `src/import/pool-fields.ts` recolhe reservas
 zeradas; Conjuração/Pacto/Feitiçaria têm aberturas independentes. Dados inválidos

@@ -287,7 +287,7 @@
         class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-1.5"
       >
         <!-- Conta + Seletor de Personagem + Botão Novo + Undo/Redo -->
-        <div class="flex flex-wrap items-center gap-1">
+        <div class="app-account-bar flex flex-wrap items-center gap-1">
           <button id="accessReturnHome" type="button" class="t-inset px-2 py-1 rounded-md text-[11px] font-bold">← Tela inicial</button>
           <button
             onclick="openAuthAccountModal()"
@@ -354,6 +354,8 @@
         </div>
 
         <!-- Preferências do usuário: cores, textura, fonte e dados. -->
+        <details class="app-preferences" open>
+        <summary>Visual e dados</summary>
         <div class="flex flex-wrap items-center gap-1">
           <div class="flex items-center t-inset p-0.5 rounded-md text-[11px]" role="group" aria-label="Cores da ficha">
             <button
@@ -446,9 +448,10 @@
             </button>
           </div>
         </div>
+        </details>
 
         <!-- Ações Rápidas -->
-        <div class="flex items-center gap-1">
+        <div class="app-quick-actions flex items-center gap-1">
           <button
             onclick="shortRest()"
             class="t-inset t-text-main hover:opacity-80 text-[11px] px-2 py-1 rounded-md font-semibold"

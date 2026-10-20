@@ -1369,10 +1369,13 @@ function commitCreatedCharacter(char) {
   showToast(`Personagem ${char.name} criado!`);
 }
 function commitLeveledCharacter(char, action) {
-  if(!requireSheetConfiguration())return;
+  // Evolução é uma ação confirmada do jogo; o cadeado protege ajustes livres.
+  if(!requireSheetEdit())return false;
+  if(char.id!==getChar()?.id){showToast('A ficha selecionada mudou. Reabra a evolução na ficha desejada.');return false;}
   characters[activeCharIndex] = char;
   recordStepAndSave(action, true);
   showToast(action);
+  return true;
 }
 
 // =========================================================================
@@ -2283,11 +2286,12 @@ function renderAll() {
   document.querySelectorAll('[data-sheet-add-class],[data-sheet-remove-class],[data-sheet-circle],[data-sheet-show-pool]').forEach(el=>{el.hidden=!canConfigureSheet(char);el.disabled=!canConfigureSheet(char);});
   document.querySelectorAll('[data-sheet-armor],[data-sheet-expertise],[data-rule-ac],[data-rule-defense],[data-rule-companion="name"],[data-rule-companion="max"]').forEach(el=>el.disabled=!canConfigureSheet(char));
   document.querySelectorAll('[onclick]').forEach(el=>{
-    const action=el.getAttribute('onclick')||'',configuration=/\b(?:changeAbility|toggleSave|toggleSkill|openHomebrewModal|openSpellEditor|openLevelUpModal)\(/.test(action);
-    if(configuration||/\b(?:toggleWornArmor|undoStep|redoStep|restoreToSessionStart)\(/.test(action)){
+    const action=el.getAttribute('onclick')||'',configuration=/\b(?:changeAbility|toggleSave|toggleSkill|openHomebrewModal|openSpellEditor)\(/.test(action);
+    if(configuration||/\b(?:toggleWornArmor|undoStep|redoStep|restoreToSessionStart|openLevelUpModal)\(/.test(action)){
       const allowed=configuration?canConfigureSheet(char):canEditSheet(char);
       if('disabled' in el)el.disabled=!allowed;el.setAttribute('aria-disabled',String(!allowed));
-      if(configuration&&el.tagName==='BUTTON'&&!action.includes('openLevelUpModal'))el.hidden=!allowed;
+      if(configuration&&el.tagName==='BUTTON')el.hidden=!allowed;
+      if(action.includes('openLevelUpModal'))el.title=allowed?'Evoluir personagem':'Edição bloqueada pelo mestre.';
       if(configuration&&!allowed)el.title=canEditSheet(char)?'Abra o cadeado para editar a ficha.':'Edição bloqueada pelo mestre.';
     }
   });
@@ -2330,14 +2334,15 @@ function resumeSavedDraftIfNeeded() {
 function renderHeader(char, isModern) {
   const totalLvl = getTotalLevel(char);
   const pb = getProfBonus(char);
-  const classChips = char.classes.map((c,i)=>`<div class="sheet-class-chip ${RULES_DB.classes[c.classId]?.badgeColor||'t-inset'}"><div class="sheet-class-main">${sheetSelect(char,`classes.${i}.classId`,c.classId,`Classe ${i+1}`,Object.fromEntries(Object.entries(PHB_DATA.classes).map(([id,v])=>[id,v.name])))}<span class="sheet-class-level">Nv. ${sheetInput(char,`classes.${i}.level`,c.level,`Nível de ${RULES_DB.classes[c.classId]?.name}`,'number',{min:1,max:20})}</span><button type="button" data-sheet-remove-class="${i}" aria-label="Remover ${RULES_DB.classes[c.classId]?.name}" ${char.classes.length<2||!canConfigureSheet(char)?'disabled':''}>×</button></div><details class="sheet-class-subclass" data-sheet-section="subclass-${i}"><summary>${escapeHTML(c.subclass||(canConfigureSheet(char)?'Escolher subclasse':'Sem subclasse definida'))}</summary>${sheetSelect(char,`classes.${i}.subclassId`,c.subclassId||'',`Subclasse de ${RULES_DB.classes[c.classId]?.name}`,{'':'Livre / a escolher',...Object.fromEntries(Object.entries(PHB_DATA.classes[c.classId]?.subclasses||{}).map(([id,v])=>[id,v.name]))})}${!c.subclassId?sheetInput(char,`classes.${i}.subclass`,c.subclass,'Subclasse escrita','text',{wide:true}):''}</details></div>`).join('')+`<button type="button" data-sheet-add-class ${canConfigureSheet(char)?'':'disabled'} class="text-xs underline">+ Classe</button>`;
+  const classChips = char.classes.map((c,i)=>`<div class="sheet-class-chip ${RULES_DB.classes[c.classId]?.badgeColor||'t-inset'}"><div class="sheet-class-main">${sheetSelect(char,`classes.${i}.classId`,c.classId,`Classe ${i+1}`,Object.fromEntries(Object.entries(PHB_DATA.classes).map(([id,v])=>[id,v.name])))}<span class="sheet-class-level">Nv. ${sheetInput(char,`classes.${i}.level`,c.level,`Nível de ${RULES_DB.classes[c.classId]?.name}`,'number',{min:1,max:20})}</span><button type="button" data-sheet-remove-class="${i}" aria-label="Remover ${RULES_DB.classes[c.classId]?.name}" ${char.classes.length<2||!canConfigureSheet(char)?'disabled':''}>×</button></div><details class="sheet-class-subclass" data-sheet-section="subclass-${i}"><summary title="${escapeHTML(c.subclass||'Subclasse a escolher')}">${escapeHTML(c.subclass||'Subclasse a escolher')}</summary>${sheetSelect(char,`classes.${i}.subclassId`,c.subclassId||'',`Subclasse de ${RULES_DB.classes[c.classId]?.name}`,{'':'Livre / a escolher',...Object.fromEntries(Object.entries(PHB_DATA.classes[c.classId]?.subclasses||{}).map(([id,v])=>[id,v.name]))})}${!c.subclassId?sheetInput(char,`classes.${i}.subclass`,c.subclass,'Subclasse escrita','text',{wide:true}):''}</details></div>`).join('')+`<button type="button" data-sheet-add-class ${canConfigureSheet(char)?'':'disabled'} class="text-xs underline">+ Classe</button>`;
   const draftInfo = getSavedDraftInfo();
   const draftBanner = draftInfo
     ? `<div class="t-inset px-2.5 py-1.5 rounded-lg mb-2 flex flex-wrap items-center justify-between gap-2 text-xs" data-draft-banner><span><strong>Criação em andamento:</strong> ${escapeHTML(draftInfo.name)}${draftInfo.summary ? ` (${escapeHTML(draftInfo.summary)})` : ''} · Etapa ${draftInfo.stepIndex + 1} de 7 (${escapeHTML(draftInfo.stepLabel)})</span><div class="flex flex-wrap items-center gap-1.5"><button type="button" class="t-btn-primary px-2.5 py-1 rounded font-bold" onclick="openNewCharacterModal()">Continuar de onde parou</button><button type="button" class="t-card px-2.5 py-1 rounded font-bold text-rose-500 border t-border" onclick="CharacterWizard.discardDraft()">Descartar rascunho</button></div></div>`
     : "";
 
   const headerEl = document.getElementById("headerSection");
-  headerEl.className = "px-3 py-2.5 t-card-accent";
+  headerEl.className = "px-3 py-2 t-card-accent";
+  headerEl.dataset.editing=String(canConfigureSheet(char));
   headerEl.innerHTML = `${draftBanner}
   <div class="sheet-header-layout">
     <div class="sheet-header-person">
@@ -2346,10 +2351,9 @@ function renderHeader(char, isModern) {
         <div class="sheet-header-meta t-text-muted">D&D 5e · Jogador: ${sheetInput(char,'playerName',char.playerName,'Jogador')}${canEditSheet(char)?'':' · Edição bloqueada pelo mestre'}</div>
         <div class="sheet-header-name">
           ${sheetInput(char,'name',char.name,'Nome do personagem','text',{wide:true})}
-          ${getSpellcastingHeader(char)?`<div class="sheet-casting-summary t-text-muted">${getSpellcastingHeader(char)}</div>`:""}
-          <div class="sheet-header-classes">${classChips}</div>
         </div>
       </div>
+      ${getSpellcastingHeader(char)?`<div class="sheet-casting-summary t-text-muted">${getSpellcastingHeader(char)}</div>`:""}
     </div>
     <div class="sheet-header-facts">
       <div class="sheet-identity-card t-inset">
@@ -2375,6 +2379,7 @@ function renderHeader(char, isModern) {
         </div>
       </div>
     </div>
+    <div class="sheet-header-classes">${classChips}</div>
   </div>
 `;
 }
@@ -3193,7 +3198,7 @@ function buyItem(itemId) {
 }
 
 function openLevelUpModal() {
-  if(!requireSheetConfiguration())return;
+  if(!requireSheetEdit())return;
   CharacterWizard.openLevel();
 }
 function closeLevelUpModal() { return CharacterWizard.close(); }

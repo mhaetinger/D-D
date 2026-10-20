@@ -65,6 +65,9 @@ A ficha mantém cores por classe, com a subclasse visível. A tipografia disting
 nome, títulos, texto de leitura, rótulos e números de combate. Em M, o texto
 principal usa 16 px e o apoio 14 px; CA e deslocamento têm destaque também com o
 cadeado fechado. P/G/GG continuam ampliando ou reduzindo essa mesma hierarquia.
+Classes ficam numa faixa compacta; uma subclasse longa pode ser aberta para
+leitura completa. No celular, os dados de identidade usam linhas e **Visual e
+dados** recolhe as preferências para deixar mais espaço à ficha.
 
 Cores, textura, tamanho de fonte e dados são preferências do usuário. No modo
 local ficam neste navegador; na conta entram também na fila de sincronização.
@@ -173,6 +176,8 @@ O cadeado ao lado do seletor alterna **Protegida** e **Editando**. Fechado, most
 os valores para consulta e protege classes, atributos, máximos, proficiências e
 ajustes dos cartões. Rolagens, PV pelos controles de combate, condições, preparo,
 gastos/recuperação de recursos, equipamento, loja e histórico continuam disponíveis.
+**Upar** também permanece disponível com o cadeado fechado: a evolução guiada
+tem confirmação própria e respeita a permissão de edição, inclusive ao aplicar.
 Notas pessoais permanecem editáveis. Abra o cadeado para corrigir os campos e
 adicionar/editar armas, itens, características ou magias.
 
