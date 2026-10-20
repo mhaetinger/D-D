@@ -28,6 +28,7 @@ import {sheetInput,sheetSelect,sheetText,captureSheetFields,restoreSheetFields,r
 import {parkSheetPanels,restoreSheetPanels,clearSheetPanels,mountSheetPanel,closeSheetPanel,canSaveSheetPanel} from '../sheet-edit/panels';
 import {canEditSheet} from '../sheet-edit/access';
 import {canConfigureSheet} from '../sheet-edit/lock';
+import {weaponCalculationFields} from '../sheet-edit/weapon-fields';
 
 // =========================================================================
 // 1. METADADOS E CATÁLOGOS
@@ -2497,6 +2498,7 @@ function openHomebrewModal(type, index = null) {
   if(['weapon','feature'].includes(type)&&currentTab!=='main')setTab('main');
   const char = getChar();
   const modal = document.getElementById("homebrewModal");
+  modal.dataset.editorType = type;
   const title = document.getElementById("hbModalTitle");
   const body = document.getElementById("hbModalBody");
   const saveBtn = document.getElementById("hbSaveBtn");
@@ -2521,13 +2523,13 @@ function openHomebrewModal(type, index = null) {
     title.textContent = index !== null ? `Editar ataque: ${weapon.name}` : "Criar arma / ataque";
     body.innerHTML = `
       <div><label for="hbWepName" class="block font-bold mb-1">Nome</label><input id="hbWepName" maxlength="120" value="${e(weapon.name)}" class="w-full t-inset p-2 rounded-lg" /></div>
-      <div class="grid grid-cols-2 gap-3">
+      <div class="weapon-editor-grid">
         <div><label for="hbWepBonus" class="block font-bold mb-1">Bônus de ataque</label><input id="hbWepBonus" value="${e(weapon.bonus)}" placeholder="+6" class="w-full t-inset p-2 rounded-lg" /></div>
         <div><label for="hbWepDamageMod" class="block font-bold mb-1">Modificador de dano</label><input id="hbWepDamageMod" type="number" min="-10000" max="10000" step="1" required oninput="renderWeaponDamageBuilder(true)" class="w-full t-inset p-2 rounded-lg" /></div>
       </div>
       <fieldset class="space-y-2 min-w-0"><legend class="font-bold mb-1">Dados de dano</legend>
-        <div class="text-[11px] t-text-muted">Adicionar</div><div class="grid grid-cols-4 sm:grid-cols-7 gap-1.5">${[4,6,8,10,12,20,100].map(sides => `<button type="button" id="hbDamageDie${sides}" onclick="changeWeaponDamageDie(${sides}, 1)" aria-label="Adicionar d${sides} ao dano" class="t-inset p-2 rounded-lg font-bold">+d${sides}</button>`).join("")}</div>
-        <div class="border-t t-border pt-2 space-y-1.5"><div class="flex items-center justify-between gap-2 text-[11px] t-text-muted"><span>Selecionados</span><button type="button" onclick="clearWeaponDamageDice()" class="underline">Limpar dados</button></div><div id="hbWeaponDamageDice" class="flex flex-wrap gap-1.5" role="group" aria-label="Dados selecionados para o dano"></div></div>
+        <div class="text-[11px] t-text-muted">Adicionar</div><div class="weapon-editor-dice">${[4,6,8,10,12,20,100].map(sides => `<button type="button" id="hbDamageDie${sides}" onclick="changeWeaponDamageDie(${sides}, 1)" aria-label="Adicionar d${sides} ao dano" class="t-inset p-2 rounded-lg font-bold">+d${sides}</button>`).join("")}</div>
+        <div class="border-t t-border pt-2 space-y-1.5"><div class="weapon-editor-dice-heading text-[11px] t-text-muted"><span>Selecionados</span><button type="button" onclick="clearWeaponDamageDice()" class="underline">Limpar dados</button></div><div id="hbWeaponDamageDice" class="flex flex-wrap gap-1.5" role="group" aria-label="Dados selecionados para o dano"></div></div>
         <output id="hbWeaponDamagePreview" aria-label="Dano montado" aria-live="polite" class="sr-only"></output>
         <input id="hbWepDmg" type="hidden" />
       </fieldset>
@@ -2536,14 +2538,13 @@ function openHomebrewModal(type, index = null) {
       <div><label for="hbWepDescription" class="block font-bold mb-1">Descrição ao passar o mouse ou tocar no nome</label><textarea id="hbWepDescription" rows="4" maxlength="8000" class="w-full t-inset p-2 rounded-lg">${e(weapon.description ?? BOOK_ITEMS_DB[weapon.name]?.bookDesc ?? weapon.notes)}</textarea></div>`;
     initWeaponDamageBuilder(weapon.damage);
     const original = index!==null ? {magicBonus:weapon.magicBonus,...char.weapons[index]} : {};
-    const options = document.createElement('div'); options.className = 'grid grid-cols-2 gap-3';
-    options.innerHTML = `<label>Cálculo<select id="hbWepMode"><option value="auto" ${weapon.ruleWeapon && original.calculationMode!=='manual'?'selected':''}>Automático pelo catálogo</option><option value="manual" ${!weapon.ruleWeapon || original.calculationMode==='manual'?'selected':''}>Valores manuais / adaptação</option></select></label><label>Arma do catálogo<select id="hbWepCatalog"><option value="">Ataque personalizado</option>${CharacterEngine.progression.weapons.map(w=>`<option ${weapon.ruleWeapon===w.name?'selected':''}>${e(w.name)}</option>`).join('')}</select></label><label>Proficiência<select id="hbWepProf"><option value="auto" ${typeof original.proficient!=='boolean'?'selected':''}>Detectar pela ficha</option><option value="yes" ${original.proficient===true?'selected':''}>Proficiente · manual</option><option value="no" ${original.proficient===false?'selected':''}>Não proficiente · manual</option></select></label><label>Bônus mágico<input id="hbWepMagic" type="number" min="-10" max="10" value="${Number(original.magicBonus || 0)}"></label><label>Habilidade<select id="hbWepAbility"><option value="auto">Automática</option><option value="str" ${original.abilityOverride==='str'?'selected':''}>Força · ajuste</option><option value="dex" ${original.abilityOverride==='dex'?'selected':''}>Destreza · ajuste</option></select></label><label>Modo de ataque<select id="hbWepAttackMode"><option value="normal">Normal</option><option value="thrown" ${original.attackMode==='thrown'?'selected':''}>Arremessar</option></select></label><label>Ajuste de ataque<input id="hbWepAttackAdjust" type="number" min="-100" max="100" value="${Number(original.attackAdjustment || 0)}"></label><label>Ajuste de dano<input id="hbWepDamageAdjust" type="number" min="-100" max="100" value="${Number(original.damageAdjustment || 0)}"></label><label><input id="hbWepDuel" type="checkbox" ${original.duelingEligible?'checked':''}> Única arma corpo a corpo na mão (Duelismo)</label><label><input id="hbWepOffhand" type="checkbox" ${original.offHand?'checked':''}> Ataque bônus com segunda arma</label>`;
-    body.prepend(options);
-    const calculationHint = document.createElement('p'); calculationHint.className = 't-text-muted text-xs';
-    calculationHint.textContent = 'No modo automático, ataque e dano vêm do catálogo, atributos, proficiência e ajustes abaixo. Use Valores manuais para editar os totais e dados diretamente.';
+    const options = weaponCalculationFields(original,weapon.ruleWeapon,CharacterEngine);
+    body.firstElementChild.after(options);
+    const calculationHint = document.createElement('p'); calculationHint.className = 'weapon-editor-hint';
     options.after(calculationHint);
     const updateCalculationMode = () => {
       const automatic = document.getElementById('hbWepMode').value==='auto';
+      calculationHint.textContent = automatic ? 'Ataque e dano calculados pela ficha.' : 'Totais manuais: informe o bônus de ataque e monte o dano.';
       for (const id of ['hbWepBonus','hbWepDamageMod']) document.getElementById(id).disabled = automatic;
       for (const button of body.querySelectorAll('[id^="hbDamageDie"]')) button.disabled = automatic;
     };

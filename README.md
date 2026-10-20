@@ -63,8 +63,9 @@ locais são preservados; o perfil informa falhas e permite retomar a cópia.
 
 A janela **Perfil e personagens** abre em Perfil, com nome, imagem e acesso à
 conta. A aba Personagens oferece Lista ou Cartões, com os mesmos retratos e
-ações de abrir/excluir ficha. A visualização é lembrada neste navegador;
-backup e armazenamento continuam no rodapé comum das duas abas.
+ações de abrir/excluir ficha. A visualização é lembrada neste navegador. Backup,
+importação e revisão como cópia aparecem somente em Personagens; o estado do
+armazenamento e a sincronização continuam acessíveis nas duas abas.
 
 A ficha mantém cores por classe, com a subclasse visível. A tipografia distingue
 nome, títulos, texto de leitura, rótulos e números de combate. Em M, o texto

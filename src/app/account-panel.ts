@@ -12,7 +12,7 @@ export function selectAccountTab(tab:Tab,focus=false):void {
     button.setAttribute('aria-selected',String(selected));button.tabIndex=selected?0:-1;
     if(selected && focus)button.focus({preventScroll:true});
   }
-  for(const panel of modal.querySelectorAll<HTMLElement>('[data-account-panel]'))panel.hidden=panel.dataset.accountPanel!==tab;
+  for(const panel of modal.querySelectorAll<HTMLElement>('[data-account-panel],[data-account-only]'))panel.hidden=(panel.dataset.accountPanel||panel.dataset.accountOnly)!==tab;
   modal.querySelector<HTMLElement>('[data-scroll-window]')!.scrollTop=0;
 }
 

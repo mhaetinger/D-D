@@ -9,6 +9,7 @@ const { warrior } = require("./fixture.cjs");
 const {confirmImportReview}=require('./import-confirmation.cjs');
 const LEGACY = "dnd_sheet_public_v1", KEY = "critcall_characters_v1", NOTES = "dnd_player_private_notes_v1";
 async function downloadBackup(page) {
+  if (!await page.locator('#exportBackup').isVisible()) await page.locator('[data-account-tab="characters"]').click();
   const pending = page.waitForEvent("download");
   await page.locator("#exportBackup").click();
   const download = await pending;

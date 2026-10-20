@@ -119,7 +119,10 @@ de status com contraste e símbolo, sem depender apenas de cor.
 
 `app/account-panel.ts` alterna as abas Perfil/Personagens sem remontar os
 formulários. Cada abertura começa em Perfil, inclusive retornos de acesso à
-conta; campos e rodapé comum mantêm seus próprios nós. Abas usam navegação por
+conta; campos e rodapé mantêm seus próprios nós. Backup, importação, revisão como
+cópia e a opção de incluir notas usam `data-account-only="characters"`, visível
+somente na aba Personagens. Estado do armazenamento, sincronização e recuperação
+de dados ilegíveis permanecem acessíveis nas duas abas. Abas usam navegação por
 teclado, `aria-selected` e painéis associados. Lista/Cartões alterna somente um
 atributo da coleção, conservando retratos, foco e ações dos cartões existentes.
 `critcall_character_list_view_v1` é uma preferência deste navegador, fora dos
@@ -147,6 +150,14 @@ passam a uma grade acima das proficiências. Botões de magia aceitam a altura d
 Cartões de arma separam nome/descrição, grade de rolagens e rodapé de controles.
 As notas não são truncadas nem alteradas; os medidores invisíveis do botão de
 dano continuam reservando espaço para normal/crítico, sem mudar nós ou foco.
+
+O editor de arma permanece no bloco da ficha. `sheet-edit/weapon-fields.ts`
+estrutura os campos de cálculo e conserva os IDs usados pela ponte anterior.
+Proficiência, habilidade e ajustes ficam em `details`, sem desmontar controles
+ou limpar valores ao recolher. `styles/weapon-editor.css` aplica controles do
+tema e grades pela largura disponível do cartão, inclusive em colunas estreitas
+no desktop; os dados de dano quebram em linhas. Totais manuais e automáticos
+mantêm o mesmo contrato de cálculo, validação e salvamento.
 
 ## Edição na própria ficha
 

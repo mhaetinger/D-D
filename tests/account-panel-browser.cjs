@@ -12,10 +12,15 @@ const {chromium}=require('playwright'),{serve}=require('./serve.cjs'),{warrior}=
     await page.evaluate(()=>{setDiceMode('off');setTheme('pergaminho_claro');setFontScale(100);openAuthAccountModal();});
     const modal=page.locator('#authAccountModal'),tab=id=>modal.locator(`[data-account-tab="${id}"]`),panel=id=>modal.locator(`[data-account-panel="${id}"]`),view=id=>modal.locator(`[data-account-view="${id}"]`),card=id=>modal.locator(`[data-account-character="account-test-${id}"]`),{dialog,accept,cancel}=confirmationActions(page);
     assert.equal(await panel('profile').isVisible(),true);assert.equal(await panel('characters').isVisible(),false);
+    const characterTools=['exportBackup','importBackup','reviewImportedCharacter','backupIncludeNotes'];
+    for(const id of characterTools)assert.equal(await page.locator('#'+id).isVisible(),false);
     const name=page.locator('#accPlayerName');await name.fill('Jogadora de teste');await name.evaluate(e=>window.accountNameNode=e);
     await tab('profile').focus();await page.keyboard.press('ArrowRight');assert.equal(await panel('characters').isVisible(),true);assert.equal(await tab('characters').evaluate(e=>document.activeElement===e),true);
     assert.equal(await card(0).count(),1);assert.equal(await page.locator('#accountCharactersList').getAttribute('data-character-view'),'list');
+    for(const id of characterTools)assert.equal(await page.locator('#'+id).isVisible(),true);
+    await page.locator('#backupIncludeNotes').check();await page.locator('#backupIncludeNotes').evaluate(e=>window.backupNotesNode=e);
     await tab('profile').click();assert.equal(await name.evaluate(e=>window.accountNameNode===e),true);assert.equal(await name.inputValue(),'Jogadora de teste');
+    await tab('characters').click();assert.equal(await page.locator('#backupIncludeNotes').evaluate(e=>e===window.backupNotesNode&&e.checked),true);await page.locator('#backupIncludeNotes').uncheck();
     // O mesmo retrato privado e os próprios nós sobrevivem à troca de visual.
     await tab('characters').click();await card(1).locator('[data-avatar-edit]').click();
     const avatar=page.locator('#avatarDialog');await avatar.waitFor({state:'visible'});
@@ -37,12 +42,12 @@ const {chromium}=require('playwright'),{serve}=require('./serve.cjs'),{warrior}=
       await page.setViewportSize({width:320,height:900});await page.evaluate(t=>{setTheme(t);setFontScale(125);},theme);await view(style).click();
       assert.equal(await modal.locator('> section').evaluate(e=>e.scrollWidth>e.clientWidth),false);
       for(const entry of await modal.locator('[data-account-character]').all())assert.equal(await entry.evaluate(e=>e.scrollWidth>e.clientWidth||e.scrollHeight>e.clientHeight),false);
-      assert.equal(await page.locator('#exportBackup').isVisible(),true);await tab('profile').click();assert.equal(await page.locator('#exportBackup').isVisible(),true);assert.equal(await name.inputValue(),'Jogadora de teste');await tab('characters').click();
+      for(const id of characterTools)assert.equal(await page.locator('#'+id).isVisible(),true);await tab('profile').click();for(const id of characterTools)assert.equal(await page.locator('#'+id).isVisible(),false);assert.equal(await name.inputValue(),'Jogadora de teste');await tab('characters').click();
     }
     await modal.locator('> section').screenshot({path:'/tmp/critcall-account-cards-mobile.png'});
     await page.setViewportSize({width:1280,height:1000});await page.evaluate(()=>{setTheme('pergaminho_claro');setFontScale(100);});await view('list').click();await modal.locator('> section').screenshot({path:'/tmp/critcall-account-list-desktop.png'});await view('cards').click();
     await page.evaluate(async()=>{await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise(r=>navigator.serviceWorker.addEventListener('controllerchange',r,{once:true}));});await page.context().setOffline(true);await page.reload({waitUntil:'domcontentloaded'});await page.waitForFunction(()=>typeof openAuthAccountModal==='function'&&getChar());await page.evaluate(()=>openAuthAccountModal());await tab('characters').click();
     assert.equal(await page.locator('#accountCharactersList').getAttribute('data-character-view'),'cards');await card(1).locator('img').waitFor();assert.equal(await card(0).count(),0);assert.equal(await page.locator('#accPlayerName').inputValue(),'Jogadora de teste');assert.deepEqual(errors,[]);
-    console.log('PASS perfil/personagens: abas e teclado, campos preservados, lista/cartões quadrados, mesmos nós/retrato/dados, abrir/excluir/cancelar após reordenação, rodapé comum, 320px/GG/três temas e preferência/retrato offline.');
+    console.log('PASS perfil/personagens: abas e teclado, campos preservados, lista/cartões quadrados, mesmos nós/retrato/dados, abrir/excluir/cancelar após reordenação, backup/importação/revisão só em Personagens, 320px/GG/três temas e preferência/retrato offline.');
   } finally {await browser.close();await server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

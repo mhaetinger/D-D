@@ -2,6 +2,22 @@
 
 ## Não lançado
 
+### Ferramentas em Personagens e editor de armas alinhado — 2026-10-20
+
+- Backup, importação, revisão como cópia e inclusão de notas aparecem somente
+  na aba Personagens. Trocar de aba preserva os controles e sua seleção;
+  armazenamento/sincronização continuam acessíveis nas duas abas.
+- Editor de arma mantém nome, cálculo, ataque e dano organizados no próprio
+  bloco da ficha, com rótulos acima dos campos e controles seguindo o tema.
+  Proficiência, habilidade e ajustes adicionais ficam recolhidos. Grades usam
+  a largura disponível do cartão, e os botões de dados quebram em linhas.
+- Preservados cálculos, dados montados, rascunhos, cancelamento e metadados
+  anteriores das armas; os IDs usados pela ponte de eventos não mudaram.
+- Conferidos 385 testes Node, tipos/build e seis scripts Chromium: editor de
+  armas, perfil/coleção, aplicação, importação, edição na ficha e cadeado.
+  Incluem cálculo manual/automático, dados/ajustes/metadados, cancelamento e
+  recarga, cópias/notas/recuperação/offline e 320px/GG/três temas/dois layouts.
+
 ### Perfil separado da coleção e visualização em cartões — 2026-10-20
 
 - Perfil e Personagens ficam em abas da mesma janela. A abertura começa em

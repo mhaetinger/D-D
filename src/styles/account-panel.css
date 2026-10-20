@@ -5,7 +5,7 @@
 .account-tabs [aria-selected=true] { text-decoration:underline; text-underline-offset:.2em; }
 .account-character-view { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:.4rem; }
 .account-character-view [aria-pressed=true]::before { content:'✓ '; }
-[data-account-panel][hidden] { display:none; }
+:is([data-account-panel],[data-account-only])[hidden] { display:none; }
 .account-characters { display:grid; grid-template-columns:minmax(0,1fr); gap:.6rem; }
 .account-character { min-width:0; }
 .account-character-name { font-size:1rem; line-height:1.35; }

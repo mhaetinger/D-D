@@ -32,6 +32,7 @@ import './styles/account-panel.css';
 import {setupSheetEditing} from './sheet-edit/ui';
 import {setupSpellEditor} from './sheet-edit/spell-editor';
 import './styles/sheet-edit.css';
+import './styles/weapon-editor.css';
 import './styles/sheet-type.css';
 
 // A identidade define o armazenamento antes da primeira leitura da ficha.
