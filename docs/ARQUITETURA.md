@@ -571,6 +571,21 @@ Modo físico exige total e funciona com dados OFF; virtual usa `rollWeaponFormul
 o motor/animação existentes sem alterar pool, vantagem de d20 ou inspiração.
 Gasto e descrição entram juntos no histórico por ficha; desfazer restaura ambos.
 
+`rollCurrentPool` e `triggerSheetRoll` devolvem o resultado síncrono já resolvido.
+Somente `rollWeapon(..., 'attack')` usa `d20Natural` para atualizar a preparação
+da própria arma em Auto Ficha, respeitando o intervalo de `weaponStats.critical`.
+Ataque comum limpa a marca anterior; OFF/Só Pool, testes, pool e d20 rápido não
+a atualizam. Não depende do total com bônus nem da animação atrasada. A eventual
+renderização por consumo de inspiração mantém a identidade da arma e recebe a
+atualização em seus controles atuais. A linha inferior guarda crítico/registro;
+dois dimensionadores invisíveis e sem nome acessível reservam na mesma célula
+a largura dos rótulos normal/crítico, evitando deslocamento de conteúdo.
+
+**Registrar dano** não oferece dados virtuais. OFF/Só Pool também abrem somente
+registro manual, inclusive com adicionais. Apenas **Adicionais** em Auto Ficha
+mantém a escolha físico/virtual; a ausência de seletor significa físico por
+contrato, sem inferir o modo pela fórmula ou pelo valor preenchido.
+
 O campo físico registra o total já obtido, incluindo modificadores e dados do
 crítico; não dobra esse número nem lança novamente. Rótulos e ação distinguem
 **Registrar dano** de **Rolar dano** e explicam a entrada no próprio formulário.

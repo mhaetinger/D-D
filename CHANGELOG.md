@@ -2,6 +2,21 @@
 
 ## Não lançado
 
+### Crítico automático e posição dos controles — 2026-10-20
+
+- Crítico/registro ficam na linha inferior da arma. O botão reserva espaço
+  para os dois rótulos, sem deslocar descrição ou controles ao marcar.
+- No Auto Ficha, cada ataque atualiza só sua arma pela face natural escolhida
+  após vantagem/desvantagem, incluindo o intervalo do Campeão. Ataque comum
+  desmarca; confirmar dano também limpa. Outros roladores e OFF/Só Pool não
+  mudam a preparação.
+- Registrar dano fica exclusivamente manual, sem seletor para rolar. Adicionais
+  conserva a opção virtual no Auto Ficha; OFF/Só Pool recebem só o total físico.
+- Conferidos 360 testes Node, tipos/build e Chromium de ataques, dados,
+  concentração e regras. Ataques verificam face natural versus total, seleção
+  com vantagem/desvantagem, consumo de inspiração, intervalo do Campeão,
+  isolamento por arma/ficha e posições estáveis em dois layouts/três temas/320px.
+
 ### Uso de crítico e ajuda nas janelas — 2026-10-20
 
 - Crítico passa para a própria arma: marcar só prepara e atualiza a fórmula.

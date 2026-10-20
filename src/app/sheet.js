@@ -11,7 +11,7 @@ import { consumeInspiration, deathStatus, healHitPoints, inspirationRollMode } f
 import { damageDescription, deathControls, hitDiceControls } from '../rules/health-ui';
 import { offerSurvivalForDamage } from '../rules/damage-ui';
 import { parseDiceFormula } from '../rules/dice-formula';
-import { renderWeaponDamageTools, rollPreparedWeaponDamage, weaponDamageLabel } from '../rules/weapon-damage-ui';
+import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponDamageLabel } from '../rules/weapon-damage-ui';
 import { applyCastConcentration, concentration, concentrationBlock, incapacityReason, needsConcentrationConfirmation, spellConcentration, validateConcentrationStart } from '../rules/concentration';
 import { concentrationControls } from '../rules/concentration-ui';
 import { automaticSaveFailure } from '../rules/conditions';
@@ -1103,6 +1103,7 @@ function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligib
   const result = evaluateDicePool(dicePoolCounts, modVal, mode);
   if(inspired && consumeInspiration(c)) saveRuleStep('Usou inspiração no d20 · '+(customLabel || 'pool'));
   presentDiceResult(result, customLabel);
+  return result;
 }
 // Ações com resultado aplicado aos PV usam o mesmo motor/animação, sem alterar
 // o pool manual. OFF sempre exige registrar a face do dado físico.
@@ -1182,7 +1183,7 @@ function triggerSheetRoll(formula, label, inspirationEligible = false, context =
   const modEl = document.getElementById("dicePoolModInput");
   if (modEl) modEl.value = parsed.modifier;
   updatePoolDisplay();
-  rollCurrentPool(label, true, inspirationEligible);
+  return rollCurrentPool(label, true, inspirationEligible);
 }
 
 // =========================================================================
@@ -1967,7 +1968,8 @@ function renderAttacksBlock(char) {
             const w = CharacterEngine.weaponStats(char, storedWeapon);
             const validDamage = !!parseDiceFormula(w.damage);
             return `
-            <div class="t-inset p-2.5 rounded-lg flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div class="t-inset p-2.5 rounded-lg text-xs" data-weapon-card="${idx}">
+              <div class="flex flex-wrap items-center justify-between gap-2">
               <div class="min-w-0 flex-[1_1_12rem] break-words">
                 <div class="flex items-center gap-1.5">
                   <button class="min-w-0 font-bold underline decoration-dotted text-left" onmouseenter="showEquipmentTooltip(event, 'weapon', ${idx})" onmousemove="positionTooltip(event)" onmouseleave="hideBookTooltip()" onfocus="showEquipmentTooltip(event, 'weapon', ${idx})" onblur="hideBookTooltip()" onclick="showEquipmentTooltip(event, 'weapon', ${idx})" aria-label="Descrição de ${escapeHTML(w.name)}">${escapeHTML(w.name)}</button>
@@ -1975,16 +1977,19 @@ function renderAttacksBlock(char) {
                 </div>
                 <span class="text-[11px] t-text-muted block">${escapeHTML(w.notes)}${w.critical?` · Crítico ${w.critical}–20`:''}</span>
                 ${w.ruleWeapon && /vers[aá]til/i.test(w.properties || '') ? `<label>Mãos <select data-weapon-hands="${idx}" onchange="setWeaponHands(${idx},this.value)" aria-label="Mãos para ${escapeHTML(w.name)}"><option value="1" ${storedWeapon.hands!==2?'selected':''}>1 mão</option><option value="2" ${storedWeapon.hands===2?'selected':''}>2 mãos</option></select></label>`:''}
-                ${validDamage && w.damage!=='0'?renderWeaponDamageTools(char,storedWeapon,idx,CharacterEngine):''}
               </div>
               <div class="ml-auto flex max-w-full shrink-0 flex-wrap items-center justify-end gap-1.5 whitespace-nowrap">
                 <button onclick="rollWeapon(${idx}, 'attack')" class="px-2 py-1 badge-feiticeiro rounded font-bold">
                   Atq ${escapeHTML(w.bonus)}
                 </button>
-                <button onclick="rollWeapon(${idx}, 'damage')" data-weapon-damage-label="${idx}" class="px-2.5 py-1 t-btn-primary rounded font-extrabold shadow-sm">
-                  ${validDamage ? escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine)) : "Corrigir dano"}
+                <button onclick="rollWeapon(${idx}, 'damage')" data-weapon-damage-label="${idx}" class="weapon-damage-button px-2.5 py-1 t-btn-primary rounded font-extrabold shadow-sm">
+                  <span aria-hidden="true" class="weapon-damage-sizer">${validDamage?escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine,false)):''}</span>
+                  <span aria-hidden="true" class="weapon-damage-sizer">${validDamage?escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine,true)):''}</span>
+                  <span data-weapon-damage-text>${validDamage ? escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine)) : "Corrigir dano"}</span>
                 </button>
               </div>
+              </div>
+              ${validDamage && w.damage!=='0'?renderWeaponDamageTools(char,storedWeapon,idx,CharacterEngine):''}
             </div>
           `;
           })
@@ -2593,7 +2598,8 @@ async function closeHomebrewModal(force = false) {
 
 function rollWeapon(index, kind) {
   if(kind==='damage' && rollPreparedWeaponDamage(getChar(),index,CharacterEngine,saveRuleStep))return;
-  const weapon = CharacterEngine.weaponStats(getChar(), getChar().weapons[index]);
+  const c=getChar(),entry=c.weapons[index];
+  const weapon = CharacterEngine.weaponStats(c, entry);
   if (!weapon) return;
   const bonus = String(weapon.bonus).trim();
   if (kind === "attack" && !/^[+-]?\d+$/.test(bonus)) {
@@ -2605,7 +2611,11 @@ function rollWeapon(index, kind) {
     showToast("Fórmula inválida. Corrija o ataque antes de rolar.");
     return;
   }
-  triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}`,kind==='attack',kind==='attack'?{type:'attack'}:null);
+  const result=triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}`,kind==='attack',kind==='attack'?{type:'attack'}:null);
+  // Usa o resultado resolvido neste clique, nunca o texto da animação ou o
+  // total com bônus. Só ataques reais em Auto Ficha atualizam esta preparação.
+  if(kind==='attack' && result && c===getChar() && c.weapons[index]===entry)
+    setWeaponCriticalPrepared(c,index,CharacterEngine,result.d20Natural>=(weapon.critical || 20));
 }
 function setWeaponHands(index,value) {
   const entry = getChar().weapons[index]; if (!entry || !['1','2'].includes(String(value))) return;

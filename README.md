@@ -194,11 +194,16 @@ Cada controle tem um único lugar e usa a reserva compartilhada correspondente.
 Descansos recuperam conforme a origem; o longo
 pergunta sobre alimento/bebida e a adaptação de recuperar todos os Dados de Vida.
 A recuperação de metade dos Dados de Vida permite escolher a classe em multiclasse.
-Na arma, marque **Crítico** para preparar a fórmula e clique no botão de dano
-para rolar em Auto Ficha. Marcar não rola nem gasta; a marca sai após confirmar
+Na arma, **Crítico** fica na linha inferior, sem deslocar descrição ou botões.
+Em Auto Ficha, cada ataque da própria arma atualiza a marca pelo d20 natural
+escolhido após vantagem/desvantagem: 20, ou o intervalo ampliado do Campeão.
+O ataque seguinte atualiza essa marca; testes, pool e d20 rápido não a alteram.
+Você também pode marcar manualmente para preparar a fórmula e clicar no botão
+de dano para rolar. Marcar não rola nem gasta; a marca sai após confirmar
 esse dano e cancelar mantém a preparação. **Adicionais** reúne a composição de
 um acerto com características elegíveis. Sem adicionais, **Registrar dano**
-abre diretamente o registro de um resultado obtido por fora.
+abre somente o registro de um resultado obtido por fora, sem seletor de rolagem.
+Em OFF/Só Pool, o registro dos adicionais também é exclusivamente manual.
 O crítico dobra dados, inclusive Furtivo/Destruição, mantendo os bônus fixos.
 Crítico Brutal e Ataques Selvagens acrescentam seus dados uma vez; Destruição
 Divina Aprimorada já presente na fórmula não é acrescentada de novo.
@@ -207,7 +212,7 @@ alvos e turnos continuam na mesa. Destruição Divina permite escolher um espaç
 de Conjuração ou Pacto e indicar corruptor/morto-vivo, com prévia antes do gasto.
 Registrar guarda o resultado físico ou de outro rolador, já incluindo bônus e
 dados extras do crítico: não lança dados novamente nem dobra o total informado.
-**Rolar aqui** usa os dados virtuais. Confirmar desconta um único espaço quando
+Em **Adicionais** no Auto Ficha, **Rolar aqui** usa os dados virtuais. Confirmar desconta um único espaço quando
 escolhido. Cancelar preserva tudo; desfazer devolve o espaço. O dano virtual desse
 controle preserva o pool e a inspiração. O botão **Dano** comum continua direto.
 Armas manuais mantêm a fórmula; seu crítico dobra os dados informados, sem

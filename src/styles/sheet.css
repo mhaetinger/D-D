@@ -516,6 +516,12 @@ body.dice-tray-resizing { user-select: none; cursor: ne-resize; }
 .portrait img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
 .portrait-edit:focus-visible, [data-avatar-edit]:focus-visible { outline: 2px solid var(--text-accent); outline-offset: 3px; border-radius: .7rem; }
 
+/* Reserva os dois rótulos na mesma célula: preparar crítico não muda a
+   largura dos botões nem empurra a descrição e os controles abaixo. */
+.weapon-damage-button { display: grid; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.weapon-damage-button > span { grid-area: 1 / 1; min-width: 0; }
+.weapon-damage-sizer { visibility: hidden; pointer-events: none; }
+
 @media (max-width: 640px) {
   .app-topbar {
     padding-top: 0.35rem;

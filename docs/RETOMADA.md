@@ -15,6 +15,18 @@ Não mesclar/publicar esta revisão sem aprovação. A branch remota `develop`
 foi restaurada após a entrega na referência de integração já aprovada
 `b1155fbc5d14a566f548814bd808374aa2383721`, merge da PR #7.
 
+**Ajuste mais recente:** crítico/registro ocupam a linha inferior da arma e o
+botão reserva largura para não deslocar conteúdo. Em Auto Ficha, cada ataque
+atualiza só sua arma pela face natural após vantagem/desvantagem, respeitando
+o intervalo de crítico do Campeão. O próximo ataque comum ou dano confirmado
+limpa a marca. Outros roladores e modos OFF/Só Pool não alteram a preparação.
+Registrar dano é exclusivamente manual, sem seletor de dados; Adicionais mantém
+físico/virtual somente em Auto Ficha. Nenhuma mudança de SQL ou dados reais.
+Verificado com 360 testes Node, tipos/build e Chromium de ataques, dados,
+concentração e regras. Casos incluem face natural/total, vantagem/desvantagem,
+inspiração, Campeão, isolamento por arma/ficha, registro sem rerrolar e geometria
+estável nos dois layouts/três temas/320px/GG. Captura desktop conferida.
+
 **Ajuste de uso após a sexta etapa:** crítico é marcado na própria arma, sem
 rolagem/gasto ao marcar. O botão de dano rola no clique em Auto Ficha e a marca
 sai depois de confirmar o dano. OFF/Só Pool abrem o registro do total já rolado;
