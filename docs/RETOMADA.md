@@ -21,6 +21,12 @@ fluxo antigo de Criar/Ajustar ficha manual pelo perfil. A conexão foi recuperad
 a implementação `fe2dc66` foi enviada em 20/10 e a [PR #9](https://github.com/mhaetinger/D-D/pull/9)
 foi atualizada com base `develop`. Não houve merge/publicação desta etapa.
 
+**Armas com layout reorganizado:** descrição usa a largura inteira, ataque/dano
+têm colunas próprias e empunhadura/crítico/registro ficam no rodapé. Notas foram
+preservadas; crítico mantém geometria e empunhadura conserva foco. Conferidos 385
+testes Node, tipos/build e Chromium de armas, regras e edição em linha, incluindo
+notas longas, offline e 320px/GG/três temas/dois layouts.
+
 **Inspiração reposicionada:** linha própria no quadro de PV, separada da
 Exaustão, sem novo cartão ou estado. Dicas explicam dano recebido, condições e
 concentração. Conferidos 385 testes Node, tipos/build e Chromium de PV e

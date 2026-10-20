@@ -93,6 +93,9 @@ CA e movimento
 agrupam valor/unidade para conservar as três linhas do cartão de combate; spans de
 leitura e inputs recebem a mesma hierarquia. Em telas pequenas, atributos clássicos
 passam a uma grade acima das proficiências. Botões de magia aceitam a altura do texto.
+Cartões de arma separam nome/descrição, grade de rolagens e rodapé de controles.
+As notas não são truncadas nem alteradas; os medidores invisíveis do botão de
+dano continuam reservando espaço para normal/crítico, sem mudar nós ou foco.
 
 ## Edição na própria ficha
 

@@ -2,6 +2,16 @@
 
 ## Não lançado
 
+### Organização dos cartões de armas — 2026-10-20
+
+- Nome e descrição usam a largura inteira, preservando notas longas do PDF.
+  Ataque e dano ficam numa faixa própria, com colunas e alturas consistentes.
+  Empunhadura, crítico e registro manual ocupam o rodapé, com quebra em telas
+  pequenas; preparar crítico mantém as posições dos controles.
+- Conferidos 385 testes Node, tipos/build e Chromium de armas, regras e edição
+  em linha: notas extensas, alinhamento entre armas, empunhadura/foco, crítico,
+  recursos/cancelamento, editor, offline e 320px/GG/três temas/dois layouts.
+
 ### Inspiração e explicações de combate — 2026-10-20
 
 - Inspiração sai da linha de Exaustão e fica em uma linha própria no quadro de

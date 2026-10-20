@@ -2001,17 +2001,14 @@ function renderAttacksBlock(char) {
             const w = CharacterEngine.weaponStats(char, storedWeapon);
             const validDamage = !!parseDiceFormula(w.damage);
             return `
-            <div class="t-inset p-2.5 rounded-lg text-xs" data-weapon-card="${idx}">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-              <div class="min-w-0 flex-[1_1_12rem] break-words">
-                <div class="flex items-center gap-1.5">
+            <div class="weapon-card t-inset p-2.5 rounded-lg text-xs" data-weapon-card="${idx}">
+                <div class="weapon-heading">
                   <button class="min-w-0 font-bold underline decoration-dotted text-left" onmouseenter="showEquipmentTooltip(event, 'weapon', ${idx})" onmousemove="positionTooltip(event)" onmouseleave="hideBookTooltip()" onfocus="showEquipmentTooltip(event, 'weapon', ${idx})" onblur="hideBookTooltip()" onclick="showEquipmentTooltip(event, 'weapon', ${idx})" aria-label="Descrição de ${escapeHTML(w.name)}">${escapeHTML(w.name)}</button>
                   <button onclick="openHomebrewModal('weapon', ${idx})" class="shrink-0 t-text-muted hover:opacity-100" aria-label="Editar ataque ${escapeHTML(w.name)}"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
                 </div>
-                <span class="text-[11px] t-text-muted block">${escapeHTML(w.notes)}${w.critical?` · Crítico ${w.critical}–20`:''}</span>
-                ${w.ruleWeapon && /vers[aá]til/i.test(w.properties || '') ? `<label>Mãos <select data-weapon-hands="${idx}" onchange="setWeaponHands(${idx},this.value)" aria-label="Mãos para ${escapeHTML(w.name)}"><option value="1" ${storedWeapon.hands!==2?'selected':''}>1 mão</option><option value="2" ${storedWeapon.hands===2?'selected':''}>2 mãos</option></select></label>`:''}
-              </div>
-              <div class="ml-auto flex max-w-full shrink-0 flex-wrap items-center justify-end gap-1.5 whitespace-nowrap">
+                <p class="weapon-description t-text-muted">${escapeHTML(w.notes)}${w.critical?`${w.notes?' · ':''}Crítico ${w.critical===20?'20':`${w.critical}–20`}`:''}</p>
+
+              <div class="weapon-rolls">
                 <button onclick="rollWeapon(${idx}, 'attack')" class="px-2 py-1 badge-feiticeiro rounded font-bold">
                   Atq ${escapeHTML(w.bonus)}
                 </button>
@@ -2021,8 +2018,10 @@ function renderAttacksBlock(char) {
                   <span data-weapon-damage-text>${validDamage ? escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine)) : "Corrigir dano"}</span>
                 </button>
               </div>
+              <div class="weapon-secondary">
+                ${w.ruleWeapon && /vers[aá]til/i.test(w.properties || '') ? `<label class="weapon-grip">Mãos <select data-weapon-hands="${idx}" onchange="setWeaponHands(${idx},this.value)" aria-label="Mãos para ${escapeHTML(w.name)}"><option value="1" ${storedWeapon.hands!==2?'selected':''}>1 mão</option><option value="2" ${storedWeapon.hands===2?'selected':''}>2 mãos</option></select></label>`:''}
+                ${validDamage && w.damage!=='0'?renderWeaponDamageTools(char,storedWeapon,idx,CharacterEngine):''}
               </div>
-              ${validDamage && w.damage!=='0'?renderWeaponDamageTools(char,storedWeapon,idx,CharacterEngine):''}
             </div>
           `;
           })

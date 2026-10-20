@@ -300,7 +300,9 @@ Cada controle tem um único lugar e usa a reserva compartilhada correspondente.
 Descansos recuperam conforme a origem; o longo
 pergunta sobre alimento/bebida e a adaptação de recuperar todos os Dados de Vida.
 A recuperação de metade dos Dados de Vida permite escolher a classe em multiclasse.
-Na arma, **Crítico** fica na linha inferior, sem deslocar descrição ou botões.
+Armas exibem nome e descrição na largura inteira, com ataque e dano alinhados
+numa faixa abaixo. Empunhadura, **Crítico** e registro manual ficam no rodapé;
+preparar crítico não desloca descrição ou botões.
 Em Auto Ficha, cada ataque da própria arma atualiza a marca pelo d20 natural
 escolhido após vantagem/desvantagem: 20, ou o intervalo ampliado do Campeão.
 O ataque seguinte atualiza essa marca; testes, pool e d20 rápido não a alteram.
