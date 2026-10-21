@@ -2,6 +2,17 @@
 
 ## Não lançado
 
+### Concentração à direita e separadores de nível — 2026-10-21
+
+- Ações de concentração se alinham à direita na barra do grimório, incluindo
+  Registrar efeito da mesa, acompanhando as demais ações dos quadros.
+- Nível centralizado entre duas linhas finas nas características da classe,
+  com contraste de leitura e espaçamento compacto. Usa decoração CSS sobre o
+  título existente, preservando nós, controles e descrições abertas.
+- Conferidos 385 testes Node, tipos/build e Chromium de regras e quadros de
+  conjuração, com três temas, dois layouts, 320px/GG e dados/foco preservados.
+  Capturas conferidas em M no desktop e GG no celular.
+
 ### Legibilidade do perfil e padrão dos quadros de magia — 2026-10-21
 
 - Perfil e Personagens passam a usar texto principal de 16px, apoio de 14px,

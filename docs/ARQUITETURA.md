@@ -96,6 +96,8 @@ preparo/recuperação aparecem uma vez em cada quadro. O lembrete de descanso é
 cabeçalhos dos círculos. Ações de recursos/concentração e preparo compartilham
 fonte, peso, cor e preenchimento no tema. O conteúdo de concentração usa uma
 grade com intervalo entre ações, duração e testes pendentes, nas duas abas.
+Na barra do grimório, ações de concentração se alinham à direita, inclusive
+o botão único de registro manual; a regra fica no escopo `data-sheet-spell-tools`.
 Na primeira etapa do preparo, Voltar à ficha reutiliza `CharacterWizard.close`,
 inclusive confirmação de descarte e retorno de foco. O lembrete só é confirmado
 na cópia aplicada por `finish`; abrir/cancelar não altera esse estado. A etapa de
@@ -111,6 +113,8 @@ da descrição. Fontes de raça/antecedente e anotações manuais continuam sepa
 Na ficha larga, as colunas dividem níveis inteiros, em fluxo nativo, sem separar
 uma habilidade de seus controles. Chaves de descrição conservam a abertura ao
 atualizar os cálculos e a apresentação da ficha.
+`feature-level-title` centraliza o nível entre linhas decorativas em `::before`
+e `::after`, sem acrescentar nós nem aumentar a fonte ou o espaço dos grupos.
 
 ## Avisos durante uma edição
 

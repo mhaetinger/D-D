@@ -10,7 +10,8 @@
 .feature-group + .feature-group { border-top:1px solid var(--border-main); padding-top:.65rem; margin-top:.3rem; }
 .feature-group-title { font:700 1rem/1.4 "Cinzel",serif; margin:0 0 .35rem; overflow-wrap:anywhere; }
 .feature-level + .feature-level { margin-top:.65rem; }
-.feature-level-title { font-size:var(--sheet-secondary); font-weight:700; color:var(--text-muted); margin:0 0 .25rem; }
+.feature-level-title { display:flex; align-items:center; gap:.45rem; font-size:var(--sheet-secondary); line-height:1.4; font-weight:700; color:var(--text-main); white-space:nowrap; margin:0 0 .3rem; }
+.feature-level-title::before,.feature-level-title::after { content:''; flex:1; min-width:.5rem; height:1px; background:var(--border-main); }
 .feature-level .feature-entry + .feature-entry { margin-top:.3rem; }
 .feature-origin { font-size:var(--sheet-secondary); margin:.3rem 0; }
 .feature-levels { display:grid; grid-template-columns:minmax(0,1fr); gap:.65rem 1.5rem; }

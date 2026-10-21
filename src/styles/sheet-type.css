@@ -130,6 +130,8 @@
 #sheetViewport [data-sheet-spell-tools] { padding:var(--sheet-panel-inset); }
 #sheetViewport .spell-circle-heading { padding:var(--sheet-panel-inset); }
 [data-sheet-spell-tools] > div { min-width:0; max-width:100%; }
+#sheetViewport [data-sheet-spell-tools] .rule-concentration-content > button { justify-self:end; }
+#sheetViewport [data-sheet-spell-tools] .rule-concentration-content > .rule-controls { justify-content:flex-end; }
 .spell-class-resources { border-top:1px solid var(--border-main); margin-top:.65rem; padding-top:.6rem; display:grid; gap:.65rem; }
 .spell-prepare-reminder { grid-column:1/-1; font-size:var(--sheet-secondary); }
 [data-spellcasting-block] { flex-basis:100%; }

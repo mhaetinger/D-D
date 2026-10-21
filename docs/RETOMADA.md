@@ -21,6 +21,12 @@ fluxo antigo de Criar/Ajustar ficha manual pelo perfil. A conexão foi recuperad
 a implementação `fe2dc66` foi enviada em 20/10 e a [PR #9](https://github.com/mhaetinger/D-D/pull/9)
 foi atualizada com base `develop`. Não houve merge/publicação desta etapa.
 
+**Alinhamento e separadores compactos:** no grimório, as ações de concentração
+se alinham à direita, incluindo o registro manual. Níveis das características
+ficam centralizados entre linhas finas via CSS, mantendo os controles e nós.
+Conferidos 385 testes Node, tipos/build e Chromium de regras e quadros de
+conjuração, incluindo três temas/dois layouts/320px/GG e capturas M/GG.
+
 **Fontes, margens e dicas padronizadas:** Perfil/Personagens têm leitura 16px,
 apoio 14px, botões 15px e títulos distintos em M; acompanham P/M/G/GG. A janela
 tem até 36rem e o backup se reorganiza no celular. Quadros de classe, barra e
