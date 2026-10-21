@@ -8,10 +8,16 @@ histórico da conversa. Leia também `AGENTS.md`, `README.md`, `CHANGELOG.md` e
 
 Repositório: https://github.com/mhaetinger/D-D.
 Branch atual: **`feature/regras-universais`**, baseada no histórico público de `develop`.
-A criação guiada foi integrada pelas PRs #7/#8. A revisão atual está em
+A criação guiada foi integrada pelas PRs #7/#8. A revisão está em
 [REFATORACAO-2014.md](REFATORACAO-2014.md): regras/recursos, armas/CA,
 preparação, textos, criador, zoom, moeda e migração de identificadores.
-Não mesclar/publicar esta revisão sem aprovação. A branch remota `develop`
+O responsável autorizou conferir, integrar e publicar esta revisão em
+**21/10/2026**, após os ajustes do dado. O fluxo é PR #9 para `develop`, seguida
+de PR de `develop` para `main`, com verificações completas antes de cada mescla.
+A conclusão da entrega é o sucesso do workflow da `main` em
+[Actions](https://github.com/mhaetinger/D-D/actions), seguido da conferência em
+https://criticall.art/. Não fazer push direto à `main`.
+A branch remota `develop`
 foi restaurada após a entrega na referência de integração já aprovada
 `b1155fbc5d14a566f548814bd808374aa2383721`, merge da PR #7.
 
@@ -19,7 +25,7 @@ foi restaurada após a entrega na referência de integração já aprovada
 foi retirado. Os valores agora são editados na própria ficha; não retomar o
 fluxo antigo de Criar/Ajustar ficha manual pelo perfil. A conexão foi recuperada:
 a implementação `fe2dc66` foi enviada em 20/10 e a [PR #9](https://github.com/mhaetinger/D-D/pull/9)
-foi atualizada com base `develop`. Não houve merge/publicação desta etapa.
+foi atualizada com base `develop`; agora segue a entrega autorizada acima.
 
 **Ponto de retorno pedido pelo responsável:** estado aprovado em `94e44d1`,
 etiqueta local `checkpoint/antes-efeitos-dado-20261021-94e44d1`. Arquivo
@@ -54,8 +60,8 @@ pool preservados; o d20 rápido segue o modo conforme descrito acima. Comparaç�
 de capturas com build de `94e44d1` confirmou o dado normal idêntico em seis cenários (três temas,
 desktop M e 320px/GG). Conferidos 385 testes Node, tipos/build e Chromium do
 dado, ataques e magias, incluindo clique/teclado/arraste/arremesso, recarga,
-pool/inspiração, recursos e OFF. Falta o
-responsável avaliar o efeito no uso antes de publicar.
+pool/inspiração, recursos e OFF. Após os ajustes de modo e realce do dado,
+o responsável autorizou a publicação descrita acima.
 
 **Consulta no celular:** `app/feature-consult.ts` reúne regra, origem, escolhas
 e livro no mesmo balão do hover. Toque/clique fixa a consulta; ×/Esc/fora fecham.

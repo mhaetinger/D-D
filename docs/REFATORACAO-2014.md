@@ -96,8 +96,10 @@ não há automação de ações de outras criaturas ou compartilhamento de mesa.
   nesta revisão. Login e sincronização usam o SDK real com HTTP simulado nos
   testes de navegador; não substituem a validação entre dispositivos reais.
 
-A entrega segue em `feature/regras-universais`, por PR para `develop`, sem
-mescla/publicação desta revisão antes da aprovação do responsável.
+A entrega segue em `feature/regras-universais`, por PR para `develop` e depois
+`main`. O responsável autorizou conferir e publicar a revisão em 21/10/2026,
+após os ajustes finais do dado. O resultado da publicação fica no workflow
+da `main`, conforme `RETOMADA.md`.
 
 ## Revisão de apresentação após teste do responsável
 

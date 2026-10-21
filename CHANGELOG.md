@@ -2,6 +2,12 @@
 
 ## Não lançado
 
+## 2026-10-21
+
+Entrega autorizada pelo responsável após a revisão da ficha, importação,
+tipografia e dado. Integração por PR para `develop` e depois `main`; o workflow
+da `main` testa e publica o mesmo artefato `dist/`.
+
 ### Dado sem realce de seleção após R — 2026-10-21
 
 - R mantém o foco para repetir a rolagem, mas oculta o realce retangular que
