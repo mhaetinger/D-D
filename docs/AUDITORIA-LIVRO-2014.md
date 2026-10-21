@@ -8,8 +8,9 @@ históricos, no [CHANGELOG.md](../CHANGELOG.md).
 
 **A versão publicada não automatiza integralmente o livro.** Consulta, escolha
 cadastrada e contador de usos não significam efeito aplicado. As matrizes abaixo
-distinguem a produção das implementações seguintes em revisão;
-a entrega R1 está na branch `feature/bonus-passivos-r1`.
+distinguem a produção das implementações seguintes: R1 foi integrada em
+`develop` pela PR #17; o primeiro recorte de R2 está em
+`feature/rolagens-condicionais-r2`. Essas entregas ainda não foram publicadas.
 
 ## Como ler e atualizar o estado
 
@@ -36,8 +37,8 @@ reescrever a ficha nem automatizar toda decisão da mesa.
 
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
-| R1 — bônus nos cálculos | **Implementada e verificada; em revisão** | Quatro passivos integrados com elegibilidade e preservação de valores manuais. Tipos variáveis/efeitos posteriores seguem em R5. |
-| R2 — rolagens e gastos condicionais | **Próxima** | Talento Confiável, Sortudo racial e talento, rerrolagens, dados mínimos, -5/+10 e adicionais de talentos/estilos. Integrar escolha/gasto à jogada pertinente, sem duplicar reservas ou aplicar bônus a jogadas inelegíveis. |
+| R1 — bônus nos cálculos | **Integrada em `develop`; não publicada** | Quatro passivos integrados com elegibilidade e preservação de valores manuais. Tipos variáveis/efeitos posteriores seguem em R5. |
+| R2 — rolagens e gastos condicionais | **Primeiro recorte implementado; etapa parcial** | Talento Confiável em perícias e Sortudo racial nos d20 contextuais. Faltam o talento Sortudo, demais rerrolagens/dados mínimos, -5/+10 e adicionais de talentos/estilos. Integrar escolha/gasto à jogada pertinente, sem duplicar reservas ou aplicar bônus a jogadas inelegíveis. |
 | R3 — condições, defesas e características | Planejada; já há cobertura parcial | Completar efeitos das condições, imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
 | R5 — famílias de magias | Planejada; fórmulas auditadas já corrigidas | Revisar metadados e exceções do catálogo por família: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
@@ -101,6 +102,61 @@ todos aprovados, incluindo CAR negativo com dano mínimo zero. A suíte completa
 não foi repetida localmente após esses ajustes; é exigida na CI da PR. Capturas
 desktop/celular conferidas; diff e 62 links/âncoras locais válidos.
 SQL/RLS/RPC não foram alterados; teste de banco não repetido localmente.
+
+A [PR #17](https://github.com/mhaetinger/D-D/pull/17) foi integrada em `develop`
+em `445939d`, após autorização do responsável e aprovação da CI completa no
+[workflow 39675036022](https://github.com/mhaetinger/D-D/actions/runs/39675036022):
+395 testes Node, tipos/build, os 26 roteiros Chromium, banco/RLS/Storage
+descartável e auditoria das dependências de produção. Isso complementa as
+execuções locais acima; não significa publicação ou cobertura integral do livro.
+
+### Primeiro recorte de R2 — 21/10/2026
+
+Fonte: Livro do Jogador local, páginas físicas **27** (Sortudo racial), **90**
+(Talento Confiável) e **174** (um único dado rerrolado com vantagem/desvantagem).
+Implementação em `src/rules/dice-roll.ts`, integrada ao rolador existente.
+O [Sage Advice v2.4/2020 para as regras de 2014](https://media.wizards.com/2019/dnd/downloads/SA-Compendium.pdf)
+também foi conferido: meia proficiência de Versatilidade/Atleta não habilita
+Talento Confiável. Não usar a revisão de 2024 para essa combinação.
+
+- [x] **Talento Confiável nas perícias:** exige ladino 11 e proficiência real
+  naquela perícia; trata o d20 escolhido de 9 ou menos como 10 antes de somar
+  bônus e outros dados. Conserva especialização e ajustes escritos, inclusive
+  zero/negativos. Não infere proficiência pelo valor do bônus nem pelo nome.
+  Não se aplica a ataques, resistências, testes simples de atributo, iniciativa
+  ou à meia proficiência de Versatilidade/Atleta. Testes com ferramentas seguem
+  na mesa, pois não existe uma ação de rolagem própria para eles nesta ficha.
+- [x] **Sortudo racial contextual:** exige o vínculo de uma das duas sub-raças
+  halfling. Após um 1 em ataque, perícia, atributo, iniciativa ou resistência
+  em Auto Ficha, oferece repetir um único dado na bandeja. Com vantagem/desvantagem,
+  mantém o outro dado e o modo original; dois 1 ainda permitem só uma repetição.
+  O novo resultado é obrigatório, mesmo outro 1. Não gasta inspiração novamente,
+  não rola outros dados e atualiza o crítico preparado da arma.
+- [x] **Resistências com consequências imediatas:** concentração, morte e Fúria
+  Implacável permitem optar por repetir um 1 na confirmação do dado virtual,
+  antes de rolar/aplicar consequências. Dado físico registra a face final
+  resolvida na mesa; cancelar ou usar OFF não lança dados virtuais.
+- [x] **Contexto preservado:** opção transitória termina com outra rolagem ou
+  troca de ficha/espaço; alteração da ficha invalida o resultado anterior.
+  Dado rápido e pool livre não inferem regras de uma jogada. O desenho, auras e
+  gestos do dado permanecem nos módulos existentes.
+
+O **talento Sortudo** não foi implementado neste recorte: seus três pontos,
+escolha do d20 e ataques contra o personagem são outra regra. Também continuam
+pendentes Atacante Bestial, Combate com Armas Grandes, Adepto Elemental,
+Atirador Aguçado/Mestre de Armas Grandes (-5/+10) e adicionais/manobras dos
+demais talentos/estilos. Este recorte **não conclui R2**. Resultado/acerto e o
+momento de usar a opção antes de resolver a jogada continuam a cargo da mesa.
+
+Regressões: `tests/dice-roll.test.ts` e `tests/conditional-rolls-browser.cjs`.
+Verificações finais: **404 testes Node**, tipos/build e os **27 roteiros
+Chromium completos** aprovados no mesmo artefato, incluindo R1, desenho/gestos
+do dado, PV, concentração, ataques e importação. O novo roteiro cobre opção
+única/cancelamento/estado obsoleto, crítico, inspiração, resistências com
+consequências, dois layouts, três temas, 320px/GG, toque e recarga offline sob
+`/D-D/` com notas preservadas. Capturas desktop/celular conferidas; 62 links
+locais válidos e auditoria de produção sem vulnerabilidades. Sem SQL/RLS/RPC;
+banco não repetido localmente, permanecendo exigido na CI.
 
 ## Progresso já entregue
 
@@ -186,7 +242,7 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 | Druida, 70–75 | Terra; Lua | Preparação/círculo, Forma Selvagem/PV, cura da Lua, Recuperação Natural e concentração mantida na transformação | Bloco de besta/estatísticas e custo de elemental; CON da forma informada no teste |
 | Feiticeiro, 76–81 | Magia Selvagem; Linhagem Dracônica | Feitiçaria/metamágica, conversão, Marés, CA, resistência e bônus inicial de Afinidade Elemental nos casos reconhecidos | Surto/gatilhos, tipos variáveis/efeitos posteriores e elegibilidade completa de metamagias; adaptações identificadas |
 | Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa de Atleta Extraordinário | Outros testes de Atleta; rerrolagem de Combate com Armas Grandes; manobras/reações; Sobrevivente |
-| Ladino, 88–92 | Ladrão; Assassino; Trapaceiro Arcano | Especialização, composição de Ataque Furtivo, Esquiva/Evasão, usos avançados e magias | Talento Confiável na rolagem; surpresa/Assassinar e Ação Ardilosa |
+| Ladino, 88–92 | Ladrão; Assassino; Trapaceiro Arcano | Especialização, composição de Ataque Furtivo, Esquiva/Evasão, usos avançados, magias e Talento Confiável nas perícias da ficha (R2 inicial) | Testes com ferramentas na mesa; surpresa/Assassinar e Ação Ardilosa |
 | Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, Dominar/Assinatura, recuperação, Proteção Arcana inclusive multiclasse, Conjuração Focada, Presságio e usos/estados de escola | Efeitos por alvo, demais bônus de escola, lacaios, pedra e Sobrecarga; fluxo de troca temporal das escolhas |
 | Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi, movimento/CA, curas/usos, Evasão e defesas de Pureza Corporal/Corpo Vazio no dano por tipo | Imunidade a condições, Artes Marciais/dano desarmado em todas as condições, Atordoar/Defletir Projéteis e recuperação ao iniciar combate |
 | Paladino, 107–113 | Devoção; Anciões; Vingança | Cura pelas Mãos, Canalizar, Arma Sagrada, aura própria nos testes, preparação e Destruição com gasto de espaço | Aplicação a aliados/consciência e condições dos juramentos; cura no alvo |
@@ -202,9 +258,11 @@ O dano por tipo já reconhece as fontes de anão/tiefling/draconato. Resistênci
 Implacável do meio-orc está integrada à prevenção de queda, e Ataques Selvagens
 à composição de crítico corpo a corpo. Não retomar esses casos como ausentes.
 
-Continuam pendentes **Sortudo dos halflings**, resolução completa do sopro do
-draconato, sensibilidade solar do drow e outras resistências/vantagens e gatilhos
-raciais. Visão no escuro, idiomas, ferramentas, transe, máscaras naturais e
+Sortudo dos halflings foi integrado às rolagens contextuais no primeiro recorte
+de R2, conforme condições e limites acima; não é o talento homônimo.
+Continuam pendentes a resolução completa do sopro do draconato, sensibilidade
+solar do drow e outras resistências/vantagens e gatilhos raciais.
+Visão no escuro, idiomas, ferramentas, transe, máscaras naturais e
 características sociais podem permanecer como consulta quando não houver uma
 operação da ficha a resolver. Antecedentes e origens ambíguas não devem ser
 inferidos a partir de texto livre nem substituir escolhas antigas.
@@ -310,7 +368,7 @@ produção atual. O relatório detalhado anterior pode ser recuperado com
 `git show de3eda0:docs/AUDITORIA-LIVRO-2014.md`; changelog e arquitetura preservam
 as implementações e seus contratos.
 
-A última entrega funcional passou 385 testes Node, tipos/build, 25 roteiros
+A última versão publicada passou 385 testes Node, tipos/build, 25 roteiros
 Chromium e banco descartável na CI, conforme [RETOMADA.md](RETOMADA.md).
 Esses números não são porcentagem de cobertura do livro. A consolidação documental anterior
 não repetiu a auditoria integral do PDF. As verificações específicas da entrega
