@@ -61,8 +61,8 @@ sem rede. O recorte implementado e seus limites estão descritos abaixo.
 
 ### Entrega R1 — 21/10/2026
 
-Implementação em `src/rules/passives.ts`, integrada aos cálculos e controles
-existentes. Fonte: Livro do Jogador local, páginas físicas do PDF **166**
+Implementação no commit `8bcab7dfcaa5750e512264a8ef43b8ebffcb6748`,
+em `src/rules/passives.ts`, integrada aos cálculos e controles existentes. Fonte: Livro do Jogador local, páginas físicas do PDF **166**
 (Ambidestro), **170–171** (Observador), **61** (Sorvedor de Vida) e **79**
 (Afinidade Elemental), conferidas no texto extraído e referências do motor.
 

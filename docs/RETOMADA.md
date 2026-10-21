@@ -18,6 +18,7 @@ A versão funcional foi publicada em **https://criticall.art/** pelas
 | Verificação/publicação | [Workflow 39638188104](https://github.com/mhaetinger/D-D/actions/runs/39638188104), concluído com sucesso |
 | Trabalho seguinte | R1 implementada e verificada, em revisão; próxima implementação R2 |
 | Branch da tarefa | `feature/bonus-passivos-r1`, criada de `develop` público após a PR #16 |
+| Implementação R1 verificada | `8bcab7dfcaa5750e512264a8ef43b8ebffcb6748`; testes e limites na auditoria |
 
 A organização documental anterior foi integrada em `develop`. O responsável
 autorizou continuar a sequência; **R1 — bônus ausentes nos cálculos** está
