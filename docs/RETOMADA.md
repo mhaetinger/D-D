@@ -7,7 +7,21 @@ histórico da conversa. Leia também `AGENTS.md`, `README.md`, `CHANGELOG.md` e
 ## Abrir a versão em desenvolvimento
 
 Repositório: https://github.com/mhaetinger/D-D.
-Branch atual: **`fix/estabiliza-medicao-dado`**, a partir de `develop` público
+Branch atual: **`fix/integridade-da-atualizacao`**, de `develop` público `81029bb`.
+A PR #12 foi publicada em `main` `e9d6ae9`, workflow
+[39632249237](https://github.com/mhaetinger/D-D/actions/runs/39632249237) aprovado.
+O smoke real com duas abas antigas encontrou HTML anterior após a ativação do
+worker novo; a página estava sem a meta da nova revisão. Uma entrada limpa e F5
+posterior receberam `671da68ad8c60850` corretamente. A origem exata da resposta
+anterior não foi capturada. Esta correção acrescenta integridade por arquivo,
+para recusar conteúdo antigo com 200, e regressões com aba congelada e repetição
+da instalação. O teste com cache HTTP nativo reproduziu a raiz antiga mesmo com
+o cache offline novo; renovar também a URL de entrada resolve essa condição.
+`route()` desativava o cache HTTP: foi trocado por bloqueio externo via CDP.
+Não considerar a conferência real da atualização concluída até
+repetir o smoke após a correção. Dados usados são fictícios em contexto isolado.
+
+Ajuste anterior: **`fix/estabiliza-medicao-dado`**, a partir de `develop` público
 `422d15e` após a integração da PR #11. A PR #12 reúne a entrega para `main`.
 A CI capturou o tamanho intermediário do dado durante a transição de fonte
 (99,984375 px em vez de 100 px); o teste agora aguarda a animação terminar,
