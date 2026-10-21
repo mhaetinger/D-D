@@ -1,24 +1,19 @@
 # CritCall
 
-Este aplicativo se chama CritCall e é dedicado às fichas de D&D, com
-infraestrutura própria. O projeto Supabase exclusivo
-do CritCall foi identificado e configurado localmente. A conexão com a API foi
-conferida. O build já inclui a configuração pública, sem variables do GitHub;
-o usuário confirmou cadastro, confirmação de e-mail e entrada no teste local.
-Os retornos locais foram corrigidos e conferidos. O link de recuperação foi
-aberto em outro navegador/dispositivo, incompatível com o fluxo atual. Após a
-orientação, o usuário relatou sucesso na recuperação/troca no teste local em
-16/10/2026. Salvamento pessoal e sincronização estão implementados/testados nesta
-branch; a migração foi aplicada ao Supabase real em 16/10/2026. A validação
-entre dispositivos reais e SMTP próprio ainda aguardam. A entrega foi autorizada
-e publicada em **https://criticall.art/** em 16/10/2026; o estado da implantação
-está nos [workflows](https://github.com/mhaetinger/D-D/actions).
-Consulte [docs/LOGIN.md](docs/LOGIN.md). Para continuar em outro computador,
-siga [docs/RETOMADA.md](docs/RETOMADA.md).
-
 Aplicação de fichas individuais de D&D 5e, com criador, evolução, multiclasse,
 grimório, inventário, anotações pessoais e consulta aos livros da mesa.
-As regras são de 2014, com Patrulheiro Revisado; o seletor 2024 muda a apresentação.
+As regras são de **2014 com Patrulheiro Revisado**; o seletor 2024 muda somente
+a apresentação. A cobertura das mecânicas é parcial e está registrada na
+[auditoria e roteiro de regras](docs/AUDITORIA-LIVRO-2014.md).
+
+Versão publicada em **https://criticall.art/**, hospedada no GitHub Pages.
+O DNS usa Cloudflare; a migração da hospedagem está preparada, sem ativação.
+Login e sincronização pessoal estão publicados, com migrações aplicadas ao
+projeto exclusivo CritCall. O envio deve ser confirmado no perfil; validação
+entre dispositivos reais e SMTP próprio continuam pendentes.
+
+Para continuar o desenvolvimento, comece por [docs/RETOMADA.md](docs/RETOMADA.md).
+Esse arquivo registra a última entrega, a próxima etapa e as validações externas.
 
 ## Executar
 
@@ -135,7 +130,7 @@ a recuperação de uma versão da ficha não restaura pixels antigos no servidor
 
 ## Salvamento e backups
 
-Fichas e notas mantêm uma cópia neste navegador. A branch inclui salvamento por
+Fichas e notas mantêm uma cópia neste navegador. A aplicação inclui salvamento por
 conta no Supabase com fila offline, perfil, preferências e versões recuperáveis;
 **migração aplicada no projeto real; validação entre dispositivos reais pendente**.
 Confira o estado de envio no perfil. Estar conectado não significa que tudo já
@@ -268,7 +263,7 @@ O servidor de desenvolvimento não instala o cache offline.
 
 O aplicativo guarda seu código, regras, estilos, fontes e ícones. Os PDFs não são
 baixados automaticamente: a consulta aos livros exige conexão, ou você pode abrir
-uma cópia previamente baixada fora do leitor integrado. A fila da branch envia
+uma cópia previamente baixada fora do leitor integrado. A fila de sincronização envia
 alterações ao reconectar; o banco real já recebeu a migração. Outro PC só recebe edições
 offline depois de seu envio.
 
@@ -293,19 +288,14 @@ O leitor PDF.js é hospedado junto do aplicativo e tem texto selecionável. Os
 balões e consultas do criador também oferecem as descrições das regras.
 O zoom livre mantém apenas a porcentagem atual na lista, junto dos atalhos fixos.
 
-A [auditoria do Livro do Jogador](docs/AUDITORIA-LIVRO-2014.md) percorre todos os
-capítulos/apêndices e distingue cálculo, consulta e pendências. Concentração
-e condições já têm os controles descritos abaixo; duração, alvos e vários
-efeitos condicionais ainda exigem decisão da mesa.
-A revisão aprofundada também reproduziu divergências de fórmulas/rolagens,
-cura, transformação/descansos e recursos de alto nível. A primeira etapa de
-correções unifica a fórmula mostrada/rolada, corrige os cenários de PV e usa
-Dominar Magia/Assinatura no seletor de origem já existente. Componentes de
-magias não ficam mais cortados na quebra de linha. O diagnóstico
-`scripts/audit-phb-scenarios.cjs` usa somente personagens fictícios; o teste
+A [auditoria do Livro do Jogador](docs/AUDITORIA-LIVRO-2014.md) reúne a cobertura
+por capítulo, classe/raça e talento, as correções já entregues e as etapas R1–R6.
+Uma descrição ou escolha cadastrada não garante aplicação do efeito. Os
+cenários direcionados usam somente personagens fictícios, e o teste
 `tests/audited-rules-browser.cjs` exige os resultados corrigidos na suíte.
+Isso não certifica todas as combinações ou a execução integral das 361 magias.
 
-## Login em desenvolvimento
+## Login e contas
 
 O fluxo escolhido é e-mail/senha no Supabase, em um projeto separado do outro
 aplicativo do responsável. Consulte [docs/LOGIN.md](docs/LOGIN.md) para cadastro,
@@ -461,8 +451,9 @@ prepara vantagem para o próximo teste/ataque da ficha ou d20 do pool; desvantag
 cancela essa vantagem. **Usar na mesa** gasta após confirmação para jogar com
 dado físico. Preparar pode ser cancelado; dano e arremesso rápido não gastam a
 inspiração preparada. Não é a reserva de Inspiração de Bardo nem uma rerrolagem.
-Tempo de descanso, Medicina, ressurreição, fontes de bônus e gatilhos de classe
-que evitam cair a 0 PV continuam dependendo da resolução da mesa.
+Tempo de descanso, Medicina, ressurreição, fontes de bônus e os gatilhos de
+queda ainda não integrados continuam dependendo da mesa. Resistência Implacável
+e Fúria Implacável já têm o fluxo descrito acima.
 
 Magias que precisam de preparo só oferecem lançamento normal quando preparadas;
 Domínio/Círculo/Juramento ficam **Sempre Preparadas**. Ritual de mago no grimório
@@ -536,35 +527,24 @@ alternativa passou também com PostgreSQL 18.6. A CI mantém Docker/PostgreSQL 1
 
 ## Desenvolvimento e publicação
 
-Migração para Cloudflare em preparação, após o usuário criar a conta. O roteiro
-está em [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md); a configuração de publicação
-descrita abaixo continua sendo a atual até a transição revisada. O workflow já
-aceita o destino opcional Cloudflare pelo mesmo artefato verificado; as variáveis
-e os Secrets necessários estão no roteiro. O destino Cloudflare ainda não foi ativado.
+Branches de tarefa partem de `develop` e seguem por PR; uma entrega revisada e
+aprovada segue por PR para `main`. A pipeline verifica tipos, testes, build,
+navegador e banco descartável. Somente a `main` publica o artefato `dist/`, com
+GitHub Actions; não publicar a raiz com arquivos de desenvolvimento.
+O estado e as evidências da última publicação ficam em
+[docs/RETOMADA.md](docs/RETOMADA.md).
 
-Branches por tarefa seguem para `develop`; uma entrega revisada segue para
-`main`. Não fazer push direto à `main`. A pipeline verifica tipos, testes,
-build e navegador; somente um push na `main` pode publicar `dist/` no Pages.
-Para essa nova estrutura, a fonte do Pages deve ser **GitHub Actions**. Não publicar
-a raiz com os arquivos de desenvolvimento. A primeira versão já está em
-[mhaetinger.github.io/D-D](https://mhaetinger.github.io/D-D/), integrada pelas
-PRs #1/#2 e verificada em 15/10/2026. O login desta branch ainda aguarda ativação.
+O endereço atual é **https://criticall.art/**. Domínio registrado na Hostinger,
+DNS na Cloudflare e hospedagem no GitHub Pages. O workflow também aceita o
+destino Cloudflare com o mesmo artefato verificado, mas projeto/credenciais e
+ativação continuam pendentes. Procedimentos em [docs/DOMINIO.md](docs/DOMINIO.md)
+e [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md).
 
-O usuário confirmou a compra de `criticall.art` na Hostinger em 16/10/2026.
-Confirmou OK no DNS check do GitHub e na Cloudflare. Consulta pública confirmou
-nameservers Cloudflare, HTTPS na raiz e retorno de `www`. A hospedagem ainda é
-GitHub Pages; migração para Cloudflare Pages e login no domínio aguardam validação.
-O retorno novo já foi aceito pelo Supabase. O procedimento está em [docs/DOMINIO.md](docs/DOMINIO.md).
-
-Veja [CONTRIBUTING.md](CONTRIBUTING.md) e [docs/ARQUITETURA.md](docs/ARQUITETURA.md)
-para os módulos, contratos, decisões e próximas etapas.
-O [guia da primeira publicação](docs/PRIMEIRA-PUBLICACAO.md) reúne a entrega,
-as verificações, o pacote de revisão no GitHub e os passos para ativar o site.
-
-O site é acessível a qualquer pessoa com o endereço. `noindex` orienta mecanismos
-de busca e não restringe acesso. Histórico/checkpoints da interface ainda são da
-cache pessoal e entram na fila da branch; validação real entre dispositivos,
-publicação e salas seguem pendentes.
+Veja [CONTRIBUTING.md](CONTRIBUTING.md) para contribuir e
+[docs/ARQUITETURA.md](docs/ARQUITETURA.md) para os contratos dos módulos. O roteiro
+de mecânicas está somente na auditoria; as validações externas ficam na retomada.
+O site é acessível a quem obtiver o endereço. `noindex` orienta buscadores e não
+restringe acesso. Salas e voz/vídeo não estão implementados.
 
 Código próprio sob MIT. Fontes/ícones e demais componentes conservam suas licenças
 em [public/licenses](public/licenses/README.md); PDF.js e seus avisos ficam em

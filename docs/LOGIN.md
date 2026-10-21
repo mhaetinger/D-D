@@ -1,5 +1,9 @@
 # Login por e-mail e senha
 
+Referência de configuração e comportamento. Estado publicado e validações
+externas pendentes: [RETOMADA.md](RETOMADA.md). Este documento não é outro
+plano de entrega.
+
 ## Tela de entrada
 
 A página começa pela entrada principal do CritCall quando não há conta validada.
@@ -20,48 +24,29 @@ O perfil mantém informações da conta, troca de senha, saída, personagens,
 backups e estado do salvamento. A entrada não substitui RLS ou validação da
 identidade, nem altera os retornos já configurados no serviço.
 
-## Estado desta branch
+## Configuração e estado publicado
 
-O responsável confirmou e-mail/senha em 15/10/2026 e pediu um projeto Supabase
-exclusivo do CritCall, administrado pela conta do responsável.
-O usuário criou e identificou o projeto novo: `qhrpgkpvwbztubnrdhya`, URL pública
+O serviço exclusivo é o projeto CritCall **`qhrpgkpvwbztubnrdhya`**, URL pública
 `https://qhrpgkpvwbztubnrdhya.supabase.co`. URL e chave publicável acompanham o
-build em `src/auth/public-project.ts`. São identificadores públicos feitos para
-o navegador, sem privilégio administrativo; o preflight confere o tipo da chave.
-Outros aplicativos não devem receber alterações.
-Cada projeto Supabase tem seu
-próprio banco e serviço de autenticação: [projetos e organizações](https://supabase.com/docs/guides/platform).
+build em `src/auth/public-project.ts`; não têm privilégio administrativo. O
+preflight confere o tipo da chave. Outros aplicativos não devem receber alterações.
 
-Implementados cadastro, entrada, reenvio de confirmação, recuperação de senha,
-troca de senha pelo link PKCE, sessão e saída. O cliente oficial
-`@supabase/supabase-js` 2.118.0 faz as requisições. O build padrão já tem a
-configuração pública do CritCall, sem depender de variables do GitHub ou arquivo
-local. `VITE_AUTH_ENABLED=false` desliga o login e mantém o espaço local.
-Esta implementação ainda não está ativada no site publicado. A API real respondeu
-HTTP 200 em settings/health, com e-mail e cadastro habilitados e confirmação
-obrigatória. O Chromium enviou uma tentativa com credenciais inexistentes ao
-projeto real: HTTP 400, mensagem correta e nenhum erro JavaScript. Não houve
-cadastro, envio de e-mail ou entrada bem-sucedida em conta real nessa verificação
-automatizada. Depois, o usuário confirmou que criou a conta, recebeu/abriu a
-confirmação e conseguiu entrar. Confirmou que iniciou em `http://localhost:5174/`
-e foi levado a `https://mhaetinger.github.io/D-D/`. Após acrescentar localhost à
-lista permitida, o endpoint real voltou a aceitar essa origem local para
-confirmação e recuperação. No teste seguinte, o usuário relatou a mensagem
-genérica de link expirado/outro navegador e retorno ao formulário de entrada.
-Depois, confirmou retorno a `http://localhost:5174/` e abertura em outro navegador
-ou dispositivo. Esse cenário não atende ao fluxo PKCE atual: o verificador fica
-no navegador/dispositivo que iniciou a solicitação. A confirmação explica a
-recusa relatada. Após a orientação de repetir no navegador de origem, em
-16/10/2026 o usuário relatou que, a princípio, deu certo. Registrado como sucesso
-relatado pelo usuário no teste local; não houve operação de senha real por
-ferramenta. Reenvio real, duas contas e ativação publicada continuam pendentes.
+Cadastro, entrada, reenvio de confirmação, recuperação/troca PKCE, sessão e saída
+estão implementados e publicados em **https://criticall.art/**. O cliente oficial
+`@supabase/supabase-js` está fixado no lockfile. O build não depende de variables
+do GitHub ou arquivo local; `VITE_AUTH_ENABLED=false` mantém a edição apenas local.
 
-Fichas e anotações mantêm cópia neste navegador. A sincronização pessoal foi
-implementada na branch, com fila IndexedDB e migração de tabelas/RLS/RPC. Essa
-migração foi aplicada ao projeto real em 16/10/2026; o teste de sincronização
-entre dispositivos reais permanece pendente. A separação do cache não é
-proteção contra quem controla o dispositivo. Dados, datas, conflitos, ativação
-e verificações em [SINCRONIZACAO.md](SINCRONIZACAO.md).
+O usuário confirmou cadastro/entrada e relatou sucesso na recuperação local em
+16/10/2026, após repetir o fluxo no navegador/dispositivo de origem. As consultas
+automatizadas ao serviço real conferiram conexão e destinos de retorno, sem
+cadastrar usuários, enviar e-mails ou trocar senhas. Isso não comprova todos os
+fluxos de e-mail na produção. Validações reais e SMTP próprio estão em V2/V3 da
+retomada; a publicação do código já foi concluída.
+
+Fichas/notas mantêm cópia no navegador e fila pessoal de sincronização. As
+migrações foram aplicadas ao projeto real em 16/10/2026; versões remotas,
+contratos e alertas estão em [SINCRONIZACAO.md](SINCRONIZACAO.md). Separar o cache
+por conta não o protege de quem controla o dispositivo.
 
 ## Configurar o projeto exclusivo
 
@@ -70,12 +55,12 @@ e verificações em [SINCRONIZACAO.md](SINCRONIZACAO.md).
    permite o cliente do aplicativo; não concede acesso à administração do projeto.
 2. Em Authentication, habilitar cadastro por e-mail/senha e manter confirmação
    de e-mail. Configurar senha mínima de 12 caracteres, compatível com a interface.
-3. Usar `https://mhaetinger.github.io/D-D/` como Site URL e retorno permitido.
-   Para desenvolvimento, acrescentar somente os endereços locais usados, por
-   exemplo `http://127.0.0.1:5174/` e `http://localhost:5174/`. O retorno é sempre a raiz do aplicativo;
-   nenhuma rota de callback exige configuração extra no Pages. O usuário confirmou
-   Site URL/retorno do Pages e os dois retornos locais em 5174 em 15/10/2026. A porta 5173 pertence a outro aplicativo. A configuração
-   administrativa não foi lida pelo conector nesta sessão.
+3. O Site URL registrado é `https://criticall.art/`, com esse retorno e os locais
+   `http://127.0.0.1:5174/` e `http://localhost:5174/` já conferidos em 16/10/2026.
+   A porta 5173 pertence a outro aplicativo. O retorno é a raiz/pasta da aplicação;
+   não criar uma rota extra de callback. Antes de mudar domínio/serviço, conferir
+   a configuração administrativa e seguir [DOMINIO.md](DOMINIO.md), preservando
+   retornos antigos durante a transição necessária.
 4. Conferir entrega de confirmação e recuperação. O SMTP padrão do Supabase
    serve apenas a endereços pré-autorizados da equipe e tem limites restritos;
    configurar um remetente SMTP próprio antes de liberar e-mails para jogadores.
@@ -98,7 +83,7 @@ Referências: [senhas](https://supabase.com/docs/guides/auth/passwords),
 O projeto público em `src/auth/public-project.ts` é a configuração padrão do
 build. A chave publicável é distribuída de qualquer modo no código do navegador;
 sua presença nesse arquivo não permite administrar o Supabase, ler senhas ou
-ignorar autorização do serviço. Ela não substitui as futuras políticas RLS.
+ignorar autorização do serviço. Ela não substitui as políticas RLS já aplicadas.
 Não colocar chaves secretas, service_role, senhas do banco ou tokens administrativos
 nesse arquivo, em arquivos Vite ou em documentação.
 [Tipos de chave do Supabase](https://supabase.com/docs/guides/getting-started/api-keys).
@@ -192,8 +177,9 @@ O usuário confirmou a compra de `criticall.art` na Hostinger em 16/10/2026.
 Informou configurações feitas e DNS em verificação no GitHub. A API real aceitou
 o retorno `https://criticall.art/` e os dois retornos locais em 5174; um retorno
 não permitido recaiu no domínio novo (303). Usados tokens aleatórios inválidos,
-sem e-mails ou mudanças de senha. Site/HTTPS no Pages e login completo no domínio
-novo ainda não foram conferidos.
+sem e-mails ou mudanças de senha. DNS/HTTPS foram conferidos em 16/10/2026 e a
+publicação funcional no domínio em 21/10/2026. A conferência completa do login
+e dos e-mails reais em produção segue nas validações da retomada.
 O mesmo build usa caminhos relativos e é conferido tanto em `/D-D/` quanto em `/`.
 O retorno acompanha a origem/pasta em que o jogador iniciou o fluxo; o Supabase
 precisa autorizar a nova URL antes do teste real no domínio. A troca de origem
@@ -236,16 +222,15 @@ não transfere automaticamente as fichas locais. Procedimento e limites em
   nem isolamento do sistema operacional. Um fluxo de remoção/exportação do cache
   continua pendente; os dados remotos pessoais usam RLS/RPC da migração aplicada.
 
-## Conferência antes de ativar
+## Limites da verificação de login
 
 O teste `tests/auth-browser.cjs` compila um artefato temporário com configuração
 fictícia e usa o SDK real contra respostas HTTP controladas. Não envia cadastro,
 senha ou recuperação a um projeto real. Ele complementa os testes existentes;
 não comprova entrega de e-mail, configuração do serviço ou proteção de dados remotos.
 
-Antes de ativar na publicação: conferir o projeto exclusivo, SMTP/retornos,
-cadastro/confirmação/recuperação reais, duas contas distintas e os caminhos de
-renderização de dados não confiáveis. A revisão integral de segurança e a
-validação real entre dispositivos continuam pendentes. A migração de
-personagens/notas foi aplicada e as políticas conferidas; os alertas do serviço
-estão em SINCRONIZACAO.md. Integrar por PR em develop e depois em main; não habilitar o projeto anterior por engano.
+A publicação do código já está concluída. A validação completa com contas,
+dispositivos e e-mails reais, o SMTP e a revisão dos alertas do serviço são
+acompanhados na [RETOMADA.md](RETOMADA.md). Os contratos e as inspeções históricas
+de RLS/RPC estão em SINCRONIZACAO.md; não declarar revisão integral de segurança
+a partir dos testes existentes. Alterações seguem PR para develop e main.

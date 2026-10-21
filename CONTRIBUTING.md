@@ -45,8 +45,9 @@ npm ci
 npm run dev -- --port 5174 --strictPort
 ```
 
-Para continuar esta entrega, selecionar a branch indicada em `docs/RETOMADA.md` e ler
-[docs/RETOMADA.md](docs/RETOMADA.md) antes de iniciar uma nova branch. Abrir
+Antes de iniciar uma tarefa, leia [docs/RETOMADA.md](docs/RETOMADA.md) e confira
+o estado do Git. Continue uma branch pendente quando indicado; tarefas novas
+partem de `develop` público atualizado. Abrir
 `http://localhost:5174/`, retorno autorizado no Supabase. A configuração pública
 do CritCall já acompanha o código; não é necessário copiar `.env.local`.
 
@@ -94,10 +95,13 @@ PDF.js está fixado em `public/vendor/pdfjs/`; preservar seus avisos ao atualiza
 - Esta branch pública é a base do desenvolvimento. Uma cópia local de referência
   não deve ser mesclada nem enviada com seu histórico. Qualquer reaproveitamento
   de código exige revisão dos arquivos e do conteúdo antes do commit.
-- O seletor 2014/2024 muda o layout. Login e sincronização pessoal estão na
-  branch de tarefa; migração aplicada ao Supabase real, com validação entre
-  dispositivos reais e publicação ainda pendentes.
-  Salas não estão implementadas. PDFs não entram no download automático.
+- O seletor 2014/2024 muda o layout. Login e sincronização pessoal estão
+  publicados, com migrações aplicadas ao CritCall real; as validações externas
+  pendentes estão em `docs/RETOMADA.md`. Salas não estão implementadas.
+  PDFs não entram no download automático.
+- Progresso e pendências de regras ficam em `docs/AUDITORIA-LIVRO-2014.md`;
+  módulos/contratos em `docs/ARQUITETURA.md`; entregas/testes no changelog.
+  Atualizar esses registros em vez de criar planos duplicados de retomada.
 
 O teste `npm run test:database` usa Docker com PostgreSQL 16 descartável por padrão,
 sem publicar portas ou consultar bancos existentes. Também aceita

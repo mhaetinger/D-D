@@ -7,6 +7,9 @@
   A leitura de identificadores antigos fica isolada na compatibilidade silenciosa.
   Gravações e exports novos usam CritCall; preservar originais durante a migração.
 - Ler `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md` e `docs/ARQUITETURA.md` antes de alterar.
+- Começar a retomada por `docs/RETOMADA.md`. Progresso e pendências de mecânicas
+  ficam somente em `docs/AUDITORIA-LIVRO-2014.md`; atualizar a matriz e o
+  changelog a cada entrega, sem criar planos duplicados.
 - Trabalhar em `feature/*` ou `fix/*` a partir de `develop`. Usar pull requests
   para `develop` e, depois de verificar a entrega, para `main`. Não fazer push
   direto à `main` nem mesclar sem aprovação do responsável.

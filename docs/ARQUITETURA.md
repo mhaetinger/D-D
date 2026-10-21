@@ -1,4 +1,9 @@
-# Arquitetura e próximas etapas
+# Arquitetura
+
+Este documento descreve módulos e contratos existentes. O estado da publicação
+e as validações externas estão em [RETOMADA.md](RETOMADA.md); o progresso e o
+roteiro de mecânicas estão em [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md).
+Seções datadas registram a implementação do módulo, sem substituir esses estados.
 
 ## Base implementada
 
@@ -299,7 +304,7 @@ usa transações IndexedDB por projeto/usuário, com IDs de operação idempoten
 revisões remotas e projeção que aguarda editores. Histórico/checkpoints passam a
 ser persistidos separadamente e entram na fila; seus snapshots não incluem notas.
 
-## Login preparado, ativação pendente
+## Login, sessão e isolamento por conta
 
 Confirmados e-mail/senha e projeto exclusivo do CritCall em 15/10/2026. O usuário
 identificou o projeto novo `qhrpgkpvwbztubnrdhya`. URL/chave publicável estão na
@@ -342,8 +347,10 @@ a anon, permitem authenticated e têm `search_path` vazio. Teste SQL real com
 identidade sintética, integralmente revertido, confirmou escrita/idempotência
 e isolamento do dono, sem dados pessoais. Cliente e SQL também foram testados
 com HTTP controlado e PostgreSQL 16 descartável, respectivamente. Ainda faltam
-sincronização real entre dispositivos, publicação, SMTP próprio e revisão dos
-alertas descritos em SINCRONIZACAO.md. Contratos em [LOGIN.md](LOGIN.md) e [SINCRONIZACAO.md](SINCRONIZACAO.md).
+sincronização real entre dispositivos, SMTP próprio e revisão dos alertas
+descritos em SINCRONIZACAO.md. A publicação foi concluída; evidências em
+[RETOMADA.md](RETOMADA.md). Contratos em [LOGIN.md](LOGIN.md) e
+[SINCRONIZACAO.md](SINCRONIZACAO.md).
 
 Documentos têm revisão crescente e datas de edição/recebimento, com calibração
 do relógio. Se edições simultâneas disputam a mesma revisão, vence a data mais
@@ -389,8 +396,12 @@ Dependências e lockfile fixados; fontes e ícones são compilados/hospedados co
 aplicativo. O build mantém apenas os ícones usados. Licenças acompanham os arquivos.
 Tailwind 3 foi mantido para preservar as utilidades do visual existente.
 PostCSS 8.5.30 e o override de `postcss-selector-parser` 7.1.6 corrigem os avisos
-com versões disponíveis, preservando o CSS gerado. O aviso remanescente da cadeia
-de build e sua exposição estão registrados no guia da primeira publicação.
+com versões disponíveis, preservando o CSS gerado. O aviso de `braces` 3.0.3 na
+cadeia de desenvolvimento do Tailwind foi registrado na preparação de 15/10/2026
+no changelog. Ele envolvia padrões de busca aninhados definidos pelo projeto,
+não dados das fichas; essas ferramentas não são distribuídas. Reavaliar ao
+atualizar a cadeia de CSS, sem `npm audit fix --force`. Isso é um registro
+histórico, não uma auditoria atual de todas as dependências.
 
 Vite usa caminhos relativos para permitir `/D-D/` no Pages e domínio próprio.
 Somente `public/` e os assets gerados entram em `dist/`; não copiar a pasta inteira
@@ -459,19 +470,18 @@ O cache não recebe respostas de APIs, requisições privadas ou PDFs. Os livros
 exigem rede no leitor integrado; baixar o PDF é uma ação separada do jogador.
 O indicador no perfil informa quando o primeiro preparo offline terminou.
 
-## Sequência de evolução
+## Limites e evolução futura
 
-1. **Concluído nesta etapa:** estrutura de aplicação, build, dependências locais,
-   backup, recuperação, migração preservando legado e funcionamento offline da ficha.
-2. **Implementado na branch:** fila IndexedDB, histórico/checkpoints persistidos,
-   nome automático, sincronização pessoal e versões recuperáveis.
-3. **Validação de contas/dados:** migração aplicada e RLS conferida no CritCall;
-   conferir sincronização com duas contas/dispositivos reais,
-   SMTP próprio e publicação por PR. Conta e recuperação locais foram relatadas
-   como bem-sucedidas; isso não valida a sincronização real.
-4. **Depois da base individual:** retrato, salas, participantes, resumo do grupo e
-   turnos do mestre; voz/vídeo por último. Não implementar permissões de mesa só
-   escondendo botões nem compartilhar notas pessoais.
+A sequência atual de mecânicas está somente em
+[AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md). Estado publicado e validações
+externas estão em [RETOMADA.md](RETOMADA.md). Fila, histórico, sincronização e
+retratos já estão implementados; não retomar a sequência histórica que os
+tratava como próximos recursos.
+
+A ficha individual permanece independente de sala. Participantes, resumo do
+grupo, turnos do mestre e voz/vídeo exigem etapas próprias; permissões de mesa
+precisarão de autorização no servidor, não só de botões ocultos. Notas pessoais
+não devem passar a fazer parte dos documentos compartilhados.
 
 Os layouts 2014/2024 continuam sobre o mesmo conjunto de regras de 2014. Regras
 da mesa são identificadas, incluindo recuperação integral ao dormir nesta campanha.
@@ -559,6 +569,14 @@ contador da própria magia. `ui.ts` preserva foco e expansão ao salvar.
 `ruleState` viaja no documento da ficha e
 nas versões existentes, sem SQL novo ou alteração de autorização.
 
+Contratos preservados do plano de refatoração concluído: fórmulas alternativas
+de CA não se somam, e a segunda Defesa sem Armadura não é adquirida por
+multiclasse. Proteção contra Lâminas é resistência; Aparo é redução de dano,
+sem bônus universal de CA. Intervenção Divina bem-sucedida impede nova tentativa
+por sete dias, inclusive após descanso. Olhar Hipnotizante registra a restrição
+por alvo até descanso longo. Fontes e contextos que a ficha não conhece continuam
+sob decisão explícita da mesa; usos, alvos e estados não substituem seus efeitos.
+
 `src/wizard/increments.ts` reutiliza os cards de `abilities.ts` para o incremento
 da evolução. Atualiza os nós em lugar e conserva `answers.asi` como a lista de
 dois códigos já esperada pelo motor; não reaplica raça nem modifica a ficha
@@ -571,7 +589,8 @@ CritCall; a fila mantém IDs/revisões antigos até confirmação. A projeção 
 documentos reconhece aliases sem duplicar a preferência. Textos estruturados
 legados ganham apresentação legível e material original para recuperação.
 
-Escopo, decisões de automação e verificações em [REFATORACAO-2014.md](REFATORACAO-2014.md).
+Cobertura atual e próximos recortes em [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md);
+as verificações históricas desta revisão estão no changelog de 19/10/2026.
 
 ## Histórico por personagem e cobertura do livro — 19/10/2026
 
@@ -592,9 +611,10 @@ ou foco de teclado, sem botão adicional e sem marcar a caixa do efeito.
 
 A revisão ampla em [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md) registra
 capítulos, apêndices, 12 classes/41 subclasses, raças, talentos e magias. Os
-itens concluídos da refatoração não equivalem à automação de todo o livro;
-o novo roteiro destaca iniciativa/passivos, componentes cortados, concentração,
-morte, Dados de Vida, inspiração e condições.
+itens concluídos da refatoração não equivalem à automação de todo o livro.
+Iniciativa auditada, componentes cortados, concentração, morte, Dados de Vida
+e inspiração já receberam as correções descritas nas seções seguintes.
+Os passivos e efeitos ainda parciais constam nas matrizes atuais da auditoria.
 
 ## Primeira etapa dos cálculos auditados — 19/10/2026
 
@@ -682,8 +702,9 @@ rolar. Jogadas elegíveis passam essa intenção explicitamente; dano/arremesso
 rápido não consomem a reserva. A vantagem preparada cancela desvantagem e é
 consumida uma vez. Dado físico tem gasto confirmado; preparação pode ser cancelada.
 Tudo pertence ao documento da ficha e seu histórico; notas continuam separadas.
-Não houve mudança de SQL/RLS/RPC. Concentração, condições gerais, efeitos de
-classe que evitam 0 PV e simulação do tempo de jogo continuam fora desta etapa.
+Não houve mudança de SQL/RLS/RPC. Concentração, condições e duas defesas de
+queda foram integradas nas etapas seguintes descritas abaixo; o tempo de jogo
+e os demais efeitos continuam sujeitos aos limites da auditoria atual.
 
 ## Concentração e condições — 20/10/2026
 
