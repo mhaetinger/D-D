@@ -111,6 +111,11 @@ abrir a bandeja; arraste para reposicionar. Um arremesso rápido do ícone rola
 **R** faz a mesma rolagem; as setas movem o ícone. A bandeja também oferece
 **Rolar d20 normal**. O modo OFF continua ocultando os dados.
 
+O modo selecionado na bandeja também aparece ao redor do dado recolhido:
+**vantagem** tem névoa suave e **↑**; **desvantagem**, pequenas chamas e **↓**.
+**Normal** conserva o desenho original. Os efeitos respeitam movimento reduzido
+e não mudam os gestos nem a rolagem rápida de d20 normal descrita acima.
+
 No perfil, use **Alterar imagem do perfil**. Em cada ficha, clique no retrato ao
 lado do nome, ou no retrato da lista de personagens. JPG/PNG/WebP de até **5 MB**
 são recortados no centro e convertidos no navegador para WebP de até **256 × 256**

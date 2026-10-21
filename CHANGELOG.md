@@ -2,6 +2,23 @@
 
 ## Não lançado
 
+### Aura do modo do dado, com retorno preservado — 2026-10-21
+
+- Dado recolhido indica o modo selecionado na ficha/bandeja: névoa suave e ↑
+  na vantagem; pequenas chamas e ↓ na desvantagem. O desenho original fica
+  intacto no normal. Efeitos externos, sem capturar cliques ou aumentar o dado;
+  movimento reduzido mantém somente a aparência estática.
+- Gestos, cálculos e persistência preservados, incluindo arremesso/R de um d20
+  normal e o pool montado. Implementação separada para reverter apenas os
+  efeitos, conservando as correções móveis e o ponto de retorno `94e44d1`.
+- Conferidos 385 testes Node, tipos/build e Chromium de dado. Comparação com
+  build do checkpoint confirmou imagens idênticas do dado normal nos três
+  temas, em desktop M e celular 320px/GG. Testados alternância, símbolos,
+  movimento reduzido, clique, teclado, arraste/arremesso, recarga e modo OFF.
+  Chromium de ataques e magias também passou, incluindo pool/inspiração,
+  recursos, modos físico/virtual/OFF, offline e layouts/temas/320px/GG.
+  Consulta por toque e concentração conferidas novamente após a integração.
+
 ### Consulta por toque e atributos alinhados no celular — 2026-10-21
 
 - Cartões de atributos na grade móvel deixam de herdar a margem vertical das

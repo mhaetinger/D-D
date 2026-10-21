@@ -1,5 +1,6 @@
 import { currentWorkspaceKey } from "../storage/account-scope";
 import { readPreference, writePreference } from "../storage/preferences";
+import {updateDiceDockAppearance} from './dice-dock-appearance';
 
 export function setupDiceDock(roll: () => void, toggle: () => void) {
   const tray = document.getElementById("dice3dTray")!;
@@ -43,7 +44,7 @@ export function setupDiceDock(roll: () => void, toggle: () => void) {
     value.textContent = result;
     value.style.fontSize = result.length > 6 ? ".6rem" : result.length > 4 ? ".9rem" : "1.45rem";
     document.getElementById("diceTrayTotal")!.textContent = result;
-    dock.setAttribute("aria-label", `Último resultado: ${result}. Abrir bandeja de dados. Arraste para mover; arremesse para rolar d20. Tecla R rola; setas movem.`);
+    updateDiceDockAppearance();
   }
   function reflow() {
     if (!tray.offsetWidth || !tray.offsetHeight) return;

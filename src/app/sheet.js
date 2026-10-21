@@ -30,6 +30,7 @@ import {canEditSheet} from '../sheet-edit/access';
 import {canConfigureSheet} from '../sheet-edit/lock';
 import {weaponCalculationFields} from '../sheet-edit/weapon-fields';
 import {featureConsultButton} from './feature-consult';
+import {updateDiceDockAppearance} from './dice-dock-appearance';
 
 // =========================================================================
 // 1. METADADOS E CATÁLOGOS
@@ -1049,6 +1050,7 @@ function updatePoolDisplay() {
   ["normal", "adv", "dis"].forEach(mode => {
     document.getElementById(`rollMode-${mode}`)?.setAttribute("aria-pressed", String(currentRollMode === mode));
   });
+  updateDiceDockAppearance(currentRollMode);
   const hint = document.getElementById("dicePoolModeHint");
   if (hint) {
     hint.textContent = currentRollMode === "normal"

@@ -20,6 +20,7 @@ fichas locais. Não foi adotado um novo framework de interface nesta etapa.
 | `supabase/migrations/` | Tabelas/RLS/RPC de salvamento pessoal; migração aplicada ao CritCall real em 16/10/2026. |
 | `src/media/` | Redução/validação de imagens, cache IndexedDB por conta e upload/download autenticado no Storage privado. |
 | `src/app/dice-dock.ts` | Gestos, posição e último total do dado compacto; rolagem reutiliza o motor da bandeja. |
+| `src/app/dice-dock-appearance.ts` | Aura e símbolo do modo selecionado, sem interferir em gestos ou rolagens. |
 | `src/pwa/` | Registro do service worker e informação de disponibilidade offline. |
 | `public/rules/` | Motor sem DOM, catálogos, assistente, balões, rolagem e animações. |
 | `public/book.html`, `public/books/`, `public/vendor/pdfjs/` | Biblioteca, dois PDFs e leitor com suas licenças. |
@@ -456,6 +457,14 @@ Clique/Enter abre a bandeja, R rola d20 normal, setas movem. O d20 rápido usa
 `evaluateDicePool({20:1},0,'normal')` sem modificar pool, modificador ou modo atual.
 A sequência de rolagens descarta callbacks antigos e trocas de espaço cancelam
 animações. Movimento reduzido desativa o giro decorativo.
+
+`dice-dock-appearance.ts` reflete `currentRollMode` em `data-roll-mode` transitório,
+no rótulo acessível e em duas camadas externas ao botão original. Névoa/↑ para
+vantagem; chamas/↓ para desvantagem; normal oculta ambas as camadas. O CSS
+`dice-mode.css` usa animações decorativas sem timers/canvas, desativadas por
+movimento reduzido. As camadas têm `pointer-events:none`, não entram no fluxo
+e ficam ocultas com a bandeja aberta. Não alteram o SVG, tamanho, posição,
+pool, gestos, armazenamento ou sorteio; o arremesso/R continuam d20 normal.
 
 Retratos usam `avatar: {id, revision}` por personagem e `dnd_profile_avatar` por
 perfil. UUIDs são validados antes de entrar em marcação/caminhos; URLs externas,
