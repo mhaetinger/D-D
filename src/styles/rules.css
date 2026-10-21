@@ -5,6 +5,7 @@
 .rule-context[data-rule-place], .rule-resource-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,14rem),1fr)); gap:.6rem; }
 .feature-entry { min-width:0; break-inside:avoid; }
 .feature-entry .rule-inline + .rule-inline { border-top:1px solid var(--border-main); padding-top:.35rem; }
+.feature-entry > .rule-inline > strong { font-size:var(--sheet-secondary); font-weight:600; font-style:italic; color:var(--text-muted); }
 .feature-list-grouped.feature-list-wide { grid-template-columns:minmax(0,1fr); }
 .feature-group { min-width:0; }
 .feature-group + .feature-group { border-top:1px solid var(--border-main); padding-top:.65rem; margin-top:.3rem; }

@@ -21,6 +21,12 @@ fluxo antigo de Criar/Ajustar ficha manual pelo perfil. A conexão foi recuperad
 a implementação `fe2dc66` foi enviada em 20/10 e a [PR #9](https://github.com/mhaetinger/D-D/pull/9)
 foi atualizada com base `develop`. Não houve merge/publicação desta etapa.
 
+**Nomes secundários dos recursos:** dentro das características, nomes como
+Canalizar Divindade usam fonte de apoio (14px em M), peso 600 e itálico, com
+menos destaque que o título. Mudança só de CSS; mantém usos, botões e ajuda.
+Conferidos 385 testes Node, tipos/build e Chromium de regras: três temas,
+dois layouts, 320px/GG, foco/recursos preservados e capturas desktop/celular.
+
 **Alinhamento e separadores compactos:** no grimório, as ações de concentração
 se alinham à direita, incluindo o registro manual. Níveis das características
 ficam centralizados entre linhas finas via CSS, mantendo os controles e nós.

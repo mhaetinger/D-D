@@ -115,6 +115,10 @@ uma habilidade de seus controles. Chaves de descrição conservam a abertura ao
 atualizar os cálculos e a apresentação da ficha.
 `feature-level-title` centraliza o nível entre linhas decorativas em `::before`
 e `::after`, sem acrescentar nós nem aumentar a fonte ou o espaço dos grupos.
+Os nomes dos recursos dentro de cada característica usam a escala de apoio,
+peso 600 e itálico em `.feature-entry > .rule-inline > strong`. Isso distingue
+subcontroles como Canalizar Divindade dos títulos, preservando botões, usos,
+balões e os vínculos existentes.
 
 ## Avisos durante uma edição
 

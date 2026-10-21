@@ -2,6 +2,16 @@
 
 ## Não lançado
 
+### Hierarquia dos nomes de recursos — 2026-10-21
+
+- Nomes secundários dentro das características, como Canalizar Divindade,
+  usam 14px em M, peso intermediário, itálico e a cor de apoio do tema. Os
+  títulos das características mantêm seu destaque; usos e botões conservam
+  sua legibilidade. P/M/G/GG e os mesmos nós de ajuda/controle são preservados.
+- Conferidos 385 testes Node, tipos/build e Chromium de regras na interface,
+  incluindo três temas, dois layouts, 320px/GG, foco e recursos preservados.
+  Capturas de desktop e celular também conferidas.
+
 ### Concentração à direita e separadores de nível — 2026-10-21
 
 - Ações de concentração se alinham à direita na barra do grimório, incluindo
