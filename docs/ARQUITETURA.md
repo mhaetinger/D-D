@@ -428,6 +428,11 @@ incompleto é retirado, sem ativar a entrega nem misturar seus arquivos. A mesma
 entrega pode ser tentada de novo quando o servidor fornecer os bytes corretos.
 O servidor deve preservar os bytes do build, inclusive ao configurar outra
 hospedagem. Compressão HTTP não muda o conteúdo validado.
+A entrada do escopo (`/` ou `/D-D/`) também é buscada com a integridade do HTML,
+além de `index.html`. As duas URLs possuem entradas HTTP diferentes: renovar só
+o arquivo deixava a raiz antiga disponível quando o navegador ignorava o worker.
+O teste de atualização bloqueia serviços externos por CDP; `route()` foi evitado
+porque o Playwright desativa o cache HTTP ao interceptar requisições.
 
 `index.html` recebe a revisão em uma meta tag; o hash normaliza essa marca antes
 do cálculo, evitando referência circular. O registro usa `updateViaCache: none`,

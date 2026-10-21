@@ -15,7 +15,10 @@ worker novo; a página estava sem a meta da nova revisão. Uma entrada limpa e F
 posterior receberam `671da68ad8c60850` corretamente. A origem exata da resposta
 anterior não foi capturada. Esta correção acrescenta integridade por arquivo,
 para recusar conteúdo antigo com 200, e regressões com aba congelada e repetição
-da instalação. Não considerar a conferência real da atualização concluída até
+da instalação. O teste com cache HTTP nativo reproduziu a raiz antiga mesmo com
+o cache offline novo; renovar também a URL de entrada resolve essa condição.
+`route()` desativava o cache HTTP: foi trocado por bloqueio externo via CDP.
+Não considerar a conferência real da atualização concluída até
 repetir o smoke após a correção. Dados usados são fictícios em contexto isolado.
 
 Ajuste anterior: **`fix/estabiliza-medicao-dado`**, a partir de `develop` público

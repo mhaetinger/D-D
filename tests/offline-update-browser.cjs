@@ -22,9 +22,11 @@ function release(root,name){
    const font=c.files.find(f=>f.endsWith('.woff2'));
    const server=await serve(live,prefix,{cacheControl:'public, max-age=600',beforeRead:async relative=>{if(releaseFont&&relative===font){fontRequested=true;await releaseFont.wait;}}}),context=await browser.newContext({viewport:{width:1280,height:950}}),errors=[];
    try{
-    await context.route('**/*',r=>new URL(r.request().url()).origin===new URL(server.url).origin?r.continue():r.abort());
     const char=warrior();await context.addInitScript(c=>{if(!localStorage.getItem('critcall_characters_v1'))localStorage.setItem('critcall_characters_v1',JSON.stringify({schemaVersion:1,characters:[c]}));},char);
     const first=await context.newPage(),second=await context.newPage();for(const p of [first,second])p.on('pageerror',e=>errors.push(e.message));
+    // route() desativa o cache HTTP do Chromium. Bloquear apenas conexões HTTPS
+    // externas pelo protocolo preserva o cache real deste servidor HTTP local.
+    for(const p of [first,second]){const session=await context.newCDPSession(p);await session.send('Network.enable');await session.send('Network.setBlockedURLs',{urls:['https://*']});await session.send('Network.setCacheDisabled',{cacheDisabled:false});}
     await first.goto(server.url,{waitUntil:'networkidle'});await first.locator('#accessContinueLocal').click();await first.waitForFunction(()=>!!navigator.serviceWorker.controller);
     await second.goto(server.url,{waitUntil:'networkidle'});await second.locator('#accessContinueLocal').click();
     for(const p of [first,second]){assert.equal(await p.evaluate(()=>window.__ruleRelease),'A');await p.evaluate(()=>{window.__documentToken='preservado';});}
@@ -45,6 +47,11 @@ function release(root,name){
     const session=await context.newCDPSession(first);await session.send('ServiceWorker.enable');await session.send('ServiceWorker.stopAllWorkers');
     assert.ok((await first.evaluate(()=>fetch('rules/character-engine.js').then(r=>r.text()))).startsWith('window.__ruleRelease="A";'));
     await first.locator('#appUpdate button').evaluate(e=>e.click());assert.match(await first.locator('#appUpdate').innerText(),/Conclua ou cancele/);assert.equal(await first.locator('#hbWepName').inputValue(),'Rascunho não salvo');assert.equal(await first.evaluate(()=>window.__documentToken),'preservado');
+    // A entrada / tem cache HTTP próprio, separado de /index.html. Ela também
+    // precisa estar atualizada caso o navegador ignore o worker numa recarga.
+    const bypass=await context.newCDPSession(second);await bypass.send('Network.enable');await bypass.send('Network.setBypassServiceWorker',{bypass:true});
+    const rootHTML=await second.evaluate(()=>fetch('./',{cache:'force-cache'}).then(r=>r.text()));
+    await bypass.send('Network.setBypassServiceWorker',{bypass:false});assert.ok(rootHTML.includes(`content="${b.version}"`),'cache HTTP da entrada também recebe a entrega nova');
     // F5 comum recebe B, mesmo com a outra aba ainda editando A.
     await second.reload({waitUntil:'networkidle'});assert.equal(await second.title(),'CritCall B');assert.equal(await second.evaluate(()=>window.__ruleRelease),'B');assert.equal(await second.locator('#appUpdate').isVisible(),false);
     assert.equal(await first.locator('#hbWepName').inputValue(),'Rascunho não salvo');assert.equal(await first.evaluate(()=>window.__ruleRelease),'A');

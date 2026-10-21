@@ -39,7 +39,11 @@ self.addEventListener('install', event => {
   event.waitUntil((async () => {
     try {
       // Um 200 com HTML/regras antigos também é uma instalação incompleta.
-      await (await caches.open(CACHE)).addAll(FILES.map(file => new Request(new URL(file, self.registration.scope), {cache:'reload', integrity:INTEGRITY[file]})));
+      const requests = FILES.map(file => new Request(new URL(file, self.registration.scope), {cache:'reload', integrity:INTEGRITY[file]}));
+      // / e /index.html são entradas HTTP distintas. Renovar ambas evita voltar
+      // ao HTML anterior quando uma recarga do navegador ignora o worker.
+      requests.push(new Request(self.registration.scope, {cache:'reload', integrity:INTEGRITY['index.html']}));
+      await (await caches.open(CACHE)).addAll(requests);
       // Ativar não recarrega abas. Suas versões continuam disponíveis abaixo.
       await self.skipWaiting();
     } catch (error) { await caches.delete(CACHE); throw error; }
