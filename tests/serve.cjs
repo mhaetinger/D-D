@@ -2,9 +2,9 @@
 const fs = require("node:fs");
 const http = require("node:http");
 const path = require("node:path");
-async function serve(base, prefix = "/D-D/", { cleanHtml = false, cacheControl = null } = {}) {
+async function serve(base, prefix = "/D-D/", { cleanHtml = false, cacheControl = null, beforeRead = null } = {}) {
   base = path.resolve(base);
-  const server = http.createServer((req, res) => {
+  const server = http.createServer(async (req, res) => {
     try {
       const pathname = decodeURIComponent(new URL(req.url, "http://localhost").pathname);
       if (!pathname.startsWith(prefix)) { res.writeHead(404); return res.end(); }
@@ -15,6 +15,7 @@ async function serve(base, prefix = "/D-D/", { cleanHtml = false, cacheControl =
         return res.end();
       }
       if (cleanHtml && relative === "book") relative = "book.html";
+      if (beforeRead) await beforeRead(relative);
       const file = path.resolve(base, relative || "index.html");
       if (!file.startsWith(base + path.sep)) { res.writeHead(403); return res.end(); }
       const stat = fs.statSync(file);

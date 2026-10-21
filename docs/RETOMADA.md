@@ -7,7 +7,30 @@ histórico da conversa. Leia também `AGENTS.md`, `README.md`, `CHANGELOG.md` e
 ## Abrir a versão em desenvolvimento
 
 Repositório: https://github.com/mhaetinger/D-D.
-Branch atual: **`feature/regras-universais`**, baseada no histórico público de `develop`.
+Branch atual: **`fix/estabiliza-medicao-dado`**, a partir de `develop` público
+`422d15e` após a integração da PR #11. A PR #12 reúne a entrega para `main`.
+A CI capturou o tamanho intermediário do dado durante a transição de fonte
+(99,984375 px em vez de 100 px); o teste agora aguarda a animação terminar,
+preservando a comparação exata. Nenhum código/desenho do dado mudou neste ajuste.
+
+Correção principal: **`fix/atualizacao-e-indicadores`**, a partir de `develop` público
+`6023eda`. Revisão anterior integrada pelas PRs #9/#10; `main` publicada em
+`dffd443`, workflow [39550452549](https://github.com/mhaetinger/D-D/actions/runs/39550452549)
+concluído e conferido em https://criticall.art/ em 21/10/2026. Foram aprovados
+385 testes Node, build/tipos, 24 roteiros Chromium e PostgreSQL descartável na CI.
+Dados de teste fictícios; isso não substitui duas contas/dispositivos reais.
+
+Esta correção permite F5 comum com outras abas abertas, sem recarga automática.
+O aviso Atualizar protege rascunhos; cada documento conserva sua geração de
+arquivos. `src/pwa/worker.js` é incluído pelo gerador offline; metadados guardam
+só IDs opacos de clientes e hashes. Novo roteiro de navegador verifica duas
+abas, transição do worker antigo, reinício do worker, offline/notas e instalação
+incompleta nas rotas `/` e `/D-D/`. Ícones de dado aparecem nas resistências;
+o foco do dado usa as linhas do SVG, sem realce retangular após minimizar.
+Cloudflare continua sem projeto/Secrets/Variables configurados; `_headers` já
+acompanha o artefato, sem alterar o destino atual ou DNS.
+
+Histórico da revisão anterior:
 A criação guiada foi integrada pelas PRs #7/#8. A revisão está em
 [REFATORACAO-2014.md](REFATORACAO-2014.md): regras/recursos, armas/CA,
 preparação, textos, criador, zoom, moeda e migração de identificadores.
@@ -543,9 +566,9 @@ links com tokens ou chaves secretas na conversa/Git.
    padrão do Supabase ainda tem restrições. Usuário confirmou compra só do domínio,
    sem e-mail; proposta de provedor em [DOMINIO.md](DOMINIO.md). Revisar os avisos do serviço
    registrados em [SINCRONIZACAO.md](SINCRONIZACAO.md).
-3. Acompanhar a entrega autorizada pelo responsável por PR para `develop` e
-   depois para `main`. Não fazer push direto à `main`. Conferir o workflow e a
-   entrada nova em https://criticall.art/ após a implantação.
+3. A revisão anterior foi publicada pelas PRs #9/#10. Correções seguintes seguem
+   o mesmo fluxo autorizado: PR para `develop`, depois `main`, verificações e
+   conferência em https://criticall.art/. Não fazer push direto à `main`.
 4. Domínio **criticall.art**, comprado pelo usuário na **Hostinger**, conforme
    confirmação em 16/10/2026. Usuário informou configurações feitas e DNS em
    verificação no GitHub. Os quatro A da raiz já estão corretos no servidor DNS;
@@ -553,7 +576,8 @@ links com tokens ou chaves secretas na conversa/Git.
    aceita o retorno novo. Usuário criou conta Cloudflare e quer preparar a
    migração com código privado e crescimento por planos. Próximos passos em
    [CLOUDFLARE.md](CLOUDFLARE.md). DNS e HTTPS já conferidos após o usuário confirmar
-   OK no GitHub/Cloudflare; a hospedagem continua GitHub Pages. Publicação nova pendente.
+   OK no GitHub/Cloudflare; a hospedagem continua GitHub Pages. Transferência de
+   hospedagem pendente de conexão administrativa, projeto Pages e credenciais.
    Preservar/exportar dados da origem anterior antes de ativar redirecionamentos.
 5. Priorizar a base individual; mesas, permissões de mestre e voz/vídeo
    são etapas seguintes. Nenhuma ficha individual depende de mesa.

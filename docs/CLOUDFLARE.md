@@ -11,6 +11,10 @@ nameservers, HTTPS 200 na raiz e `www` redirecionando para a raiz (301 → 200),
 com certificado aceito. A resposta ainda vem do GitHub Pages; projeto Pages
 Cloudflare e conexão administrativa continuam pendentes.
 O workflow está preparado para os dois destinos; GitHub Pages continua o padrão.
+Em 21/10/2026, a consulta de Secrets/Variables do repositório não encontrou a
+configuração do destino. A busca de integração administrativa disponível também
+não retornou uma conexão Cloudflare. Não foi criado projeto, alterado DNS ou
+ativado `DEPLOY_TARGET` nesta revisão.
 
 A proposta é GitHub privado para fontes, Cloudflare para o site e DNS, Supabase
 para contas/dados e SMTP separado para mensagens. O registro de `criticall.art`
@@ -76,6 +80,12 @@ em push na `main`. Configurar o ambiente `cloudflare-pages` com as regras de
 aprovação disponíveis na conta. O job extrai o pacote já testado e usa Wrangler
 fixado, sem recompilar. Não ativar `DEPLOY_TARGET` antes de conferir esses dados.
 Preparar estas alterações não publica a branch atual nem altera DNS/visibilidade.
+
+`public/_headers` acompanha o artefato: HTML/regras exigem revalidação,
+`sw.js`/manifesto offline usam `no-store` e assets com hash podem ser imutáveis.
+Essa configuração é interpretada pelo Pages Cloudflare; o GitHub Pages a ignora.
+O atualizador por versão funciona também na hospedagem atual. Referência:
+[cabeçalhos do Pages](https://developers.cloudflare.com/pages/configuration/headers/).
 
 Somente depois de conferir a hospedagem nova, associar `criticall.art` em
 **Pages → Custom domains** e trocar os registros do destino anterior pelos
