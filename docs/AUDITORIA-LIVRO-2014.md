@@ -7,8 +7,9 @@ Contratos técnicos ficam em [ARQUITETURA.md](ARQUITETURA.md); entregas/testes
 históricos, no [CHANGELOG.md](../CHANGELOG.md).
 
 **A versão publicada não automatiza integralmente o livro.** Consulta, escolha
-cadastrada e contador de usos não significam efeito aplicado. Esta consolidação
-não implementa regras novas nem transforma pendências em funcionalidades.
+cadastrada e contador de usos não significam efeito aplicado. As matrizes abaixo
+distinguem a produção das implementações seguintes em revisão;
+a entrega R1 está na branch `feature/bonus-passivos-r1`.
 
 ## Como ler e atualizar o estado
 
@@ -35,8 +36,8 @@ reescrever a ficha nem automatizar toda decisão da mesa.
 
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
-| R1 — bônus nos cálculos | **Próxima; não iniciada** | Integrar os quatro passivos listados abaixo, com elegibilidade, explicação do total e regressões; preservar valores manuais. |
-| R2 — rolagens e gastos condicionais | Planejada | Talento Confiável, Sortudo racial e talento, rerrolagens, dados mínimos, -5/+10 e adicionais de talentos/estilos. Integrar escolha/gasto à jogada pertinente, sem duplicar reservas ou aplicar bônus a jogadas inelegíveis. |
+| R1 — bônus nos cálculos | **Implementada e verificada; em revisão** | Quatro passivos integrados com elegibilidade e preservação de valores manuais. Tipos variáveis/efeitos posteriores seguem em R5. |
+| R2 — rolagens e gastos condicionais | **Próxima** | Talento Confiável, Sortudo racial e talento, rerrolagens, dados mínimos, -5/+10 e adicionais de talentos/estilos. Integrar escolha/gasto à jogada pertinente, sem duplicar reservas ou aplicar bônus a jogadas inelegíveis. |
 | R3 — condições, defesas e características | Planejada; já há cobertura parcial | Completar efeitos das condições, imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
 | R5 — famílias de magias | Planejada; fórmulas auditadas já corrigidas | Revisar metadados e exceções do catálogo por família: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
@@ -44,19 +45,62 @@ reescrever a ficha nem automatizar toda decisão da mesa.
 
 ### Primeiro recorte: R1
 
-- [ ] **Ambidestro:** CA condicional no cálculo existente, somente com a condição
+- [x] **Ambidestro:** CA condicional no cálculo existente, somente com a condição
   de equipamento confirmada; não transformar o registro do talento em bônus universal.
-- [ ] **Observador:** bônus nos valores passivos de Percepção e Investigação,
+- [x] **Observador:** bônus nos valores passivos de Percepção e Investigação,
   distinguindo-os das rolagens ativas.
-- [ ] **Sorvedor de Vida:** dano da arma do pacto elegível; selecionar a invocação
+- [x] **Sorvedor de Vida:** dano da arma do pacto elegível; selecionar a invocação
   não deve aumentar todas as armas ou ser confundido com Explosão Agonizante.
-- [ ] **Afinidade Elemental:** bônus de dano nas condições da linhagem/elemento,
+- [x] **Afinidade Elemental:** bônus de dano nas condições da linhagem/elemento,
   separado da resistência já controlada e sem repetir o bônus por cada dado/raio.
 
 R1 exige prévia/total/rolagem coerentes, casos elegíveis e inelegíveis,
 multiclasse/legado e preservação de ajustes manuais. Quando houver nova escolha
 na interface, conferir cancelamento, foco/rolagem, mobile/GG e persistência
-sem rede. **Nenhum desses quatro itens foi implementado nesta revisão documental.**
+sem rede. O recorte implementado e seus limites estão descritos abaixo.
+
+### Entrega R1 — 21/10/2026
+
+Implementação no commit `8bcab7dfcaa5750e512264a8ef43b8ebffcb6748`,
+em `src/rules/passives.ts`, integrada aos cálculos e controles existentes. Fonte: Livro do Jogador local, páginas físicas do PDF **166**
+(Ambidestro), **170–171** (Observador), **61** (Sorvedor de Vida) e **79**
+(Afinidade Elemental), conferidas no texto extraído e referências do motor.
+
+- Ambidestro usa a confirmação de duas armas corpo a corpo empunhadas nos
+  ajustes de defesa; inventário não é equipamento em uso. Soma +1 às fórmulas
+  calculadas, sem escudo, inconsciência ou Forma Selvagem. Inconsciência encerra
+  a confirmação, e cura não a reativa; descanso curto a preserva. CA escrita/legada
+  permanece intacta. Regras de sacar/guardar e elegibilidade de duas armas
+  além desse bônus continuam na mesa/R6.
+- Percepção e Investigação mostram o passivo junto à perícia, nos dois layouts:
+  10 + bônus ativo + Observador. Ajustes ativos, inclusive zero, proficiência,
+  especialização e Versatilidade são preservados. O modo do dado não altera o
+  passivo de referência; vantagem/desvantagem por contexto continua na mesa.
+- Arma do pacto é um vínculo explícito no editor de arma, somente com Pacto da
+  Lâmina. Confirmar transfere o vínculo; cancelar não altera nenhuma arma.
+  Sorvedor exige bruxo 12 e a invocação, soma CAR (mínimo 1) como necrótico,
+  uma vez por acerto, sem duplicar o bônus no crítico. Armas manuais não recebem
+  acréscimos inferidos; uma arma importada não é identificada pelo nome.
+- Afinidade exige feiticeiro 6/linhagem dracônica e ancestral da classe
+  estruturado. Soma CAR uma vez à fórmula da conjuração de tipo fixo reconhecido,
+  depois de compor Gêmea; os outros raios não repetem o bônus. CAR negativo
+  permanece na fórmula, com piso zero no resultado do dano. Não cobra
+  feitiçaria nem exige ativar a resistência. Fórmulas próprias e tipos variáveis
+  (como Orbe Cromática) não recebem bônus inferido; efeitos posteriores e a
+  classificação integral das magias continuam em R5. A aplicação automática é
+  na rolagem inicial do lançamento, não um executor de todos os acertos/alvos.
+
+Regressões em `tests/passives.test.ts` e `tests/passives-browser.cjs`, incluindo
+casos inelegíveis/multiclasse, valores manuais, crítico, cancelamento, vínculo
+único, raios sem gasto repetido, Só Pool, recarga offline/notas e layouts/temas
+em 320px/GG. Verificações executadas: **395 testes Node** e tipos/build
+aprovados; os **25 roteiros anteriores** passaram na rodada ampla. Após os
+últimos ajustes de inconsciência, foco e piso de dano, foram reexecutados no
+build final **R1, PV, concentração, regras, crítico/adicionais e ataques mágicos**,
+todos aprovados, incluindo CAR negativo com dano mínimo zero. A suíte completa
+não foi repetida localmente após esses ajustes; é exigida na CI da PR. Capturas
+desktop/celular conferidas; diff e 62 links/âncoras locais válidos.
+SQL/RLS/RPC não foram alterados; teste de banco não repetido localmente.
 
 ## Progresso já entregue
 
@@ -137,10 +181,10 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 | --- | --- | --- | --- |
 | Bárbaro, 45–49 | Furioso; Guerreiro Totêmico | Fúria, dano com FOR, resistências por tipo, Frenesi/exaustão, CA alternativa, Crítico Brutal e Fúria Implacável | Vantagens situacionais e duração/gatilhos |
 | Bardo, 50–54 | Conhecimento; Bravura | Reserva/dado de inspiração, proficiências/especialização, segredos, conjuração, iniciativa de Versatilidade e Canção do Descanso opcional | Inspiração de Bardo recebida/Palavras de Interrupção na jogada; recuperação ao iniciar combate |
-| Bruxo, 55–61 | Arquifada; Corruptor; Grande Antigo | Pacto, Arcanum, usos, Bênção do Obscuro, Explosão Agonizante e resistências de patrono registradas | Sorvedor de Vida, troca da resistência após descanso e reflexão de psíquico; espaço de invocações não equivale ao contador diário; alvos |
+| Bruxo, 55–61 | Arquifada; Corruptor; Grande Antigo | Pacto, Arcanum, usos, Bênção do Obscuro, Explosão Agonizante, Sorvedor de Vida na arma vinculada e resistências de patrono registradas | Troca da resistência após descanso e reflexão de psíquico; espaço de invocações não equivale ao contador diário; alvos |
 | Clérigo, 62–69 | Conhecimento; Enganação; Guerra; Luz; Natureza; Tempestade; Vida | Preparação/domínios, Canalizar compartilhado, usos e Intervenção | Efeitos de cada domínio no alvo, cura/dano condicionado e Expulsar/Destruir Mortos-Vivos por ND |
 | Druida, 70–75 | Terra; Lua | Preparação/círculo, Forma Selvagem/PV, cura da Lua, Recuperação Natural e concentração mantida na transformação | Bloco de besta/estatísticas e custo de elemental; CON da forma informada no teste |
-| Feiticeiro, 76–81 | Magia Selvagem; Linhagem Dracônica | Feitiçaria/metamágica, conversão, Marés, CA e resistência ativa de Afinidade Elemental no modo por tipo | Surto/gatilhos, bônus de dano de Afinidade e elegibilidade completa de metamagias; adaptações identificadas |
+| Feiticeiro, 76–81 | Magia Selvagem; Linhagem Dracônica | Feitiçaria/metamágica, conversão, Marés, CA, resistência e bônus inicial de Afinidade Elemental nos casos reconhecidos | Surto/gatilhos, tipos variáveis/efeitos posteriores e elegibilidade completa de metamagias; adaptações identificadas |
 | Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa de Atleta Extraordinário | Outros testes de Atleta; rerrolagem de Combate com Armas Grandes; manobras/reações; Sobrevivente |
 | Ladino, 88–92 | Ladrão; Assassino; Trapaceiro Arcano | Especialização, composição de Ataque Furtivo, Esquiva/Evasão, usos avançados e magias | Talento Confiável na rolagem; surpresa/Assassinar e Ação Ardilosa |
 | Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, Dominar/Assinatura, recuperação, Proteção Arcana inclusive multiclasse, Conjuração Focada, Presságio e usos/estados de escola | Efeitos por alvo, demais bônus de escola, lacaios, pedra e Sobrecarga; fluxo de troca temporal das escolhas |
@@ -190,7 +234,7 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 | Adepto Elemental | Escolha do elemento | Resistência ignorada e mínimo dos dados |
 | Adepto Marcial | Escolha de duas manobras | Dado extra d6 e interação com a reserva de superioridade |
 | Alerta | +5 na iniciativa | Surpresa/atacante oculto |
-| Ambidestro | Registro | +1 CA condicional, armas elegíveis e sacar/guardar |
+| Ambidestro | +1 CA calculada com duas armas empunhadas confirmadas, sem duplicar CA escrita | Elegibilidade de duas armas, sacar/guardar e contexto da mesa |
 | Atacante Bestial | Registro | Nova rolagem de dano uma vez por turno |
 | Atirador Aguçado | Registro | -5/+10 por ataque, cobertura e alcance |
 | Atirador de Magia | Escolha de truque de ataque, incluindo Criar Chamas | Alcance/cobertura |
@@ -217,7 +261,7 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 | Mestre de Armas Grandes | Registro | -5/+10 e ataque bônus após crítico/abate |
 | Mestre de Escudo | Registro | Empurrão, bônus de resistência e reação condicionais |
 | Mobilidade | +3 m no deslocamento | Terreno difícil/Disparada e oportunidade |
-| Observador | +1 INT/SAB | +5 passivo; leitura labial consultável |
+| Observador | +1 INT/SAB; +5 nos passivos de Percepção/Investigação | Leitura labial consultável; contexto de vantagem/desvantagem na mesa |
 | Perito | Três perícias/ferramentas | Revisar escolhas já dominadas e rolagem contextual com ferramenta |
 | Poliglota | +1 INT e três idiomas | Cifras consultáveis |
 | Resiliente | +1 atributo e proficiência em resistência | Não concede vantagem nem bônus adicional além da proficiência |
@@ -268,9 +312,9 @@ as implementações e seus contratos.
 
 A última entrega funcional passou 385 testes Node, tipos/build, 25 roteiros
 Chromium e banco descartável na CI, conforme [RETOMADA.md](RETOMADA.md).
-Esses números não são porcentagem de cobertura do livro. Esta consolidação
-revisou documentos e pontos do motor; não repetiu a auditoria integral do PDF
-nem executou testes de comportamento.
+Esses números não são porcentagem de cobertura do livro. A consolidação documental anterior
+não repetiu a auditoria integral do PDF. As verificações específicas da entrega
+R1 ficam na seção correspondente, sem certificar as etapas R2–R6.
 
 Para repetir o diagnóstico direcionado após uma mudança funcional:
 

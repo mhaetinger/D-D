@@ -148,3 +148,5 @@
   .app-preferences[open] { flex-basis:100%; }
   .app-preferences > div { padding-top:.4rem; }
 }
+/* O passivo é consulta da perícia, separado do bônus rolável. */
+#sheetViewport .sheet-skill-passive { display:block; font-size:.875rem; font-weight:400; line-height:1.35; }

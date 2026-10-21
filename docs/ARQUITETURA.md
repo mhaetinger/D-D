@@ -910,3 +910,38 @@ com [Sage Advice de 2014](https://www.dndbeyond.com/sources/dnd/sac/sage-advice-
 para Destruição e a distinção de arma/ataque corpo a corpo. Não aplica a ação
 bônus/restrição de usos de Destruição da edição 2024. Contratos em
 `tests/weapon-damage.test.ts` e `tests/weapon-damage-browser.cjs`.
+
+
+## Passivos da etapa R1 — 21/10/2026
+
+`rules/passives.ts` concentra elegibilidade e cálculos sem DOM/rede. O bônus
+ativo de perícia mantém o contrato anterior; `passiveSkill` soma 10 e o bônus
+exclusivamente passivo de Observador. A interface mostra Percepção/Investigação
+na linha existente, com ajuda sobre o cálculo e o contexto da mesa.
+
+Ambidestro usa `ruleState.active['feat:dualWielder']`, sem nova reserva. Só
+fórmulas de CA calculadas recebem o bônus; `legacy`/`written` não somam de novo.
+Escudo, inconsciência e Forma Selvagem impedem a aplicação automática.
+Inconsciência limpa a confirmação; cura não a repõe. O descanso curto preserva
+a confirmação, pois não implica largar as armas. A confirmação diz respeito às mãos; não infere equipamento a partir do inventário.
+
+`weapons[].pactWeapon` identifica o vínculo confirmado no editor. O formulário
+só aparece para Pacto da Lâmina e só transfere o vínculo depois das validações;
+cancelamento mantém os objetos anteriores. Sorvedor exige nível de bruxo e
+invocação, sem usar o nível total. `weaponStats.damage` inclui o bônus, mas
+`damageBonus` conserva a parcela da arma; `weapon-damage.ts` adiciona a parcela
+necrótica separada. Crítico não duplica o número fixo e fórmulas manuais são
+preservadas. Refresh, backup e histórico carregam o metadado existente sem
+renomear armas ou selecionar uma arma importada pelo nome.
+
+Afinidade usa somente ancestral dracônico estruturado do feiticeiro, nunca a
+raça. `resolveSpellEffect` soma CAR depois de compor Gêmea; prévia e lançamento
+usam a mesma fórmula. `rollSpellRay` solicita `elementalAffinity:false` porque a
+rolagem inicial já recebeu o bônus. Não cria contador diário, nova carga ou
+custo de feitiçaria. Valores negativos de CAR são conservados; somente Sorvedor
+tem mínimo 1. O resultado virtual de dano com Afinidade tem piso zero, sem
+alterar a fórmula ou os totais de outros testes/pool. Tipos variáveis, fórmulas próprias, dano posterior e classificação
+integral do catálogo continuam sujeitos aos limites de R5 na auditoria.
+
+Testes: `tests/passives.test.ts` e `tests/passives-browser.cjs`, integrado a
+`npm run test:browser`. Estado de entrega na auditoria e na retomada.

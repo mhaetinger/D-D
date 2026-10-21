@@ -140,7 +140,7 @@ export function resourcesFor(c: Sheet, E: Engine): Resource[] {
     for (const [id,name] of options[sub('paladino')] || []) add('paladino',id,name,1,'none',E.reference(name,'paladino',sub('paladino'))?.text || 'Ação: escolha um alvo e resolva as condições do juramento.','toggle',{cost:['shared:channel',1]});
     if (paladin>=15 && sub('paladino')==='ancioes') add('paladino','undying','Sentinela Imortal',1,'long','Quando cair a 0 PV sem morrer, pode ficar com 1 PV.');
   }
-  if (sorcerer>=6 && sub('feiticeiro')==='draconica') add('feiticeiro','elementalAffinity','Afinidade Elemental · resistência',1,'none','Gaste 1 ponto de feitiçaria para resistência ao elemento de sua ancestralidade por 1 hora. O bônus de CAR em uma rolagem de dano da magia não tem custo.','toggle',{cost:['feiticeiro:sorceryPool',1]});
+  if (sorcerer>=6 && sub('feiticeiro')==='draconica') add('feiticeiro','elementalAffinity','Afinidade Elemental · resistência',1,'none','Gaste 1 ponto de feitiçaria para resistência ao elemento de sua ancestralidade por 1 hora. O bônus de CAR não tem custo: entra em uma rolagem inicial de dano da magia com tipo fixo reconhecido. Outros raios não repetem o bônus; tipos variáveis, dano posterior e fórmulas próprias são resolvidos na mesa.','toggle',{cost:['feiticeiro:sorceryPool',1]});
   if (sorcerer>=14 && sub('feiticeiro')==='draconica') add('feiticeiro','wings','Asas de Dragão',1,'none','Ação bônus para manifestar/recolher; armaduras precisam acomodar as asas.','toggle');
   if (sorcerer>=18 && sub('feiticeiro')==='draconica') add('feiticeiro','presence','Presença Dracônica',1,'none','Ação: 5 pontos para aura de respeito/medo, concentração até 1 minuto.','toggle',{cost:['feiticeiro:sorceryPool',5]});
   const metaCosts:Record<string,number> = {'Magia Acelerada':2,'Magia Aumentada':3,'Magia Cuidadosa':1,'Magia Distante':1,'Magia Estendida':1,'Magia Potencializada':1,'Magia Sutil':1};
@@ -245,7 +245,7 @@ export function resetResources(c: Sheet, kind:'short'|'long', E: Engine, random=
     if (r.kind==='portent') s.portent = Array.from({length:r.max},()=>({value:1+Math.floor(random()*20),spent:false}));
   }
   // Um descanso curto não encerra automaticamente uma transformação de várias horas.
-  for (const key of Object.keys(s.active)) if (key !== 'mago:stone' && !(kind==='short' && key==='druida:wildShape')) s.active[key] = false;
+  for (const key of Object.keys(s.active)) if (key !== 'mago:stone' && !(kind==='short' && ['druida:wildShape','feat:dualWielder'].includes(key))) s.active[key] = false;
   for (const key of Object.keys(s.used)) if (key.startsWith('mago:signature:')) s.used[key]=0;
   if (kind==='long') { s.wardCreated = false; s.pools['mago:ward'] = 0; s.targets = s.active['mago:stone']?{'mago:stone':s.targets['mago:stone']}:{}; s.targetsUsed = {}; c.tidesOfChaosAvailable = true; }
   if (kind==='short' && level(c,'feiticeiro')>=20) c.sorceryPoints.current = Math.min(c.sorceryPoints.max,c.sorceryPoints.current+4);

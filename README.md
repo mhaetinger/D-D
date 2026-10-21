@@ -316,6 +316,14 @@ criptografa o dispositivo. A migração do banco foi aplicada; conferir a
 confirmação de envio no perfil antes de trocar de computador. Login e
 sincronização real entre dispositivos e SMTP próprio ainda precisam de validação/configuração.
 
+Bônus de regras da etapa R1: Percepção e Investigação mostram o valor passivo
+com Observador, separado da rolagem. Nos ajustes de defesa, Ambidestro oferece
+confirmação de duas armas empunhadas para +1 à CA calculada. No editor de arma,
+**Arma do pacto** identifica qual ataque automático recebe Sorvedor de Vida.
+Afinidade Elemental soma CAR uma vez ao dano inicial de tipo reconhecido; não
+repete o bônus nos outros raios nem cobra feitiçaria. Totais manuais e fórmulas
+próprias são preservados. Limites e cobertura estão na auditoria de regras.
+
 ## Criação guiada
 
 A revisão de regras inclui armas importadas reconciliadas com o catálogo,
