@@ -37,6 +37,7 @@ import './styles/sheet-type.css';
 import {setupFeatureConsultation} from './app/feature-consult';
 import './styles/feature-consult.css';
 import './styles/dice-mode.css';
+import './styles/app-update.css';
 
 // A identidade define o armazenamento antes da primeira leitura da ficha.
 async function start() {

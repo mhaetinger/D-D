@@ -272,8 +272,13 @@ uma cópia previamente baixada fora do leitor integrado. A fila da branch envia
 alterações ao reconectar; o banco real já recebeu a migração. Outro PC só recebe edições
 offline depois de seu envio.
 
-Atualizações aguardam as abas anteriores fecharem, sem recarregar uma edição em
-curso. O cache do aplicativo não contém as fichas nem apaga o armazenamento do jogador.
+O aplicativo procura atualizações ao abrir/retomar a página e a cada minuto
+enquanto ela estiver visível. Uma versão pronta oferece **Atualizar**; F5 comum
+também a carrega, sem precisar de Ctrl+F5 ou fechar as outras abas. Uma aba em
+edição continua na versão que abriu, com seus arquivos e regras correspondentes,
+até você escolher atualizar. O botão pede concluir/cancelar rascunhos abertos e
+conferir falhas de salvamento antes de recarregar. Não há recarga automática.
+O cache do aplicativo não contém as fichas nem apaga o armazenamento do jogador.
 
 ## Livros
 

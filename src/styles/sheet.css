@@ -204,7 +204,7 @@ body[data-backdrop="textured"][data-theme="obsidiana"] main {
 .dice-dock svg { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: #d3bb86; stroke-width: 1.4; opacity: .7; pointer-events: none; }
 .dice-dock span { z-index: 1; font-family: "Cinzel", serif; font-size: 1.45rem; font-weight: 800; text-shadow: 0 1px 3px #000; pointer-events: none; }
 .dice-dock:focus-visible { outline: none; }
-.dice-dock:focus-visible:not([data-keyboard-roll]) { background-color: #c6a777; box-shadow: inset 0 0 0 5px #f1d7a0; }
+.dice-dock:focus-visible:not([data-keyboard-roll]) svg { stroke: #fff0ce; opacity: 1; stroke-width: 1.8; }
 .dice-dock-rolling { animation: diceDockThrow .38s ease-out; }
 #diceTrayDrag { touch-action: none; cursor: grab; }
 #dice3dTray[data-dragging="true"] :is(.dice-dock, #diceTrayDrag) { cursor: grabbing; }

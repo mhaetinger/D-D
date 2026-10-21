@@ -61,6 +61,7 @@
 .sheet-inspiration { flex-basis:100%; min-width:0; border-top:1px solid var(--border-main); padding-top:.5rem; }
 .sheet-inspiration > span:first-child { font-weight:700; }
 .sheet-inspiration > .rule-controls { margin-left:auto; justify-content:flex-end; }
+.sheet-save-roll { display:inline-flex; align-items:center; gap:.25rem; }
 #sheetViewport .sheet-ability-card > span { overflow-wrap:anywhere; hyphens:auto; letter-spacing:0; line-height:1.3; }
 #sheetViewport .sheet-ability-card > button { font-size:1.75rem; }
 

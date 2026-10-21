@@ -1,0 +1,6 @@
+.app-update { position:fixed; bottom:1rem; right:1rem; z-index:80; display:flex; flex-wrap:wrap; justify-content:flex-end; align-items:center; gap:.75rem; max-width:calc(100vw - 7rem); width:max-content; padding:.65rem .85rem; border:1px solid var(--border-main); border-radius:.6rem; background:var(--bg-card); color:var(--text-main); box-shadow:0 3px 16px #0003; font-size:.9375rem; }
+.app-update span { min-width:0; overflow-wrap:anywhere; }
+.app-update[hidden] { display:none; }
+.app-update button { flex:none; padding:.4rem .65rem; border:1px solid var(--border-main); border-radius:.35rem; background:var(--btn-primary-bg); color:var(--btn-primary-text); font-weight:700; }
+.app-update button:focus-visible { outline:2px solid var(--text-accent); outline-offset:2px; }
+@media(max-width:639px) { .app-update { gap:.5rem; font-size:.875rem; } }

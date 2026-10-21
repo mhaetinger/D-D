@@ -13,6 +13,18 @@ const {warrior} = require('./fixture.cjs');
     await page.addInitScript(c=>{if(!localStorage.getItem('rulesSeeded')){localStorage.setItem('critcall_characters_v1',JSON.stringify({schemaVersion:1,characters:[c]}));localStorage.setItem('rulesSeeded','true');}},c);
     await page.goto(server.url,{waitUntil:'networkidle'});await page.locator('#accessContinueLocal').click();
     await page.getByRole('button',{name:'Atq +7',exact:true}).waitFor();
+    // O novo ícone usa a ação de resistência existente, sem disparar duas vezes.
+    await page.evaluate(()=>{window.__originalRandom=Math.random;window.__saveRolls=0;Math.random=()=>{window.__saveRolls++;return .475;};setDiceMode('auto');setRollMode('normal');});
+    for(const layout of ['classic_2014','modern_2024']){
+      await page.evaluate(layout=>setLayout(layout),layout);
+      assert.equal(await page.locator('.sheet-save-roll svg').count(),6);
+      for(const button of await page.locator('.sheet-save-roll').all()){
+        const bonus=Number((await button.innerText()).trim()),label=(await button.getAttribute('aria-label')).replace('Rolar salvaguarda','Salvaguarda'),before=await page.evaluate(()=>window.__saveRolls);
+        await button.locator('svg').click();await page.waitForFunction(label=>document.querySelector('#dice3dResultText').textContent.includes(label)&&!document.querySelector('#dice3dCube').classList.contains('dice-3d-rolling'),label);
+        assert.equal(await page.evaluate(()=>window.__saveRolls),before+1);assert.match(await page.locator('#dice3dResultText').innerText(),new RegExp(`Total: ${10+bonus}\\b`));
+      }
+    }
+    await page.evaluate(()=>{Math.random=window.__originalRandom;setLayout('classic_2014');});
     const defense=page.locator('[data-rule-disclosure="defense"]');
     await defense.locator('summary').click();
     assert.equal(await defense.locator('button').count(),0);
