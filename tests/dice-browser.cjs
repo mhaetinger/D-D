@@ -108,6 +108,9 @@ const { serve } = require('./serve.cjs');
     assert.ok(Math.abs(restored.x-position.x)<2 && Math.abs(restored.y-position.y)<2);
     await page.setViewportSize({width:320,height:640}); await page.evaluate(()=>setFontScale(125));
     await page.waitForFunction(()=>getComputedStyle(document.documentElement).fontSize==='20px');
+    // O font-size serializado pode arredondar para 20px antes do último quadro
+    // da transição. Medir depois do término mantém a comparação exata do dado.
+    await page.waitForFunction(()=>[document.documentElement,document.getElementById('dice3dTray'),document.getElementById('diceDock')].every(e=>e.getAnimations().length===0));
     const mobile=await page.locator('#diceDock').boundingBox();
     assert.ok(mobile.x>=0&&mobile.y>=0&&mobile.x+mobile.width<=320&&mobile.y+mobile.height<=640);
     await page.emulateMedia({reducedMotion:'reduce'});

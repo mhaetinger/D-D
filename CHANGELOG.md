@@ -2,6 +2,10 @@
 
 ## Não lançado
 
+- Medição do dado no teste móvel aguarda o fim da transição do tamanho de fonte.
+  A CI registrou 0,016 px de diferença ao capturar o penúltimo quadro; mantida
+  a comparação exata entre modos/temas, sem alterar desenho ou código do dado.
+
 ### Atualização sem Ctrl+F5 e indicadores da ficha — 2026-10-21
 
 - Nova versão é verificada ao retomar/conectar e a cada minuto com a página

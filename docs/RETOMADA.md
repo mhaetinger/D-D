@@ -7,7 +7,13 @@ histórico da conversa. Leia também `AGENTS.md`, `README.md`, `CHANGELOG.md` e
 ## Abrir a versão em desenvolvimento
 
 Repositório: https://github.com/mhaetinger/D-D.
-Branch atual: **`fix/atualizacao-e-indicadores`**, a partir de `develop` público
+Branch atual: **`fix/estabiliza-medicao-dado`**, a partir de `develop` público
+`422d15e` após a integração da PR #11. A PR #12 reúne a entrega para `main`.
+A CI capturou o tamanho intermediário do dado durante a transição de fonte
+(99,984375 px em vez de 100 px); o teste agora aguarda a animação terminar,
+preservando a comparação exata. Nenhum código/desenho do dado mudou neste ajuste.
+
+Correção principal: **`fix/atualizacao-e-indicadores`**, a partir de `develop` público
 `6023eda`. Revisão anterior integrada pelas PRs #9/#10; `main` publicada em
 `dffd443`, workflow [39550452549](https://github.com/mhaetinger/D-D/actions/runs/39550452549)
 concluído e conferido em https://criticall.art/ em 21/10/2026. Foram aprovados
