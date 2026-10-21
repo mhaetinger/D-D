@@ -278,6 +278,8 @@ também a carrega, sem precisar de Ctrl+F5 ou fechar as outras abas. Uma aba em
 edição continua na versão que abriu, com seus arquivos e regras correspondentes,
 até você escolher atualizar. O botão pede concluir/cancelar rascunhos abertos e
 conferir falhas de salvamento antes de recarregar. Não há recarga automática.
+O instalador confere o conteúdo de cada arquivo: uma resposta antiga ou
+incompleta conserva a versão anterior até a entrega poder ser baixada inteira.
 O cache do aplicativo não contém as fichas nem apaga o armazenamento do jogador.
 
 ## Livros
@@ -538,7 +540,7 @@ Migração para Cloudflare em preparação, após o usuário criar a conta. O ro
 está em [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md); a configuração de publicação
 descrita abaixo continua sendo a atual até a transição revisada. O workflow já
 aceita o destino opcional Cloudflare pelo mesmo artefato verificado; as variáveis
-e os Secrets necessários estão no roteiro. Nenhuma publicação foi ativada.
+e os Secrets necessários estão no roteiro. O destino Cloudflare ainda não foi ativado.
 
 Branches por tarefa seguem para `develop`; uma entrega revisada segue para
 `main`. Não fazer push direto à `main`. A pipeline verifica tipos, testes,

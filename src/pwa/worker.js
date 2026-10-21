@@ -1,4 +1,4 @@
-/* VERSION e FILES são inseridos pelo build. Só há arquivos públicos neste cache.
+/* VERSION, FILES e INTEGRITY são inseridos pelo build. Só há arquivos públicos neste cache.
  * Cada aba conserva a geração que carregou; uma navegação normal usa a nova.
  * Os metadados contêm apenas IDs opacos das abas e hashes do aplicativo. */
 const PREFIX = 'critcall-offline:' + new URL(self.registration.scope).pathname + ':';
@@ -38,7 +38,12 @@ async function sweep() {
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     try {
-      await (await caches.open(CACHE)).addAll(CORE.map(url => new Request(url, {cache:'reload'})));
+      // Um 200 com HTML/regras antigos também é uma instalação incompleta.
+      const requests = FILES.map(file => new Request(new URL(file, self.registration.scope), {cache:'reload', integrity:INTEGRITY[file]}));
+      // / e /index.html são entradas HTTP distintas. Renovar ambas evita voltar
+      // ao HTML anterior quando uma recarga do navegador ignora o worker.
+      requests.push(new Request(self.registration.scope, {cache:'reload', integrity:INTEGRITY['index.html']}));
+      await (await caches.open(CACHE)).addAll(requests);
       // Ativar não recarrega abas. Suas versões continuam disponíveis abaixo.
       await self.skipWaiting();
     } catch (error) { await caches.delete(CACHE); throw error; }

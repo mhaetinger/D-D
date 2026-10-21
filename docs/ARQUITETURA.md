@@ -417,10 +417,22 @@ dos recursos da ficha e do leitor. Cache por revisão e escopo evita misturar bu
 ou interferir em outros projetos no mesmo domínio. O worker normaliza a raiz do
 projeto para `index.html` e `/book` para `book.html`. Respostas guardadas após
 redirecionamentos HTML são reconstruídas para permitir navegação offline também
-no Cloudflare Pages. A revisão inclui a política do worker além dos arquivos.
+no Cloudflare Pages. A revisão inclui o worker e seu gerador além dos arquivos.
 Na instalação, as requisições usam `cache: reload` para buscar o conteúdo atual
 e atualizar o cache HTTP. Sem isso, o Pages pode fornecer HTML da entrega anterior
 a partir do cache do navegador e prendê-lo no cache offline da revisão nova.
+Depois de preencher a meta tag, o gerador calcula SHA-256 de cada recurso final.
+As requisições de instalação levam esses valores em `Request.integrity`:
+HTML/regras antigos com status 200 também fazem `addAll` falhar. O cache
+incompleto é retirado, sem ativar a entrega nem misturar seus arquivos. A mesma
+entrega pode ser tentada de novo quando o servidor fornecer os bytes corretos.
+O servidor deve preservar os bytes do build, inclusive ao configurar outra
+hospedagem. Compressão HTTP não muda o conteúdo validado.
+A entrada do escopo (`/` ou `/D-D/`) também é buscada com a integridade do HTML,
+além de `index.html`. As duas URLs possuem entradas HTTP diferentes: renovar só
+o arquivo deixava a raiz antiga disponível quando o navegador ignorava o worker.
+O teste de atualização bloqueia serviços externos por CDP; `route()` foi evitado
+porque o Playwright desativa o cache HTTP ao interceptar requisições.
 
 `index.html` recebe a revisão em uma meta tag; o hash normaliza essa marca antes
 do cálculo, evitando referência circular. O registro usa `updateViaCache: none`,

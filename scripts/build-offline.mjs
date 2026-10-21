@@ -18,11 +18,14 @@ const html = fs.readFileSync(indexPath, 'utf8');
 if (!marker.test(html)) throw new Error('Identificador do build ausente no HTML.');
 // Normalizar evita uma referência circular entre o hash e o HTML que o exibe.
 const canonical = html.replace(marker, '$1__CRITCALL_BUILD__$2');
-hash.update('offline-policy-v4').update(worker);
+hash.update('offline-policy-v5').update(fs.readFileSync(new URL(import.meta.url))).update(worker);
 for (const file of core) hash.update(file).update(file === 'index.html' ? canonical : fs.readFileSync(path.join(directory, file)));
 const version = hash.digest("hex").slice(0, 16);
 fs.writeFileSync(indexPath, canonical.replace('__CRITCALL_BUILD__', version));
-const source = `/* Gerado pelo build: somente aplicativo público, nunca fichas/notas. */\nconst VERSION = '${version}';\nconst FILES = ${JSON.stringify(core)};\n${worker}`;
+// O servidor pode devolver conteúdo antigo com 200 durante a propagação de uma
+// entrega. A integridade valida os bytes finais, incluindo a revisão no HTML.
+const integrity = Object.fromEntries(core.map(file => [file, 'sha256-' + crypto.createHash('sha256').update(fs.readFileSync(path.join(directory, file))).digest('base64')]));
+const source = `/* Gerado pelo build: somente aplicativo público, nunca fichas/notas. */\nconst VERSION = '${version}';\nconst FILES = ${JSON.stringify(core)};\nconst INTEGRITY = ${JSON.stringify(integrity)};\n${worker}`;
 fs.writeFileSync(path.join(directory, "sw.js"), source);
 fs.writeFileSync(path.join(directory, "offline-manifest.json"), JSON.stringify({ version, files: core }, null, 2));
 console.log(`Offline: ${core.length} arquivos do aplicativo; PDFs fora do cache automático.`);
