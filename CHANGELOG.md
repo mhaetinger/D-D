@@ -2,6 +2,18 @@
 
 ## Não lançado
 
+### Dado sem realce de seleção após R — 2026-10-21
+
+- R mantém o foco para repetir a rolagem, mas oculta o realce retangular que
+  aparecia nas pontas do dado. Sair e voltar por Tab restaura o indicador de
+  navegação. O estado é transitório; desenho, efeitos e rolagens preservados.
+- O botão do dado desativa o realce nativo de toque e o menu de toque longo
+  do WebKit, mantendo os gestos e a proteção contra seleção de texto.
+- Conferidos 385 testes Node, tipos/build e Chromium do dado: imagem após R
+  idêntica à imagem sem foco, tecla repetida/foco/Tab, três modos, arraste,
+  posição/recarga, OFF, três temas/320px/GG e toque/arremesso/R em celular
+  emulado. Capturas desktop e móvel conferidas.
+
 ### D20 rápido respeita vantagem e desvantagem — 2026-10-21
 
 - Arremessar o dado recolhido, usar R ou o botão de d20 rápido na bandeja segue

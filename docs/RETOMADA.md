@@ -28,6 +28,14 @@ com checksum ao lado; não contém fichas privadas. A etiqueta fica local, sem
 envio de tags extras. Para desfazer uma experiência, preferir reverter somente
 o commit correspondente, preservando dados e o histórico compartilhado.
 
+**Realce do dado após R:** o foco continua no botão para repetir a tecla, mas
+o realce retangular deixa de aparecer nas pontas. `data-keyboard-roll` só dura
+até sair do botão; retornar por Tab restaura o indicador. O botão desativa
+também realce nativo de toque/seleção/menu de toque longo. Desenho, efeitos e
+rolagens mantidos. Conferidos 385 testes Node, tipos/build e Chromium do dado,
+incluindo comparação da imagem após R com a sem foco, retorno por Tab,
+rolagens repetidas e toque/arremesso/R em celular emulado. Capturas conferidas.
+
 **D20 rápido acompanha o modo escolhido:** a pedido do responsável, arremesso,
 tecla R e botão da bandeja agora usam `currentRollMode`. Normal rola um d20;
 vantagem usa o maior de dois; desvantagem, o menor. Exibe somente essa face,

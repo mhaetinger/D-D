@@ -460,6 +460,12 @@ da animação. Não modifica pool, modificador, modo atual ou inspiração prepa
 A sequência de rolagens descarta callbacks antigos e trocas de espaço cancelam
 animações. Movimento reduzido desativa o giro decorativo.
 
+O realce de foco do dado serve à navegação por Tab. R oculta esse realce pelo
+atributo transitório `data-keyboard-roll`, preservando o foco para repetir a
+tecla; `blur` limpa o atributo. Assim, o realce retangular não aparece nas
+pontas após rolar e volta ao navegar novamente. O botão também desativa o
+realce nativo de toque, a seleção de texto e o menu de toque longo do WebKit.
+
 `dice-dock-appearance.ts` reflete `currentRollMode` em `data-roll-mode` transitório,
 no rótulo acessível e em duas camadas externas ao botão original. Névoa/↑ para
 vantagem; chamas/↓ para desvantagem; normal oculta ambas as camadas. O CSS

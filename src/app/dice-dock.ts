@@ -62,9 +62,16 @@ export function setupDiceDock(roll: () => void, toggle: () => void) {
   }
   function persist() { if (position) writePreference("dnd_dice_tray_position", JSON.stringify(position)); }
   dock.addEventListener("click", () => { if (!suppressClick) toggle(); });
+  dock.addEventListener("blur", () => { delete dock.dataset.keyboardRoll; });
   dock.addEventListener("keydown", event => {
     if (event.ctrlKey || event.metaKey || event.altKey) return;
-    if (event.key.toLowerCase() === "r" && !event.repeat) { event.preventDefault(); roll(); }
+    if (event.key.toLowerCase() === "r" && !event.repeat) {
+      event.preventDefault();
+      // Mantém o foco para repetir R, sem deixar o realce retangular nas pontas.
+      // Ao sair e voltar pelo teclado, o indicador de navegação reaparece.
+      dock.dataset.keyboardRoll = "true";
+      roll();
+    }
     if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
     event.preventDefault();
     const rect = tray.getBoundingClientRect();
