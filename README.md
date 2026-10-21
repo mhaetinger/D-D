@@ -106,15 +106,17 @@ acompanha um efeito resolvido fora dos botões, sem gastar espaços ou usos.
 
 O dado começa recolhido ao abrir a aplicação ou trocar de conta. Mostra **20**
 antes da primeira rolagem e depois o último total desta conta/aba. Clique para
-abrir a bandeja; arraste para reposicionar. Um arremesso rápido do ícone rola
-**um d20 normal**, sem bônus, vantagem ou alteração do pool já montado. A tecla
-**R** faz a mesma rolagem; as setas movem o ícone. A bandeja também oferece
-**Rolar d20 normal**. O modo OFF continua ocultando os dados.
+abrir a bandeja; arraste para reposicionar. Um arremesso rápido do ícone segue o
+modo selecionado: **normal** rola um d20; **vantagem**, dois e usa o maior;
+**desvantagem**, dois e usa o menor. O número no dado é esse resultado, sem
+bônus ou outros dados do pool. A tecla **R** e o botão **Rolar d20** na bandeja
+fazem a mesma rolagem. Não gasta inspiração preparada nem altera o pool ou o
+modo escolhido. As setas movem o ícone; OFF continua ocultando os dados.
 
 O modo selecionado na bandeja também aparece ao redor do dado recolhido:
 **vantagem** tem névoa suave e **↑**; **desvantagem**, pequenas chamas e **↓**.
 **Normal** conserva o desenho original. Os efeitos respeitam movimento reduzido
-e não mudam os gestos nem a rolagem rápida de d20 normal descrita acima.
+e não mudam os gestos.
 
 No perfil, use **Alterar imagem do perfil**. Em cada ficha, clique no retrato ao
 lado do nome, ou no retrato da lista de personagens. JPG/PNG/WebP de até **5 MB**

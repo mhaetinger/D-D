@@ -2,6 +2,19 @@
 
 ## Não lançado
 
+### D20 rápido respeita vantagem e desvantagem — 2026-10-21
+
+- Arremessar o dado recolhido, usar R ou o botão de d20 rápido na bandeja segue
+  o modo escolhido: normal usa um d20; vantagem escolhe o maior de dois;
+  desvantagem, o menor. O número no dado mostra essa face, sem bônus do pool.
+- Preservados aparência, gestos, pool, modificador e inspiração preparada.
+  Alterar o modo durante a animação só vale para o próximo lançamento.
+  Dicas e nome do botão acompanham o modo, inclusive a ajuda de inspiração.
+- Conferidos 385 testes Node, tipos/build e Chromium de dado, PV/inspiração e
+  crítico/adicionais. Botão, arremesso e R testados nos três modos, com faces
+  controladas, preservação do pool/+7, troca de modo durante animação, posição,
+  recarga, movimento reduzido, três temas/320px/GG e OFF.
+
 ### Aura do modo do dado, com retorno preservado — 2026-10-21
 
 - Dado recolhido indica o modo selecionado na ficha/bandeja: névoa suave e ↑

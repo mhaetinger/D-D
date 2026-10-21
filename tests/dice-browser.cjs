@@ -40,7 +40,7 @@ const { serve } = require('./serve.cjs');
     await page.locator('#rollMode-adv').click();
     assert.equal(await page.locator('#diceDockAura').isVisible(),false,'bandeja aberta não recebe aura');
     await page.locator('#dicePoolModInput').fill('7'); await page.locator('#dicePoolModInput').dispatchEvent('change');
-    const pool=await page.locator('#dicePoolDisplay').textContent();
+    await page.evaluate(()=>{addDieToPool(12);addDieToPool(4);});
     await page.locator('#diceTrayMinimizeButton').click();
     await page.waitForFunction(()=>document.querySelector('#dice3dTray').getAnimations().length===0);
     const start=await page.locator('#diceDock').boundingBox();
@@ -49,13 +49,39 @@ const { serve } = require('./serve.cjs');
     assert.equal(await page.evaluate(()=>window.__rolls),1,'arrastar devagar não rola');
     const moved=await page.locator('#diceDock').boundingBox();
     assert.ok(moved.x>start.x+100);
-    await page.mouse.move(moved.x+30,moved.y+30); await page.mouse.down();
-    await page.mouse.move(moved.x+230,moved.y-70,{steps:2}); await page.mouse.up();
-    await page.waitForFunction(()=>window.__rolls===2);
-    await page.waitForFunction(()=>document.querySelector('#dice3dResultText').textContent.includes('d20 normal'));
-    assert.equal(await page.locator('#diceTrayBody').isVisible(),false);
-    assert.equal(await page.locator('#dicePoolDisplay').textContent(),pool,'arremesso não altera pool/modo/modificador');
-    assert.ok((await page.locator('#dice3dResultText').textContent()).includes('1d20[10]'));
+    const stub=faces=>page.evaluate(faces=>{window.__faces=[...faces];window.__rolls=0;Math.random=()=>{window.__rolls++;return ((window.__faces.shift()??20)-.5)/20;};},faces);
+    for(const [mode,label,faces,total,detail] of [
+      ['adv','com vantagem',[4,18],18,'d20 [4, 18] → maior: 18'],
+      ['dis','com desvantagem',[18,4],4,'d20 [18, 4] → menor: 4'],
+      ['normal','normal',[7],7,'1d20[7]']
+    ]) {
+      await page.locator('#diceDock').click();await page.locator(`#rollMode-${mode}`).click();
+      assert.equal(await page.locator('#diceQuickD20').textContent(),`Rolar d20 ${label}`);
+      const pool=await page.locator('#dicePoolDisplay').textContent();
+      const check=async()=>{
+        await page.waitForFunction(({total,count})=>window.__rolls===count&&document.querySelector('#diceDockValue').textContent===String(total)&&!document.querySelector('#dice3dCube').classList.contains('dice-3d-rolling'),{total,count:faces.length});
+        assert.ok((await page.locator('#dice3dResultText').textContent()).includes(detail));
+        assert.equal(await page.locator('#dicePoolDisplay').textContent(),pool,'d20 rápido preserva pool e modificador +7');
+        assert.equal(await page.locator('#dicePoolModInput').inputValue(),'7');
+        assert.equal(await page.locator(`#rollMode-${mode}`).getAttribute('aria-pressed'),'true');
+      };
+      await stub(faces);await page.locator('#diceQuickD20').click();await check();
+      await page.locator('#diceTrayMinimizeButton').click();
+      await page.waitForFunction(()=>document.querySelector('#dice3dTray').getAnimations().length===0);
+      await stub(faces);
+      const box=await page.locator('#diceDock').boundingBox();
+      await page.mouse.move(box.x+30,box.y+30);await page.mouse.down();
+      await page.mouse.move(box.x+230,box.y-70,{steps:2});await page.mouse.up();await check();
+      assert.equal(await page.locator('#diceTrayBody').isVisible(),false,'arremesso não abre a bandeja');
+      await stub([...faces].reverse());await page.locator('#diceDock').focus();await page.keyboard.press('r');
+      await page.waitForFunction(({total,count})=>window.__rolls===count&&document.querySelector('#diceDockValue').textContent===String(total)&&!document.querySelector('#dice3dCube').classList.contains('dice-3d-rolling'),{total,count:faces.length});
+      assert.equal(await page.locator('#diceTrayBody').isVisible(),false,'teclado não abre a bandeja');
+    }
+    // O resultado usa o modo do lançamento, mesmo se o seletor mudar na animação.
+    await stub([3,16]);await page.evaluate(()=>{setRollMode('adv');rollQuickD20();setRollMode('dis');});
+    await page.waitForFunction(()=>document.querySelector('#diceDockValue').textContent==='16');
+    assert.ok((await page.locator('#dice3dResultText').textContent()).includes('d20 [3, 16] → maior: 16'));
+    await page.evaluate(()=>{setRollMode('normal');Math.random=()=>.45;});
     await page.locator('#diceDock').focus(); await page.keyboard.press('r');
     await page.evaluate(()=>{Math.random=()=>.8;}); await page.keyboard.press('r');
     await page.waitForFunction(()=>document.querySelector('#diceDockValue').textContent==='17');
@@ -81,6 +107,6 @@ const { serve } = require('./serve.cjs');
     }
     await page.evaluate(()=>setDiceMode('off')); assert.equal(await page.locator('#diceDock').isVisible(),false);
     assert.deepEqual(errors,[]);
-    console.log('PASS dado: normal idêntico após alternar modos, aura/símbolos sem mover ou gravar, movimento reduzido, fechado ao abrir, último total, teclado, arraste lento, arremesso d20 normal sem alterar pool, rolagens rápidas, posição/recarga, 320px/GG/três temas e modo OFF.');
+    console.log('PASS dado: normal/aura preservados, botão/arremesso/R seguem modo normal/maior/menor sem bônus ou alteração de pool, modo capturado antes da animação, arraste lento, rolagens rápidas, posição/recarga, movimento reduzido, 320px/GG/três temas e modo OFF.');
   } finally {await browser.close();await server.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

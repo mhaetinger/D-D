@@ -453,8 +453,10 @@ normalizada usa `dnd_dice_tray_position` e é limitada ao viewport/tamanho atual
 O resultado fica em sessionStorage por espaço; não gera documentos remotos.
 Arrastar exige mais de 8 px; arremessar exige pelo menos 48 px e velocidade final
 mínima de 0,85 px/ms na janela recente. Cancelar/interromper o gesto não rola.
-Clique/Enter abre a bandeja, R rola d20 normal, setas movem. O d20 rápido usa
-`evaluateDicePool({20:1},0,'normal')` sem modificar pool, modificador ou modo atual.
+Clique/Enter abre a bandeja, R faz a mesma rolagem do arremesso, setas movem.
+O d20 rápido usa `evaluateDicePool({20:1},0,currentRollMode)`: um d20 no normal;
+dois e escolhe o maior/menor na vantagem/desvantagem. O modo é resolvido antes
+da animação. Não modifica pool, modificador, modo atual ou inspiração preparada.
 A sequência de rolagens descarta callbacks antigos e trocas de espaço cancelam
 animações. Movimento reduzido desativa o giro decorativo.
 
@@ -464,7 +466,8 @@ vantagem; chamas/↓ para desvantagem; normal oculta ambas as camadas. O CSS
 `dice-mode.css` usa animações decorativas sem timers/canvas, desativadas por
 movimento reduzido. As camadas têm `pointer-events:none`, não entram no fluxo
 e ficam ocultas com a bandeja aberta. Não alteram o SVG, tamanho, posição,
-pool, gestos, armazenamento ou sorteio; o arremesso/R continuam d20 normal.
+pool, gestos, armazenamento ou sorteio. Dicas e botão de d20 rápido refletem
+o modo que será usado pelo arremesso/R.
 
 Retratos usam `avatar: {id, revision}` por personagem e `dnd_profile_avatar` por
 perfil. UUIDs são validados antes de entrar em marcação/caminhos; URLs externas,

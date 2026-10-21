@@ -9,7 +9,7 @@ const tip=(name:string,text:string)=>`tabindex="0" data-rule-tooltip="${escape(J
 const action=(id:string,label:string,disabled=false,attrs='')=>`<button type="button" data-health-action="${id}" ${disabled?'disabled':''} ${attrs}>${label}</button>`;
 export function inspirationControls(c:Sheet) {
   const ready=c.heroicInspiration && c.ruleState?.inspirationReady;
-  return `<span ${tip('Inspiração · regras de 2014','Você tem ou não tem inspiração; ela não acumula e não é Inspiração de Bardo. Gaste antes de um ataque, teste de habilidade ou resistência para dar vantagem. Vantagem e desvantagem se cancelam. O arremesso rápido do dado continua sendo um d20 normal. Não permite rerrolar depois de ver o resultado.')}>★ Inspiração</span><span class="rule-controls">${c.heroicInspiration?`${action('inspirationUse',ready?'✓ Preparada · cancelar':'Usar',false,`aria-pressed="${!!ready}"`)}${action('inspirationPhysical','Usar na mesa')}`:action('inspirationReceive','Receber')}</span>`;
+  return `<span ${tip('Inspiração · regras de 2014','Você tem ou não tem inspiração; ela não acumula e não é Inspiração de Bardo. Gaste antes de um ataque, teste de habilidade ou resistência para dar vantagem. Vantagem e desvantagem se cancelam. O d20 rápido segue o modo escolhido na bandeja, sem gastar inspiração preparada. Não permite rerrolar depois de ver o resultado.')}>★ Inspiração</span><span class="rule-controls">${c.heroicInspiration?`${action('inspirationUse',ready?'✓ Preparada · cancelar':'Usar',false,`aria-pressed="${!!ready}"`)}${action('inspirationPhysical','Usar na mesa')}`:action('inspirationReceive','Receber')}</span>`;
 }
 export function deathControls(c:Sheet,E:Engine) {
   const d=deathStatus(c),shape=active(c,'druida:wildShape');

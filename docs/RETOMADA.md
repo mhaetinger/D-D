@@ -28,13 +28,22 @@ com checksum ao lado; não contém fichas privadas. A etiqueta fica local, sem
 envio de tags extras. Para desfazer uma experiência, preferir reverter somente
 o commit correspondente, preservando dados e o histórico compartilhado.
 
+**D20 rápido acompanha o modo escolhido:** a pedido do responsável, arremesso,
+tecla R e botão da bandeja agora usam `currentRollMode`. Normal rola um d20;
+vantagem usa o maior de dois; desvantagem, o menor. Exibe somente essa face,
+sem bônus do pool ou consumo de inspiração. O modo é capturado no lançamento,
+antes da animação. Dicas e nome do botão refletem a escolha. Aparência e gestos
+mantidos; o checkpoint acima continua disponível. Conferidos 385 testes Node,
+tipos/build e Chromium de dado, PV/inspiração e crítico/adicionais, incluindo
+as três ações nos três modos, pool/+7 preservados e modo capturado na animação.
+
 **Experiência visual do dado:** efeitos ficam em módulo/CSS próprios, separados
 da correção móvel/consulta do commit `72d7726`, para poder reverter só esta
 experiência. Modo selecionado: névoa/↑ para vantagem, pequenas chamas/↓ para
 desvantagem; normal conserva o desenho aprovado. Camadas não recebem eventos
-nem mudam tamanho/posição; movimento reduzido deixa o efeito estático. Gestos,
-pool e arremesso/R de d20 normal continuam iguais. Comparação de capturas com
-build de `94e44d1` confirmou o dado normal idêntico em seis cenários (três temas,
+nem mudam tamanho/posição; movimento reduzido deixa o efeito estático. Gestos e
+pool preservados; o d20 rápido segue o modo conforme descrito acima. Comparação
+de capturas com build de `94e44d1` confirmou o dado normal idêntico em seis cenários (três temas,
 desktop M e 320px/GG). Conferidos 385 testes Node, tipos/build e Chromium do
 dado, ataques e magias, incluindo clique/teclado/arraste/arremesso, recarga,
 pool/inspiração, recursos e OFF. Falta o

@@ -139,7 +139,7 @@
       </div>
       <div class="dice-tray-resize" onpointerdown="startDiceTrayResize(event)" role="separator" tabindex="0" aria-label="Redimensionar bandeja de dados" title="Arraste para ajustar o tamanho; use as setas com o teclado" onkeydown="resizeDiceTrayByKeyboard(event)"></div>
       <div id="diceTrayBody" data-scroll-content class="dice-tray-body" hidden>
-        <button type="button" onclick="rollQuickD20()" class="t-inset rounded py-1 text-xs font-bold">Rolar d20 normal</button>
+        <button id="diceQuickD20" type="button" onclick="rollQuickD20()" class="t-inset rounded py-1 text-xs font-bold">Rolar d20 normal</button>
         <!-- Uma linha própria mantém os três botões do mesmo tamanho inclusive no celular. -->
         <div class="dice-roll-modes" role="group" aria-label="Modo da rolagem de d20">
           <button

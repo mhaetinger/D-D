@@ -1143,7 +1143,8 @@ function rollWeaponFormula(formula,label) {
 }
 function rollQuickD20() {
   if (diceMode === "off") return;
-  presentDiceResult(evaluateDicePool({20: 1}, 0, "normal"), "d20 normal");
+  // Só o d20 usa o modo escolhido; pool, bônus e inspiração ficam preservados.
+  presentDiceResult(evaluateDicePool({20: 1}, 0, currentRollMode), "d20 rápido");
 }
 function presentDiceResult(result, customLabel) {
   const cube = document.getElementById("dice3dCube");
