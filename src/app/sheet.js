@@ -1783,8 +1783,8 @@ function renderMainClassic2014(char) {
         <span class="w-3 h-3 rounded-full border ${isProf ? "t-btn-primary" : "t-border"}"></span>
         <span>${meta.name}</span>
       </div>
-      <button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Salvaguarda de ${meta.name}', true, {type:'save',ability:'${key}'})" class="font-bold ${isProf ? "t-text-accent" : ""} hover:underline">
-        ${fmtMod(val)}
+      <button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Salvaguarda de ${meta.name}', true, {type:'save',ability:'${key}'})" aria-label="Rolar salvaguarda de ${meta.name}" class="sheet-save-roll font-bold ${isProf ? "t-text-accent" : ""} hover:underline">
+        ${fmtMod(val)}<i data-lucide="dices" class="w-3 h-3 t-text-accent" aria-hidden="true"></i>
       </button>
     </div>
   `;
@@ -1868,7 +1868,7 @@ function renderMainModern2024(char) {
           <span class="w-3 h-3 rune-slot border ${saveProf ? "t-btn-primary" : "t-border"}"></span>
           <span class="font-semibold">Salvaguarda</span>
         </div>
-        <button onclick="triggerSheetRoll('1d20${fmtMod(saveVal)}', 'Salvaguarda de ${meta.name}', true, {type:'save',ability:'${key}'})" class="font-bold hover:underline">${fmtMod(saveVal)}</button>
+        <button onclick="triggerSheetRoll('1d20${fmtMod(saveVal)}', 'Salvaguarda de ${meta.name}', true, {type:'save',ability:'${key}'})" aria-label="Rolar salvaguarda de ${meta.name}" class="sheet-save-roll font-bold hover:underline">${fmtMod(saveVal)}<i data-lucide="dices" class="w-3 h-3 t-text-accent" aria-hidden="true"></i></button>
       </div>
 
       <div class="space-y-0.5 pt-0.5">

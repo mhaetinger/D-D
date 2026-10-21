@@ -411,7 +411,8 @@ faz parte da verificação; somente o job da `main` tem permissão de publicaç�
 
 ## Offline e atualizações
 
-O build calcula uma revisão pelo conteúdo dos arquivos e gera `sw.js` com a lista
+O build calcula uma revisão pelo conteúdo dos arquivos e gera `sw.js` a partir de
+`src/pwa/worker.js`, com a lista
 dos recursos da ficha e do leitor. Cache por revisão e escopo evita misturar builds
 ou interferir em outros projetos no mesmo domínio. O worker normaliza a raiz do
 projeto para `index.html` e `/book` para `book.html`. Respostas guardadas após
@@ -421,9 +422,27 @@ Na instalação, as requisições usam `cache: reload` para buscar o conteúdo a
 e atualizar o cache HTTP. Sem isso, o Pages pode fornecer HTML da entrega anterior
 a partir do cache do navegador e prendê-lo no cache offline da revisão nova.
 
-Uma versão ativa entrega HTML, regras e assets do seu próprio cache. A nova versão
-aguarda as abas antigas fecharem; não usa `skipWaiting` ou recarga forçada. Cache
-antigo do aplicativo é removido só na ativação, sem tocar em fichas/anotações.
+`index.html` recebe a revisão em uma meta tag; o hash normaliza essa marca antes
+do cálculo, evitando referência circular. O registro usa `updateViaCache: none`,
+verifica retomada/conexão e consulta a cada minuto com a página visível.
+Depois da instalação completa, `skipWaiting`/`clients.claim` ativam o novo worker
+sem recarregar documentos. Cada documento mantém a geração que abriu: um cache
+de metadados por escopo associa IDs opacos de clientes a hashes, nunca a dados
+de jogadores. Isso inclui abas antigas na transição do worker anterior.
+Navegações comuns escolhem a geração atual e registram `resultingClientId` antes
+de servir o HTML, mantendo regras sem hash e assets coerentes após F5.
+
+A limpeza ocorre nas mensagens de versão depois da ativação. Usa
+[`clients.get`](https://w3c.github.io/ServiceWorker/#clients-get) para aguardar
+clientes reservados durante navegações; não roda dentro da ativação, que poderia
+ficar aguardando a própria navegação. Só remove gerações anteriores à do worker
+que executa a limpeza, sem clientes vivos. Assim não apaga uma instalação
+concorrente mais nova. Falhas de instalação retiram só o cache incompleto.
+
+O aviso compacto oferece recarga explícita; rascunhos de ficha/assistentes,
+formulários de entrada preenchidos e falhas de salvamento impedem esse botão de
+descartar trabalho. Respostas atrasadas do worker anterior são ignoradas.
+Não há recarga forçada, nem limpeza de fichas/anotações.
 O cache não recebe respostas de APIs, requisições privadas ou PDFs. Os livros
 exigem rede no leitor integrado; baixar o PDF é uma ação separada do jogador.
 O indicador no perfil informa quando o primeiro preparo offline terminou.

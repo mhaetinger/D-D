@@ -2,6 +2,27 @@
 
 ## Não lançado
 
+### Atualização sem Ctrl+F5 e indicadores da ficha — 2026-10-21
+
+- Nova versão é verificada ao retomar/conectar e a cada minuto com a página
+  visível. F5 comum ou o aviso **Atualizar** carrega a entrega pronta, mesmo com
+  outras abas abertas. Não há recarga automática de uma edição.
+- Cada documento conserva HTML, regras e assets de sua própria geração, inclusive
+  após reiniciar o worker. Atualizar pelo aviso protege editores e falhas de
+  salvamento. Instalação incompleta conserva a versão anterior; limpeza alcança
+  só gerações antigas do aplicativo sem uso, sem fichas/notas/PDFs no cache.
+- Testes de resistência exibem o mesmo ícone de dado das perícias, ao lado do
+  bônus, nos dois layouts. Usam a mesma ação de rolagem e contexto de salvaguarda.
+- Foco por teclado ilumina as linhas do próprio dado, eliminando o contorno
+  retangular ao minimizar após qualquer tecla. R, desenho, gestos e auras seguem
+  preservados.
+- Cabeçalhos de cache preparados para Cloudflare Pages. A hospedagem permanece
+  GitHub Pages: projeto/credenciais da Cloudflare continuam sem configuração.
+- Conferidos 385 testes Node, build/tipos, auditoria de dependências distribuídas
+  sem vulnerabilidades e Chromium de atualização/dado. A atualização foi testada
+  com duas abas, rascunho/foco, worker antigo/reiniciado, instalação concorrente
+  e incompleta, F5 comum, notas/fichas offline e aviso em 320px/GG.
+
 ## 2026-10-21
 
 Entrega autorizada pelo responsável após a revisão da ficha, importação,

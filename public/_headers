@@ -1,0 +1,16 @@
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/book
+  Cache-Control: no-cache
+/book.html
+  Cache-Control: no-cache
+/sw.js
+  Cache-Control: no-store
+/offline-manifest.json
+  Cache-Control: no-store
+/rules/*
+  Cache-Control: no-cache
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
