@@ -30,7 +30,7 @@ export function damageDescription(c:Sheet,result:Sheet,amount:number,critical=fa
  * da confirmação, revalidando a ficha e todos os resultados. */
 export function dieSourceControls(sides:number) {
   const host=window as any,luck=sides===20 && hasHalflingLuck(host.getChar());
-  return `<label>Dados <select data-health-source><option value="physical">Registrar dado físico</option><option value="virtual" ${host.ruleDiceSettings().enabled?'':'disabled'}>Rolar dado virtual</option></select></label><label data-health-face-label>Face ${luck?'final ':''}do d${sides}${luck?' (após Sortudo, se usado)':''} <input type="number" min="1" max="${sides}" step="1" data-health-face></label>${luck?'<label data-health-luck-label><input type="checkbox" data-health-luck> Sortudo racial · repetir um 1, uma única vez, no dado virtual</label>':''}`;
+  return `<label>Dados <select data-health-source><option value="physical">Registrar dado físico</option><option value="virtual" ${host.ruleDiceSettings().enabled?'':'disabled'}>Rolar dado virtual</option></select></label><label data-health-face-label>Face ${luck?'final ':''}do d${sides}${luck?' (após Sortudo, se usado)':''} <input type="number" min="1" max="${sides}" step="1" data-health-face></label>${luck?'<label class="rule-check" data-health-luck-label><input type="checkbox" data-health-luck><span>Sortudo racial · repetir um 1, uma única vez, no dado virtual</span></label>':''}`;
 }
 export function chooseDieSource(controls:HTMLElement) {
   const host=window as any,source=controls.querySelector<HTMLSelectElement>('[data-health-source]')!;
