@@ -112,6 +112,11 @@ execuções locais acima; não significa publicação ou cobertura integral do l
 
 ### Primeiro recorte de R2 — 21/10/2026
 
+Implementação `ba4a182`, em revisão na
+[PR #18](https://github.com/mhaetinger/D-D/pull/18) para `develop`.
+As verificações locais abaixo estão concluídas; conferir o resultado da CI
+antes de integrar. Não há publicação deste recorte.
+
 Fonte: Livro do Jogador local, páginas físicas **27** (Sortudo racial), **90**
 (Talento Confiável) e **174** (um único dado rerrolado com vantagem/desvantagem).
 Implementação em `src/rules/dice-roll.ts`, integrada ao rolador existente.

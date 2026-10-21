@@ -16,9 +16,10 @@ A versão funcional foi publicada em **https://criticall.art/** pelas
 | Integração `develop` | `445939d`, R1 integrada pela PR #17; contém mudanças funcionais ainda não publicadas |
 | Revisão offline publicada | `4e263eb66b70d44f` |
 | Verificação/publicação | [Workflow 39638188104](https://github.com/mhaetinger/D-D/actions/runs/39638188104), concluído com sucesso |
-| Trabalho atual | Primeiro recorte de R2 implementado; verificar a entrega e continuar os gastos/rerrolagens restantes |
+| Trabalho atual | Primeiro recorte de R2 verificado localmente e em revisão na [PR #18](https://github.com/mhaetinger/D-D/pull/18); conferir CI antes de integrar |
 | Branch da tarefa | `feature/rolagens-condicionais-r2`, criada de `develop` público após a PR #17 |
 | R1 integrada | `8bcab7dfcaa5750e512264a8ef43b8ebffcb6748`; [PR #17](https://github.com/mhaetinger/D-D/pull/17) e CI completa aprovadas, testes/limites na auditoria |
+| Implementação R2 inicial verificada | `ba4a182`; 404 testes Node, tipos/build e 27 roteiros Chromium locais aprovados; CI/integração da PR #18 a conferir |
 
 A organização documental e **R1 — bônus ausentes nos cálculos** foram integradas
 em `develop`. O responsável autorizou continuar a sequência. O primeiro recorte
@@ -56,7 +57,7 @@ Texto para iniciar outra conversa:
 > Continue o CritCall. Leia AGENTS.md, docs/RETOMADA.md, README.md,
 > CHANGELOG.md e docs/ARQUITETURA.md. Confira a branch e o estado do Git.
 > O roteiro atual de regras está em docs/AUDITORIA-LIVRO-2014.md. Confira
-> primeiro a entrega inicial de R2 e suas verificações/PR; depois continue os
+> primeiro a PR #18 da entrega inicial de R2 e suas verificações; depois continue os
 > gastos/rerrolagens restantes de R2. Não confundir Sortudo racial com o talento.
 
 ## Mapa dos documentos
