@@ -31,9 +31,11 @@ function release(root,name){
     await first.evaluate(()=>{setTab('lore');savePrivateNotes('Nota sintética que deve atravessar a atualização.');setTab('main');});
     await unlockSheet(first);await first.evaluate(()=>openHomebrewModal('weapon'));
     const previous=await first.locator('#hbWepName').inputValue();await first.locator('#hbWepName').fill('Rascunho não salvo');
+    const frozen=await context.newCDPSession(second);await frozen.send('Page.setWebLifecycleState',{state:'frozen'});
     fs.cpSync(b.dir,live,{recursive:true});
     await first.evaluate(async()=>{await(await navigator.serviceWorker.getRegistration()).update();});
     await first.locator('#appUpdate').waitFor({state:'visible'});
+    await frozen.send('Page.setWebLifecycleState',{state:'active'});
     assert.equal(await first.locator('#hbWepName').evaluate(e=>e===document.activeElement),true,'aviso não tira o foco do rascunho');
     for(const p of [first,second]){
      assert.equal(await p.evaluate(()=>window.__documentToken),'preservado','ativar não recarrega aba aberta');
@@ -63,15 +65,20 @@ function release(root,name){
     unblock();releaseFont=null;await first.locator('#appUpdate').waitFor({state:'visible'});
     await second.reload({waitUntil:'networkidle'});assert.equal(await second.evaluate(()=>window.__ruleRelease),'C');
     await first.locator('#appUpdate button').click();await first.waitForFunction(()=>document.title==='CritCall C'&&typeof getChar==='function');assert.equal(await first.evaluate(()=>window.__ruleRelease),'C');
-    // Instalação incompleta não substitui o aplicativo que já funciona.
-    fs.cpSync(d.dir,live,{recursive:true});fs.unlinkSync(path.join(live,font));
-    await first.evaluate(async()=>{
-     const r=await navigator.serviceWorker.getRegistration();window.__failedInstall=false;r.addEventListener('updatefound',()=>{const w=r.installing;w?.addEventListener('statechange',()=>{if(w.state==='redundant')window.__failedInstall=true;});});await r.update();
-    });
-    await first.waitForFunction(()=>window.__failedInstall);assert.equal(await first.evaluate(()=>window.__ruleRelease),'C');
-    await context.setOffline(true);await first.reload({waitUntil:'domcontentloaded'});await first.waitForFunction(()=>typeof getChar==='function');assert.equal(await first.title(),'CritCall C');assert.equal(await first.evaluate(()=>window.__ruleRelease),'C');assert.match(await first.evaluate(()=>readPrivateNotes(getChar().id)),/Nota sintética/);
+    // Um 200 com HTML/regras de outra entrega também precisa ser recusado.
+    await first.evaluate(async()=>{const r=await navigator.serviceWorker.getRegistration();r.addEventListener('updatefound',()=>{const w=r.installing;w?.addEventListener('statechange',()=>{if(w.state==='redundant')window.__failedInstall=true;});});});
+    for(const broken of ['index.html','rules/character-engine.js',font]){
+     fs.cpSync(d.dir,live,{recursive:true});
+     if(broken===font)fs.unlinkSync(path.join(live,font));else fs.copyFileSync(path.join(c.dir,broken),path.join(live,broken));
+     await first.evaluate(async()=>{window.__failedInstall=false;await(await navigator.serviceWorker.getRegistration()).update();});
+     await first.waitForFunction(()=>window.__failedInstall);assert.equal(await first.evaluate(()=>window.__ruleRelease),'C');
+     assert.equal(await first.evaluate(async version=>(await caches.keys()).some(name=>name.endsWith(':'+version)),d.version),false,'instalação inválida não fica no cache');
+    }
+    // A mesma entrega pode ser tentada novamente assim que todos os bytes chegam.
+    fs.cpSync(d.dir,live,{recursive:true});await first.evaluate(async()=>{await(await navigator.serviceWorker.getRegistration()).update();});await first.locator('#appUpdate').waitFor({state:'visible'});await first.locator('#appUpdate button').click();await first.waitForFunction(()=>document.title==='CritCall D'&&typeof getChar==='function');
+    await context.setOffline(true);await first.reload({waitUntil:'domcontentloaded'});await first.waitForFunction(()=>typeof getChar==='function');assert.equal(await first.title(),'CritCall D');assert.equal(await first.evaluate(()=>window.__ruleRelease),'D');assert.match(await first.evaluate(()=>readPrivateNotes(getChar().id)),/Nota sintética/);
     const metadata=await first.evaluate(async()=>{const out=[];for(const name of await caches.keys())if(name.startsWith('critcall-offline-meta:')){const cache=await caches.open(name);for(const key of await cache.keys())out.push(await(await cache.match(key)).text());}return out;});assert.ok(metadata.length);assert.ok(metadata.every(value=>/^[a-f0-9]{16}$/.test(value)),'metadados guardam só hashes, sem fichas ou notas');
-    assert.deepEqual(errors,[]);console.log(`PASS atualização ${prefix}${legacy?' desde worker antigo':''}: duas abas, rascunho/foco preservados, gerações sem mistura e após reinício do worker, F5 normal, botão protegido, notas/fichas/offline e falha de instalação segura.`);
+    assert.deepEqual(errors,[]);console.log(`PASS atualização ${prefix}${legacy?' desde worker antigo':''}: duas abas/aba congelada, rascunho/foco, worker reiniciado, F5 comum, aviso protegido, instalação concorrente, HTML/regras antigos com 200 recusados, arquivo ausente, repetição e notas/fichas offline.`);
    }finally{releaseFont?.release();releaseFont=null;await context.close();await server.close();}
   }
  }finally{await browser.close();fs.rmSync(root,{recursive:true,force:true});}

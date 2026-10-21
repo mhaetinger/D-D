@@ -2,6 +2,11 @@
 
 ## Não lançado
 
+- O instalador offline confere SHA-256 de cada arquivo antes de ativar uma
+  entrega. HTML ou regras de outra versão, mesmo com resposta 200, invalidam a
+  instalação e preservam a versão anterior. Os hashes incluem o HTML final;
+  alterações no gerador também renovam a revisão do aplicativo.
+
 - Medição do dado no teste móvel aguarda o fim da transição do tamanho de fonte.
   A CI registrou 0,016 px de diferença ao capturar o penúltimo quadro; mantida
   a comparação exata entre modos/temas, sem alterar desenho ou código do dado.
