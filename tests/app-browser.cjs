@@ -1,3 +1,4 @@
+const {unlockSheet}=require('./sheet-lock-actions.cjs');
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -5,15 +6,19 @@ const os = require("node:os");
 const { chromium } = require(process.env.DND_PLAYWRIGHT_MODULE || "playwright");
 const { serve } = require("./serve.cjs");
 const { warrior } = require("./fixture.cjs");
-const LEGACY = "dnd_sheet_public_v1", KEY = "orbyt_characters_v1", NOTES = "dnd_player_private_notes_v1";
+const {confirmImportReview}=require('./import-confirmation.cjs');
+const LEGACY = "dnd_sheet_public_v1", KEY = "critcall_characters_v1", NOTES = "dnd_player_private_notes_v1";
 async function downloadBackup(page) {
+  if (!await page.locator('#exportBackup').isVisible()) await page.locator('[data-account-tab="characters"]').click();
   const pending = page.waitForEvent("download");
   await page.locator("#exportBackup").click();
   const download = await pending;
   return JSON.parse(fs.readFileSync(await download.path(), "utf8"));
 }
 async function importBackup(page, value) {
+  await page.waitForFunction(()=>!document.getElementById('importBackup').disabled);
   await page.locator("#backupFile").setInputFiles({ name: "fichas.json", mimeType: "application/json", buffer: Buffer.from(typeof value === "string" ? value : JSON.stringify(value)) });
+  if(typeof value==='object')await confirmImportReview(page);
 }
 (async () => {
   const server = await serve(process.env.DND_TEST_ROOT || path.join(__dirname, "../dist"));
@@ -40,7 +45,7 @@ async function importBackup(page, value) {
     assert.equal(await page.locator('i[data-lucide]').count(), 0, "todos os ícones usados foram incluídos no bundle");
     await page.evaluate(() => openAuthAccountModal());
     const plain = await downloadBackup(page);
-    assert.equal(plain.format, "orbyt.character-backup");
+    assert.equal(plain.format, "critcall.character-backup");
     assert.equal(plain.privateNotes, undefined);
     await page.locator("#backupIncludeNotes").check();
     const full = await downloadBackup(page);
@@ -53,11 +58,11 @@ async function importBackup(page, value) {
 
     // A seleção sobrevive à recarga e acompanha o ID, mesmo com outra ordem.
     await page.evaluate(() => closeAuthAccountModal());
-    const historyBeforeLayout = await page.evaluate(() => JSON.parse(localStorage.getItem("dnd_history_v1")).stack.length);
+    const historyBeforeLayout = await page.evaluate(() => JSON.parse(localStorage.getItem('dnd_character_history_v2:'+getChar().id)).stack.length);
     await page.locator("#btnModern").click();
     await page.locator("#btnClassic").click();
     const historyAfterLayout = await page.evaluate(() => {
-      const saved = JSON.parse(localStorage.getItem("dnd_history_v1"));
+      const saved = JSON.parse(localStorage.getItem('dnd_character_history_v2:'+getChar().id));
       return { length: saved.stack.length, layoutActions: saved.stack.filter((item) => item.action.startsWith("Alternou layout para ")).length };
     });
     assert.equal(historyAfterLayout.length, historyBeforeLayout, "trocar o layout não cria passos no histórico");
@@ -76,7 +81,7 @@ async function importBackup(page, value) {
       await page.reload({ waitUntil: "networkidle" });
       assert.equal(await page.evaluate(() => getChar().id), imported);
     }
-    await page.evaluate(() => localStorage.setItem("orbyt_active_character_v1", "ficha-removida"));
+    await page.evaluate(() => localStorage.setItem("critcall_active_character_v1", "ficha-removida"));
     await page.reload({ waitUntil: "networkidle" });
     assert.equal(await page.evaluate(() => getChar().id), char.id, "ID ausente abre a primeira ficha disponível");
     await page.evaluate(() => openAuthAccountModal());
@@ -95,8 +100,8 @@ async function importBackup(page, value) {
     importedResources.standardSlots[1] = { used: 0, total: 1 };
     importedResources.coins[resourceMarkup] = resourceMarkup;
     importedResources.spells = [
-      { name: 'Usos importados', circle: 1, classId: 'feiticeiro', limitedUse: resourceMarkup },
-      { name: 'Custo importado', circle: 1, classId: 'feiticeiro', limitedUse: 1, canTwin: true, castLevel: resourceMarkup },
+      { name: 'Usos importados '+resourceMarkup, circle: 1, classId: 'guerreiro', limitedUse: 1, usesUsed:0, extraSource:'Talento fictício', castingAbility:'int' },
+      { name: 'Custo importado', circle: 1, classId: 'guerreiro', limitedUse: 1, usesUsed:0, extraSource:'Talento fictício', castingAbility:'int', canTwin: true, castLevel: resourceMarkup },
     ];
     importedResources.rules.history.push({ classId: 'feiticeiro', level: 3, answers: { metamagic: ['Magia Duplicada'] } });
     await importBackup(page, hostile);
@@ -123,6 +128,7 @@ async function importBackup(page, value) {
       const panel = await page.locator('#authAccountModal > section').boundingBox();
       assert.ok(panel.x >= 0 && panel.x + panel.width <= 320);
       assert.ok(await page.locator('#authAccountModal > section').evaluate((el) => el.scrollWidth <= el.clientWidth));
+      await page.locator('[data-account-tab="characters"]').click();
       const nameArea = await page.locator('#accountCharactersList > div:first-child > .min-w-0').boundingBox();
       assert.ok(nameArea.width >= 130, "nome mantém largura legível no perfil em 320 px/GG");
       if (process.env.DND_TEST_ARTIFACTS) {
@@ -144,6 +150,7 @@ async function importBackup(page, value) {
     assert.equal(await page.evaluate(() => characters.length), 3);
     assert.equal(await page.evaluate(() => window.importExecuted), undefined);
     await page.evaluate(() => switchCharacter(0));
+    await unlockSheet(page);
     await page.evaluate(() => openLevelUpModal());
     const wizard = page.locator("#characterWizard");
     for (let i = 0; i < 4; i++) await wizard.locator('[data-action="next"]').click();
@@ -154,10 +161,11 @@ async function importBackup(page, value) {
     assert.equal(await page.evaluate(() => getChar().classes[0].level), 2);
     assert.equal(await page.evaluate((key) => localStorage.getItem(key), LEGACY), old);
     assert.deepEqual(external, [], "fontes, ícones e código são servidos pelo aplicativo");
+    await unlockSheet(page);
     await page.evaluate(() => {
       const original = Storage.prototype.setItem;
       Storage.prototype.setItem = function(key, value) {
-        if (key === "orbyt_characters_v1") throw new DOMException("Sem espaço", "QuotaExceededError");
+        if (key === "critcall_characters_v1") throw new DOMException("Sem espaço", "QuotaExceededError");
         return original.call(this, key, value);
       };
       updateField("name", "Alteração ainda não salva");
@@ -179,7 +187,7 @@ async function importBackup(page, value) {
 
     // Uma coleção corrompida não vira uma ficha vazia gravada sobre o original.
     const recovery = await browser.newContext();
-    await recovery.addInitScript(() => { if (!localStorage.getItem("recoverySeeded")) { localStorage.setItem("orbyt_characters_v1", "{danificado"); localStorage.setItem("recoverySeeded", "true"); } });
+    await recovery.addInitScript(() => { if (!localStorage.getItem("recoverySeeded")) { localStorage.setItem("critcall_characters_v1", "{danificado"); localStorage.setItem("recoverySeeded", "true"); } });
     const damaged = await recovery.newPage();
     damaged.on("pageerror", (e) => errors.push(e.message));
     await damaged.goto(server.url, { waitUntil: "networkidle" });
@@ -196,7 +204,7 @@ async function importBackup(page, value) {
     await importBackup(damaged, plain);
     await damaged.locator("#confirmationAccept").click();
     await damaged.waitForFunction(() => characters.length === 1);
-    assert.equal(await damaged.evaluate(() => localStorage.getItem("orbyt_recovery_v1")), "{danificado");
+    assert.equal(await damaged.evaluate(() => localStorage.getItem("critcall_recovery_v1")), "{danificado");
     await recovery.close();
 
     const blocked = await browser.newContext();
@@ -231,6 +239,7 @@ async function importBackup(page, value) {
         });
         assert.equal(entries.redirected, true, "servidor reproduz redirecionamento do Pages");
         assert.ok(entries.urls.every((url) => !new URL(url).pathname.endsWith(".pdf") && new URL(url).origin === new URL(clean.url).origin));
+        await unlockSheet(offline);
         await offline.evaluate(() => updateField("name", "Ficha offline na Cloudflare"));
         await visitor.setOffline(true);
         await offline.reload({ waitUntil: "networkidle" });

@@ -1,4 +1,5 @@
 // SDK e duas instalações de navegador reais; somente o HTTP do Supabase é simulado.
+const {confirmImportReview}=require('./import-confirmation.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -112,8 +113,9 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     assert.equal(rows.get(`${ids.a}:preference:dnd_public_player_name`).value,'Nome preservado após falha da fila');
     await a.page.locator('#accPlayerName').fill('Nome salvo automaticamente'); await a.sync();
     const char=warrior();
-    const backup={format:'orbyt.character-backup',version:1,exportedAt:new Date().toISOString(),characters:[char],privateNotes:{[char.id]:'Nota particular sincronizada'}};
+    const backup={format:'critcall.character-backup',version:1,exportedAt:new Date().toISOString(),characters:[char],privateNotes:{[char.id]:'Nota particular sincronizada'}};
     await a.page.locator('#backupFile').setInputFiles({name:'teste.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(backup))});
+    await confirmImportReview(a.page);
     await a.page.waitForFunction(()=>characters.length===1); await a.sync();
     const id=await a.page.evaluate(()=>getChar().id);
     await a.page.evaluate(()=>{closeAuthAccountModal();});
@@ -168,7 +170,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     await nobody.page.locator('#accPlayerName').fill('Nome que precisa ser preservado');
     assert.equal(await nobody.page.locator('#accPlayerName').inputValue(),'Nome que precisa ser preservado');
     assert.equal(await nobody.page.locator('#currentUserBadge').textContent(),'Jogador');
-    assert.ok((await nobody.page.locator('#toast').textContent()).includes('não pôde ser salvo'));
+    assert.ok((await nobody.page.locator('#authAccountModal [data-window-notice]').textContent()).includes('não pôde ser salvo'));assert.equal(await nobody.page.locator('#toast').isVisible(),false);
     assert.ok((await nobody.page.locator('#syncStatus').textContent()).includes('não foram salvas'),'um envio anterior não pode esconder falha local de perfil');
     await b.page.evaluate(async()=>{await navigator.serviceWorker.ready;});
     await b.page.waitForFunction(()=>!!navigator.serviceWorker.controller);
@@ -219,14 +221,16 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     assert.equal(await a.page.evaluate(()=>readPrivateNotes(getChar().id)),'Nota alterada offline','restaurar ficha não restaura anotações');
     await a.page.reload({waitUntil:'networkidle'});
     assert.equal(await a.page.evaluate(()=>getChar()?.coins.po),123);
-    assert.ok(await a.page.evaluate(()=>JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k=>k.endsWith('dnd_history_v1')))).stack.length>1),'histórico/checkpoints sobrevivem à recarga');
+    assert.ok(await a.page.evaluate(()=>JSON.parse(localStorage.getItem(Object.keys(localStorage).find(k=>k.endsWith('dnd_character_history_v2:'+getChar().id)))).stack.length>1),'histórico/checkpoints desta ficha sobrevivem à recarga');
     // Alterar o retrato de uma cópia não sobrescreve o arquivo da ficha original.
     const source=await a.page.evaluate(()=>JSON.parse(JSON.stringify(getChar())));
-    const copied={format:'orbyt.character-backup',version:1,exportedAt:new Date().toISOString(),characters:[source]};
+    const copied={format:'critcall.character-backup',version:1,exportedAt:new Date().toISOString(),characters:[source]};
     await a.page.evaluate(()=>openAuthAccountModal());
     await a.page.locator('#backupFile').setInputFiles({name:'copia.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(copied))});
+    await confirmImportReview(a.page);
     await a.page.waitForFunction(()=>characters.length===2);
     const copyId=await a.page.evaluate(id=>characters.find(char=>char.id!==id).id,source.id);
+    await a.page.locator('[data-account-tab="characters"]').click();
     await uploadPhoto(a.page,`#accountCharactersList [data-avatar-edit="${copyId}"]`);
     assert.equal(await a.page.evaluate(id=>characters.find(char=>char.id===id).avatar.id,source.id),source.avatar.id);
     assert.notEqual(await a.page.evaluate(id=>characters.find(char=>char.id===id).avatar.id,copyId),source.avatar.id);

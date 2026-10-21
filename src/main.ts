@@ -15,6 +15,10 @@ import "./styles/access.css";
 import "./app/icons";
 import "./wizard/bridge";
 import "./styles/wizard-guide.css";
+import "./styles/rules.css";
+import './styles/notices.css';
+import "./styles/import-review.css";
+import { initializeRules } from "./rules/bridge";
 import { setupBackups } from "./storage/backup-ui";
 import { registerOffline } from "./pwa/register";
 import { initializeAccount } from "./auth/session";
@@ -22,16 +26,33 @@ import { setupAccountUI } from "./auth/ui";
 import { initializeSync } from "./sync/controller";
 import { setupAvatars } from "./media/ui";
 import { setupBookAppearance } from "./app/book-appearance";
+import { setupCompactTopbar } from "./app/compact-topbar";
+import { setupAccountPanel } from './app/account-panel';
+import './styles/account-panel.css';
+import {setupSheetEditing} from './sheet-edit/ui';
+import {setupSpellEditor} from './sheet-edit/spell-editor';
+import './styles/sheet-edit.css';
+import './styles/weapon-editor.css';
+import './styles/sheet-type.css';
+import {setupFeatureConsultation} from './app/feature-consult';
+import './styles/feature-consult.css';
+import './styles/dice-mode.css';
 
 // A identidade define o armazenamento antes da primeira leitura da ficha.
 async function start() {
   const account = await initializeAccount();
   await initializeSync(account);
+  initializeRules();
   await import("./app/sheet.js");
   setupBackups();
+  setupSheetEditing();
+  setupSpellEditor();
+  setupFeatureConsultation();
   setupAccountUI(account);
   setupAvatars(account);
   setupBookAppearance();
+  setupCompactTopbar();
+  setupAccountPanel();
   registerOffline();
 }
 void start();

@@ -74,9 +74,13 @@ for segment in segments:
     spell=spells[name]
     if 'time' in spell: continue
     spell['pdfPage']=page
-    for field,label in [('time','Tempo de Conjuração'),('range','Alcance'),('components','Componentes'),('duration','Duração')]:
-        m=re.search(rf'{label}:\s*([^\n]+)',text)
-        if m: spell[field]=m.group(1).strip()
+    for field,label in [('time','Tempo de Conjuração'),('range','Alcance'),('components','Componentes')]:
+        # Campos longos continuam na linha seguinte; o próximo rótulo encerra
+        # o campo. O corpo completo permanece preservado separadamente.
+        m=re.search(rf'{label}:\s*(.*?)(?=\n\s*(?:Alcance|Componentes|Duração):)',text,re.S)
+        if m: spell[field]=re.sub(r'\s+',' ',m.group(1)).strip()
+    m=re.search(r'Duração:\s*([^\n]+)',text)
+    if m: spell['duration']=m.group(1).strip()
     spell['concentration']='concentração' in spell.get('duration','').lower()
     spell['text']=text.strip()
 

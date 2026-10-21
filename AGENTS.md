@@ -1,11 +1,11 @@
 # Orientações para manutenção
 
-- Este é o projeto **CritCall**. **Orbyt** é outro projeto do responsável:
-  não usar esse nome, banco ou configuração de autenticação nesta aplicação.
+- Este é o projeto **CritCall**. Não usar nomes, bancos ou configurações de
+  autenticação de outros aplicativos do responsável nesta aplicação.
   O usuário informou que já criou um projeto Supabase novo para CritCall; conferir
   sua URL/identificador antes de conectar ou alterar o serviço.
-  Chaves/formato de backup publicados com `orbyt` são legados da nomeação
-  equivocada; preservar compatibilidade até uma migração testada.
+  A leitura de identificadores antigos fica isolada na compatibilidade silenciosa.
+  Gravações e exports novos usam CritCall; preservar originais durante a migração.
 - Ler `README.md`, `CHANGELOG.md`, `CONTRIBUTING.md` e `docs/ARQUITETURA.md` antes de alterar.
 - Trabalhar em `feature/*` ou `fix/*` a partir de `develop`. Usar pull requests
   para `develop` e, depois de verificar a entrega, para `main`. Não fazer push
@@ -52,7 +52,7 @@
   `qhrpgkpvwbztubnrdhya` em 16/10/2026 (versão remota `20261016101143`);
   publicação no GitHub Pages validada em 16/10/2026; sincronização entre
   dispositivos reais ainda não validada.
-  Consultar `docs/SINCRONIZACAO.md` e `docs/RETOMADA.md`; nunca aplicar ao Orbyt.
+  Consultar `docs/SINCRONIZACAO.md` e `docs/RETOMADA.md`; nunca aplicar ao outro aplicativo.
   Ao alterar SQL/RLS/RPC, executar `npm run test:database` (PostgreSQL descartável
   em Docker). Não anunciar salvamento remoto antes da confirmação do envio.
 

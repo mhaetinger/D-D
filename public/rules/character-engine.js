@@ -281,7 +281,14 @@
         ? ["Sintonia Elemental"]
         : [];
     for (const e of (char?.rules?.history || []).filter(
-      (e) => !classId || e.classId === classId,
+      (e) => {
+        if (classId && e.classId !== classId) return false;
+        // O histórico continua guardado após correções de classe/nível. Só
+        // escolhas da classe ainda presente concedem bônus.
+        // Raça e antecedente independem da classe usada na criação inicial.
+        if (/^(race|racial|background)/.test(key) || !e.classId) return true;
+        return !!classEntry(char, e.classId);
+      },
     )) {
       if (["invocations", "maneuvers", "disciplines"].includes(key))
         values = values.filter(
@@ -1156,32 +1163,13 @@
             .filter(
               (value) =>
                 f.choice !== "attackCantrip" ||
-                spellOptions(d, { level: 0, list: value }).some((o) =>
-                  [
-                    "toque-arrepiante",
-                    "raio-de-fogo",
-                    "raio-de-gelo",
-                    "toque-chocante",
-                    "rajada-mistica",
-                    "chicote-de-espinhos",
-                  ].includes(o.value),
-                ),
+                spellOptions(d, { level: 0, list: value }).some((o) => spellMeta(o.spell).defType === 'atq_magico'),
             )
             .map((value) => ({ value, label: D.classes[value].name })),
         );
         const list = a[key + "Class"];
         if (!list) return;
-        const attackOnly = (options) =>
-          options.filter((o) =>
-            [
-              "toque-arrepiante",
-              "raio-de-fogo",
-              "raio-de-gelo",
-              "toque-chocante",
-              "rajada-mistica",
-              "chicote-de-espinhos",
-            ].includes(o.value),
-          );
+        const attackOnly = (options) => options.filter((o) => spellMeta(o.spell).defType === 'atq_magico');
         if (f.choice === "initiate") {
           add(
             key + "Cantrips",
@@ -1246,7 +1234,8 @@
   function parseCostCp(costStr) {
     const m = String(costStr || "").trim().match(/^(\d+(?:[.,]\d+)?)\s*(pc|pp|pe|po|pl)$/i);
     if (!m) return 0;
-    const val = Number(m[1].replace(",", "."));
+    const rawNumber = /^\d{1,3}(?:\.\d{3})+(?:,\d+)?$/.test(m[1]) ? m[1].replace(/\./g,'') : m[1];
+    const val = Number(rawNumber.replace(",", "."));
     const unit = m[2].toLowerCase();
     const mult = { pc: 1, pp: 10, pe: 50, po: 100, pl: 1000 }[unit] || 100;
     return Math.round(val * mult);
@@ -1620,12 +1609,13 @@
         (type === "halfPrepared" ? Math.floor(n / 2) : n) +
           mod(finalScores(d)[ability(d)]),
       );
-      const automatic = new Set(subSpells(d).map((s) => s.id));
+      const automatic = new Set(subSpells(d).map((s) => s.id).concat(d.classId==='mago' && n>=20 ? arr(a.signature || selections(d.char,'mago','signature')) : []));
       const opts =
         type === "book"
           ? uniq(exclude.concat(arr(a.spells)))
               .map(spell)
               .filter(Boolean)
+              .filter((s) => !automatic.has(s.id))
               .map((s) => ({ value: s.id, label: s.name, spell: s }))
           : spellOptions(d, {}).filter((o) => !automatic.has(o.value));
       add(
@@ -1690,17 +1680,18 @@
       if (!d.setup.name?.trim()) errors.push("Informe o nome do personagem.");
       if (!raceOf(d)) errors.push("Escolha raça e sub-raça.");
       if (!bgOf(d)) errors.push("Escolha o antecedente.");
-      if (!["standard", "pointBuy", "rolled"].includes(d.setup.abilityMethod))
+      if (!["standard", "pointBuy", "rolled", "adapted"].includes(d.setup.abilityMethod))
         errors.push("Escolha um método de habilidades do livro.");
       if (raceOf(d)?.optional && !d.setup.allowFeats)
         errors.push(
           "Humano Variante exige habilitar a regra opcional de talentos.",
         );
       const base = allAbilities.map((k) => Number(d.setup.baseScores?.[k]));
-      if (base.some((v) => !Number.isInteger(v) || v < 3 || v > 18))
+      if (base.some((v) => !Number.isInteger(v) || v < (d.setup.abilityMethod==='adapted'?0:3) || v > (d.setup.abilityMethod==='adapted'?30:18)))
         errors.push(
-          "Atributos iniciais precisam ser inteiros entre 3 e 18 antes dos bônus raciais.",
+          d.setup.abilityMethod==='adapted' ? "Atributos iniciais adaptados precisam ser inteiros entre 0 e 30." : "Atributos iniciais precisam ser inteiros entre 3 e 18 antes dos bônus raciais.",
         );
+      if (d.setup.abilityMethod==='adapted' && Object.values(scores(d)).some(v=>v<0 || v>30)) errors.push('Atributos iniciais adaptados, após bônus, precisam ficar entre 0 e 30.');
       if (
         d.setup.abilityMethod === "standard" &&
         base
@@ -1758,20 +1749,23 @@
       }
       if (d.setup.equipmentMethod === "wealth") {
         const wg = Number(d.setup.wealthGold);
-        if (d.setup.wealthGold === undefined || d.setup.wealthGold === null || d.setup.wealthGold === "" || !Number.isFinite(wg) || wg < 0)
+        if (d.setup.wealthGold === undefined || d.setup.wealthGold === null || d.setup.wealthGold === "" || !Number.isFinite(wg) || wg < 0 || !Number.isSafeInteger(Math.round(wg*100)) || Math.abs(wg*100-Math.round(wg*100))>1e-7)
           errors.push("Riqueza inicial: role ou informe o ouro inicial da classe (Cap. 5, p. 145).");
         else {
           const catalog = equipmentCatalog();
           const spentCp = arr(d.setup.wealthPurchases).reduce((sum, entry) => {
             const name = typeof entry === "string" ? entry : entry?.name;
-            const qty = Math.max(1, Number(entry?.qty) || 1);
+            const qty = typeof entry==='string'?1:Number(entry?.qty);
             const item = catalog.find((x) => x.name === name || x.id === norm(name));
+            if (!item || !Number.isSafeInteger(qty) || qty<1 || qty>1000) errors.push('Compras iniciais: escolha item do catálogo e quantidade inteira entre 1 e 1000.');
             return sum + (item ? item.costCp * qty : 0);
           }, 0);
           if (spentCp > Math.round(wg * 100))
             errors.push("O custo das compras iniciais excede o ouro disponível.");
+          if (arr(d.setup.wealthPurchases).reduce((sum,entry)=>sum+(typeof entry==='string'?1:Number(entry?.qty)||0),0)>1000) errors.push('Compras iniciais: limite de 1000 unidades por criação.');
         }
       }
+      for (const item of arr(d.setup.customEquipment)) if (typeof item!=='string' && (!Number.isSafeInteger(Number(item?.qty)) || Number(item.qty)<1 || Number(item.qty)>1000)) errors.push('Equipamento adaptado: quantidade inteira entre 1 e 1000.');
     }
     for (const field of r) {
       const vals = arr(d.answers[field.id]);
@@ -1870,7 +1864,7 @@
     if (!s) return { dmgType: "utilidade", dmgLabel: "Utilidade", targetType: "mira", defType: "nenhuma", canTwin: false, effectSummary: "Consultar descrição", diceFormula: null };
     const id = s.id || s.bookId || "";
     if (SPELL_META_OVERRIDES[id]) return { ...SPELL_META_OVERRIDES[id] };
-    const text = String(s.text || "").replace(/\s+/g, " ");
+    const text = String(s.text || "").replace(/\s+/g, " ").replace(/corpo\s*-\s*a\s*-\s*corpo/gi,'corpo-a-corpo');
     const range = String(s.range || "");
     let dmgType = "utilidade", dmgLabel = "Utilidade", diceFormula = null, effectSummary = s.duration || "Consultar descrição";
     if (!SPELL_NON_DAMAGE_IDS.has(id)) {
@@ -1921,7 +1915,7 @@
     else if (/\bcilindro de \d+/i.test(areaText)) targetType = "cilindro";
     else if (/^Pessoal/i.test(range)) targetType = "pessoal";
     else if (/^Toque/i.test(range)) targetType = "toque";
-    const canTwin = !/^Pessoal/i.test(range) && ["mira", "toque"].includes(targetType) && !/criaturas|até três|escolha duas|cada criatura|qualquer número|múltiplos|dois feixes/i.test(text);
+    const canTwin = !/^Pessoal/i.test(range) && ["mira", "toque"].includes(targetType) && !/criaturas|até três|escolha duas|cada criatura|qualquer número|múltiplos|dois feixes|três raios|vários alvos/i.test(text);
     return { dmgType, dmgLabel, targetType, defType, canTwin, effectSummary, diceFormula };
   }
   function toSheetSpell(s, classId, extra = {}) {
@@ -1936,9 +1930,9 @@
       defType: meta.defType,
       time: s.time || "",
       range: s.range || "",
-      v: s.components?.includes("V") || false,
-      s: s.components?.includes("S") || false,
-      m: s.components?.includes("M") || false,
+      v: /\bV\b/.test((s.components || '').split('(')[0]),
+      s: /\bS\b/.test((s.components || '').split('(')[0]),
+      m: /\bM\b/.test((s.components || '').split('(')[0]),
       conc: !!s.concentration,
       ritual: false,
       ritualAvailable: !!s.ritual,
@@ -2525,8 +2519,11 @@
     return char;
   }
   function refresh(char, fill) {
+    // Preenchimento livre conserva números e lista de magias escolhidos pela
+    // mesa. Descansos recuperam usos pelo fluxo próprio, sem refazer a ficha.
+    if (char.rules?.manualMode) return;
     const race = O.races[char.rules?.raceId];
-    if (race && !char.rules.legacy) {
+    if (race && !char.rules.legacy && !char.rules.fieldOverrides?.speed) {
       const monk = classEntry(char, "monge")?.level || 0,
         barbarian = classEntry(char, "barbaro")?.level || 0;
       const feats = selections(char, null, "feat").concat(
@@ -2570,6 +2567,7 @@
     }
     const slots = P.fullSlots[Math.min(caster, 20)] || [];
     for (let i = 1; i <= 9; i++) {
+      if(char.rules.fieldOverrides?.standardSlots)continue;
       const old = char.standardSlots[i] || { total: 0, used: 0 };
       const created = fill ? 0 : old.created || 0,
         total = (slots[i - 1] || 0) + created;
@@ -2580,7 +2578,7 @@
       };
     }
     const w = classEntry(char, "bruxo");
-    if (w) {
+    if (w && !char.rules.fieldOverrides?.pactMagic) {
       const n = w.level;
       char.pactMagic = {
         level: Math.min(5, Math.ceil(n / 2)),
@@ -2597,7 +2595,7 @@
     const max = sorc?.level >= 2 ? sorc.level : 0,
       spent =
         (char.sorceryPoints?.max || 0) - (char.sorceryPoints?.current || 0);
-    char.sorceryPoints = {
+    if(!char.rules.fieldOverrides?.sorceryPoints)char.sorceryPoints = {
       max,
       current: fill ? max : Math.max(0, max - spent),
     };
@@ -2658,6 +2656,7 @@
           grant(spell(id), char.classes[0].classId, r.name, {
             castingAbility: r.name.startsWith("Gnomo") ? "int" : "cha",
             limitedUse: +lv > 1 ? 1 : 0,
+            ...(char.rules.raceId==='tiefling' && id==='repreensao-infernal'?{castLevel:2}:{}),
           });
     if (char.rules?.raceId === "altoElfo")
       for (const id of selections(char, null, "raceCantrip")) {
@@ -2687,6 +2686,7 @@
           extraSource: source,
           prepared: true,
         });
+      else if (existing && extra.castLevel && existing.castLevel===undefined) existing.castLevel=extra.castLevel;
     }
   }
   function reference(
@@ -3184,7 +3184,7 @@
     };
   }
   function armorInfo(name) {
-    const key = norm(name).replace(/^armadura-de-/, "");
+    const key = norm(name).replace(/^armadura-(?:de-)?/, "").replace(/-[1-3]$/, '').replace(/^camisao-de-malha$/, 'camisa-de-malha');
     const armors = {
       acolchoada: [11, 99, "leve"],
       couro: [11, 99, "leve"],
@@ -3212,6 +3212,7 @@
       : null;
   }
   function movementSpeed(char) {
+    if(char.rules?.fieldOverrides?.speed)return char.speed;
     const race = O.races[char.rules?.raceId];
     if (!race || char.rules.legacy) return char.speed ?? 9;
     const armor = armorInfo(char.armorEquipped),

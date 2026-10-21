@@ -1,0 +1,46 @@
+.sheet-field { background:transparent; color:var(--text-main); border:1px solid transparent; border-bottom-color:var(--border-main); border-radius:.2rem; padding:.08rem .2rem; font:inherit; max-width:100%; min-width:0; }
+.sheet-field:hover:not(:disabled),.sheet-field:focus { background:var(--bg-inset); border-color:var(--text-muted); }
+.sheet-field:focus { outline:2px solid var(--text-accent); outline-offset:1px; }
+.sheet-field:disabled { border-color:transparent; opacity:1; cursor:default; }
+.sheet-field[aria-invalid=true] { border:2px dashed var(--text-accent); }
+.sheet-field::placeholder { color:var(--text-main); opacity:.85; }
+.sheet-number { width:5.5ch; text-align:center; appearance:textfield; -moz-appearance:textfield; }
+.sheet-number::-webkit-inner-spin-button { -webkit-appearance:none; }
+.sheet-text { width:14ch; }
+.sheet-wide { width:100%; }
+[data-sheet-field="name"] { font-family:"Cinzel",serif; font-size:1.1rem; font-weight:700; }
+.rule-inline .sheet-number { width:4.5ch; }
+.sheet-select { max-width:min(14rem,100%); }
+.sheet-narrative { display:block; width:100%; resize:vertical; line-height:1.4; }
+.sheet-class-chip { max-width:100%; padding:.2rem .35rem; border-radius:.35rem; font-size:.7rem; }
+.sheet-class-chip .sheet-select { max-width:min(11rem,50vw); }
+.sheet-class-chip summary { cursor:pointer; overflow-wrap:anywhere; }
+.sheet-class-chip details { margin-top:.15rem; }
+.sheet-class-chip .sheet-number { width:3.8ch; }
+.sheet-skill-value { display:flex; align-items:center; gap:.15rem; flex-shrink:0; }
+.sheet-skill-value .sheet-number { width:3.8ch; padding:.05rem .1rem; }
+.sheet-skill-value button { min-width:1rem; font-size:.7rem; }
+.sheet-skill-value [aria-pressed=true] { font-weight:800; outline:1px solid var(--text-main); border-radius:.15rem; }
+div:has(> .sheet-skill-value) > div:first-child { min-width:0; overflow-wrap:anywhere; }
+.sheet-inline-editor { flex-basis:100%; grid-column:1/-1; width:100%; min-width:0; margin-top:.5rem; padding:.6rem; border:1px solid var(--border-main); border-radius:.5rem; background:var(--bg-card); color:var(--text-main); }
+.sheet-inline-editor > .t-inset { border:0; padding:0; }
+.sheet-inline-editor .grid-cols-2 { grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr)); }
+.sheet-inline-editor textarea { background:var(--bg-inset); color:var(--text-main); }
+[data-spell-error] { min-height:1.4em; }
+.spell-card:has(> [data-sheet-spell-editor]) > :not([data-sheet-spell-editor]),
+[data-weapon-card]:has(> #homebrewModal) > :not(#homebrewModal),
+[data-sheet-item]:has(> #homebrewModal) > :not(#homebrewModal),
+[data-sheet-feature-row]:has(> #homebrewModal) > :not(#homebrewModal) { display:none; }
+@media print { .sheet-field { border:0; background:none; } .sheet-inline-editor { display:none; } }
+/* O cadeado mostra valores de leitura e conserva os inputs ocultos: rascunhos
+ * não somem ao proteger a ficha e não são confundidos com dados já salvos. */
+.sheet-value { white-space:pre-wrap; overflow-wrap:anywhere; }
+.sheet-value.sheet-wide { display:inline-block; }
+.sheet-value[hidden],.sheet-field[hidden],#sheetViewport [hidden],#headerSection [hidden] { display:none !important; }
+[data-sheet-value="name"] { font-family:"Cinzel",serif; font-size:1.1rem; font-weight:700; }
+.rule-context input.sheet-number,.rule-inline input.sheet-number { width:4.5ch; min-width:0; padding:.1rem .2rem; }
+[aria-disabled=true][onclick] { cursor:default; }
+#sheetEditLock[aria-pressed=true] { outline:1px solid var(--text-accent); }
+@media print { #sheetEditLock { display:none; } }
+[onclick="openLevelUpModal()"]:disabled { opacity:.55; }
+.spell-preparation label[title],.import-review .import-check[title] { cursor:help; }

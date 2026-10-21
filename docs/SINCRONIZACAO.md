@@ -9,7 +9,7 @@ sincronização entre dispositivos reais e publicação ainda pendentes.** As
 ferramentas do Supabase ficaram disponíveis e confirmaram o projeto exclusivo
 `qhrpgkpvwbztubnrdhya`, ativo em PostgreSQL 17.11, com nome D-D no painel e URL
 `https://qhrpgkpvwbztubnrdhya.supabase.co`. Antes da aplicação não havia tabelas
-públicas nem migrações. Orbyt é outro projeto e não recebeu alterações.
+públicas nem migrações. Outros projetos não receberam alterações.
 
 ## Dados e fila
 
@@ -20,6 +20,17 @@ Nome é salvo ao digitar; falha mantém o texto e não anuncia sucesso. Senhas e
 tokens não são documentos nem backups. Editores ainda não confirmados mantêm
 seu fluxo de salvar/descartar; pool temporário, buscas, animações e painéis
 abertos não são registros da ficha.
+
+O histórico de edição usa um documento `preference` independente por personagem,
+`dnd_character_history_v2:<id>`. Cada passo contém somente essa ficha. A migração
+separa mudanças reais do antigo `dnd_history_v1`, preservando o documento original;
+checkpoints antigos sem autor identificável ficam no original. Os ponteiros de
+desfazer/refazer são independentes. Históricos de fichas excluídas permanecem
+disponíveis para restaurá-las, sem recuperar/substituir as outras fichas ou notas.
+Histórico ilegível não é sobrescrito e vira uma cópia privada de recuperação na
+fila. A RPC existente aceita esses IDs de preferência; não há migração SQL nova.
+Isso separa edições de personagens diferentes; edições simultâneas do mesmo
+histórico continuam sujeitas à resolução de versões/conflitos existente.
 
 localStorage conserva o cache legado. IndexedDB `critcall-sync-v1`, separado por
 projeto/usuário, registra fila e versões em transações entre abas. Respostas
@@ -71,6 +82,14 @@ O fluxo novo não muda SQL, RLS ou RPC. A importação manual de backups permane
 independente e continua sem notas por padrão.
 
 ## Datas e recuperação
+
+Na revisão de 19/10/2026, chaves e metadados novos usam CritCall. A migração
+copia dados por espaço e conserva a origem; a fila IndexedDB mantém operações
+e identificadores já existentes. Aliases históricos de preferências e
+recuperações são aceitos na entrada e projetados para a chave atual. Havendo
+ambos, a versão com identificador atual prevalece, inclusive numa exclusão.
+Um teste envia uma operação antiga pendente e verifica confirmação, projeção e
+repetição sem duplicação. Nenhuma RPC/RLS/tabela ou identidade foi alterada.
 
 Cada documento tem revisão crescente, data de edição e recebimento no servidor.
 O relógio é calibrado no Supabase; datas mais de cinco minutos no futuro são

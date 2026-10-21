@@ -98,7 +98,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     const a=await computer();
     const guest=warrior();guest.name='Ficha local de teste';
     await a.page.evaluate(c=>{
-      localStorage.setItem('orbyt_characters_v1',JSON.stringify({schemaVersion:1,characters:[c]}));
+      localStorage.setItem('critcall_characters_v1',JSON.stringify({schemaVersion:1,characters:[c]}));
       localStorage.setItem('dnd_player_private_notes_v1',JSON.stringify({[c.id]:'Nota pessoal preservada'}));
     },guest);
     await a.page.reload({waitUntil:'networkidle'});
@@ -130,7 +130,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     assert.notEqual(copied,guest.id);
     assert.notEqual(await a.page.evaluate(()=>getChar().avatar.id),guestAvatar,'imagem copiada ganha arquivo próprio');
     assert.equal(await a.page.evaluate(()=>readPrivateNotes(getChar().id)),'Nota pessoal preservada');
-    assert.equal(await a.page.evaluate(()=>JSON.parse(localStorage.getItem('orbyt_characters_v1')).characters[0].id),guest.id);
+    assert.equal(await a.page.evaluate(()=>JSON.parse(localStorage.getItem('critcall_characters_v1')).characters[0].id),guest.id);
     await a.sync();
     await a.page.waitForFunction(()=>document.querySelector('#avatarSyncStatus').textContent.includes('enviadas'));
     assert.equal(images.size,2,'perfil e personagem enviados em arquivos privados novos');
@@ -140,7 +140,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     assert.equal(await a.page.locator('[data-text="name"]').inputValue(),'Rascunho que vai junto');
     await a.page.locator('[data-action="close"]').click();
     const b=await computer();
-    await b.page.evaluate(c=>{localStorage.setItem('orbyt_characters_v1',JSON.stringify({schemaVersion:1,characters:[c]}));localStorage.setItem('dnd_player_private_notes_v1',JSON.stringify({[c.id]:'Segunda nota'}));},guest);
+    await b.page.evaluate(c=>{localStorage.setItem('critcall_characters_v1',JSON.stringify({schemaVersion:1,characters:[c]}));localStorage.setItem('dnd_player_private_notes_v1',JSON.stringify({[c.id]:'Segunda nota'}));},guest);
     await b.page.reload({waitUntil:'networkidle'});await b.login();
     await b.page.locator('#confirmationDialog').waitFor({state:'visible'});
     assert.ok((await b.page.locator('#confirmationMessage').textContent()).includes('já tem fichas'));
@@ -151,20 +151,20 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     assert.equal(await b.page.evaluate(()=>new Set(characters.map(c=>c.id)).size),2);
     await b.page.reload({waitUntil:'networkidle'});await b.sync();assert.equal(await b.page.evaluate(()=>characters.length),2);
     const c=await computer();
-    await c.page.evaluate(c=>localStorage.setItem('orbyt_characters_v1',JSON.stringify({schemaVersion:1,characters:[c]})),guest);
+    await c.page.evaluate(c=>localStorage.setItem('critcall_characters_v1',JSON.stringify({schemaVersion:1,characters:[c]})),guest);
     await c.page.reload({waitUntil:'networkidle'});await c.login();
     await c.page.locator('#confirmationDialog').waitFor({state:'visible'});
     await c.page.locator('#confirmationDialog button[value="cancel"]').click();
     await c.sync(); assert.equal(await c.page.evaluate(()=>characters.length),2,'cancelar mantém só fichas existentes');
-    assert.equal(await c.page.evaluate(()=>JSON.parse(localStorage.getItem('orbyt_characters_v1')).characters[0].id),guest.id);
+    assert.equal(await c.page.evaluate(()=>JSON.parse(localStorage.getItem('critcall_characters_v1')).characters[0].id),guest.id);
     // Uma falha de quota no destino não modifica a origem nem duplica a tentativa seguinte.
     const d=await computer();
-    await d.page.evaluate(c=>localStorage.setItem('orbyt_characters_v1',JSON.stringify({schemaVersion:1,characters:[c]})),guest);
+    await d.page.evaluate(c=>localStorage.setItem('critcall_characters_v1',JSON.stringify({schemaVersion:1,characters:[c]})),guest);
     await d.page.reload({waitUntil:'networkidle'});
-    await d.page.evaluate(()=>{const original=Storage.prototype.setItem;window.restoreStorage=()=>Storage.prototype.setItem=original;Storage.prototype.setItem=function(k,v){if(k.startsWith('dnd_account_v1:')&&k.endsWith('orbyt_characters_v1'))throw new DOMException('Quota de teste','QuotaExceededError');return original.call(this,k,v);};});
+    await d.page.evaluate(()=>{const original=Storage.prototype.setItem;window.restoreStorage=()=>Storage.prototype.setItem=original;Storage.prototype.setItem=function(k,v){if(k.startsWith('dnd_account_v1:')&&k.endsWith('critcall_characters_v1'))throw new DOMException('Quota de teste','QuotaExceededError');return original.call(this,k,v);};});
     await d.login('b');
     await d.page.waitForFunction(()=>document.querySelector('#guestImportStatus').textContent.length>0);
-    assert.equal(await d.page.evaluate(()=>JSON.parse(localStorage.getItem('orbyt_characters_v1')).characters[0].id),guest.id);
+    assert.equal(await d.page.evaluate(()=>JSON.parse(localStorage.getItem('critcall_characters_v1')).characters[0].id),guest.id);
     await d.page.evaluate(()=>restoreStorage());
     await d.page.getByRole('button',{name:'Retomar fichas sem conta',exact:true}).click();
     await d.page.waitForFunction(()=>document.querySelector('#guestImportStatus').textContent.includes('vinculada'));
@@ -173,7 +173,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     const e=await computer();
     const kael=warrior();kael.name='Kael';
     const other=warrior();other.name='Outra ficha local';
-    await e.page.evaluate(([first,second])=>localStorage.setItem('orbyt_characters_v1',JSON.stringify({schemaVersion:1,characters:[first,second]})),[kael,other]);
+    await e.page.evaluate(([first,second])=>localStorage.setItem('critcall_characters_v1',JSON.stringify({schemaVersion:1,characters:[first,second]})),[kael,other]);
     await e.page.reload({waitUntil:'networkidle'});await e.login();
     await e.page.locator('#confirmationDialog').waitFor({state:'visible'});
     assert.equal(await e.page.locator('[data-guest-character]').count(),2);
@@ -184,7 +184,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     await e.sync();
     assert.equal(await e.page.evaluate(()=>characters.filter(character=>character.name==='Kael').length),1);
     assert.equal(await e.page.evaluate(()=>characters.some(character=>character.name==='Outra ficha local')),false);
-    assert.equal(await e.page.evaluate(()=>JSON.parse(localStorage.getItem('orbyt_characters_v1')).characters.some(character=>character.name==='Kael')),true);
+    assert.equal(await e.page.evaluate(()=>JSON.parse(localStorage.getItem('critcall_characters_v1')).characters.some(character=>character.name==='Kael')),true);
     assert.deepEqual(errors,[]);
     console.log('PASS continuidade: cadastro com confirmação PKCE/cópia/nota/rascunho/imagens, origem preservada, conta existente pergunta e acrescenta, seleção do Kael, cancelamento preserva, recarga e falha de quota sem duplicação.');
   } finally {if(browser)await browser.close();if(server)await server.close();fs.rmSync(directory,{recursive:true,force:true});}

@@ -1,9 +1,36 @@
 import { sheetStore, selectCharacterWorkspace } from "../storage/character-store";
+import { showNotice } from './notices';
+import { selectAccountTab, refreshAccountView } from './account-panel';
 import { currentWorkspaceKey, workspaceStorage } from "../storage/account-scope";
 import { ACTIVE_CHARACTER_KEY, readPreference, writePreference } from "../storage/preferences";
+import { armorClass, applyDamage, exhaustion, savingThrow, initiativeBonus, changePermanentAbility } from "../rules/combat";
+import { readableText } from "../rules/text";
+import { renderResourceControls, renderResourcesAt, spellcastingStatusControls, defenseControls, conditionControls, hitDiceRecoveryControls, saveRuleStep, retainConditionNodes } from "../rules/ui";
+import { spellClassPanels } from '../rules/spell-class-panels';
+import { resourcesAt } from "../rules/placement";
+import { featureGroups } from '../rules/feature-groups';
+import { canCastNormally, canRitual, preparation, wizardPrivilege, castingRestriction, armorProficiencies } from "../rules/spellcasting";
+import { resolveSpellEffect, innateCastLevel, twinEligible } from "../rules/spell-effects";
+import { consumeInspiration, deathStatus, healHitPoints, inspirationRollMode } from '../rules/health';
+import { damageDescription, deathControls, hitDiceControls, inspirationControls } from '../rules/health-ui';
+import { offerSurvivalForDamage } from '../rules/damage-ui';
+import { parseDiceFormula } from '../rules/dice-formula';
+import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponDamageLabel } from '../rules/weapon-damage-ui';
+import { applyCastConcentration, concentration, concentrationBlock, incapacityReason, needsConcentrationConfirmation, spellConcentration, validateConcentrationStart } from '../rules/concentration';
+import { concentrationControls } from '../rules/concentration-ui';
+import { automaticSaveFailure } from '../rules/conditions';
+import { takeRest } from "../rules/rest";
+import { onSpellCast } from "../rules/resources";
+import { characterSnapshot, historyComparable as characterHistoryComparable, historyKey, HISTORY_PREFIX, isCharacterHistoryKey, migrateCharacterHistories, splitLegacyHistory, validateCharacterHistory } from '../storage/character-history';
 import { setupDiceDock } from "./dice-dock";
 import { avatarMarkup } from "../media/avatar";
-import { canonical, validateDocument } from "../sync/documents";
+import {sheetInput,sheetSelect,sheetText,captureSheetFields,restoreSheetFields,requireSheetEdit,requireSheetConfiguration,updateSheetLockUI,poolEditorVisible,beginSheetRender,endSheetRender} from '../sheet-edit/ui';
+import {parkSheetPanels,restoreSheetPanels,clearSheetPanels,mountSheetPanel,closeSheetPanel,canSaveSheetPanel} from '../sheet-edit/panels';
+import {canEditSheet} from '../sheet-edit/access';
+import {canConfigureSheet} from '../sheet-edit/lock';
+import {weaponCalculationFields} from '../sheet-edit/weapon-fields';
+import {featureConsultButton} from './feature-consult';
+import {updateDiceDockAppearance} from './dice-dock-appearance';
 
 // =========================================================================
 // 1. METADADOS E CATÁLOGOS
@@ -517,23 +544,16 @@ let selectedCastLevelBySpell = {};
 let twinnedActiveBySpell = { "Mísseis Mágicos": true };
 let homebrewInitialState = "";
 let weaponDamageDraft = null; // Montagem do formulário; nunca usa o pool da bandeja.
-const HIT_DICE_RULE = {
-  text: "Referência para rolar os Dados de Vida manualmente na bandeja e ajustar os PV pelos botões da ficha. Nesta campanha, dormir recupera todos os PV e recursos registrados, incluindo a reserva completa de Dados de Vida (regra da mesa).",
-};
 const COIN_LABELS = { pc: "Cobre", pp: "Prata", pe: "Electro", po: "Ouro", pl: "Platina" };
 const LORE_LABELS = { traits: "Personalidade", ideals: "Ideais", bonds: "Ligações", flaws: "Defeitos", backstory: "História do personagem", appearance: "Aparência", allies: "Aliados", treasure: "Tesouros narrativos" };
 const PHYSICAL_LABELS = { age: "Idade", height: "Altura", weight: "Peso", eyes: "Olhos", skin: "Pele", hair: "Cabelo" };
 
 // Histórico pessoal persistido separadamente; preferências visuais não são passos.
 function historySnapshot() {
-  const snapshot = structuredClone(characters);
-  for (const character of snapshot) delete character.preferredLayout;
-  return JSON.stringify(snapshot);
+  return getChar()?characterSnapshot(getChar()):'[]';
 }
 function historyComparable(value) {
-  const snapshot = JSON.parse(value);
-  for (const character of snapshot) delete character.preferredLayout;
-  return canonical(snapshot);
+  return characterHistoryComparable(value);
 }
 let historyStack = [
   {
@@ -549,30 +569,42 @@ let historyStack = [
 ];
 let historyPointer = 0;
 let historyWritable = true;
+let historyOwnerId = null;
 function restoreSavedHistory() {
   historyWritable = true;
-  const raw = readPreference('dnd_history_v1');
+  const char=getChar();historyOwnerId=char?.id || null;historyPointer=0;
+  historyStack=char?[{timestamp:new Date().toISOString(),action:'Marco inicial desta ficha',isCheckpoint:true,stateJson:historySnapshot()}]:[];
+  if(!char) return;
+  let raw=readPreference(historyKey(char.id));
+  if(raw===null) {
+    const port=workspaceStorage(()=>localStorage);let legacy;
+    try { legacy=port.getItem('dnd_history_v1'); } catch { historyWritable=false;return; }
+    if(legacy) try { migrateCharacterHistories(port);raw=port.getItem(historyKey(char.id)); }
+    catch {
+      try { const h=splitLegacyHistory(legacy).get(char.id);if(h) raw=JSON.stringify(h); }
+      catch { showToast('O histórico antigo foi preservado; não foi possível separar seus passos.'); }
+    }
+  }
   if (!raw) return;
   try {
-    validateDocument({ kind: 'preference', id: 'dnd_history_v1', value: raw });
-    const saved = JSON.parse(raw);
+    const saved = validateCharacterHistory(raw,char.id);
     const current = saved.stack[saved.pointer];
     historyStack = saved.stack.filter((item) => !/^Alternou layout para /.test(item.action));
     historyPointer = historyStack.indexOf(current);
     if (historyPointer < 0) historyPointer = Math.min(saved.pointer, historyStack.length - 1);
-    if (historyComparable(historyStack[historyPointer].stateJson) !== canonical(JSON.parse(historySnapshot()))) {
+    if (!historyStack.length || historyComparable(historyStack[historyPointer].stateJson) !== historyComparable(historySnapshot())) {
       historyStack.push({ timestamp: new Date().toISOString(), action: 'Estado mais recente carregado', isCheckpoint: true, stateJson: historySnapshot() });
       historyPointer = historyStack.length - 1;
     }
   } catch {
-    try { workspaceStorage(() => localStorage).setItem(`orbyt_recovery_v1_history_${crypto.randomUUID()}`, raw); }
-    catch { historyWritable = false; }
-    showToast('O histórico não pôde ser lido. O conteúdo anterior foi preservado para recuperação.');
+    historyWritable = false;
+    showToast('O histórico desta ficha não pôde ser lido. O original foi preservado; novos passos ficam só nesta aba.');
   }
 }
 function persistHistory() {
+  if(!getChar() || historyOwnerId!==getChar().id) return;
   if (!historyWritable) { showToast('O histórico anterior está ilegível e foi preservado. Baixe um backup antes de fechar.'); return; }
-  if (!writePreference('dnd_history_v1', JSON.stringify({ stack: historyStack, pointer: historyPointer }))) showToast('O histórico não pôde ser salvo. Baixe um backup antes de fechar.');
+  if (!writePreference(historyKey(historyOwnerId), JSON.stringify({ version:2,characterId:historyOwnerId,stack: historyStack, pointer: historyPointer }))) showToast('O histórico não pôde ser salvo. Baixe um backup antes de fechar.');
 }
 
 const COIN_RATES_IN_PC = { pc: 1, pp: 10, pe: 50, po: 100, pl: 1000 };
@@ -580,7 +612,7 @@ const COIN_RATES_IN_PC = { pc: 1, pp: 10, pe: 50, po: 100, pl: 1000 };
 // Codificação para texto/atributos HTML. Eventos novos usam índices numéricos,
 // sem interpolar nomes ou descrições do usuário em código JavaScript.
 function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+  return readableText(value).replace(/[&<>"']/g, (char) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
   })[char]);
 }
@@ -606,49 +638,16 @@ function confirmDestructiveAction(title, message, label = "Excluir", extra = nul
   });
 }
 
-// Analisa dados sem eval. Limites de 100 dados e modificador de 10.000
-// protegem o rolador de entradas acidentais; não são limites das regras de D&D.
-function parseDiceFormula(value) {
-  const clean = String(value ?? "").toLowerCase().replace(/\s+/g, "");
-  if (!clean || clean.length > 200 || !/^(?:\d*d\d+|\d+)(?:[+-](?:\d*d\d+|\d+))*$/.test(clean)) return null;
-  const counts = {};
-  const normalized = [];
-  let modifier = 0;
-  let totalDice = 0;
-  for (const match of clean.matchAll(/([+-]?)(\d*d\d+|\d+)/g)) {
-    const sign = match[1] === "-" ? -1 : 1;
-    const term = match[2];
-    if (term.includes("d")) {
-      const [countText, sidesText] = term.split("d");
-      const count = Number(countText || 1);
-      const sides = Number(sidesText);
-      if (sign < 0 || !Number.isSafeInteger(count) || count < 1 || ![4, 6, 8, 10, 12, 20, 100].includes(sides)) return null;
-      totalDice += count;
-      if (totalDice > 100) return null;
-      counts[sides] = (counts[sides] || 0) + count;
-      normalized.push(`${normalized.length ? "+" : ""}${count}d${sides}`);
-    } else {
-      const number = Number(term);
-      if (!Number.isSafeInteger(number) || number > 10000) return null;
-      modifier += sign * number;
-      if (Math.abs(modifier) > 10000) return null;
-      normalized.push(`${normalized.length && sign > 0 ? "+" : sign < 0 ? "-" : ""}${number}`);
-    }
-  }
-  return { formula: normalized.join(""), counts, modifier };
-}
-
 function getChar() {
   return characters[activeCharIndex];
 }
 
 function loadHistoryState(index) {
-  // Uma exclusão/criação pode mudar índices: preserva o ID ativo, se existir.
-  const activeId = getChar()?.id;
-  const layouts = new Map(characters.map((char) => [char.id, char.preferredLayout]));
-  characters = JSON.parse(historyStack[index].stateJson);
-  for (const char of characters) if (layouts.has(char.id)) char.preferredLayout = layouts.get(char.id);
-  activeCharIndex = Math.max(0, characters.findIndex((char) => char.id === activeId));
+  const current=getChar();if(!current || current.id!==historyOwnerId) return;
+  const [saved]=JSON.parse(historyStack[index].stateJson);
+  if(saved?.id!==current.id) return;
+  // Desfazer só substitui a ficha ativa; identidade do perfil e exibição seguem atuais.
+  characters[activeCharIndex]={...saved,preferredLayout:current.preferredLayout,playerName:current.playerName};
 }
 
 // Cálculos usados pelos três painéis e pelo cabeçalho da ficha.
@@ -682,7 +681,8 @@ function getSpellcastingStats(char, classId, spell = null) {
   const ability = spell?.castingAbility || RULES_DB.classes[classId]?.spellAbility;
   if (!ability || !char.abilities[ability]) return null;
   const modifier = getMod(char.abilities[ability].score);
-  return { ability, modifier, attack: getProfBonus(char) + modifier, dc: 8 + getProfBonus(char) + modifier };
+  const adjust=key=>Number.isInteger(spell?.[key])&&Math.abs(spell[key])<=100?spell[key]:0;
+  return { ability, modifier, attack: getProfBonus(char) + modifier + adjust('attackAdjustment'), dc: 8 + getProfBonus(char) + modifier + adjust('dcAdjustment') };
 }
 
 function getSpellcastingHeader(char) {
@@ -723,6 +723,7 @@ function getSpellDefenseMeta(char, spell) {
 }
 
 function getSpellNotes(char, spell) {
+  if(spell.customSpell)return spell.notes || '';
   // Fichas antigas podem conter uma fotografia da CA nas notas. Atualiza apenas
   // esse trecho conhecido na exibição, preservando o texto armazenado do usuário.
   if (spell.name === "Armadura Arcana") return String(spell.notes || "").replace(/\(CA\s+\d+\)/gi, `(CA ${getMageArmorAC(char)})`);
@@ -748,43 +749,28 @@ function getSkillBonus(char, skill) {
 }
 
 function getCalculatedAC(char) {
-  // Compara a CA base cadastrada com Armadura Arcana; soma o escudo depois.
-  // A elegibilidade de armaduras ainda depende da revisão do motor de regras.
-  const worn = CharacterEngine.armorInfo(char.armorEquipped);
-  let armor = worn && worn.type !== 'shield' ? worn.base + (worn.dexCap ? Math.min(getMod(char.abilities.dex.score), worn.dexCap) : 0) : char.baseAcArmor;
-  if (char.rules && !char.rules.legacy && !char.armorEquipped) {
-    const dex = getMod(char.abilities.dex.score);
-    armor = 10 + dex;
-    // Livro, p. 166: somente a primeira Defesa sem Armadura é adquirida.
-    const defense = CharacterEngine.unarmoredDefense(char);
-    if (defense === 'barbaro') armor = Math.max(armor, 10 + dex + getMod(char.abilities.con.score));
-    if (defense === 'monge' && !char.shieldEquipped) armor = Math.max(armor, 10 + dex + getMod(char.abilities.wis.score));
-    if (char.classes.some(c => c.classId === 'feiticeiro' && c.subclassId === 'draconica')) armor = Math.max(armor, 13 + dex);
-  }
-  const base = armor + (char.shieldEquipped ? 2 : 0);
-  return char.mageArmorActive ? Math.max(base, getMageArmorAC(char)) : base;
+  return armorClass(char,CharacterEngine).total;
 }
 function getArmorExplanation(char) {
   // A origem do valor legado fica explícita, sem inventar equipamento
   // ou alterar atributos para coincidir com uma CA esperada.
-  const base = getCalculatedAC({ ...char, mageArmorActive: false, shieldEquipped: false }),
-    shield = char.shieldEquipped ? 2 : 0,
-    origin = char.armorEquipped ? `Armadura: ${char.armorEquipped}` : char.rules && !char.rules.legacy ? "Defesa calculada pelas escolhas" : "CA base informada no cadastro";
-  return `${origin}: ${base}. Escudo: +${shield}.${char.baseAcArmorNote ? " " + char.baseAcArmorNote : ""}\n\nArmadura Arcana usa 13 + modificador de Destreza (${fmtMod(getMod(char.abilities.dex.score))})${shield ? " + escudo (2)" : ""} = ${getMageArmorAC(char)}. É uma fórmula alternativa, não um bônus somado à CA base. Requer estar sem armadura.\n\nCA exibida: ${getCalculatedAC(char)}.`;
+  return armorClass(char,CharacterEngine).explanation;
 }
 
 function getCurrentLoadKg(char) {
-  // Peso unitário em kg multiplicado pela quantidade; moedas não entram aqui.
+  // O livro local usa cerca de 10 g por moeda, independentemente do metal.
   return char.inventoryItems.reduce(
     (total, item) => total + item.qty * item.weightKg,
     0,
-  );
+  ) + Object.values(char.coins).reduce((total, count) => total + Number(count), 0) * .01;
 }
 
 function recordStepAndSave(
   actionDescription,
   isManualCheckpoint = false,
 ) {
+  if(historyOwnerId!==(getChar()?.id || null)) restoreSavedHistory();
+  if(!getChar()) { saveStateQuiet();return; }
   // Uma edição após desfazer abre um novo caminho e descarta o antigo refazer.
   if (historyPointer < historyStack.length - 1) {
     historyStack = historyStack.slice(0, historyPointer + 1);
@@ -812,6 +798,8 @@ function saveStateQuiet() {
 }
 
 function undoStep() {
+  if(!requireSheetEdit())return;
+  if(document.querySelector('#sheetViewport .sheet-inline-editor')){showToast('Conclua ou feche a edição aberta antes de usar o histórico.');return;}
   if (historyPointer <= 0) {
     showToast("Você já está no Marco Zero da sessão!");
     return;
@@ -823,6 +811,8 @@ function undoStep() {
 }
 
 function redoStep() {
+  if(!requireSheetEdit())return;
+  if(document.querySelector('#sheetViewport .sheet-inline-editor')){showToast('Conclua ou feche a edição aberta antes de usar o histórico.');return;}
   if (historyPointer >= historyStack.length - 1) return;
   historyPointer += 1;
   loadHistoryState(historyPointer);
@@ -851,7 +841,11 @@ function saveNamedCheckpoint() {
 }
 
 async function restoreToSessionStart() {
-  if (!await confirmDestructiveAction("Voltar ao Marco Zero?", "As fichas serão substituídas pelo estado de quando esta sessão foi aberta. Isso pode desfazer criações, exclusões e alterações de todos os personagens desta sessão.", "Voltar ao Marco Zero")) return;
+  if(!requireSheetEdit())return;
+  if(document.querySelector('#sheetViewport .sheet-inline-editor')){showToast('Conclua ou feche a edição aberta antes de usar o histórico.');return;}
+  const ownId=getChar()?.id;if(!ownId) return;
+  if (!await confirmDestructiveAction("Voltar ao Marco Zero?", "Somente esta ficha voltará ao primeiro estado do seu histórico. As outras fichas e as anotações pessoais serão preservadas.", "Voltar ao Marco Zero")) return;
+  if(getChar()?.id!==ownId) return;
   jumpToHistoryStep(0);
 }
 
@@ -867,6 +861,7 @@ function toggleHistoryDrawer() {
 function renderHistoryDrawerList() {
   const listEl = document.getElementById("historyTimelineList");
   if (!listEl) return;
+  document.getElementById('historyCharacterName').textContent=getChar()?.name || 'Abra uma ficha';
   listEl.innerHTML = historyStack
     .map((item, idx) => {
       const isCurrent = idx === historyPointer;
@@ -885,7 +880,30 @@ function renderHistoryDrawerList() {
     })
     .reverse()
     .join("");
+  renderDeletedHistories();
   if (window.lucide) window.lucide.createIcons();
+}
+
+let deletedHistories=[];
+function renderDeletedHistories() {
+  const host=document.getElementById('deletedCharacterHistories');if(!host) return;
+  deletedHistories=[];
+  try {
+    const scope=currentWorkspaceKey(),port=workspaceStorage(()=>localStorage);
+    for(const key of Object.keys(localStorage).filter(k=>k.startsWith(scope)).map(k=>k.slice(scope.length)).filter(isCharacterHistoryKey)) {
+      const id=key.slice(HISTORY_PREFIX.length);if(characters.some(c=>c.id===id)) continue;
+      try { const h=validateCharacterHistory(port.getItem(key),id),[c]=JSON.parse(h.stack[h.pointer].stateJson);deletedHistories.push(c); } catch { /* Arquivos ilegíveis permanecem intactos. */ }
+    }
+  } catch { /* Armazenamento bloqueado não impede a ficha em memória. */ }
+  host.hidden=!deletedHistories.length;
+  host.innerHTML=deletedHistories.length?`<summary>Fichas excluídas (${deletedHistories.length})</summary>${deletedHistories.map((c,i)=>`<button type="button" onclick="restoreDeletedCharacter(${i})" class="block underline py-1">Restaurar ${escapeHTML(c.name)}</button>`).join('')}`:'';
+}
+function restoreDeletedCharacter(index) {
+  const recovered=deletedHistories[index];if(!recovered || characters.some(c=>c.id===recovered.id)) return;
+  const c=structuredClone(recovered),profile=readPreference('dnd_public_player_name');if(profile!==null) c.playerName=profile;
+  const next=[...characters,c];if(!sheetStore.write(next)) return showToast('Não foi possível restaurar. O histórico foi preservado.');
+  characters=next;activeCharIndex=characters.length-1;restoreSavedHistory();
+  recordStepAndSave('Restaurou ficha excluída',true);renderAccountCharactersList();
 }
 
 // =========================================================================
@@ -898,7 +916,7 @@ function setDiceMode(mode) {
   const labels = {
     off: "Dados Desativados (Modo Dados Físicos na Mesa).",
     manual:
-      "Modo Só Pool Manual: Monte ex: 1d20 + 1d4 na bandeja (cliques na ficha não rolam sozinhos).",
+      "Modo Só Pool: monte seus dados na bandeja. Ataques e conjurações dos cartões não são executados.",
     auto: "Modo Auto + Ficha: Clicar em perícias, ataques e magias rola os dados automaticamente!",
   };
   showToast(labels[mode]);
@@ -1024,16 +1042,15 @@ function updatePoolDisplay() {
   const modVal = parseInt(
     document.getElementById("dicePoolModInput")?.value || "0",
     10,
-  );
-  if (modVal !== 0) parts.push(modVal > 0 ? `+${modVal}` : `${modVal}`);
-  disp.textContent =
-    parts.length > 0
-      ? parts.join(" + ")
-      : "Pool vazio (clique nos dados)";
+  ) || 0;
+  let formula=parts.join(' + ');
+  if(modVal) formula+=parts.length?` ${modVal<0?'-':'+'} ${Math.abs(modVal)}`:String(modVal);
+  disp.textContent = formula || 'Pool vazio (clique nos dados)';
   disp.title = disp.textContent;
   ["normal", "adv", "dis"].forEach(mode => {
     document.getElementById(`rollMode-${mode}`)?.setAttribute("aria-pressed", String(currentRollMode === mode));
   });
+  updateDiceDockAppearance(currentRollMode);
   const hint = document.getElementById("dicePoolModeHint");
   if (hint) {
     hint.textContent = currentRollMode === "normal"
@@ -1082,7 +1099,7 @@ function evaluateDicePool(counts, modifier, mode) {
   return { total, d20Natural, breakdown, appliedMode };
 }
 
-function rollCurrentPool(customLabel = "", allowFixed = false) {
+function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligible = true) {
   const cube = document.getElementById("dice3dCube");
   const resultBox = document.getElementById("dice3dResultText");
   if (!cube || !resultBox) return;
@@ -1101,12 +1118,33 @@ function rollCurrentPool(customLabel = "", allowFixed = false) {
   ) || 0;
   // Resolve tudo no clique. Trocar modo, limpar ou editar a bandeja durante a
   // animação só vale para o próximo lançamento, nunca para o que já foi feito.
-  const result = evaluateDicePool(dicePoolCounts, modVal, currentRollMode);
+  const c=getChar(),inspired=inspirationEligible && !!c && dicePoolCounts[20]===1 && c.heroicInspiration && c.ruleState?.inspirationReady;
+  const mode=inspired?inspirationRollMode(c,currentRollMode):currentRollMode;
+  const result = evaluateDicePool(dicePoolCounts, modVal, mode);
+  if(inspired && consumeInspiration(c)) saveRuleStep('Usou inspiração no d20 · '+(customLabel || 'pool'));
   presentDiceResult(result, customLabel);
+  return result;
+}
+// Ações com resultado aplicado aos PV usam o mesmo motor/animação, sem alterar
+// o pool manual. OFF sempre exige registrar a face do dado físico.
+function ruleDiceSettings() { return {enabled:diceMode!=='off',automatic:diceMode==='auto',mode:currentRollMode}; }
+function rollRuleDie(sides,label,mode='normal') {
+  if(diceMode==='off') throw new Error('Dados virtuais desativados: registre o resultado do dado físico.');
+  const result=evaluateDicePool({[sides]:1},0,mode);
+  presentDiceResult(result,label);return result.total;
+}
+// Dano contextual usa a bandeja/animação, preservando o pool manual e sem
+// aplicar vantagem de d20 ou gastar inspiração em uma jogada de dano.
+function rollWeaponFormula(formula,label) {
+  if(diceMode==='off')throw new Error('Dados virtuais desativados: registre o resultado físico.');
+  const parsed=parseDiceFormula(formula);if(!parsed)throw new Error('Fórmula de dano inválida; nenhum espaço foi gasto.');
+  const result=evaluateDicePool(parsed.counts,parsed.modifier,'normal');
+  result.total=Math.max(0,result.total);presentDiceResult(result,label);return result;
 }
 function rollQuickD20() {
   if (diceMode === "off") return;
-  presentDiceResult(evaluateDicePool({20: 1}, 0, "normal"), "d20 normal");
+  // Só o d20 usa o modo escolhido; pool, bônus e inspiração ficam preservados.
+  presentDiceResult(evaluateDicePool({20: 1}, 0, currentRollMode), "d20 rápido");
 }
 function presentDiceResult(result, customLabel) {
   const cube = document.getElementById("dice3dCube");
@@ -1144,7 +1182,9 @@ function presentDiceResult(result, customLabel) {
 }
 
 // Disparo automático vindo da ficha (só executa se diceMode === 'auto'!)
-function triggerSheetRoll(formula, label) {
+function triggerSheetRoll(formula, label, inspirationEligible = false, context = null) {
+  if(context?.type==='save' && automaticSaveFailure(getChar(),context.ability))return showToast('Falha automática nessa resistência de FOR/DES pela condição atual; não precisa rolar.');
+  if(context?.type==='attack' && incapacityReason(getChar()))return showToast(incapacityReason(getChar())+': não pode realizar esse ataque.');
   if (diceMode !== "auto") {
     if (diceMode === "manual") {
       showToast(
@@ -1164,7 +1204,7 @@ function triggerSheetRoll(formula, label) {
   const modEl = document.getElementById("dicePoolModInput");
   if (modEl) modEl.value = parsed.modifier;
   updatePoolDisplay();
-  rollCurrentPool(label, true);
+  return rollCurrentPool(label, true, inspirationEligible);
 }
 
 // =========================================================================
@@ -1172,6 +1212,7 @@ function triggerSheetRoll(formula, label) {
 // =========================================================================
 function openAuthAccountModal() {
   renderAccountCharactersList();
+  selectAccountTab('profile');
   document.getElementById("authAccountModal").classList.remove("hidden");
   if (window.lucide) window.lucide.createIcons();
 }
@@ -1190,6 +1231,7 @@ function hasOpenAccountEditor() {
   });
 }
 function activateAccountWorkspace(identity) {
+  clearSheetPanels();
   // Um erro de quota não joga fora a ficha em memória ao trocar de conta.
   // Ela só poderá reaparecer ao voltar ao mesmo espaço, nesta aba.
   if (sheetStore.issue?.kind === 'write' || sheetStore.issue?.kind === 'unavailable') workspaceDrafts.set(currentWorkspaceKey(), characters);
@@ -1279,30 +1321,41 @@ function renderAccountCharactersList() {
         .join(" | ");
       const isCurrent = idx === activeCharIndex;
       return `
-    <div class="t-inset p-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-      <div class="min-w-0 flex-1 flex items-center gap-2">
+    <div class="account-character t-inset p-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2" data-account-character="${escapeHTML(c.id)}">
+      <div class="account-character-person min-w-0 flex-1 flex items-center gap-2">
       <button type="button" class="portrait-edit account-character-avatar shrink-0" data-avatar-edit="${escapeHTML(c.id)}" aria-label="Alterar imagem de ${escapeHTML(c.name)}">${avatarMarkup(c.avatar)}</button>
       <div class="min-w-0">
-        <div class="font-rpg font-bold text-sm t-text-main break-words">${escapeHTML(c.name)} ${isCurrent ? '<span class="px-1.5 py-0.5 rounded badge-utilidade text-[9px] ml-1">Ativo</span>' : ""}</div>
-        <div class="text-[11px] t-text-muted">${escapeHTML(c.race)} • ${clsStr} • PV: ${c.hpCurrent}/${c.hpMax}</div>
+        <div class="account-character-name font-rpg font-bold t-text-main break-words">${escapeHTML(c.name)} ${isCurrent ? '<span class="account-character-active px-1.5 py-0.5 rounded badge-utilidade text-[9px] ml-1">Ativo</span>' : ""}</div>
+        <div class="account-character-meta t-text-muted"><span>${escapeHTML(c.race)}</span><span>${escapeHTML(clsStr)}</span><span>PV: ${c.hpCurrent}/${c.hpMax}</span></div>
       </div>
       </div>
-      <div class="flex items-center justify-end gap-1.5 shrink-0">
-        <button onclick="switchCharacter(${idx}); closeAuthAccountModal();" class="t-btn-primary px-3 py-1 rounded-lg font-bold text-xs">Abrir Ficha</button>
-        ${characters.length > 1 ? `<button onclick="deleteCharacter(${idx})" class="t-card px-2 py-1 rounded text-rose-500 font-bold" title="Excluir personagem">&times;</button>` : ""}
+      <div class="account-character-actions flex items-center justify-end gap-1.5 shrink-0">
+        <button onclick="switchCharacter(${idx}); closeAuthAccountModal();" class="account-character-open t-btn-primary px-3 py-1 rounded-lg font-bold text-xs">Abrir Ficha</button>
+        ${characters.length > 1 ? `<button onclick="deleteCharacter(${idx})" class="t-card px-2 py-1 rounded text-rose-500 font-bold" title="Excluir personagem" aria-label="Excluir ${escapeHTML(c.name)}">&times;</button>` : ""}
       </div>
     </div>
   `;
     })
     .join("");
+  refreshAccountView();
 }
 
 async function deleteCharacter(idx) {
   if (characters.length <= 1 || !characters[idx]) return;
-  if (!await confirmDestructiveAction("Excluir personagem?", `A ficha de “${characters[idx].name}”, incluindo magias, ataques, inventário e história, será excluída deste navegador. Você poderá desfazer nesta sessão.`, "Excluir personagem")) return;
-  const removed = characters.splice(idx, 1)[0];
-  activeCharIndex = 0;
-  recordStepAndSave(`Removeu personagem "${removed.name}"`);
+  const target=characters[idx],scope=currentWorkspaceKey();
+  if (!await confirmDestructiveAction("Excluir personagem?", `A ficha de “${target.name}” será excluída. Você poderá restaurá-la em Fichas excluídas, na linha do tempo.`, "Excluir personagem")) return;
+  if(scope!==currentWorkspaceKey() || !characters.includes(target)) return;
+  // Guarde a última edição antes de excluir; outro personagem não recebe este passo.
+  try {
+    const key=historyKey(target.id),raw=readPreference(key);
+    const h=raw?validateCharacterHistory(raw,target.id):{version:2,characterId:target.id,stack:[],pointer:0};
+    const snapshot=characterSnapshot(target);
+    if(!h.stack.length || historyComparable(h.stack[h.pointer].stateJson)!==historyComparable(snapshot)) { h.stack=h.stack.slice(0,h.pointer+1);h.stack.push({timestamp:new Date().toISOString(),action:'Último estado antes de excluir',isCheckpoint:true,stateJson:snapshot});h.pointer=h.stack.length-1; }
+    if(!writePreference(key,JSON.stringify(h))) throw new Error();
+  } catch { return showToast('Não foi possível preservar o histórico; a ficha continua aqui.'); }
+  const activeId=getChar()?.id,next=characters.filter(c=>c.id!==target.id);
+  if(!sheetStore.write(next)) return showToast('Não foi possível excluir; a ficha foi preservada.');
+  characters=next;activeCharIndex=Math.max(0,characters.findIndex(c=>c.id===activeId));restoreSavedHistory();renderAll();
   renderAccountCharactersList();
 }
 
@@ -1310,10 +1363,10 @@ function openNewCharacterModal() {
   if (sheetStore.issue?.kind === 'invalid') { openAuthAccountModal(); return; }
   CharacterWizard.openCreate();
 }
-function applyImportedCharacters(next) {
+function applyImportedCharacters(next, action = "Importou cópias de um backup") {
   characters = next;
   activeCharIndex = Math.max(0, characters.length - 1);
-  recordStepAndSave("Importou cópias de um backup", true);
+  recordStepAndSave(action, true);
   renderAccountCharactersList();
 }
 function closeNewCharacterModal() { return CharacterWizard.close(); }
@@ -1327,9 +1380,13 @@ function commitCreatedCharacter(char) {
   showToast(`Personagem ${char.name} criado!`);
 }
 function commitLeveledCharacter(char, action) {
+  // Evolução é uma ação confirmada do jogo; o cadeado protege ajustes livres.
+  if(!requireSheetEdit())return false;
+  if(char.id!==getChar()?.id){showToast('A ficha selecionada mudou. Reabra a evolução na ficha desejada.');return false;}
   characters[activeCharIndex] = char;
   recordStepAndSave(action, true);
   showToast(action);
+  return true;
 }
 
 // =========================================================================
@@ -1348,58 +1405,72 @@ function getSpellSlotOptions(char, spell) {
   if (char.pactMagic.total > 0 && char.pactMagic.level >= spell.circle) {
     options.push({ value: "pact", level: char.pactMagic.level, remaining: char.pactMagic.total - char.pactMagic.used, total: char.pactMagic.total, source: "Pacto" });
   }
+  const privilege=wizardPrivilege(char,spell,CharacterEngine);
+  if (privilege) options.unshift(privilege);
   return options.sort((a, b) => a.level - b.level);
 }
 
 function getSelectedSpellCastLevel(char, spell, index) {
-  if (spell.circle === 0 || spell.ritual || spell.limitedUse || spell.atWill) return spell.castLevel || spell.circle;
+  if (spell.circle === 0 || spell.ritual || spell.limitedUse || spell.atWill) return innateCastLevel(char,spell,CharacterEngine);
   const options = getSpellSlotOptions(char, spell);
   const saved = selectedCastLevelBySpell[`${char.id}:${index}`];
   if (options.some((option) => option.value === saved)) return saved;
   // Livro, p. 166: as origens são intercambiáveis. A classe só define a
   // preferência inicial; esgotar um recurso nunca seleciona outro escondido.
-  return (spell.classId === "bruxo" ? options.find((option) => option.value === "pact") : options.find((option) => option.value !== "pact"))?.value ?? options[0]?.value ?? null;
+  return (options.find(option=>['mastery','signature'].includes(option.value)) || (spell.classId === "bruxo" ? options.find((option) => option.value === "pact") : options.find((option) => option.value !== "pact")))?.value ?? options[0]?.value ?? null;
 }
 
 function renderSpellCastControls(char, spell, index) {
   const meta = resolveSpellMeta(spell);
+  const attackStats=meta.defType==='atq_magico'?getSpellcastingStats(char,spell.classId,spell):null;
+  const poolOnly=diceMode==='manual';
   const chosen = getSelectedSpellCastLevel(char, spell, index);
   const detail = getSpellEffectDetails(char, spell, index);
   const options = getSpellSlotOptions(char, spell);
   const selected = options.find((option) => option.value === chosen);
   const usesSlot = spell.circle > 0 && !spell.ritual && !spell.limitedUse && !spell.atWill;
   const unavailable = (usesSlot && (!selected || selected.remaining <= 0)) || (spell.limitedUse && (spell.usesUsed || 0) >= spell.limitedUse);
-  const canNormal = spell.prepared !== false || spell.ritual || spell.limitedUse || spell.atWill;
+  const canNormal = canCastNormally(char,spell,CharacterEngine);
   return `
-    ${meta.canTwin && characterHasTwinned(char) ? `<button type="button" onclick="toggleSpellTwinnedByIndex(${index})" class="spell-action-button spell-twin-control" aria-label="${detail.twin ? "Desativar" : "Ativar"} Magia Gêmea para ${escapeHTML(spell.name)}" aria-pressed="${detail.twin}">Gêmea (${escapeHTML(detail.cost ?? spell.circle)}pt)</button>` : ""}
+    ${detail.canTwin && characterHasTwinned(char) ? `<button type="button" onclick="toggleSpellTwinnedByIndex(${index})" class="spell-action-button spell-twin-control" aria-label="${detail.twin ? "Desativar" : "Ativar"} Magia Gêmea para ${escapeHTML(spell.name)}" aria-pressed="${detail.twin}">Gêmea (${escapeHTML(detail.cost ?? spell.circle)}pt)</button>` : ""}
     ${usesSlot && canNormal ? `<select data-spell-slot="${index}" aria-label="Espaço para ${escapeHTML(spell.name)}" onchange="setSpellCastLevelByIndex(${index}, this.value)" class="spell-slot-select">
-      ${options.length ? options.map((option) => `<option value="${option.value}" ${option.value === chosen ? "selected" : ""}>${option.source} · ${option.level}º · ${Math.max(0, option.remaining)}/${option.total}${option.remaining <= 0 ? " (esgotado)" : ""}</option>`).join("") : '<option value="">Sem espaços compatíveis</option>'}
+      ${options.length ? options.map((option) => `<option value="${option.value}" ${option.value === chosen ? "selected" : ""}>${option.source} · ${option.level}º · ${Number.isFinite(option.remaining)?Math.max(0, option.remaining):'∞'}/${Number.isFinite(option.total)?option.total:'∞'}${option.remaining <= 0 ? " (esgotado)" : ""}</option>`).join("") : '<option value="">Sem espaços compatíveis</option>'}
     </select>` : ""}
     ${spell.limitedUse ? `<span class="text-[11px]">Usos: ${Math.max(0, spell.limitedUse - (spell.usesUsed || 0))}/${escapeHTML(spell.limitedUse)}</span>` : ''}
-    ${canNormal ? `<button data-cast-spell="${index}" onclick="castSpellByIndex(${index})" ${unavailable ? "disabled" : ""} class="spell-action-button spell-cast-button t-btn-primary" title="${usesSlot ? "Gasta apenas o espaço selecionado. Para trocar a origem, use o seletor." : "Não gasta espaços de magia."}">${spell.ritual ? "Ritual" : spell.circle === 0 ? "Truque" : unavailable ? "Esgotado" : "Conjurar"}</button>` : ''}
-    ${!spell.ritual && canCastRitual(char, spell) ? `<button onclick="castRitualByIndex(${index})" class="spell-action-button spell-cast-button t-inset" title="Acrescenta 10 minutos ao tempo de conjuração e não gasta espaço.">Ritual</button>` : ''}
+    ${canNormal && attackStats?`<button type="button" data-spell-attack="${index}" onclick="rollSpellAttack(${index})" ${diceMode!=='auto'?'disabled':''} class="spell-action-button badge-feiticeiro" aria-label="Ataque de ${escapeHTML(spell.name)} ${fmtMod(attackStats.attack)}" ${RuleTooltips.attributes('Ataque com magia',{text:`Role 1d20 ${fmtMod(attackStats.attack)} contra a CA do alvo em Auto Ficha. Usa o bônus da classe desta magia, com vantagem/desvantagem e inspiração quando preparadas. Só rola o ataque: use Conjurar/Truque para registrar o lançamento e gastar o espaço, mesmo se errar. ${detail.perRay?'Cada raio/feixe exige uma jogada de ataque separada; repetir este botão não gasta outro espaço.':''}`})}>Atq ${fmtMod(attackStats.attack)}</button>`:''}
+    ${canNormal ? `<button data-cast-spell="${index}" onclick="castSpellByIndex(${index})" ${poolOnly || unavailable ? "disabled" : ""} class="spell-action-button spell-cast-button t-btn-primary" title="${poolOnly?'Só Pool: use a bandeja. Para conjurar pela ficha, escolha Auto Ficha ou OFF para dados físicos.':['mastery','signature'].includes(chosen) ? 'Usa a característica sem gastar espaço. Para aprimorar, escolha um espaço no seletor.' : usesSlot ? "Gasta apenas o espaço selecionado. Para trocar a origem, use o seletor." : "Não gasta espaços de magia."}">${spell.ritual ? "Ritual" : spell.circle === 0 ? "Truque" : unavailable ? "Esgotado" : "Conjurar"}</button>` : ''}
+    ${canCastRitual(char, spell) ? `<button data-cast-ritual="${index}" onclick="castRitualByIndex(${index})" ${poolOnly?'disabled':''} class="spell-action-button spell-cast-button t-inset" title="${poolOnly?'Só Pool: conjuração pela ficha desativada.':'Acrescenta 10 minutos ao tempo de conjuração e não gasta espaço.'}">Ritual</button>` : ''}
+    ${detail.perRay?`<button type="button" class="spell-action-button t-inset" data-spell-ray="${index}" onclick="rollSpellRay(${index})" ${diceMode!=='auto'?'disabled':''} ${RuleTooltips.attributes('Dano de um raio/feixe',{text:detail.explanation})}>Dano por raio</button>`:''}
   `;
 }
 
 function getSpellEffectDetails(char, spell, index) {
   const meta = resolveSpellMeta(spell);
   const chosen = getSelectedSpellCastLevel(char, spell, index);
-  const level = chosen === "pact" ? char.pactMagic.level : chosen ?? spell.circle;
-  const book = BOOK_SPELLS_DB[spell.name];
-  const twin = !!twinnedActiveBySpell[spell.name] && !!meta.canTwin;
-  // Calcula a versão normal e a versão com Gêmea sem duplicar textos na ficha.
-  // A fórmula personalizada continua tendo a precedência já usada pelo rolador.
-  const effect = active => {
-    if (spell.customRoll) return spell.customRoll;
-    if (book?.calcEffect) return book.calcEffect(level, active, char, spell).replace(/ ⚡ GÊMEA!$/, "");
-    let baseText = meta.effectSummary || getSpellNotes(char, spell);
-    if (spell.circle === 0 && meta.diceFormula) {
-      baseText = baseText.replace(/^\d+d/, `${getCantripDiceCount(char)}d`);
-    }
-    return `${active ? "2 alvos × " : ""}${baseText}`;
-  };
-  return { base: effect(false), enhanced: twin ? effect(true) : null, twin,
-    cost: spell.circle === 0 ? 1 : level };
+  const level = getSpellSlotOptions(char,spell).find(option=>option.value===chosen)?.level ?? innateCastLevel(char,spell,CharacterEngine);
+  const book = spell.customSpell ? null : BOOK_SPELLS_DB[spell.name];
+  const canTwin=twinEligible(char,spell,level,CharacterEngine,meta.canTwin);
+  const twin = !!twinnedActiveBySpell[spell.name] && canTwin && characterHasTwinned(char);
+  const options={legacyFormula:book?.diceFormula?.(level,false,char,spell),legacySummary:book?.calcEffect?.(level,false,char,spell),canTwin:meta.canTwin};
+  const base=resolveSpellEffect(char,spell,level,CharacterEngine,options);
+  const resolved=twin?resolveSpellEffect(char,spell,level,CharacterEngine,{...options,twinned:true}):base;
+  return {...resolved,base:base.summary,enhanced:twin?resolved.summary:null,twin,canTwin,level,cost:spell.circle === 0 ? 1 : level};
+}
+function rollSpellRay(index) {
+  if(diceMode!=='auto')return;
+  const spell=getChar().spells[index];if(!spell) return;
+  const detail=getSpellEffectDetails(getChar(),spell,index);
+  if(detail.perRay && detail.formula) triggerSheetRoll(detail.formula,`${spell.name} · dano de um raio/feixe que acertou (sem novo lançamento)`);
+}
+// O índice continua sendo o original da ficha, mesmo após filtrar por classe.
+// Repetir ataques (raios/feixes, por exemplo) não conjura nem cobra outro espaço.
+function rollSpellAttack(index) {
+  if(diceMode!=='auto')return;
+  const char=getChar(),spell=char.spells[index];
+  if(!spell || resolveSpellMeta(spell).defType!=='atq_magico' || !canCastNormally(char,spell,CharacterEngine))return;
+  const stats=getSpellcastingStats(char,spell.classId,spell);
+  if(!stats || !Number.isFinite(stats.attack))return;
+  return triggerSheetRoll(`1d20${fmtMod(stats.attack)}`,`Ataque: ${spell.name}`,true,{type:'attack'});
 }
 
 function renderSpellEffectDetails(char, spell, index) {
@@ -1415,7 +1486,7 @@ function renderSpellEffectDetails(char, spell, index) {
 function setSpellCastLevelByIndex(index, value) {
   const char = getChar();
   const spell = char.spells[index];
-  const parsed = value === "pact" ? value : Number(value);
+  const parsed = ["pact","mastery","signature"].includes(value) ? value : Number(value);
   if (!spell || !getSpellSlotOptions(char, spell).some((option) => option.value === parsed)) return;
   selectedCastLevelBySpell[`${char.id}:${index}`] = parsed;
   hideBookTooltip();
@@ -1427,13 +1498,15 @@ function castSpellByIndex(index) {
   if (spell) return castSpellWithUpcast(spell.name, spell.circle, spell.classId, index);
 }
 function canCastRitual(char, spell) {
-  if (!spell.ritualAvailable || spell.limitedUse || spell.atWill) return false;
-  if (spell.classId === 'mago' && !spell.extraSource) return true;
-  return ['bardo', 'clerigo', 'druida'].includes(spell.classId) && spell.prepared !== false && (!spell.extraSource || spell.extraSource === 'Magia de subclasse');
+  return canRitual(char,spell,CharacterEngine);
 }
-function castRitualByIndex(index) {
-  const spell = getChar().spells[index];
-  if (!spell || !canCastRitual(getChar(), spell)) return;
+function castRitualByIndex(index, confirmedId = null) {
+  if(diceMode==='manual')return;
+  const char=getChar(),spell = char.spells[index];
+  if (!spell || !canCastRitual(char, spell)) return;
+  if(deferConcentrationReplacement(char,spell,index,true,confirmedId,id=>castRitualByIndex(index,id)))return;
+  applyCastConcentration(char,spell,CharacterEngine,true);
+  onSpellCast(char,spell,spell.circle,CharacterEngine);
   recordStepAndSave(`Conjurou ${spell.name} como ritual (+10 minutos, sem espaço)`);
   showToast('Ritual: acrescente 10 minutos ao tempo da magia. Nenhum espaço gasto.');
 }
@@ -1444,12 +1517,15 @@ function toggleSingleSpellExpandByIndex(index) {
   toggleSingleSpellExpand(getChar().spells[index].name);
 }
 function showSpellTooltipByIndex(event, index) {
+  if(document.querySelector(`[data-spell-card="${index}"] [data-sheet-spell-editor]`))return;
   const spell = getChar().spells[index];
   if (spell) showSpellTooltip(event, spell.name, spell.classId, spell.circle, index);
 }
 
 function renderExpandedSpellCard(char, sp, globalSpellIdx) {
   const meta = resolveSpellMeta(sp);
+  const prep = preparation(char, sp.classId, CharacterEngine);
+  const preparationLabel = prep.always(sp) ? 'Sempre Preparada' : !prep.prepares ? 'Conhecida' : sp.prepared ? 'Preparada' : canRitual(char, sp, CharacterEngine) ? 'Não preparada · ritual disponível' : 'Não preparada';
   const clsMeta =
     RULES_DB.classes[sp.classId] || RULES_DB.classes.feiticeiro;
   const targetMeta =
@@ -1463,12 +1539,13 @@ function renderExpandedSpellCard(char, sp, globalSpellIdx) {
             <button onclick="openHomebrewModal('spell', ${globalSpellIdx})" class="t-text-main" aria-label="Editar ${escapeHTML(sp.name)}"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
             ${Number.isInteger(sp.pdfPage) ? `<a href="book.html#page=${sp.pdfPage}" target="_blank" rel="noopener" aria-label="Consultar ${escapeHTML(sp.name)} no livro"><i data-lucide="book-open" class="w-3.5 h-3.5"></i></a>` : ''}
             ${sp.extraSource ? `<span class="text-[11px] t-text-muted">${escapeHTML(sp.extraSource)}</span>` : ''}
+            ${sp.circle>0?`<span class="text-[11px] font-bold">${preparationLabel}</span>`:''}
           </div>
           <div class="text-[11px] t-text-muted">Tempo: <strong>${escapeHTML(sp.time)}</strong> • Alcance: <strong>${escapeHTML(sp.range)}</strong></div>
       <div class="flex flex-wrap items-center gap-1.5 text-[11px] font-bold">
         ${renderSpellEffectDetails(char, sp, globalSpellIdx)}
         ${meta.targetType ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded t-card"><i data-lucide="${targetMeta.icon}" class="w-3.5 h-3.5 t-text-accent" aria-hidden="true"></i> ${escapeHTML(sp.range)} · ${escapeHTML(targetMeta.label)}</span>` : ''}
-        ${defMeta ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded t-card"><i data-lucide="${defMeta.icon}" class="w-3.5 h-3.5 t-text-accent" aria-hidden="true"></i> ${escapeHTML(defMeta.label)}</span>` : ""}
+        ${defMeta && meta.defType!=='atq_magico' ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded t-card"><i data-lucide="${defMeta.icon}" class="w-3.5 h-3.5 t-text-accent" aria-hidden="true"></i> ${escapeHTML(defMeta.label)}</span>` : ""}
       </div>
       <p class="text-xs t-text-muted">${escapeHTML(getSpellNotes(char, sp))}</p>
     <div class="spell-cast-footer">${renderSpellCastControls(char, sp, globalSpellIdx)}</div>
@@ -1515,7 +1592,7 @@ function buildSingleCirclePanelHtml(char, lvl, isClassicTwoCol) {
       <div class="slot-resource t-inset px-2.5 py-1 rounded-lg text-xs">
         <span class="text-[11px] font-semibold">Conjuração:</span>
         <div class="slot-track">${diamonds}</div>
-        <strong class="t-text-main" aria-label="${stdFree} de ${stdSlot.total} espaços disponíveis">${stdFree}/${stdSlot.total}</strong>
+        ${sheetInput(char,`standardSlots.${lvl}.remaining`,stdFree,`Espaços disponíveis do ${lvl}º círculo`,'number',{min:0,max:100})} / ${sheetInput(char,`standardSlots.${lvl}.total`,stdSlot.total,`Total de espaços do ${lvl}º círculo`,'number',{min:0,max:100})}
       </div>
     </div>
   `;
@@ -1525,7 +1602,7 @@ function buildSingleCirclePanelHtml(char, lvl, isClassicTwoCol) {
 
   return `
   <div class="t-card overflow-hidden" data-flow-key="${panelKey}">
-    <div onclick="togglePanel('${panelKey}')" class="p-3 flex flex-wrap items-center justify-between gap-2 cursor-pointer t-hover ${!isCollapsed ? "border-b t-border" : ""}">
+    <div onclick="togglePanel('${panelKey}')" class="spell-circle-heading flex flex-wrap items-center justify-between gap-2 cursor-pointer t-hover ${!isCollapsed ? "border-b t-border" : ""}">
       <div class="flex items-center gap-2">
         <i data-lucide="${isCollapsed ? "chevron-right" : "chevron-down"}" class="w-4 h-4 t-text-accent"></i>
         <span style="--circle-level:${lvl}" class="spell-circle-number w-6 h-6 rounded flex items-center justify-center font-rpg font-extrabold text-xs">${lvl}</span>
@@ -1543,10 +1620,10 @@ function buildSingleCirclePanelHtml(char, lvl, isClassicTwoCol) {
 
 // Círculos em ordem numérica; PanelFlow acomoda cada um na coluna mais
 // curta, sem prender permanentemente níveis pares/ímpares ao mesmo lado.
-function isSpellVisible(spell) { return spell.prepared !== false || canCastRitual(getChar(), spell); }
+function isSpellVisible(spell) { return canCastNormally(getChar(),spell,CharacterEngine) || canCastRitual(getChar(), spell); }
 function renderSpellsSection(char, isClassicTwoCol) {
   const circles = Array.from({ length: 10 }, (_, level) => level).filter(
-    (level) => level === 0 || char.standardSlots[level]?.total > 0 || char.spells.some((spell) => spell.circle === level),
+    (level) => level === 0 || char.standardSlots[level]?.total > 0 || char.spells.some((spell) => spell.circle === level) || poolEditorVisible(char,'circle:'+level),
   );
 
   let layoutContainerHtml = "";
@@ -1568,6 +1645,7 @@ function renderSpellsSection(char, isClassicTwoCol) {
   <div class="space-y-4">
     ${renderSorceryCollapsiblePanel(char)}
     ${renderPactMagicPanel(char)}
+    ${spellClassPanels(char,CharacterEngine)}
     ${renderSpellsToolbar(char)}
     ${layoutContainerHtml}
   </div>
@@ -1575,12 +1653,15 @@ function renderSpellsSection(char, isClassicTwoCol) {
 }
 
 function selectedMetamagic(char) {
-  if (char.rules && !char.rules.legacy) return CharacterEngine.selections(char, 'feiticeiro', 'metamagic');
-  return (char.features || []).filter(f => /Metamágica/.test(f)).map(f => f.includes('Acelerada') ? 'Magia Acelerada' : /Gêmea|Duplicada/.test(f) ? 'Magia Duplicada' : '').filter(Boolean);
+  const choices=CharacterEngine.selections(char, 'feiticeiro', 'metamagic');
+  if(choices.length || char.rules && !char.rules.legacy) return choices;
+  return [...new Set((char.features || []).map(f=>typeof f==='string'?f:`${f.title || f.name || ''} ${f.description || ''}`).filter(f=>/Metamágica|Magia Gêmea|Magia Duplicada/i.test(f)).map(f=>/Acelerada/i.test(f)?'Magia Acelerada':/Gêmea|Duplicada/i.test(f)?'Magia Duplicada':'').filter(Boolean))];
 }
 function characterHasTwinned(char) { return selectedMetamagic(char).includes('Magia Duplicada'); }
 function renderSorceryCollapsiblePanel(char) {
-  if (char.sorceryPoints.max <= 0) return "";
+  const extraResources=resourcesAt(char,CharacterEngine,'sorcery');
+  const managedNames=new Set(extraResources.map(r=>r.name));
+  if (char.sorceryPoints.max <= 0 && !extraResources.length && !poolEditorVisible(char,'sorcery') && !char.classes.some(c=>c.classId==='feiticeiro')) return "";
   const isCollapsed = !!collapsedPanels["sorcery_top"];
   const spCur = char.sorceryPoints.current;
   const spMax = char.sorceryPoints.max;
@@ -1593,22 +1674,22 @@ function renderSorceryCollapsiblePanel(char) {
     .join("");
 
   return `
-  <div class="t-card-accent overflow-hidden">
+  <div class="t-card-accent overflow-hidden" data-spell-class="feiticeiro">
     <div onclick="togglePanel('sorcery_top')" class="p-3.5 flex flex-wrap items-center justify-between gap-2 cursor-pointer t-hover">
       <div class="flex items-center gap-2">
         <i data-lucide="${isCollapsed ? "chevron-right" : "chevron-down"}" class="w-4 h-4 t-text-accent"></i>
         <i data-lucide="sparkles" class="w-4 h-4 t-text-accent"></i>
         <h3 class="font-rpg text-xs sm:text-sm font-bold uppercase t-text-accent">
-          Feiticeiro · Fonte de Magia & Metamágica
+          Feiticeiro · ${spMax>0?'Fonte de Magia & Metamágica':'Origem de Feitiçaria'}
         </h3>
       </div>
-      <div class="flex items-center gap-3 text-xs" onclick="event.stopPropagation()">
+      ${true?`<div class="flex items-center gap-3 text-xs" onclick="event.stopPropagation()">
         <div class="flex flex-wrap items-center gap-2 t-inset px-2.5 py-1 rounded-lg max-w-full">
           <span class="font-bold text-[11px]">Pts Feitiçaria:</span>
           <div class="flex flex-wrap items-center gap-1.5 px-1" style="max-width:min(24rem,65vw)">${spGems}</div>
-          <strong class="t-text-accent">${spCur}/${spMax}</strong>
+          ${sheetInput(char,'sorceryPoints.current',spCur,'Pontos de feitiçaria atuais','number',{min:0,max:100})} / ${sheetInput(char,'sorceryPoints.max',spMax,'Máximo de pontos de feitiçaria','number',{min:0,max:100})}
         </div>
-      </div>
+      </div>`:''}
     </div>
 
     ${
@@ -1616,17 +1697,18 @@ function renderSorceryCollapsiblePanel(char) {
         ? `
       <div class="p-4 pt-2 border-t t-border space-y-3">
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
-          ${selectedMetamagic(char).map(name => name === 'Magia Acelerada' ? `<button ${RuleTooltips.attributes(name, CharacterEngine.reference(name, "feiticeiro"))} onclick="useMetamagicOrWild('Magia Acelerada', 2)" class="t-inset p-2.5 rounded-lg text-left"><strong class="t-text-accent">Magia Acelerada · 2 pts</strong><p class="text-[11px] mt-1">Magia de 1 ação passa a usar ação bônus.</p></button>` : `<div tabindex="0" ${RuleTooltips.attributes(name, CharacterEngine.reference(name, "feiticeiro"))} class="t-inset p-2.5 rounded-lg"><strong class="t-text-accent">${escapeHTML(name === 'Magia Duplicada' ? 'Magia Gêmea (Duplicada)' : name)}</strong><p class="text-[11px] mt-1">${name === 'Magia Duplicada' ? 'Use Gêmea nas magias elegíveis; custo igual ao círculo, mínimo 1 ponto.' : 'Consulte o efeito em Características & escolhas.'}</p></div>`).join('')}
+          ${selectedMetamagic(char).filter(name=>!managedNames.has(name)).map(name => name === 'Magia Acelerada' ? `<button ${RuleTooltips.attributes(name, CharacterEngine.reference(name, "feiticeiro"))} onclick="useMetamagicOrWild('Magia Acelerada', 2)" class="t-inset p-2.5 rounded-lg text-left"><strong class="t-text-accent">Magia Acelerada · 2 pts</strong><p class="text-[11px] mt-1">Magia de 1 ação passa a usar ação bônus.</p></button>` : `<div tabindex="0" ${RuleTooltips.attributes(name, CharacterEngine.reference(name, "feiticeiro"))} class="t-inset p-2.5 rounded-lg"><strong class="t-text-accent">${escapeHTML(name === 'Magia Duplicada' ? 'Magia Gêmea (Duplicada)' : name)}</strong><p class="text-[11px] mt-1">${name === 'Magia Duplicada' ? 'Use Gêmea nas magias elegíveis; custo igual ao círculo, mínimo 1 ponto.' : 'Consulte o efeito em Características & escolhas.'}</p></div>`).join('')}
           ${char.classes.some(c => c.classId === 'feiticeiro' && c.level >= 6 && (c.subclassId === 'selvagem' || /selvagem/i.test(c.subclass))) ? `<button ${RuleTooltips.attributes("Dobrar a Sorte", CharacterEngine.reference("Dobrar a Sorte", "feiticeiro", "selvagem"))} onclick="if(useMetamagicOrWild('Dobrar a Sorte (1d4)', 2)) addDieToPool(4)" class="t-inset p-2.5 rounded-lg text-left"><strong class="t-text-accent">Dobrar a Sorte (+1d4) · 2 pts</strong></button>` : ''}
         </div>
+        ${extraResources.length?`<div class="rule-context rule-resource-grid" data-rule-place="sorcery">${renderResourceControls(char,CharacterEngine,extraResources)}</div>`:''}
 
-        <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] pt-1">
+        ${spMax>0?`<div class="flex flex-wrap items-center justify-between gap-2 text-[11px] pt-1">
           <span class="t-text-muted font-semibold">Conjuração Flexível (Converter Slots ⇄ Pontos):</span>
           <div class="flex flex-wrap gap-1.5">
             ${standardSlotEntries(char).filter(([, slot]) => slot.total > 0).map(([level]) => `<button onclick="convertSlotToSorceryPoints(${Number(level)})" class="px-2 py-1 t-inset rounded font-semibold">Converter ${Number(level)}º (+${Number(level)} pt)</button>`).join('')}
             ${[2,3,5,6,7].map((cost,index) => `<button onclick="createSlotWithSorceryPoints(${index+1}, ${cost})" class="px-2 py-1 t-inset rounded font-semibold">Criar ${index+1}º (-${cost} pt)</button>`).join('')}
           </div>
-        </div>
+        </div>`:''}
       </div>
     `
         : ""
@@ -1637,35 +1719,38 @@ function renderSorceryCollapsiblePanel(char) {
 
 function renderPactMagicPanel(char) {
   const pact = char.pactMagic;
-  if (pact.total <= 0) return "";
-  return `<section class="t-card-accent p-4 space-y-2" aria-label="Magia de Pacto do bruxo">
+  if (pact.total <= 0 && !poolEditorVisible(char,'pact') && !char.classes.some(c=>c.classId==='bruxo')) return "";
+  return `<section class="t-card-accent p-4 space-y-2" data-spell-class="bruxo" aria-label="Magia de Pacto do bruxo">
     <div class="flex flex-wrap justify-between items-center gap-2">
       <h3 tabindex="0" ${RuleTooltips.attributes("Magia de Pacto", CharacterEngine.reference("Magia de Pacto", "bruxo"))} class="font-rpg font-bold text-sm t-text-accent">Bruxo · Magia de Pacto</h3>
       <div class="slot-resource t-inset px-3 py-1 rounded-lg">
         ${Array.from({ length: pact.total }, (_, index) => renderSpellSlotButton("pact", pact.level, index, index >= pact.total - pact.used)).join("")}
-        <strong>${pact.total - pact.used}/${pact.total} · ${pact.level}º círculo</strong>
+        ${sheetInput(char,'pactMagic.remaining',pact.total-pact.used,'Espaços disponíveis de Pacto','number',{min:0,max:100})} / ${sheetInput(char,'pactMagic.total',pact.total,'Total de espaços de Pacto','number',{min:0,max:100})} · <span>${sheetInput(char,'pactMagic.level',pact.level,'Círculo dos espaços de Pacto','number',{min:1,max:5})}º círculo</span>
       </div>
     </div>
-    <p class="text-xs t-text-muted">Espaços de magia do Bruxo. Recuperam no descanso curto ou ao dormir.</p>
-    ${getFiendBlessingAmount(char) ? `<button ${RuleTooltips.attributes("Bênção do Obscuro", CharacterEngine.reference("Bênção do Obscuro", "bruxo", "corruptor"))} onclick="triggerBencaoChamasNegras()" class="t-inset px-3 py-2 rounded-lg text-xs font-bold t-text-accent">Bênção do Obscuro · receber ${getFiendBlessingAmount(char)} PV temporários</button><p class="text-[11px] t-text-muted">Ao reduzir uma criatura hostil a 0 PV; não exige que o abate seja com magia.</p>` : ""}
+    <p class="sheet-pact-description t-text-muted">Espaços de magia do Bruxo. Recuperam no descanso curto ou ao dormir.</p>
+    ${renderResourcesAt(char,CharacterEngine,'pact')}
   </section>`;
 }
 
 function renderSpellsToolbar(char) {
   const ids = [...new Set(char.spells.map(sp => sp.classId))].filter(id => Object.hasOwn(PHB_DATA.classes, id));
-  return `<div class="t-card p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
+  return `<div class="t-card p-3 flex flex-wrap items-center justify-between gap-3 text-xs" data-sheet-spell-tools>
     <div class="flex flex-wrap items-center gap-1.5">
       <span class="font-bold t-text-muted mr-1">Classe:</span>
       <button onclick="setSpellClassFilter('all')" class="px-2.5 py-1 rounded font-bold ${spellFilterClass === 'all' ? 't-btn-primary' : 't-inset'}">Todas</button>
       ${ids.map(id => `<button onclick="setSpellClassFilter('${id}')" class="px-2.5 py-1 rounded font-bold ${spellFilterClass === id ? 't-btn-primary' : 't-inset'}">${escapeHTML(RULES_DB.classes[id]?.name || id)}</button>`).join('')}
     </div>
-    <div class="flex flex-wrap gap-2">${char.classes.filter(c => ['prepared','halfPrepared','book'].includes(PHB_DATA.classes[c.classId]?.casting) && (c.classId !== 'paladino' || c.level >= 2)).map(c => `<button class="t-inset px-2.5 py-1 rounded font-bold" onclick="CharacterWizard.openPrepare('${c.classId}')">Preparar magias · ${escapeHTML(RULES_DB.classes[c.classId].name)}</button>`).join('')}</div>
+    <div class="flex flex-wrap items-center gap-2"><button type="button" class="t-inset px-2.5 py-1 rounded font-bold" onclick="openSpellEditor()">+ Magia</button><select class="sheet-field sheet-select" data-sheet-circle aria-label="Adicionar círculo de espaços" ${canConfigureSheet(char)?'':'disabled'}><option value="">+ Círculo</option>${Array.from({length:9},(_,i)=>`<option value="${i+1}">${i+1}º círculo</option>`).join('')}</select>${char.pactMagic.total<=0&&!poolEditorVisible(char,'pact')?'<button type="button" data-sheet-show-pool="pact">+ Pacto</button>':''}${char.sorceryPoints.max<=0&&!poolEditorVisible(char,'sorcery')?'<button type="button" data-sheet-show-pool="sorcery">+ Feitiçaria</button>':''}${spellcastingStatusControls(char,CharacterEngine)}</div>
   </div>`;
 }
 
 // =========================================================================
 // 8. ABA 1 & ABA 3
 // =========================================================================
+function renderSkillAdjustment(char,sk,val,label) {
+  return `<div class="sheet-skill-value">${sheetInput(char,`customSkillBonuses.${sk.id}`,char.customSkillBonuses?.[sk.id]??'',`Bônus total de ${label}`,'number',{min:-1000,max:1000,placeholder:fmtMod(val)})}<button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Perícia: ${label}', true)" aria-label="Rolar ${label}" class="t-text-accent"><i data-lucide="dices" class="w-3 h-3" aria-hidden="true"></i></button><button type="button" data-sheet-expertise="${sk.id}" aria-pressed="${char.expertise?.includes(sk.id)}" title="Especialização: proficiência dobrada" aria-label="Especialização em ${label}" ${canConfigureSheet(char)?'':'disabled'}>${char.expertise?.includes(sk.id)?'×2':'×1'}</button></div>`;
+}
 function renderMainClassic2014(char) {
   const pb = getProfBonus(char);
   const abilitiesHtml = Object.entries(RULES_DB.abilities)
@@ -1673,14 +1758,14 @@ function renderMainClassic2014(char) {
       const score = char.abilities[key].score;
       const mod = getMod(score);
       return `
-    <div class="t-card-accent p-2.5 text-center flex flex-col items-center justify-center">
+    <div class="sheet-ability-card t-card-accent p-2.5 text-center flex flex-col items-center justify-center">
       <span class="text-[10px] font-bold uppercase tracking-wider t-text-muted">${meta.name}</span>
-      <button onclick="triggerSheetRoll('1d20${fmtMod(mod)}', 'Teste de ${meta.name}')" class="text-2xl font-extrabold t-text-main my-0.5 hover:scale-110 transition">
+      <button onclick="triggerSheetRoll('1d20${fmtMod(mod)}', 'Teste de ${meta.name}', true)" class="text-2xl font-extrabold t-text-main my-0.5 hover:scale-110 transition">
         ${fmtMod(mod)}
       </button>
       <div class="flex items-center gap-1 t-inset px-2 py-0.5 rounded-full text-xs">
         <button onclick="changeAbility('${key}', -1)" class="t-text-muted font-bold">-</button>
-        <span class="font-bold px-1">${score}</span>
+        ${sheetInput(char,`abilities.${key}.score`,score,meta.name,'number',{min:0,max:30})}
         <button onclick="changeAbility('${key}', 1)" class="t-text-muted font-bold">+</button>
       </div>
     </div>
@@ -1691,14 +1776,14 @@ function renderMainClassic2014(char) {
   const savesHtml = Object.entries(RULES_DB.abilities)
     .map(([key, meta]) => {
       const isProf = char.abilities[key].saveProf;
-      const val = getMod(char.abilities[key].score) + (isProf ? pb : 0);
+      const val = savingThrow(char,key,CharacterEngine);
       return `
     <div class="flex items-center justify-between py-1 px-2 rounded t-hover text-xs">
       <div onclick="toggleSave('${key}')" class="flex items-center gap-2 cursor-pointer">
         <span class="w-3 h-3 rounded-full border ${isProf ? "t-btn-primary" : "t-border"}"></span>
         <span>${meta.name}</span>
       </div>
-      <button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Salvaguarda de ${meta.name}')" class="font-bold ${isProf ? "t-text-accent" : ""} hover:underline">
+      <button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Salvaguarda de ${meta.name}', true, {type:'save',ability:'${key}'})" class="font-bold ${isProf ? "t-text-accent" : ""} hover:underline">
         ${fmtMod(val)}
       </button>
     </div>
@@ -1716,9 +1801,7 @@ function renderMainClassic2014(char) {
         <span class="w-3 h-3 rounded-full border ${isProf ? "t-btn-primary" : "t-border"}"></span>
         <span>${sk.name2014} <span class="t-text-muted">(${RULES_DB.abilities[sk.ability].short})</span></span>
       </div>
-      <button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Perícia: ${sk.name2014}')" class="font-bold ${isProf ? "t-text-accent" : ""} hover:underline">
-        ${fmtMod(val)}
-      </button>
+      ${renderSkillAdjustment(char,sk,val,sk.name2014)}
     </div>
   `;
     })
@@ -1726,9 +1809,9 @@ function renderMainClassic2014(char) {
 
   return `
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-    <div class="lg:col-span-4 grid grid-cols-12 gap-3">
-      <div class="col-span-4 space-y-2.5">${abilitiesHtml}</div>
-      <div class="col-span-8 space-y-3">
+    <div class="sheet-classic-sidebar lg:col-span-4 grid grid-cols-12 gap-3">
+      <div class="sheet-abilities col-span-4 space-y-2.5">${abilitiesHtml}</div>
+      <div class="sheet-proficiencies col-span-8 space-y-3">
         <div class="t-card p-3">
           <h3 class="text-[11px] font-rpg font-bold uppercase text-center t-text-accent border-b t-border pb-1 mb-2">Testes de Resistência</h3>
           <div class="space-y-0.5">${savesHtml}</div>
@@ -1757,7 +1840,7 @@ function renderMainModern2024(char) {
       const score = char.abilities[key].score;
       const mod = getMod(score);
       const saveProf = char.abilities[key].saveProf;
-      const saveVal = mod + (saveProf ? pb : 0);
+      const saveVal = savingThrow(char,key,CharacterEngine);
       const childSkills = RULES_DB.skills.filter(
         (s) => s.ability === key,
       );
@@ -1770,11 +1853,11 @@ function renderMainModern2024(char) {
           <div class="flex items-center gap-1 mt-1 text-xs">
             <span class="t-text-muted text-[10px]">VALOR:</span>
             <button onclick="changeAbility('${key}', -1)" class="px-1.5 t-inset rounded font-bold">-</button>
-            <span class="font-bold px-1">${score}</span>
+            ${sheetInput(char,`abilities.${key}.score`,score,meta.name,'number',{min:0,max:30})}
             <button onclick="changeAbility('${key}', 1)" class="px-1.5 t-inset rounded font-bold">+</button>
           </div>
         </div>
-        <button onclick="triggerSheetRoll('1d20${fmtMod(mod)}', 'Teste de ${meta.name}')" class="t-inset rounded-lg px-3 py-1 text-center hover:scale-105 transition">
+        <button onclick="triggerSheetRoll('1d20${fmtMod(mod)}', 'Teste de ${meta.name}', true)" class="t-inset rounded-lg px-3 py-1 text-center hover:scale-105 transition">
           <span class="text-[9px] uppercase t-text-muted block">Mod</span>
           <span class="text-xl font-extrabold t-text-accent">${fmtMod(mod)}</span>
         </button>
@@ -1785,7 +1868,7 @@ function renderMainModern2024(char) {
           <span class="w-3 h-3 rune-slot border ${saveProf ? "t-btn-primary" : "t-border"}"></span>
           <span class="font-semibold">Salvaguarda</span>
         </div>
-        <button onclick="triggerSheetRoll('1d20${fmtMod(saveVal)}', 'Salvaguarda de ${meta.name}')" class="font-bold hover:underline">${fmtMod(saveVal)}</button>
+        <button onclick="triggerSheetRoll('1d20${fmtMod(saveVal)}', 'Salvaguarda de ${meta.name}', true, {type:'save',ability:'${key}'})" class="font-bold hover:underline">${fmtMod(saveVal)}</button>
       </div>
 
       <div class="space-y-0.5 pt-0.5">
@@ -1800,9 +1883,7 @@ function renderMainModern2024(char) {
                 <span class="w-2.5 h-2.5 rounded-full border ${isProf ? "t-btn-primary" : "t-border"}"></span>
                 <span>${sk.name2024}</span>
               </div>
-              <button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Perícia: ${sk.name2024}')" class="font-bold ${isProf ? "t-text-accent" : ""} hover:underline">
-                ${fmtMod(val)}
-              </button>
+              ${renderSkillAdjustment(char,sk,val,sk.name2024)}
             </div>
           `;
           })
@@ -1832,10 +1913,10 @@ function renderMainModern2024(char) {
 function renderCombatBlock(char) {
   const isCollapsed = !!collapsedPanels["combat_box"];
   const ac = getCalculatedAC(char);
-  const dexMod = getMod(char.abilities.dex.score);
+  const dexMod = initiativeBonus(char,CharacterEngine);
+  const effective = exhaustion({...char,speed:CharacterEngine.movementSpeed(char)});
 
   // Referência sem consumo/cura automática, conforme a campanha do usuário.
-  const hitDiceHtml = char.classes.map(c => `<div class="t-inset px-2.5 py-1.5 rounded text-xs"><strong>${Number(c.level)}d${Number(c.hitDie)}</strong> · ${escapeHTML(RULES_DB.classes[c.classId]?.name || c.classId)}</div>`).join("");
 
   return `
   <div class="t-card-accent overflow-hidden">
@@ -1844,51 +1925,53 @@ function renderCombatBlock(char) {
         <i data-lucide="${isCollapsed ? "chevron-right" : "chevron-down"}" class="w-4 h-4 t-text-accent"></i>
         <h3 class="font-rpg text-xs font-bold uppercase t-text-accent">Status de Combate & Pontos de Vida</h3>
       </div>
-      <span class="text-xs font-bold">PV: ${char.hpCurrent}/${char.hpMax} | CA: ${ac}</span>
+      <span class="sheet-combat-summary font-bold">PV: ${char.hpCurrent}/${effective.hpMax} | CA: ${ac}</span>
     </div>
 
     ${
       !isCollapsed
         ? `
       <div class="p-4 space-y-3.5">
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
+        <div class="grid grid-cols-3 gap-2.5 text-center">
           <div class="combat-stat t-inset p-2 rounded-lg">
             <span tabindex="0" ${RuleTooltips.attributes('Cálculo da CA', { text: getArmorExplanation(char) })} class="text-[10px] uppercase t-text-muted block cursor-help">CA</span>
-            <span class="text-2xl font-extrabold t-text-accent">${ac}</span>
+            <div class="combat-stat-value">${sheetInput(char,'armorTotal',ac,'CA atual (equipamento, escudo e efeitos inclusos)','number',{min:0})}</div>
             ${char.spells.some(s => s.name === 'Armadura Arcana' || s.bookId === 'armadura-arcana') ? `<button onclick="toggleMageArmor()" class="text-[10px] underline block mx-auto mt-0.5">
               ${char.mageArmorActive ? `Arcana: CA ${getMageArmorAC(char)}` : "Ativar Arcana"}
             </button>` : ''}
           </div>
-          <button onclick="triggerSheetRoll('1d20${fmtMod(dexMod)}', 'Iniciativa')" class="combat-stat t-inset p-2 rounded-lg hover:scale-105 transition">
+          <button onclick="triggerSheetRoll('1d20${fmtMod(dexMod)}', 'Iniciativa', true)" class="combat-stat t-inset p-2 rounded-lg hover:scale-105 transition">
             <span class="text-[10px] uppercase t-text-muted block">Iniciativa</span>
-            <span class="text-2xl font-extrabold">${fmtMod(dexMod)}</span>
+            <span class="combat-stat-value">${fmtMod(dexMod)}</span>
           </button>
           <div class="combat-stat t-inset p-2 rounded-lg">
             <span class="text-[10px] uppercase t-text-muted block">Desloc.</span>
-            <span class="text-2xl font-extrabold">${CharacterEngine.movementSpeed(char)}m</span>
+            <div class="combat-stat-value">${sheetInput(char,'speed',char.speed,'Deslocamento base em metros','number',{min:0,step:'any'})}<span class="combat-stat-unit">m</span></div>${effective.speed!==char.speed?`<small class="block">Em jogo: ${effective.speed} m</small>`:''}
           </div>
-          ${char.sorceryPoints.max > 0 ? `<div class="combat-stat t-inset p-2 rounded-lg">
-            <span class="text-[10px] uppercase t-text-muted block">Pts Feitiçaria</span>
-            <span class="text-2xl font-extrabold t-text-accent">${char.sorceryPoints.current}/${char.sorceryPoints.max}</span>
-          </div>` : ''}
         </div>
+        ${defenseControls(char,CharacterEngine)}
 
         <div class="t-inset p-3 rounded-lg flex flex-wrap items-center justify-between gap-2">
           <div>
             <span class="text-[10px] uppercase t-text-muted block">Pontos de Vida Atuais / Máximos</span>
-            <div class="flex items-center gap-1.5 mt-1">
-              <button onclick="changeHp(-1)" class="px-2 py-0.5 t-card rounded font-bold text-xs">-1</button>
-              <button onclick="changeHp(-5)" class="px-2 py-0.5 t-card rounded font-bold text-xs">-5</button>
-              <span class="text-lg font-extrabold px-2">${char.hpCurrent} / ${char.hpMax}</span>
+            <div class="sheet-hp-values flex flex-wrap items-center gap-1.5 mt-1">
+              <button onclick="changeHp(-1)" title="Dano já resolvido pela mesa. Para resistências automáticas, use Dano detalhado → Calcular por tipo." class="px-2 py-0.5 t-card rounded font-bold text-xs">-1</button>
+              <button onclick="changeHp(-5)" title="Dano já resolvido pela mesa. Para resistências automáticas, use Dano detalhado → Calcular por tipo." class="px-2 py-0.5 t-card rounded font-bold text-xs">-5</button>
+              ${sheetInput(char,'hpCurrent',char.hpCurrent,'PV atuais','number',{min:0})} / ${sheetInput(char,'hpMax',char.hpMax,'PV máximos base','number',{min:1})}${effective.hpMax!==char.hpMax?`<small>Limite atual: ${effective.hpMax}</small>`:''}
               <button onclick="changeHp(1)" class="px-2 py-0.5 t-card rounded font-bold text-xs">+1</button>
               <button onclick="changeHp(5)" class="px-2 py-0.5 t-card rounded font-bold text-xs">+5</button>
             </div>
           </div>
+          <div class="sheet-inspiration rule-context rule-controls" data-inspiration-control>${inspirationControls(char)}</div>
         </div>
 
+        ${deathControls(char,CharacterEngine)}
+        ${conditionControls(char)}
+        ${concentrationControls(char)}
+        ${renderResourcesAt(char,CharacterEngine,'health')}
         <div class="t-inset p-3 rounded-lg space-y-2">
           <div class="flex flex-wrap justify-between items-center gap-2">
-            <span class="font-bold t-text-accent">PV temporários: <strong id="temporaryHpValue">${char.hpTemp}</strong></span>
+            <span class="font-bold t-text-accent">PV temporários: <span id="temporaryHpValue">${sheetInput(char,'hpTemp',char.hpTemp,'PV temporários atuais','number',{min:0})}</span></span>
             <button onclick="clearTemporaryHp()" ${char.hpTemp <= 0 ? "disabled" : ""} class="text-xs underline disabled:opacity-40">Remover PV temporários</button>
           </div>
           ${char.hpTempSource ? `<p class="text-[11px] t-text-muted">Origem: ${escapeHTML(char.hpTempSource)}</p>` : ""}
@@ -1901,7 +1984,7 @@ function renderCombatBlock(char) {
           <p class="text-[11px] t-text-muted">Não se somam: escolha manter os atuais ou receber o novo valor. Absorvem dano antes dos PV normais; cura não os recupera.</p>
         </div>
 
-        <div class="space-y-1.5"><p class="text-[11px] font-bold t-text-muted" tabindex="0" ${RuleTooltips.attributes('Dados de Vida · rolagem manual', HIT_DICE_RULE)}>Dados de Vida · rolagem manual</p><div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${hitDiceHtml}</div></div>
+        <div class="space-y-1.5">${hitDiceControls(char,CharacterEngine)}${hitDiceRecoveryControls(char,CharacterEngine)}</div>
       </div>
     `
         : ""
@@ -1913,7 +1996,7 @@ function renderCombatBlock(char) {
 function renderAttacksBlock(char) {
   const isCollapsed = !!collapsedPanels["weapons_box"];
   return `
-  <div class="t-card overflow-hidden">
+  <div class="t-card overflow-hidden" data-sheet-weapons>
     <div onclick="togglePanel('weapons_box')" class="p-3 border-b t-border flex items-center justify-between cursor-pointer t-hover">
       <div class="flex items-center gap-2">
         <i data-lucide="${isCollapsed ? "chevron-right" : "chevron-down"}" class="w-4 h-4 t-text-accent"></i>
@@ -1930,21 +2013,26 @@ function renderAttacksBlock(char) {
             const w = CharacterEngine.weaponStats(char, storedWeapon);
             const validDamage = !!parseDiceFormula(w.damage);
             return `
-            <div class="t-inset p-2.5 rounded-lg flex flex-wrap items-center justify-between gap-2 text-xs">
-              <div>
-                <div class="flex items-center gap-1.5">
-                  <button class="font-bold underline decoration-dotted text-left" onmouseenter="showEquipmentTooltip(event, 'weapon', ${idx})" onmousemove="positionTooltip(event)" onmouseleave="hideBookTooltip()" onfocus="showEquipmentTooltip(event, 'weapon', ${idx})" onblur="hideBookTooltip()" onclick="showEquipmentTooltip(event, 'weapon', ${idx})" aria-label="Descrição de ${escapeHTML(w.name)}">${escapeHTML(w.name)}</button>
-                  <button onclick="openHomebrewModal('weapon', ${idx})" class="t-text-muted hover:opacity-100" aria-label="Editar ataque ${escapeHTML(w.name)}"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
+            <div class="weapon-card t-inset p-2.5 rounded-lg text-xs" data-weapon-card="${idx}">
+                <div class="weapon-heading">
+                  <button class="min-w-0 font-bold underline decoration-dotted text-left" onmouseenter="showEquipmentTooltip(event, 'weapon', ${idx})" onmousemove="positionTooltip(event)" onmouseleave="hideBookTooltip()" onfocus="showEquipmentTooltip(event, 'weapon', ${idx})" onblur="hideBookTooltip()" onclick="showEquipmentTooltip(event, 'weapon', ${idx})" aria-label="Descrição de ${escapeHTML(w.name)}">${escapeHTML(w.name)}</button>
+                  <button onclick="openHomebrewModal('weapon', ${idx})" class="shrink-0 t-text-muted hover:opacity-100" aria-label="Editar ataque ${escapeHTML(w.name)}"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
                 </div>
-                <span class="text-[11px] t-text-muted block">${escapeHTML(w.notes)}</span>
-              </div>
-              <div class="flex items-center gap-1.5">
+                <p class="weapon-description t-text-muted">${escapeHTML(w.notes)}${w.critical?`${w.notes?' · ':''}Crítico ${w.critical===20?'20':`${w.critical}–20`}`:''}</p>
+
+              <div class="weapon-rolls">
                 <button onclick="rollWeapon(${idx}, 'attack')" class="px-2 py-1 badge-feiticeiro rounded font-bold">
                   Atq ${escapeHTML(w.bonus)}
                 </button>
-                <button onclick="rollWeapon(${idx}, 'damage')" class="px-2.5 py-1 t-btn-primary rounded font-extrabold shadow-sm">
-                  ${validDamage ? `Dano ${escapeHTML(w.damage)}` : "Corrigir dano"}
+                <button onclick="rollWeapon(${idx}, 'damage')" data-weapon-damage-label="${idx}" class="weapon-damage-button px-2.5 py-1 t-btn-primary rounded font-extrabold shadow-sm">
+                  <span aria-hidden="true" class="weapon-damage-sizer">${validDamage?escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine,false)):''}</span>
+                  <span aria-hidden="true" class="weapon-damage-sizer">${validDamage?escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine,true)):''}</span>
+                  <span data-weapon-damage-text>${validDamage ? escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine)) : "Corrigir dano"}</span>
                 </button>
+              </div>
+              <div class="weapon-secondary">
+                ${w.ruleWeapon && /vers[aá]til/i.test(w.properties || '') ? `<label class="weapon-grip">Mãos <select data-weapon-hands="${idx}" onchange="setWeaponHands(${idx},this.value)" aria-label="Mãos para ${escapeHTML(w.name)}"><option value="1" ${storedWeapon.hands!==2?'selected':''}>1 mão</option><option value="2" ${storedWeapon.hands===2?'selected':''}>2 mãos</option></select></label>`:''}
+                ${validDamage && w.damage!=='0'?renderWeaponDamageTools(char,storedWeapon,idx,CharacterEngine):''}
               </div>
             </div>
           `;
@@ -1959,24 +2047,32 @@ function renderAttacksBlock(char) {
 }
 
 function renderFeaturesCollapsible(char, wide = false) {
-  // O layout 2024 usa a largura da ficha para não concentrar os ganhos
-  // sob os ataques. As colunas usam fluxo nativo: o texto e o tópico abaixo
-  // nunca esperam ResizeObserver para deixar de se sobrepor. A leitura segue
-  // por coluna e a ordem do HTML, igual no celular e ao navegar por teclado.
+  // Cada classe aparece uma vez. Na ficha larga, a divisão acontece entre
+  // níveis inteiros, conservando a leitura por coluna e os controles do ganho.
   const isCollapsed = !!collapsedPanels.features_box;
-  const gains = CharacterEngine.features(char);
-  const entries = gains.map(g => `<details><summary ${RuleTooltips.attributes(g.name, g.reference)} class="cursor-pointer"><strong>Nv. ${g.level} · ${escapeHTML(g.name)}</strong><span class="block t-text-muted text-[11px]">${escapeHTML(g.source)}</span></summary>${g.choices?.length ? `<p class="my-2 font-semibold">${g.choices.map(escapeHTML).join(" · ")}</p>` : ""}${g.reference ? `<p class="feature-description">${escapeHTML(RuleTooltips.formatText(g.reference.text))}</p><a class="underline" target="_blank" rel="noopener" href="book.html#page=${g.reference.pdfPage}">Consultar no livro · p. ${g.reference.page}</a>` : '<p class="t-text-muted">Consulte a seção desta classe no livro.</p>'}</details>`);
-  if (char.features?.length) entries.push(`<details><summary class="cursor-pointer font-bold">Anotações e adaptações já presentes nesta ficha</summary><ul class="list-disc pl-4 space-y-2 mt-2">${char.features.map(text => `<li>${escapeHTML(text)}</li>`).join('')}</ul></details>`);
+  const columns = items => wide && items.length>1
+    ? `<div class="feature-levels">${[items.slice(0,Math.ceil(items.length/2)),items.slice(Math.ceil(items.length/2))].map(column=>`<div class="feature-column">${column.join('')}</div>`).join('')}</div>`
+    : items.join('');
+  const entries = featureGroups(char,CharacterEngine).map(group => {
+    const levels=group.levels.map(level=>{
+      const items=level.entries.map(({gain:g,index,controls})=>{
+        const disclosure=`feature:${g.classId || g.source}:${g.level}:${index}`;
+        return `<section class="feature-entry">${featureConsultButton(g,disclosure,group.label,controls[0]?.note)}${renderResourceControls(char,CharacterEngine,controls,controls.length>1 || g.name==='Juramento Sagrado')}</section>`;
+      });
+      return `<section class="feature-level" data-feature-level="${level.level}">${group.classId?`<h5 class="feature-level-title">Nível ${level.level}</h5>`:''}${group.classId?items.join(''):columns(items)}</section>`;
+    });
+    return `<section class="feature-group" data-feature-group="${escapeHTML(group.key)}"><h4 class="feature-group-title t-text-accent">${escapeHTML(group.label)}</h4>${columns(levels)}</section>`;
+  });
+  if (char.features?.length) entries.push(`<details><summary class="cursor-pointer font-bold">Anotações e adaptações já presentes nesta ficha</summary><ul class="list-disc pl-4 space-y-2 mt-2">${char.features.map((text,i) => `<li data-sheet-feature-row="${i}"><span>${escapeHTML(readableText(text))}</span> <button type="button" class="underline" onclick="openHomebrewModal('feature',${i})">Editar</button></li>`).join('')}</ul></details>`);
   const multiclass = CharacterEngine.multiclassNotes(char);
   if (multiclass.length) entries.push(`<details><summary class="cursor-pointer font-bold">Interações de multiclasse</summary><ul class="list-disc pl-4 space-y-2 mt-2">${multiclass.map(note => `<li><strong>${escapeHTML(note.name)}</strong>: ${escapeHTML(note.text)} <a class="underline" href="book.html#page=${note.pdfPage}" target="_blank" rel="noopener">Livro · p. ${note.page}</a></li>`).join('')}</ul></details>`);
-  entries.push(`<details><summary class="cursor-pointer font-bold">Proficiências e idiomas</summary>${char.armorProficiencies ? `<p>Armaduras: ${char.armorProficiencies.map(a => ({leve: 'leves', media: 'médias', pesada: 'pesadas', escudo: 'escudos'})[a] || a).map(escapeHTML).join(', ') || 'nenhuma'}</p>` : ''}<p>Armas: ${escapeHTML(char.proficiencies.weapons)}</p><p>Ferramentas: ${escapeHTML(char.proficiencies.tools)}</p><p>Idiomas: ${escapeHTML(char.proficiencies.languages)}</p></details>`);
-  const middle = Math.ceil(entries.length / 2);
-  const content = wide ? [entries.slice(0,middle), entries.slice(middle)].map(column => `<div class="feature-column">${column.join('')}</div>`).join('') : entries.join('');
-  return `<div class="t-card overflow-hidden">
+  entries.push(`<details data-sheet-section="proficiencies"><summary class="cursor-pointer font-bold">Proficiências e idiomas</summary><div class="flex flex-wrap gap-2">${Object.entries({leve:'Leves',media:'Médias',pesada:'Pesadas',escudo:'Escudos'}).map(([id,label])=>`<label class="flex items-center gap-1"><input type="checkbox" data-sheet-armor="${id}" ${armorProficiencies(char,CharacterEngine).includes(id)?'checked':''} ${canConfigureSheet(char)?'':'disabled'}> ${label}</label>`).join('')}</div><label>Armas: ${sheetInput(char,'proficiencies.weapons',char.proficiencies.weapons,'Proficiências · Armas','text',{wide:true})}</label><label>Ferramentas: ${sheetInput(char,'proficiencies.tools',char.proficiencies.tools,'Proficiências · Ferramentas','text',{wide:true})}</label><label>Idiomas: ${sheetInput(char,'proficiencies.languages',char.proficiencies.languages,'Proficiências · Idiomas','text',{wide:true})}</label></details>`);
+  const content = entries.join('');
+  return `<div class="t-card overflow-hidden" data-sheet-features>
     <div onclick="togglePanel('features_box')" class="p-3 border-b t-border flex items-center gap-2 cursor-pointer t-hover">
       <i data-lucide="${isCollapsed ? 'chevron-right' : 'chevron-down'}" class="w-4 h-4 t-text-accent"></i>
-      <h3 class="font-rpg text-xs font-bold uppercase t-text-accent">Características & escolhas</h3>
-    </div>${isCollapsed ? '' : `<div data-size-motion><div data-size-content class="p-3 feature-list${wide ? ' feature-list-wide' : ''} text-xs">${content}</div></div>`}</div>`;
+      <h3 class="font-rpg text-xs font-bold uppercase t-text-accent">Características & escolhas</h3><button type="button" class="ml-auto text-[10px] font-bold t-text-accent" onclick="event.stopPropagation();openHomebrewModal('feature')">+ Característica</button>
+    </div>${isCollapsed ? '' : `<div data-size-motion><div data-size-content class="p-3 feature-list feature-list-grouped${wide ? ' feature-list-wide' : ''} text-xs">${content}</div></div>`}</div>`;
 }
 
 // Notas ficam fora da ficha/snapshots, no mesmo espaço local da conta atual.
@@ -1998,10 +2094,14 @@ function renderPrivateNotes(char) {
 }
 
 function toggleWornArmor(index) {
+  if(!requireSheetEdit())return;
   const char = getChar(), item = char.inventoryItems[index];
   const armor = CharacterEngine.armorInfo(item?.name);
   if (!armor) return;
-  if (armor.type === 'shield') char.shieldEquipped = !char.shieldEquipped;
+  if (armor.type === 'shield') {
+    const same = char.shieldName ? char.shieldName===item.name : item.name==='Escudo';
+    char.shieldEquipped = !(same && char.shieldEquipped); char.shieldName = item.name;
+  }
   else char.armorEquipped = char.armorEquipped === item.name ? null : item.name;
   recordStepAndSave(`Alterou equipamento vestido: ${item.name}`);
 }
@@ -2011,20 +2111,17 @@ function renderLoreSection(char) {
   const curLoadKg = getCurrentLoadKg(char);
   return `
   <div class="grid grid-cols-1 lg:grid-cols-12 gap-5">
-    <div class="lg:col-span-6 t-card-accent p-4 space-y-4 text-xs self-start">
+    <div class="lg:col-span-6 t-card-accent p-4 space-y-4 text-xs self-start" data-sheet-inventory>
       <div class="flex justify-between items-center border-b t-border pb-2">
         <h3 class="font-rpg font-bold uppercase t-text-accent">Equipamento, Tesouros & Moedas</h3>
         <button onclick="openHomebrewModal('item')" class="font-bold t-text-accent underline">+ Novo item</button>
       </div>
-      <p class="t-text-muted">${char.inventoryItems.some(item => item.weightUnreviewed) ? "Carga conhecida" : "Carga"}: ${curLoadKg.toFixed(1)} / ${maxLoadKg} kg · Passe o mouse ou toque no nome para ver a descrição.</p>
-      <div class="grid grid-cols-5 gap-2 text-center">
+      <p class="sheet-inventory-load t-text-muted">${char.inventoryItems.some(item => item.weightUnreviewed) ? "Carga conhecida" : "Carga"}: ${curLoadKg.toFixed(1)} / ${maxLoadKg} kg (inclui moedas) · Passe o mouse ou toque no nome para ver a descrição.</p>
+      <div class="sheet-coins grid grid-cols-5 gap-2 text-center">
         ${Object.entries(char.coins)
           .map(
             ([coin, val]) => `
-          <button type="button" onclick="openHomebrewModal('coins')" aria-label="Editar moedas: ${escapeHTML(coin.toUpperCase())}" title="Editar moedas" class="t-inset p-2 rounded-lg t-hover">
-            <span class="uppercase text-[10px] t-text-muted font-bold block">${escapeHTML(coin)}</span>
-            <span class="font-extrabold text-sm t-text-accent">${escapeHTML(val)}</span>
-          </button>
+          <label class="t-inset p-2 rounded-lg"><span class="uppercase text-[10px] t-text-muted font-bold block">${escapeHTML(coin)}</span>${sheetInput(char,`coins.${coin}`,val,`Moedas ${coin.toUpperCase()}`,'number',{min:0})}</label>
         `,
           )
           .join("")}
@@ -2033,7 +2130,7 @@ function renderLoreSection(char) {
         ${char.inventoryItems
           .map(
             (item, idx) => `
-          <div class="flex items-center justify-between gap-2 t-inset px-3 py-1.5 rounded">
+          <div class="flex flex-wrap items-center justify-between gap-2 t-inset px-3 py-1.5 rounded" data-sheet-item="${idx}">
             <button class="text-left underline decoration-dotted" onmouseenter="showEquipmentTooltip(event, 'item', ${idx})" onmousemove="positionTooltip(event)" onmouseleave="hideBookTooltip()" onfocus="showEquipmentTooltip(event, 'item', ${idx})" onblur="hideBookTooltip()" onclick="showEquipmentTooltip(event, 'item', ${idx})"><strong>${item.qty}x</strong> ${escapeHTML(item.name)}</button>
             <div class="flex flex-wrap justify-end items-center gap-2 shrink-0">${CharacterEngine.armorInfo(item.name) ? `<button class="underline" onclick="toggleWornArmor(${idx})">${(CharacterEngine.armorInfo(item.name).type === 'shield' ? char.shieldEquipped : char.armorEquipped === item.name) ? 'Retirar' : 'Equipar'}</button>` : ''}<span class="text-[10px] t-text-muted">${item.weightUnreviewed ? "Peso a conferir" : (item.weightKg * item.qty).toFixed(1) + " kg"}</span><button onclick="openHomebrewModal('item', ${idx})" aria-label="Editar item ${escapeHTML(item.name)}"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button></div>
           </div>
@@ -2043,19 +2140,19 @@ function renderLoreSection(char) {
       </div>
     </div>
 
-    <div class="lg:col-span-6 t-card-accent p-4 space-y-3 text-xs self-start">
-      <div class="flex justify-between items-center border-b t-border pb-2 gap-2"><h3 class="font-rpg font-bold uppercase t-text-accent">Crônica & Personalidade</h3><button type="button" onclick="openHomebrewModal('lore')" aria-label="Editar crônica e personalidade" class="underline font-bold t-text-accent">Editar</button></div>
+    <div class="lg:col-span-6 t-card-accent p-4 space-y-3 text-xs self-start" data-sheet-lore>
+      <div class="flex justify-between items-center border-b t-border pb-2 gap-2"><h3 class="font-rpg font-bold uppercase t-text-accent">Crônica & Personalidade</h3></div>
       <div class="t-inset p-3 rounded-lg space-y-1.5">
-        <div><strong class="t-text-accent">Personalidade:</strong> <span class="whitespace-pre-line">${escapeHTML(char.lore.traits)}</span></div>
-        <div><strong class="t-text-accent">Ideais:</strong> <span class="whitespace-pre-line">${escapeHTML(char.lore.ideals)}</span></div>
-        <div><strong class="t-text-accent">Ligações:</strong> <span class="whitespace-pre-line">${escapeHTML(char.lore.bonds)}</span></div>
-        <div><strong class="t-text-accent">Defeitos:</strong> <span class="whitespace-pre-line">${escapeHTML(char.lore.flaws)}</span></div>
+        <div><strong class="t-text-accent">Personalidade:</strong> ${sheetText(char,'lore.traits',char.lore.traits,'Personalidade')}</div>
+        <div><strong class="t-text-accent">Ideais:</strong> ${sheetText(char,'lore.ideals',char.lore.ideals,'Ideais')}</div>
+        <div><strong class="t-text-accent">Ligações:</strong> ${sheetText(char,'lore.bonds',char.lore.bonds,'Ligações')}</div>
+        <div><strong class="t-text-accent">Defeitos:</strong> ${sheetText(char,'lore.flaws',char.lore.flaws,'Defeitos')}</div>
       </div>
-      <div class="t-inset p-3 rounded-lg leading-relaxed">
+      <div class="sheet-backstory t-inset p-3 rounded-lg">
         <strong class="t-text-accent block mb-1 uppercase text-[10px]">História do Personagem</strong>
-        <span class="whitespace-pre-line">${escapeHTML(char.lore.backstory)}</span>
+        ${sheetText(char,'lore.backstory',char.lore.backstory,'História do personagem')}
       </div>
-      <details class="t-inset p-3 rounded-lg"><summary class="cursor-pointer font-bold">Aparência, aliados e tesouros</summary><div class="space-y-1.5 mt-2">${Object.entries({age:'Idade',height:'Altura',weight:'Peso',eyes:'Olhos',skin:'Pele',hair:'Cabelo'}).filter(([key]) => char.physical?.[key]).map(([key,label]) => `<p><strong>${label}:</strong> ${escapeHTML(char.physical[key])}</p>`).join('')}${['appearance','allies','treasure'].filter(key=>char.lore[key]).map(key=>`<p><strong>${{appearance:'Aparência',allies:'Aliados',treasure:'Tesouros'}[key]}:</strong> ${escapeHTML(char.lore[key])}</p>`).join('')}</div></details>
+      <details class="t-inset p-3 rounded-lg" data-sheet-section="appearance"><summary class="cursor-pointer font-bold">Aparência, aliados e tesouros</summary><div class="space-y-1.5 mt-2">${Object.entries({age:'Idade',height:'Altura',weight:'Peso',eyes:'Olhos',skin:'Pele',hair:'Cabelo'}).map(([key,label]) => `<label><strong>${label}:</strong> ${sheetInput(char,`physical.${key}`,char.physical?.[key]||'',label,'text',{wide:true})}</label>`).join('')}${['appearance','allies','treasure'].map(key=>`<label><strong>${{appearance:'Aparência',allies:'Aliados',treasure:'Tesouros'}[key]}:</strong> ${sheetText(char,`lore.${key}`,char.lore[key],{appearance:'Aparência',allies:'Aliados',treasure:'Tesouros'}[key])}</label>`).join('')}</div></details>
       ${renderPrivateNotes(char)}
     </div>
   </div>
@@ -2066,6 +2163,11 @@ function renderLoreSection(char) {
 // 9. RENDERALL & EVENTOS GERAIS
 // =========================================================================
 function renderAll() {
+  const inlineFields=captureSheetFields();
+  beginSheetRender();
+  try {
+  parkSheetPanels();
+  if(historyOwnerId!==(getChar()?.id || null)) restoreSavedHistory();
   const panelPositions = window.PanelFlow?.capture(document.getElementById("sheetViewport"));
   window.PanelFlow?.dispose();
   RuleTooltips.hide();
@@ -2080,6 +2182,7 @@ function renderAll() {
   document.documentElement.style.fontSize = `${(16 * currentFontScale) / 100}px`;
 
   const char = getChar();
+  updateSheetLockUI(char);
   document.getElementById("charSelect").innerHTML = characters
     .map((c, idx) => {
       const clsStr = c.classes
@@ -2097,7 +2200,7 @@ function renderAll() {
   document.getElementById("btnRedo").disabled =
     historyPointer >= historyStack.length - 1;
   document.getElementById("historyCountBadge").textContent =
-    `${historyPointer}/${historyStack.length - 1}`;
+    `${historyPointer}/${Math.max(0,historyStack.length - 1)}`;
   renderHistoryDrawerList();
 
   ["pergaminho_claro", "pergaminho_escuro", "obsidiana"].forEach((th) => {
@@ -2181,6 +2284,8 @@ function renderAll() {
   renderHeader(char, isModern);
 
   const viewport = document.getElementById("sheetViewport");
+  const sameCharacter=viewport.dataset.character===char.id && viewport.dataset.workspace===currentWorkspaceKey();
+  const previousConditions=sameCharacter?viewport.querySelector('[data-rule-disclosure="conditions"]'):null;
   if (currentTab === "main") {
     viewport.innerHTML = isModern
       ? renderMainModern2024(char)
@@ -2190,10 +2295,28 @@ function renderAll() {
   } else {
     viewport.innerHTML = renderLoreSection(char);
   }
+  viewport.dataset.character=char.id;viewport.dataset.workspace=currentWorkspaceKey();
+  retainConditionNodes(previousConditions,viewport);
+  restoreSheetPanels();
+  restoreSheetFields(inlineFields);
+  document.querySelectorAll('.rule-context input,.rule-context select,.rule-inline input,.rule-inline select,[data-sheet-show-pool]').forEach(el=>{if(!canEditSheet(char))el.disabled=true;});
+  document.querySelectorAll('[data-sheet-add-class],[data-sheet-remove-class],[data-sheet-circle],[data-sheet-show-pool]').forEach(el=>{el.hidden=!canConfigureSheet(char);el.disabled=!canConfigureSheet(char);});
+  document.querySelectorAll('[data-sheet-armor],[data-sheet-expertise],[data-rule-ac],[data-rule-defense],[data-rule-companion="name"],[data-rule-companion="max"]').forEach(el=>el.disabled=!canConfigureSheet(char));
+  document.querySelectorAll('[onclick]').forEach(el=>{
+    const action=el.getAttribute('onclick')||'',configuration=/\b(?:changeAbility|toggleSave|toggleSkill|openHomebrewModal|openSpellEditor)\(/.test(action);
+    if(configuration||/\b(?:toggleWornArmor|undoStep|redoStep|restoreToSessionStart|openLevelUpModal)\(/.test(action)){
+      const allowed=configuration?canConfigureSheet(char):canEditSheet(char);
+      if('disabled' in el)el.disabled=!allowed;el.setAttribute('aria-disabled',String(!allowed));
+      if(configuration&&el.tagName==='BUTTON')el.hidden=!allowed;
+      if(action.includes('openLevelUpModal'))el.title=allowed?'Evoluir personagem':'Edição bloqueada pelo mestre.';
+      if(configuration&&!allowed)el.title=canEditSheet(char)?'Abra o cadeado para editar a ficha.':'Edição bloqueada pelo mestre.';
+    }
+  });
 
   if (window.lucide) window.lucide.createIcons();
   window.PanelFlow?.mount(viewport, panelPositions);
   window.SizeMotion?.refresh();
+  } finally {endSheetRender();}
 }
 
 const WIZARD_STEP_LABELS = [
@@ -2228,56 +2351,52 @@ function resumeSavedDraftIfNeeded() {
 function renderHeader(char, isModern) {
   const totalLvl = getTotalLevel(char);
   const pb = getProfBonus(char);
-  const classChips = char.classes
-    .map((c) => {
-      const meta = RULES_DB.classes[c.classId];
-      const sub = PHB_DATA.classes[c.classId]?.subclasses[c.subclassId || CharacterEngine.inferSubclass(c)];
-      return `<span tabindex="0" ${RuleTooltips.attributes(sub?.name || meta?.name, CharacterEngine.reference(sub?.name || meta?.name || '', c.classId, c.subclassId || CharacterEngine.inferSubclass(c)))} class="px-2 py-0.5 rounded text-[11px] font-bold ${meta?.badgeColor}">${meta?.name} (${escapeHTML(c.subclass)}) Nv. ${c.level}</span>`;
-    })
-    .join(" ");
+  const classChips = char.classes.map((c,i)=>`<div class="sheet-class-chip ${RULES_DB.classes[c.classId]?.badgeColor||'t-inset'}"><div class="sheet-class-main">${sheetSelect(char,`classes.${i}.classId`,c.classId,`Classe ${i+1}`,Object.fromEntries(Object.entries(PHB_DATA.classes).map(([id,v])=>[id,v.name])))}<span class="sheet-class-level">Nv. ${sheetInput(char,`classes.${i}.level`,c.level,`Nível de ${RULES_DB.classes[c.classId]?.name}`,'number',{min:1,max:20})}</span><button type="button" data-sheet-remove-class="${i}" aria-label="Remover ${RULES_DB.classes[c.classId]?.name}" ${char.classes.length<2||!canConfigureSheet(char)?'disabled':''}>×</button></div><details class="sheet-class-subclass" data-sheet-section="subclass-${i}"><summary title="${escapeHTML(c.subclass||'Subclasse a escolher')}">${escapeHTML(c.subclass||'Subclasse a escolher')}</summary>${sheetSelect(char,`classes.${i}.subclassId`,c.subclassId||'',`Subclasse de ${RULES_DB.classes[c.classId]?.name}`,{'':'Livre / a escolher',...Object.fromEntries(Object.entries(PHB_DATA.classes[c.classId]?.subclasses||{}).map(([id,v])=>[id,v.name]))})}${!c.subclassId?sheetInput(char,`classes.${i}.subclass`,c.subclass,'Subclasse escrita','text',{wide:true}):''}</details></div>`).join('')+`<button type="button" data-sheet-add-class ${canConfigureSheet(char)?'':'disabled'} class="text-xs underline">+ Classe</button>`;
   const draftInfo = getSavedDraftInfo();
   const draftBanner = draftInfo
     ? `<div class="t-inset px-2.5 py-1.5 rounded-lg mb-2 flex flex-wrap items-center justify-between gap-2 text-xs" data-draft-banner><span><strong>Criação em andamento:</strong> ${escapeHTML(draftInfo.name)}${draftInfo.summary ? ` (${escapeHTML(draftInfo.summary)})` : ''} · Etapa ${draftInfo.stepIndex + 1} de 7 (${escapeHTML(draftInfo.stepLabel)})</span><div class="flex flex-wrap items-center gap-1.5"><button type="button" class="t-btn-primary px-2.5 py-1 rounded font-bold" onclick="openNewCharacterModal()">Continuar de onde parou</button><button type="button" class="t-card px-2.5 py-1 rounded font-bold text-rose-500 border t-border" onclick="CharacterWizard.discardDraft()">Descartar rascunho</button></div></div>`
     : "";
 
   const headerEl = document.getElementById("headerSection");
-  headerEl.className = "px-3 py-2.5 t-card-accent";
+  headerEl.className = "px-3 py-2 t-card-accent";
+  headerEl.dataset.editing=String(canConfigureSheet(char));
   headerEl.innerHTML = `${draftBanner}
-  <div class="grid grid-cols-1 md:grid-cols-12 gap-2.5 items-center">
-    <div class="md:col-span-5 flex items-center gap-2.5 min-w-0">
+  <div class="sheet-header-layout">
+    <div class="sheet-header-person">
       <button type="button" class="portrait-edit shrink-0" data-avatar-edit="${escapeHTML(char.id)}" aria-label="Alterar imagem de ${escapeHTML(char.name)}" title="Alterar imagem do personagem">${avatarMarkup(char.avatar)}</button>
       <div class="w-full min-w-0">
-        <div class="text-[10px] uppercase tracking-wider t-text-muted truncate">D&D 5e • Jogador: ${escapeHTML(char.playerName)}${getSpellcastingHeader(char) ? ` • ${getSpellcastingHeader(char)}` : ""}</div>
-        <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-          <input type="text" value="${escapeHTML(char.name)}" onchange="updateField('name', this.value)" class="bg-transparent text-lg sm:text-xl font-rpg font-bold t-text-main border-b t-border focus:outline-none min-w-[9rem] flex-1 leading-tight" />
-          <div class="flex flex-wrap gap-1 items-center">${classChips}</div>
+        <div class="sheet-header-meta t-text-muted">D&D 5e · Jogador: ${sheetInput(char,'playerName',char.playerName,'Jogador')}${canEditSheet(char)?'':' · Edição bloqueada pelo mestre'}</div>
+        <div class="sheet-header-name">
+          ${sheetInput(char,'name',char.name,'Nome do personagem','text',{wide:true})}
         </div>
       </div>
+      ${getSpellcastingHeader(char)?`<div class="sheet-casting-summary t-text-muted">${getSpellcastingHeader(char)}</div>`:""}
     </div>
-    <div class="md:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
-      <div class="t-inset px-2.5 py-1.5 rounded-lg">
-        <div class="t-text-muted text-[9px] uppercase leading-tight">${isModern ? "Espécie" : "Raça"}</div>
-        <div class="font-bold text-xs sm:text-sm truncate">${escapeHTML(char.race)}</div>
+    <div class="sheet-header-facts">
+      <div class="sheet-identity-card t-inset">
+        <div class="sheet-identity-label t-text-muted">${isModern ? "Espécie" : "Raça"}</div>
+        <div class="sheet-identity-value">${sheetInput(char,'race',char.race,'Raça / espécie','text',{wide:true})}</div>
       </div>
-      <div class="t-inset px-2.5 py-1.5 rounded-lg">
-        <div class="t-text-muted text-[9px] uppercase leading-tight">Antecedente</div>
-        <div class="font-bold text-xs sm:text-sm truncate">${escapeHTML(char.background)}</div>
+      <div class="sheet-identity-card t-inset">
+        <div class="sheet-identity-label t-text-muted">Antecedente</div>
+        <div class="sheet-identity-value">${sheetInput(char,'background',char.background,'Antecedente','text',{wide:true})}</div>
       </div>
-      <div class="t-inset px-2.5 py-1.5 rounded-lg">
-        <div class="t-text-muted text-[9px] uppercase leading-tight">Tendência</div>
-        <div class="font-bold text-xs sm:text-sm truncate">${escapeHTML(char.alignment)}</div>
+      <div class="sheet-identity-card t-inset">
+        <div class="sheet-identity-label t-text-muted">Tendência</div>
+        <div class="sheet-identity-value">${sheetInput(char,'alignment',char.alignment,'Tendência','text',{wide:true})}</div>
       </div>
-      <div class="t-inset px-2.5 py-1.5 rounded-lg flex justify-between items-center gap-1">
+      <div class="sheet-identity-card sheet-level-card t-inset">
         <div>
-          <div class="t-text-muted text-[9px] uppercase leading-tight">Nível</div>
-          <div class="font-bold text-xs sm:text-sm t-text-accent">Nv. ${totalLvl}</div>
+          <div class="sheet-identity-label t-text-muted">Nível</div>
+          <div class="sheet-identity-value t-text-accent">Nv. ${totalLvl}</div><label class="sheet-xp t-text-muted">XP ${sheetInput(char,'xp',char.xp||0,'Pontos de experiência','number',{min:0})}</label>
         </div>
         <div class="text-right">
-          <div class="t-text-muted text-[9px] uppercase leading-tight">Prof.</div>
-          <div class="font-extrabold text-sm sm:text-base t-text-accent leading-none">+${pb}</div>
+          <div class="sheet-identity-label t-text-muted">Prof.</div>
+          <div class="sheet-proficiency-value t-text-accent">+${pb}</div>
         </div>
       </div>
     </div>
+    <div class="sheet-header-classes">${classChips}</div>
   </div>
 `;
 }
@@ -2294,7 +2413,7 @@ function showHomebrewError(inputId, message) {
 }
 
 function getHomebrewFormState() {
-  return JSON.stringify([...document.querySelectorAll("#hbModalBody input, #hbModalBody textarea")]
+  return JSON.stringify([...document.querySelectorAll("#hbModalBody input, #hbModalBody select, #hbModalBody textarea")]
     .map((input) => [input.id, input.value, input.checked]));
 }
 
@@ -2338,6 +2457,7 @@ function renderWeaponDamageBuilder(modifierChanged = false) {
 }
 
 function saveCharacterCoins(values) {
+  if(!requireSheetConfiguration())return;
   // Validar o conjunto inteiro antes de alterar qualquer moeda. Não converte unidades.
   const next = {};
   for (const key of Object.keys(COIN_LABELS)) {
@@ -2354,6 +2474,7 @@ function saveCharacterCoins(values) {
   recordStepAndSave("Editou as quantidades de moedas");
 }
 async function saveCharacterLore(values, physical = {}) {
+  if(!requireSheetConfiguration())return false;
   const char = getChar(), lore = { ...char.lore }, body = { ...char.physical }, cleared = [];
   for (const [group,labels,target,previous] of [[values,LORE_LABELS,lore,char.lore || {}],[physical,PHYSICAL_LABELS,body,char.physical || {}]]) {
     for (const [key,label] of Object.entries(labels)) {
@@ -2364,6 +2485,7 @@ async function saveCharacterLore(values, physical = {}) {
     }
   }
   if (cleared.length && !await confirmDestructiveAction("Apagar textos preenchidos?", `Estes campos ficarão vazios: ${cleared.join(", ")}. Você poderá desfazer nesta sessão.`, "Apagar e salvar")) return false;
+  if(char!==getChar()||!canConfigureSheet(char))return false;
   // Biografia pertence à ficha; nunca modifica o armazenamento das notas privadas.
   char.lore = lore; char.physical = body;
   closeHomebrewModal(true);
@@ -2372,8 +2494,15 @@ async function saveCharacterLore(values, physical = {}) {
 }
 
 function openHomebrewModal(type, index = null) {
+  if(!requireSheetConfiguration())return;
+  if (type === 'spell') return window.openSpellEditor(index);
+  if(!document.getElementById('homebrewModal').classList.contains('hidden')&&homebrewInitialState!==getHomebrewFormState()){showToast('Conclua ou feche a edição já aberta na ficha.');return;}
+  closeSheetPanel('homebrew');
+  if(['item','coins','lore'].includes(type)&&currentTab!=='lore')setTab('lore');
+  if(['weapon','feature'].includes(type)&&currentTab!=='main')setTab('main');
   const char = getChar();
   const modal = document.getElementById("homebrewModal");
+  modal.dataset.editorType = type;
   const title = document.getElementById("hbModalTitle");
   const body = document.getElementById("hbModalBody");
   const saveBtn = document.getElementById("hbSaveBtn");
@@ -2398,13 +2527,13 @@ function openHomebrewModal(type, index = null) {
     title.textContent = index !== null ? `Editar ataque: ${weapon.name}` : "Criar arma / ataque";
     body.innerHTML = `
       <div><label for="hbWepName" class="block font-bold mb-1">Nome</label><input id="hbWepName" maxlength="120" value="${e(weapon.name)}" class="w-full t-inset p-2 rounded-lg" /></div>
-      <div class="grid grid-cols-2 gap-3">
+      <div class="weapon-editor-grid">
         <div><label for="hbWepBonus" class="block font-bold mb-1">Bônus de ataque</label><input id="hbWepBonus" value="${e(weapon.bonus)}" placeholder="+6" class="w-full t-inset p-2 rounded-lg" /></div>
         <div><label for="hbWepDamageMod" class="block font-bold mb-1">Modificador de dano</label><input id="hbWepDamageMod" type="number" min="-10000" max="10000" step="1" required oninput="renderWeaponDamageBuilder(true)" class="w-full t-inset p-2 rounded-lg" /></div>
       </div>
       <fieldset class="space-y-2 min-w-0"><legend class="font-bold mb-1">Dados de dano</legend>
-        <div class="text-[11px] t-text-muted">Adicionar</div><div class="grid grid-cols-4 sm:grid-cols-7 gap-1.5">${[4,6,8,10,12,20,100].map(sides => `<button type="button" id="hbDamageDie${sides}" onclick="changeWeaponDamageDie(${sides}, 1)" aria-label="Adicionar d${sides} ao dano" class="t-inset p-2 rounded-lg font-bold">+d${sides}</button>`).join("")}</div>
-        <div class="border-t t-border pt-2 space-y-1.5"><div class="flex items-center justify-between gap-2 text-[11px] t-text-muted"><span>Selecionados</span><button type="button" onclick="clearWeaponDamageDice()" class="underline">Limpar dados</button></div><div id="hbWeaponDamageDice" class="flex flex-wrap gap-1.5" role="group" aria-label="Dados selecionados para o dano"></div></div>
+        <div class="text-[11px] t-text-muted">Adicionar</div><div class="weapon-editor-dice">${[4,6,8,10,12,20,100].map(sides => `<button type="button" id="hbDamageDie${sides}" onclick="changeWeaponDamageDie(${sides}, 1)" aria-label="Adicionar d${sides} ao dano" class="t-inset p-2 rounded-lg font-bold">+d${sides}</button>`).join("")}</div>
+        <div class="border-t t-border pt-2 space-y-1.5"><div class="weapon-editor-dice-heading text-[11px] t-text-muted"><span>Selecionados</span><button type="button" onclick="clearWeaponDamageDice()" class="underline">Limpar dados</button></div><div id="hbWeaponDamageDice" class="flex flex-wrap gap-1.5" role="group" aria-label="Dados selecionados para o dano"></div></div>
         <output id="hbWeaponDamagePreview" aria-label="Dano montado" aria-live="polite" class="sr-only"></output>
         <input id="hbWepDmg" type="hidden" />
       </fieldset>
@@ -2412,6 +2541,18 @@ function openHomebrewModal(type, index = null) {
       <div><label for="hbWepNotes" class="block font-bold mb-1">Propriedades / resumo</label><input id="hbWepNotes" value="${e(weapon.notes)}" class="w-full t-inset p-2 rounded-lg" /></div>
       <div><label for="hbWepDescription" class="block font-bold mb-1">Descrição ao passar o mouse ou tocar no nome</label><textarea id="hbWepDescription" rows="4" maxlength="8000" class="w-full t-inset p-2 rounded-lg">${e(weapon.description ?? BOOK_ITEMS_DB[weapon.name]?.bookDesc ?? weapon.notes)}</textarea></div>`;
     initWeaponDamageBuilder(weapon.damage);
+    const original = index!==null ? {magicBonus:weapon.magicBonus,...char.weapons[index]} : {};
+    const options = weaponCalculationFields(original,weapon.ruleWeapon,CharacterEngine);
+    body.firstElementChild.after(options);
+    const calculationHint = document.createElement('p'); calculationHint.className = 'weapon-editor-hint';
+    options.after(calculationHint);
+    const updateCalculationMode = () => {
+      const automatic = document.getElementById('hbWepMode').value==='auto';
+      calculationHint.textContent = automatic ? 'Ataque e dano calculados pela ficha.' : 'Totais manuais: informe o bônus de ataque e monte o dano.';
+      for (const id of ['hbWepBonus','hbWepDamageMod']) document.getElementById(id).disabled = automatic;
+      for (const button of body.querySelectorAll('[id^="hbDamageDie"]')) button.disabled = automatic;
+    };
+    document.getElementById('hbWepMode').addEventListener('change',updateCalculationMode); updateCalculationMode();
     saveBtn.onclick = () => {
       const name = document.getElementById("hbWepName").value.trim();
       const bonus = document.getElementById("hbWepBonus").value.trim();
@@ -2425,6 +2566,11 @@ function openHomebrewModal(type, index = null) {
         dmgTypeLabel: document.getElementById("hbWepType").value.trim(),
         notes: document.getElementById("hbWepNotes").value.trim(),
         description: document.getElementById("hbWepDescription").value.trim() };
+      const numeric = ['hbWepMagic','hbWepAttackAdjust','hbWepDamageAdjust'];
+      if (numeric.some(id=>!Number.isInteger(Number(document.getElementById(id).value)) || Math.abs(Number(document.getElementById(id).value))>100)) return showHomebrewError('hbWepMagic','Use ajustes inteiros entre -100 e 100.');
+      Object.assign(updated,{calculationMode:document.getElementById('hbWepMode').value,ruleWeapon:document.getElementById('hbWepCatalog').value || undefined,
+        proficient:document.getElementById('hbWepProf').value==='auto'?undefined:document.getElementById('hbWepProf').value==='yes',magicBonus:Number(document.getElementById('hbWepMagic').value),abilityOverride:document.getElementById('hbWepAbility').value,attackMode:document.getElementById('hbWepAttackMode').value,
+        attackAdjustment:Number(document.getElementById('hbWepAttackAdjust').value),damageAdjustment:Number(document.getElementById('hbWepDamageAdjust').value),duelingEligible:document.getElementById('hbWepDuel').checked,offHand:document.getElementById('hbWepOffhand').checked});
       if (index === null) char.weapons.push(updated);
       else char.weapons[index] = updated;
       closeHomebrewModal(true);
@@ -2455,6 +2601,10 @@ function openHomebrewModal(type, index = null) {
       closeHomebrewModal(true);
       recordStepAndSave(`${index === null ? "Adicionou" : "Editou"} item: ${name} (${qty}x)`);
     };
+  } else if (type === 'feature') {
+    title.textContent=index===null?'Adicionar característica / adaptação':'Editar característica / adaptação';
+    body.innerHTML=`<p>Texto livre da ficha. Os efeitos descritos aqui são controlados pela mesa; escrever uma regra não programa seu efeito.</p><label class="block font-bold">Característica<textarea id="hbFeatureText" rows="6" maxlength="16000" class="w-full t-inset p-2 rounded-lg">${e(index===null?'':readableText(char.features[index]))}</textarea></label>`;
+    saveBtn.onclick=()=>{const text=document.getElementById('hbFeatureText').value.trim();if(!text)return showHomebrewError('hbFeatureText','Escreva a característica.');if(index===null)char.features.push(text);else char.features[index]=text;closeHomebrewModal(true);recordStepAndSave('Editou característica manual');};
   } else if (type === "coins") {
     title.textContent = "Editar moedas";
     body.innerHTML = `<div class="grid grid-cols-2 sm:grid-cols-3 gap-3">${Object.entries(COIN_LABELS).map(([key,label]) => `<div><label for="hbCoin-${key}" class="block font-bold mb-1">${key.toUpperCase()} · ${label}</label><input id="hbCoin-${key}" type="number" min="0" max="${Number.MAX_SAFE_INTEGER}" step="1" required value="${e(char.coins?.[key] ?? 0)}" class="w-full t-inset p-2 rounded-lg"></div>`).join("")}</div>`;
@@ -2470,44 +2620,26 @@ function openHomebrewModal(type, index = null) {
       try { await saveCharacterLore(Object.fromEntries(Object.keys(LORE_LABELS).map(key => [key,document.getElementById(`hbLore-${key}`).value])),Object.fromEntries(Object.keys(PHYSICAL_LABELS).map(key => [key,document.getElementById(`hbPhysical-${key}`).value]))); }
       catch (error) { showHomebrewError(error.field || "hbLore-backstory",error.message); }
     };
-  } else if (type === "spell") {
-    const spell = char.spells[index];
-    if (!spell) return;
-    title.textContent = `Adaptação de magia: ${spell.name}`;
-    body.innerHTML = `
-      <div><label for="hbSpName" class="block font-bold mb-1">Nome da magia</label><input id="hbSpName" value="${e(spell.name)}" class="w-full t-inset p-2 rounded-lg" /></div>
-      <div class="grid grid-cols-2 gap-3">
-        <div><label for="hbSpRoll" class="block font-bold mb-1">Fórmula personalizada (opcional)</label><input id="hbSpRoll" value="${e(spell.customRoll)}" placeholder="Ex.: 6d6" class="w-full t-inset p-2 rounded-lg" /></div>
-        <div><label for="hbSpRange" class="block font-bold mb-1">Alcance</label><input id="hbSpRange" value="${e(spell.range)}" class="w-full t-inset p-2 rounded-lg" /></div>
-      </div>
-      <label class="flex items-center gap-2"><input id="hbSpTwin" type="checkbox" ${resolveSpellMeta(spell).canTwin ? "checked" : ""} />Permitir Magia Gêmea (confira elegibilidade no livro; exceções são da mesa)</label>
-      <div><label for="hbSpNotes" class="block font-bold mb-1">Descrição / notas</label><textarea id="hbSpNotes" rows="4" class="w-full t-inset p-2 rounded-lg">${e(spell.notes)}</textarea></div>`;
-    saveBtn.onclick = () => {
-      const name = document.getElementById("hbSpName").value.trim();
-      const formulaInput = document.getElementById("hbSpRoll").value.trim();
-      const parsed = formulaInput ? parseDiceFormula(formulaInput) : null;
-      if (!name) return showHomebrewError("hbSpName", "Informe o nome da magia.");
-      if (formulaInput && !parsed) return showHomebrewError("hbSpRoll", "Fórmula inválida. Use, por exemplo, 6d6 ou deixe em branco para manter o cálculo padrão.");
-      Object.assign(spell, { name, customRoll: parsed?.formula || "",
-        range: document.getElementById("hbSpRange").value.trim(),
-        canTwin: document.getElementById("hbSpTwin").checked,
-        notes: document.getElementById("hbSpNotes").value.trim() });
-      closeHomebrewModal(true);
-      recordStepAndSave(`Editou magia: ${name}`);
-    };
   } else return;
+  const saveAction=saveBtn.onclick;
+  saveBtn.onclick=event=>{if(!requireSheetConfiguration()||getChar()!==char||!canSaveSheetPanel('homebrew'))return;return saveAction?.call(saveBtn,event);};
   homebrewInitialState = getHomebrewFormState();
   modal.classList.remove("hidden");
+  const parent=type==='weapon'?'[data-sheet-weapons]':type==='feature'?'[data-sheet-features]':type==='lore'?'[data-sheet-lore]':'[data-sheet-inventory]';
+  const target=index===null?parent:type==='weapon'?`[data-weapon-card="${index}"]`:type==='item'?`[data-sheet-item="${index}"]`:type==='feature'?`[data-sheet-feature-row="${index}"]`:parent;
+  mountSheetPanel('homebrew',modal,document.querySelector(target)?target:parent);
   if (window.lucide) window.lucide.createIcons();
 }
 
 async function deleteSheetEntry(type, index) {
+  if(!requireSheetConfiguration())return;
   const char = getChar();
-  const entries = type === "weapon" ? char.weapons : type === "item" ? char.inventoryItems : type === "spell" ? char.spells : null;
+  const entries = type === "weapon" ? char.weapons : type === "item" ? char.inventoryItems : type === "spell" ? char.spells : type==='feature'?char.features:null;
   const entry = entries?.[index];
   if (!entry) return;
-  const noun = type === "weapon" ? "ataque" : type === "item" ? "item" : "magia";
-  if (!await confirmDestructiveAction(`Excluir ${noun}?`, `“${entry.name}” será removido desta ficha${type === "item" ? ` com toda a quantidade (${entry.qty}x)` : ""}. Você poderá desfazer nesta sessão.`, `Excluir ${noun}`)) return;
+  const noun = type === "weapon" ? "ataque" : type === "item" ? "item" : type==='feature'?'característica':"magia";
+  if (!await confirmDestructiveAction(`Excluir ${noun}?`, `“${entry.name || readableText(entry).slice(0,120)}” será removido desta ficha${type === "item" ? ` com toda a quantidade (${entry.qty}x)` : ""}. Você poderá desfazer nesta sessão.`, `Excluir ${noun}`)) return;
+  if(getChar()!==char || entries[index]!==entry||!canConfigureSheet(char))return;
   entries.splice(index, 1);
   if (type === "spell") {
     // Remover uma magia desloca índices; descarta somente escolhas visuais de espaços.
@@ -2521,10 +2653,13 @@ async function deleteSheetEntry(type, index) {
 async function closeHomebrewModal(force = false) {
   if (!force && homebrewInitialState !== getHomebrewFormState() && !await confirmDestructiveAction("Descartar alterações?", "As alterações feitas neste formulário ainda não foram salvas. Descartar mantém o cadastro anterior.", "Descartar alterações")) return;
   document.getElementById("homebrewModal").classList.add("hidden");
+  closeSheetPanel('homebrew');
 }
 
 function rollWeapon(index, kind) {
-  const weapon = CharacterEngine.weaponStats(getChar(), getChar().weapons[index]);
+  if(kind==='damage' && rollPreparedWeaponDamage(getChar(),index,CharacterEngine,saveRuleStep))return;
+  const c=getChar(),entry=c.weapons[index];
+  const weapon = CharacterEngine.weaponStats(c, entry);
   if (!weapon) return;
   const bonus = String(weapon.bonus).trim();
   if (kind === "attack" && !/^[+-]?\d+$/.test(bonus)) {
@@ -2536,7 +2671,16 @@ function rollWeapon(index, kind) {
     showToast("Fórmula inválida. Corrija o ataque antes de rolar.");
     return;
   }
-  triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}`);
+  const result=triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}`,kind==='attack',kind==='attack'?{type:'attack'}:null);
+  // Usa o resultado resolvido neste clique, nunca o texto da animação ou o
+  // total com bônus. Só ataques reais em Auto Ficha atualizam esta preparação.
+  if(kind==='attack' && result && c===getChar() && c.weapons[index]===entry)
+    setWeaponCriticalPrepared(c,index,CharacterEngine,result.d20Natural>=(weapon.critical || 20));
+}
+function setWeaponHands(index,value) {
+  const entry = getChar().weapons[index]; if (!entry || !['1','2'].includes(String(value))) return;
+  entry.hands = Number(value); recordStepAndSave('Mudou empunhadura da arma',true);
+  document.querySelector(`[data-weapon-hands="${index}"]`)?.focus({preventScroll:true});
 }
 
 function showEquipmentTooltip(event, type, index) {
@@ -2553,6 +2697,7 @@ function showEquipmentTooltip(event, type, index) {
   const details = document.createElement("p");
   details.className = "text-[11px] t-text-muted my-2";
   details.textContent = type === "weapon" ? `${item.damage} · ${item.dmgTypeLabel || "Dano"} · ${item.notes || book?.props || ""}` : `${item.qty}x · ${item.weightKg} kg por unidade`;
+  if (type==='weapon' && item.explanation) details.textContent += '\n'+item.explanation;
   const description = document.createElement("p");
   description.className = "whitespace-pre-wrap leading-relaxed";
   description.textContent = item.description ?? book?.bookDesc ?? item.notes ?? "Sem descrição. Use o lápis para adicionar uma descrição.";
@@ -2577,14 +2722,14 @@ function showSpellTooltip(event, spellName, classId, baseCircle, index) {
     ...BOOK_SPELLS_DB[spellName], school: catalogEntry.school,
     duration: catalogEntry.duration, materialDesc: catalogEntry.components,
     bookDesc: cleanCatalogText, upcastRule: '',
-  } : BOOK_SPELLS_DB[spellName]) || (catalogEntry ? {
+  } : spell?.customSpell ? null : BOOK_SPELLS_DB[spellName]) || (catalogEntry ? {
     school: catalogEntry.school, duration: catalogEntry.duration, materialDesc: catalogEntry.components,
     bookDesc: cleanCatalogText, upcastRule: '', calcEffect: null
   } : {
     school: `Magia de ${baseCircle}º Círculo`,
-    duration: "Instantânea",
-    materialDesc: "V, S",
-    bookDesc: "Consulte o Capítulo 11 do Livro do Jogador.",
+    duration: spell?.conc ? 'Concentração · conferir descrição' : 'Conferir descrição',
+    materialDesc: [spell?.v?'V':'',spell?.s?'S':'',spell?.m?'M':''].filter(Boolean).join(', ') || 'Conferir descrição',
+    bookDesc: spell?.notes || "Consulte a descrição desta magia.",
     upcastRule: "",
     calcEffect: null,
   });
@@ -2639,13 +2784,10 @@ function hideBookTooltip() {
 }
 
 function showToast(msg) {
-  const t = document.getElementById("toast");
   // Um sucesso de combate/cadastro não pode esconder a falha de gravação anterior.
-  t.textContent = ["write", "unavailable"].includes(sheetStore.issue?.kind)
+  showNotice(["write", "unavailable"].includes(sheetStore.issue?.kind)
     ? "As alterações estão em memória e não foram salvas neste navegador. Baixe um backup antes de fechar."
-    : msg;
-  t.classList.remove("hidden");
-  setTimeout(() => t.classList.add("hidden"), 3500);
+    : msg);
 }
 
 function setSpellClassFilter(cls) {
@@ -2704,27 +2846,29 @@ function setTab(tab) {
 function switchCharacter(idx) {
   hideBookTooltip();
   activeCharIndex = parseInt(idx, 10);
+  restoreSavedHistory();
   renderAll();
 }
 function updateField(field, value) {
+  if(!requireSheetConfiguration())return;
   getChar()[field] = value;
   recordStepAndSave(`Alterou ${field} para "${value}"`);
 }
 function changeAbility(key, delta) {
+  if(!requireSheetConfiguration())return;
   const char = getChar();
-  char.abilities[key].score = Math.max(
-    1,
-    Math.min(24, char.abilities[key].score + delta),
-  );
+  changePermanentAbility(char,key,delta);
   recordStepAndSave(
     `Atributo ${RULES_DB.abilities[key].name}: ${char.abilities[key].score}`,
   );
 }
 function toggleSave(key) {
+  if(!requireSheetConfiguration())return;
   getChar().abilities[key].saveProf = !getChar().abilities[key].saveProf;
   recordStepAndSave(`Salvaguarda de ${RULES_DB.abilities[key].name}`);
 }
 function toggleSkill(id) {
+  if(!requireSheetConfiguration())return;
   const char = getChar();
   const idx = char.skillsProf.indexOf(id);
   if (idx === -1) char.skillsProf.push(id);
@@ -2735,14 +2879,14 @@ function changeHp(delta) {
   const char = getChar();
   // Livro, p. 200: dano consome PV temporários antes dos PV reais.
   // Cura altera somente PV reais; não recompõe a reserva temporária.
-  const absorbed = delta < 0 ? Math.min(char.hpTemp, -delta) : 0;
-  char.hpTemp -= absorbed;
-  char.hpCurrent = Math.max(
-    0,
-    Math.min(char.hpMax, char.hpCurrent + delta + absorbed),
-  );
+  let result;
+  try {
+    if(delta<0) {if(offerSurvivalForDamage(char,-delta))return;result=applyDamage(char,-delta);}
+    else healHitPoints(char,delta);
+  }
+  catch(error) { showToast(error.message);return; }
   if (char.hpTemp === 0) char.hpTempSource = "";
-  recordStepAndSave(`${delta < 0 ? `Sofreu ${-delta} de dano (${absorbed} absorvidos por PV temporários)` : `Recebeu ${delta} de cura`} · PV: ${char.hpCurrent}/${char.hpMax} · temporários: ${char.hpTemp}`);
+  saveRuleStep(delta<0?damageDescription(char,result,-delta):`Recebeu ${delta} de cura · PV: ${char.hpCurrent}/${exhaustion(char).hpMax} · temporários: ${char.hpTemp}`);
 }
 
 function getFiendBlessingAmount(char) {
@@ -2861,23 +3005,43 @@ function setSpellCastLevel(spellName, levelValue) {
   if (index >= 0) setSpellCastLevelByIndex(index, levelValue);
 }
 
+// A recursão após confirmar refaz todas as validações de recursos. O caminho
+// sem troca continua síncrono para preservar os eventos da ficha anterior.
+function deferConcentrationReplacement(char,spell,index,ritual,confirmedId,resume) {
+  const info=spellConcentration(char,spell,CharacterEngine,ritual);
+  if(!(info.held || info.prolonged))return false;
+  const blocked=concentrationBlock(char);if(blocked){showToast(blocked);return true;}
+  if(info.held)try{validateConcentrationStart(char,info);}catch(error){showToast(error.message);return true;}
+  const old=concentration(char);
+  if(!needsConcentrationConfirmation(char,spell,CharacterEngine,ritual) || old.id===confirmedId)return false;
+  const snapshot=JSON.stringify(spell),choice=getSelectedSpellCastLevel(char,spell,index),twinned=characterHasTwinned(char) && !!twinnedActiveBySpell[spell.name];
+  void confirmDestructiveAction('Trocar concentração?',`${spell.name}${ritual?' como ritual':''} exige concentração${!info.held?' durante a conjuração':''} e encerra ${old.name}. Recursos só serão gastos após confirmar.`,'Conjurar e substituir').then(ok=>{
+    if(!ok || getChar()!==char || char.spells[index]!==spell || concentration(char)?.id!==old.id)return;
+    if(JSON.stringify(spell)!==snapshot || getSelectedSpellCastLevel(char,spell,index)!==choice || (characterHasTwinned(char) && !!twinnedActiveBySpell[spell.name])!==twinned)return showToast('As escolhas mudaram. Confira a magia e tente novamente; nenhum recurso foi gasto.');
+    resume(old.id);
+  });
+  return true;
+}
 function castSpellWithUpcast(
   spellName,
   baseCircle,
   classId,
   globalSpellIdx,
+  confirmedId = null,
 ) {
+  // Só Pool deixa a resolução na bandeja/mesa. O bloqueio antecede qualquer
+  // validação com diálogo, gasto, concentração, passivo ou registro no histórico,
+  // inclusive quando uma confirmação antiga retorna após a troca de modo.
+  if(diceMode==='manual')return;
   const char = getChar();
   const spObj = char.spells[globalSpellIdx];
   if (!spObj) return;
-  if (spObj.prepared === false && !spObj.ritual && !spObj.limitedUse && !spObj.atWill) return showToast('Prepare esta magia antes de conjurá-la com espaço.');
+  if (!canCastNormally(char,spObj,CharacterEngine)) return showToast(castingRestriction(char,CharacterEngine,spObj) || 'Prepare esta magia antes de conjurá-la com espaço; rituais usam a ação Ritual.');
   if (spObj.limitedUse && (spObj.usesUsed || 0) >= spObj.limitedUse) return showToast('Os usos desta habilidade estão esgotados.');
-  const bookEntry = BOOK_SPELLS_DB[spellName] || (spObj?.bookId ? BOOK_SPELLS_DB[CharacterEngine.spell(spObj.bookId)?.name] : null);
-  const resolvedMeta = resolveSpellMeta(spObj);
   const chosen = getSelectedSpellCastLevel(char, spObj, globalSpellIdx);
-  const numericCastLvl =
-    chosen === "pact" ? char.pactMagic.level : parseInt(chosen, 10);
-  const isTwinned = !!twinnedActiveBySpell[spellName] && !!resolvedMeta.canTwin;
+  const effect = getSpellEffectDetails(char,spObj,globalSpellIdx);
+  const numericCastLvl = effect.level;
+  const isTwinned = effect.twin;
   const twinPtCost = isTwinned
     ? baseCircle === 0
       ? 1
@@ -2891,10 +3055,16 @@ function castSpellWithUpcast(
     return;
   }
 
-  if (spObj.customRoll && !parseDiceFormula(spObj.customRoll)) {
-    showToast("A fórmula personalizada desta magia é inválida. Corrija-a antes de conjurar; nenhum recurso foi gasto.");
+  if (effect.formula && !parseDiceFormula(effect.formula)) {
+    showToast(spObj.customRoll?"A fórmula personalizada desta magia é inválida. Corrija-a antes de conjurar; nenhum recurso foi gasto.":"Não foi possível montar uma rolagem válida para esta magia. Nenhum recurso foi gasto; confira a descrição.");
     return;
   }
+
+  if(baseCircle>0 && !spObj.ritual && !spObj.limitedUse && !spObj.atWill) {
+    const available=getSpellSlotOptions(char,spObj).find(x=>x.value===chosen);
+    if(!available || available.remaining<=0)return showToast('O espaço selecionado está indisponível; nenhum recurso foi gasto.');
+  }
+  if(deferConcentrationReplacement(char,spObj,globalSpellIdx,false,confirmedId,id=>castSpellWithUpcast(spellName,baseCircle,classId,globalSpellIdx,id)))return;
 
   if (baseCircle > 0 && !spObj.ritual && !spObj.limitedUse && !spObj.atWill) {
     const option = getSpellSlotOptions(char, spObj).find((entry) => entry.value === chosen);
@@ -2902,7 +3072,12 @@ function castSpellWithUpcast(
       showToast("O espaço selecionado está indisponível. Escolha outra origem ou nível no seletor; nenhum recurso foi gasto.");
       return;
     }
-    if (chosen === "pact") {
+    if (chosen === 'signature') {
+      char.ruleState ||= {};char.ruleState.used ||= {};
+      char.ruleState.used['mago:signature:'+wizardPrivilege(char,spObj,CharacterEngine).id]=1;
+    } else if(chosen === 'mastery') {
+      // O círculo mínimo é gratuito; espaços superiores continuam sendo opções.
+    } else if (chosen === "pact") {
       if (char.pactMagic.used >= char.pactMagic.total) {
         showToast("Slot de Pacto já usado!");
         return;
@@ -2920,57 +3095,51 @@ function castSpellWithUpcast(
 
   if (isTwinned) char.sorceryPoints.current -= twinPtCost;
   if (spObj.limitedUse) spObj.usesUsed = (spObj.usesUsed || 0) + 1;
-  if (spellName === "Armadura Arcana") char.mageArmorActive = true;
+  if (!spObj.customSpell && spellName === "Armadura Arcana") char.mageArmorActive = true;
+  applyCastConcentration(char,spObj,CharacterEngine);
+  onSpellCast(char,spObj,numericCastLvl,CharacterEngine);
 
-  const formulaToRoll =
-    spObj?.customRoll ||
-    (bookEntry?.diceFormula
-      ? bookEntry.diceFormula(numericCastLvl, isTwinned, char, spObj)
-      : resolvedMeta.diceFormula || null);
+  const formulaToRoll = effect.formula;
   if (formulaToRoll) {
     triggerSheetRoll(
       formulaToRoll,
-      `${spellName}${isTwinned ? " (⚡ Gêmea)" : ""}`,
+      `${spellName}${effect.perRay?' · dano de um raio/feixe':''}${isTwinned ? " (⚡ Gêmea)" : ""}`,
     );
   }
 
-  const eff =
-    spObj?.customRoll ||
-    (bookEntry?.calcEffect
-      ? bookEntry.calcEffect(numericCastLvl, isTwinned, char, spObj)
-      : "");
-  const source = baseCircle === 0 ? "truque, sem espaço" : spObj.ritual ? "ritual, sem espaço" : spObj.limitedUse ? '-1 uso da habilidade, sem espaço' : spObj.atWill ? 'habilidade, sem espaço' : `-1 espaço de ${chosen === "pact" ? "Pacto" : "Conjuração"} do ${numericCastLvl}º círculo`;
+  const eff = effect.summary;
+  const source = baseCircle === 0 ? "truque, sem espaço" : spObj.ritual ? "ritual, sem espaço" : spObj.limitedUse ? '-1 uso da habilidade, sem espaço' : spObj.atWill ? 'habilidade, sem espaço' : chosen==='mastery'?'Dominar Magia, sem espaço':chosen==='signature'?'Assinatura Mágica · -1 uso, sem espaço':`-1 espaço de ${chosen === "pact" ? "Pacto" : "Conjuração"} do ${numericCastLvl}º círculo`;
   const actionMsg = `Conjurou ${spellName} (${source})${isTwinned ? ` + Gêmea (-${twinPtCost} pt de feitiçaria)` : ""}`;
   recordStepAndSave(actionMsg);
   showToast(`✨ ${actionMsg}! ${eff ? `➔ ${eff}` : ""}`);
 }
 
 function shortRest() {
-  getChar().pactMagic.used = 0;
-  getChar().spells.filter(s => s.recovery === 'short').forEach(s => s.usesUsed = 0);
+  if (Number(getChar().exhaustion)>=6) return showToast('Exaustão 6 significa morte; um descanso não revive o personagem.');
+  if (deathStatus(getChar()).dead) return showToast('Um descanso não revive o personagem.');
+  if (!takeRest(getChar(),'short',CharacterEngine)) { recordStepAndSave('Frenesi terminou com exaustão 6',true); return showToast('Frenesi levou à exaustão 6. O personagem morreu antes de concluir o descanso.'); }
   recordStepAndSave("⛺ Descanso Curto");
   showToast("Descanso Curto concluído!");
 }
 
 async function longRest() {
-  // Regra desta campanha: dormir recupera tudo, sem gasto de Dados de Vida.
-  // Não substitui a referência de descansos do livro para outras campanhas.
-  if (!await confirmDestructiveAction("Dormir e recuperar tudo?", "Regra da mesa: recupera todos os PV, Dados de Vida, espaços de magia, pontos de feitiçaria e usos registrados. PV temporários serão removidos. Você poderá desfazer nesta sessão.", "Dormir e recuperar")) return;
+  // A recuperação integral dos Dados de Vida exige escolha explícita da mesa.
   const char = getChar();
-  char.hpCurrent = char.hpMax;
-  char.hpTemp = 0;
-  char.hpTempSource = "";
-  char.pactMagic.used = 0;
-  char.sorceryPoints.current = char.sorceryPoints.max;
-  char.tidesOfChaosAvailable = true;
-  char.spells.forEach(s => { if (s.limitedUse) s.usesUsed = 0; });
-  Object.values(char.standardSlots).forEach(s => { s.total -= s.created || 0; s.created = 0; s.used = 0; });
-  char.classes.forEach(c => { c.hitDiceUsed = 0; });
-  recordStepAndSave("🌙 Dormiu e recuperou todos os recursos (regra da mesa)", true);
-  showToast("PV e recursos recuperados — regra da mesa.");
+  if (Number(char.exhaustion)>=6) return showToast('Exaustão 6 significa morte; um descanso não revive o personagem.');
+  if (deathStatus(char).dead) return showToast('Um descanso não revive o personagem.');
+  if(char.hpCurrent<1) return showToast('O descanso longo exige pelo menos 1 PV no início.');
+  const choices = document.createElement('div');
+  choices.innerHTML = '<label><input type="checkbox" data-rest-food checked> Teve alimento e bebida (reduz 1 exaustão)</label><br><label><input type="checkbox" data-rest-table> Recuperar todos os Dados de Vida (adaptação da mesa)</label>';
+  if(concentration(char))choices.insertAdjacentHTML('beforeend','<br><label><input type="checkbox" data-rest-sleep checked> Dormiu ou ficou inconsciente (encerra concentração)</label><p>Se permaneceu consciente por uma exceção, desmarque e confira a duração do efeito na mesa.</p>');
+  if (!await confirmDestructiveAction('Concluir descanso longo?', 'Recupera PV e recursos conforme o livro. Dados de Vida: até metade do nível total; escolha quais recuperar depois. PV temporários serão removidos.', 'Concluir descanso', choices)) return;
+  if (getChar() !== char) return;
+  if (!takeRest(char,'long',CharacterEngine,{foodAndWater:choices.querySelector('[data-rest-food]').checked,tableHitDice:choices.querySelector('[data-rest-table]').checked,slept:choices.querySelector('[data-rest-sleep]')?.checked ?? true})) { recordStepAndSave('Frenesi terminou com exaustão 6',true); return showToast('Frenesi levou à exaustão 6. O personagem morreu antes de concluir o descanso.'); }
+  recordStepAndSave('Descanso longo · PV, recursos e preparação',true);
+  showToast('Descanso concluído. Preparação no grimório; recuperação de Dados de Vida junto aos PV.');
 }
 
 function openShopModal() {
+  if(!requireSheetEdit())return;
   renderShopItems();
   document.getElementById("shopModal").classList.remove("hidden");
   if (window.lucide) window.lucide.createIcons();
@@ -3025,6 +3194,7 @@ function renderShopItems() {
 }
 
 function buyItem(itemId) {
+  if(!requireSheetEdit())return;
   const char = getChar();
   const item = SHOP_CATALOG.find((i) => i.id === itemId);
   if (!item || !deductCoinsSmart(char.coins, item.costQty, item.costCoin))
@@ -3041,7 +3211,10 @@ function buyItem(itemId) {
   renderShopItems();
 }
 
-function openLevelUpModal() { CharacterWizard.openLevel(); }
+function openLevelUpModal() {
+  if(!requireSheetEdit())return;
+  CharacterWizard.openLevel();
+}
 function closeLevelUpModal() { return CharacterWizard.close(); }
 
 // Compatibilidade temporária com os eventos dos cartões e assistentes existentes.
@@ -3050,6 +3223,9 @@ Object.assign(window, {
   applyImportedCharacters,
   escapeHTML,
   confirmDestructiveAction,
+  ruleDiceSettings,
+  rollRuleDie,
+  rollWeaponFormula,
   parseDiceFormula,
   getChar,
   loadHistoryState,
@@ -3076,6 +3252,7 @@ Object.assign(window, {
   restoreToSessionStart,
   toggleHistoryDrawer,
   renderHistoryDrawerList,
+  restoreDeletedCharacter,
   setDiceMode,
   setRollMode,
   readDiceTrayDimensions,
@@ -3108,8 +3285,10 @@ Object.assign(window, {
   renderSpellCastControls,
   getSpellEffectDetails,
   renderSpellEffectDetails,
+  rollSpellAttack,
   setSpellCastLevelByIndex,
   castSpellByIndex,
+  rollSpellRay,
   canCastRitual,
   castRitualByIndex,
   toggleSpellTwinnedByIndex,
@@ -3137,6 +3316,7 @@ Object.assign(window, {
   toggleWornArmor,
   renderLoreSection,
   renderAll,
+  setWeaponHands,
   renderHeader,
   showHomebrewError,
   getHomebrewFormState,
@@ -3199,7 +3379,7 @@ Object.assign(window, {
 Object.defineProperty(window, 'characters', { get: () => characters, configurable: true });
 
 document.addEventListener("keydown", (event) => {
-  if (event.key !== "Escape" || document.getElementById("confirmationDialog").open) return;
+  if (event.key !== "Escape" || event.defaultPrevented || document.getElementById("confirmationDialog").open) return;
   hideBookTooltip();
   if (!document.getElementById("homebrewModal").classList.contains("hidden")) closeHomebrewModal();
 });

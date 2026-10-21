@@ -21,7 +21,7 @@ function normalizeDraft(data: any): SavedDraft | null {
   s.name = typeof s.name === "string" ? s.name : "";
   s.raceId = typeof s.raceId === "string" ? s.raceId : "";
   s.backgroundId = typeof s.backgroundId === "string" ? s.backgroundId : "";
-  s.abilityMethod = ["standard", "pointBuy", "rolled"].includes(s.abilityMethod)
+  s.abilityMethod = ["standard", "pointBuy", "rolled", "adapted"].includes(s.abilityMethod)
     ? s.abilityMethod
     : "standard";
   s.baseScores = object(s.baseScores) ? s.baseScores : {};

@@ -1,4 +1,4 @@
-import { canonical, documentKey, validateDocument, type Documents } from "./documents";
+import { canonical, compatibleDocuments, documentKey, validateDocument, type Documents } from "./documents";
 import type { JournalPort, Pending, RemoteDocument } from "./journal";
 
 export interface PushResult { document: RemoteDocument; conflict: boolean; server_time: string }
@@ -146,7 +146,7 @@ export class SyncEngine extends EventTarget {
       // Se a interface escreveu enquanto aguardávamos o IndexedDB, primeiro
       // captura essa edição. Nunca projeta uma resposta sobre uma escrita nova.
       const current = this.view.read();
-      const visible = Object.fromEntries(Object.entries(docs).filter(([, doc]) => doc.value !== null));
+      const visible = Object.fromEntries(Object.entries(compatibleDocuments(docs)).filter(([, doc]) => doc.value !== null));
       if (canonical(current) !== canonical(state.projected) || canonical(visible) !== canonical(current) && !this.view.canApply()) { this.deferred = true; return; }
       if (canonical(visible) !== canonical(current)) this.view.apply(docs);
       state.projected = this.view.read();
