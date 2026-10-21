@@ -111,8 +111,12 @@ Não consolida dados nem altera história, escolhas ou recursos. Classe e nível
 aparecem uma vez por grupo; a origem completa de subclasse/escolha fica dentro
 da descrição. Fontes de raça/antecedente e anotações manuais continuam separadas.
 Na ficha larga, as colunas dividem níveis inteiros, em fluxo nativo, sem separar
-uma habilidade de seus controles. Chaves de descrição conservam a abertura ao
-atualizar os cálculos e a apresentação da ficha.
+uma habilidade de seus controles. `app/feature-consult.ts` conserva as chaves de
+consulta e monta botões separados das ações de uso. Hover usa `RuleTooltips`;
+clique/toque fixa o mesmo texto com origem, escolhas e livro em um popover de
+consulta. Reutiliza o estilo e a rolagem dos balões. ×, Esc e clique fora fecham;
+trocar ficha/aba/conta encerra a consulta antiga. O texto é inserido com
+`textContent`, e o link do livro usa somente página numérica validada.
 `feature-level-title` centraliza o nível entre linhas decorativas em `::before`
 e `::after`, sem acrescentar nós nem aumentar a fonte ou o espaço dos grupos.
 Os nomes dos recursos dentro de cada característica usam a escala de apoio,

@@ -28,9 +28,9 @@ const {warrior} = require('./fixture.cjs');
     await page.keyboard.press('Escape');
     assert.equal(await page.getByRole('heading',{name:'Recursos e condições',exact:true}).count(),0);
     const rageEntry=page.locator('.feature-entry').filter({has:page.locator('[data-resource="barbaro:rage"]')});
-    await rageEntry.locator('summary').click();
+    await rageEntry.locator('[data-feature-consult]').click();
     await page.locator('[data-resource="barbaro:rage"][data-rule-action="toggle"]').click();
-    assert.equal(await rageEntry.locator('details').getAttribute('open'),'');
+    assert.equal(await page.locator('#featureConsultation').isVisible(),false);
     assert.equal(await page.locator('[data-rule-control="barbaro:rage"]').count(),1);
     assert.ok(await page.locator('[data-rule-exhaustion]').evaluate(el=>el.closest('.t-card-accent').textContent.includes('Status de Combate')));
     assert.equal(await page.locator('[data-resource="barbaro:rage"][data-rule-action="toggle"]').getAttribute('aria-pressed'),'true');
@@ -74,14 +74,14 @@ const {warrior} = require('./fixture.cjs');
     const groupedBefore=await page.evaluate(()=>JSON.stringify(getChar())),group=id=>page.locator(`[data-feature-group="class:${id}"]`);
     for(const id of ['paladino','guerreiro']){assert.equal(await group(id).count(),1);assert.equal(await group(id).locator('.feature-group-title').count(),1);const levels=await group(id).locator('[data-feature-level]').evaluateAll(es=>es.map(e=>Number(e.dataset.featureLevel)));assert.deepEqual(levels,[...new Set(levels)].sort((a,b)=>a-b));}
     const expectedGains=await page.evaluate(()=>CharacterEngine.features(getChar()).map((g,index)=>({key:`feature:${g.classId||g.source}:${g.level}:${index}`,name:g.name})));
-    for(const g of expectedGains)assert.equal(await page.locator(`[data-rule-disclosure="${g.key}"] > summary`).innerText(),g.name);
+    for(const g of expectedGains)assert.equal(await page.locator(`[data-feature-consult="${g.key}"]`).innerText(),g.name);
     assert.ok(await page.locator('[data-feature-group^="source:"]').count()>0);assert.match(await page.locator('[data-sheet-feature-row="0"]').textContent(),/Anotação importada.*Texto legível/);
     assert.equal(await group('paladino').locator('[data-feature-level="3"] [data-rule-control="shared:channel"]').count(),1);assert.equal(await page.locator('[data-rule-control="shared:channel"]').count(),1);
     assert.equal(await group('guerreiro').locator('[data-feature-level="3"] [data-rule-control="guerreiro:superiority"]').count(),1);
-    const oath=group('paladino').locator('.feature-entry').filter({has:page.locator('[data-rule-control="shared:channel"]')}).locator('details');await oath.locator(':scope > summary').click();await group('paladino').locator('[data-resource="shared:channel"][data-rule-action="use"]').click();assert.equal(await page.evaluate(()=>getChar().ruleState.used['shared:channel']),1);assert.equal(await oath.evaluate(e=>e.open),true);
+    const oath=group('paladino').locator('.feature-entry').filter({has:page.locator('[data-rule-control="shared:channel"]')}).locator('[data-feature-consult]');await oath.click();await page.locator('#featureConsultation').waitFor({state:'visible'});await group('paladino').locator('[data-resource="shared:channel"][data-rule-action="use"]').click();assert.equal(await page.evaluate(()=>getChar().ruleState.used['shared:channel']),1);assert.equal(await oath.getAttribute('aria-haspopup'),'dialog');
     await page.locator('[data-sheet-features]').screenshot({path:'/tmp/critcall-features-grouped.png'});
     const groupedAfter=await page.evaluate(()=>JSON.stringify(getChar()));assert.notEqual(groupedAfter,groupedBefore);const groupedData=await page.evaluate(()=>{const c=structuredClone(getChar());delete c.preferredLayout;return c;});
-    for(const layout of ['classic_2014','modern_2024'])for(const theme of ['pergaminho_claro','pergaminho_escuro','obsidiana']){await page.setViewportSize({width:320,height:900});await page.evaluate(({layout,theme})=>{setLayout(layout);setTheme(theme);setFontScale(125);},{layout,theme});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.equal(await oath.evaluate(e=>e.open),true);assert.equal(await group('paladino').locator('[data-rule-control="shared:channel"]').count(),1);assert.deepEqual(await page.evaluate(()=>{const c=structuredClone(getChar());delete c.preferredLayout;return c;}),groupedData);}
+    for(const layout of ['classic_2014','modern_2024'])for(const theme of ['pergaminho_claro','pergaminho_escuro','obsidiana']){await page.setViewportSize({width:320,height:900});await page.evaluate(({layout,theme})=>{setLayout(layout);setTheme(theme);setFontScale(125);},{layout,theme});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.equal(await oath.getAttribute('aria-haspopup'),'dialog');assert.equal(await group('paladino').locator('[data-rule-control="shared:channel"]').count(),1);assert.deepEqual(await page.evaluate(()=>{const c=structuredClone(getChar());delete c.preferredLayout;return c;}),groupedData);}
     await page.locator('[data-sheet-features]').screenshot({path:'/tmp/critcall-features-grouped-mobile.png'});await page.setViewportSize({width:1440,height:1000});await page.evaluate(()=>{setFontScale(100);setTheme('pergaminho_claro');setLayout('classic_2014');});
     await page.evaluate(()=>{
       const c=getChar();c.classes=[{classId:'mago',level:3,subclassId:'abjuracao',subclass:'Escola de Abjuração',hitDie:6,hitDiceUsed:0}];c.rules.history=[];c.exhaustion=0;

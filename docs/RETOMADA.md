@@ -21,6 +21,20 @@ fluxo antigo de Criar/Ajustar ficha manual pelo perfil. A conexão foi recuperad
 a implementação `fe2dc66` foi enviada em 20/10 e a [PR #9](https://github.com/mhaetinger/D-D/pull/9)
 foi atualizada com base `develop`. Não houve merge/publicação desta etapa.
 
+**Ponto de retorno pedido pelo responsável:** estado aprovado em `94e44d1`,
+etiqueta local `checkpoint/antes-efeitos-dado-20261021-94e44d1`. Arquivo
+`~/.local/state/critcall/checkpoints/critcall-antes-efeitos-dado-20261021-94e44d1.tar.gz`
+com checksum ao lado; não contém fichas privadas. A etiqueta fica local, sem
+envio de tags extras. Para desfazer uma experiência, preferir reverter somente
+o commit correspondente, preservando dados e o histórico compartilhado.
+
+**Consulta no celular:** `app/feature-consult.ts` reúne regra, origem, escolhas
+e livro no mesmo balão do hover. Toque/clique fixa a consulta; ×/Esc/fora fecham.
+Ações de recursos continuam separadas. Atributos móveis têm margem zerada com
+escopo suficiente para sobrepor `space-y`, preservando a altura da mesma linha.
+Conferidos 385 testes Node, tipos/build e Chromium de consulta, regras e
+tipografia, incluindo hover/toque/teclado, rolagem contida e mobile M/GG/temas.
+
 **Nomes secundários dos recursos:** dentro das características, nomes como
 Canalizar Divindade usam fonte de apoio (14px em M), peso 600 e itálico, com
 menos destaque que o título. Mudança só de CSS; mantém usos, botões e ajuda.

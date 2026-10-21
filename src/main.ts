@@ -34,6 +34,8 @@ import {setupSpellEditor} from './sheet-edit/spell-editor';
 import './styles/sheet-edit.css';
 import './styles/weapon-editor.css';
 import './styles/sheet-type.css';
+import {setupFeatureConsultation} from './app/feature-consult';
+import './styles/feature-consult.css';
 
 // A identidade define o armazenamento antes da primeira leitura da ficha.
 async function start() {
@@ -44,6 +46,7 @@ async function start() {
   setupBackups();
   setupSheetEditing();
   setupSpellEditor();
+  setupFeatureConsultation();
   setupAccountUI(account);
   setupAvatars(account);
   setupBookAppearance();

@@ -29,6 +29,7 @@ import {parkSheetPanels,restoreSheetPanels,clearSheetPanels,mountSheetPanel,clos
 import {canEditSheet} from '../sheet-edit/access';
 import {canConfigureSheet} from '../sheet-edit/lock';
 import {weaponCalculationFields} from '../sheet-edit/weapon-fields';
+import {featureConsultButton} from './feature-consult';
 
 // =========================================================================
 // 1. METADADOS E CATÁLOGOS
@@ -2053,7 +2054,7 @@ function renderFeaturesCollapsible(char, wide = false) {
     const levels=group.levels.map(level=>{
       const items=level.entries.map(({gain:g,index,controls})=>{
         const disclosure=`feature:${g.classId || g.source}:${g.level}:${index}`;
-        return `<section class="feature-entry"><details data-rule-disclosure="${escapeHTML(disclosure)}" data-sheet-section="${escapeHTML(disclosure)}"><summary ${RuleTooltips.attributes(g.name, g.reference)} class="cursor-pointer"><strong>${escapeHTML(g.name)}</strong></summary>${g.source!==group.label?`<p class="feature-origin t-text-muted">${escapeHTML(g.source)}</p>`:''}${g.choices?.length ? `<p class="my-2 font-semibold">${g.choices.map(escapeHTML).join(" · ")}</p>` : ""}${g.reference ? `<p class="feature-description">${escapeHTML(RuleTooltips.formatText(g.reference.text))}</p><a class="underline" target="_blank" rel="noopener" href="book.html#page=${g.reference.pdfPage}">Consultar no livro · p. ${g.reference.page}</a>` : `<p class="t-text-muted">${escapeHTML(controls[0]?.note || 'Consulte a seção desta classe no livro.')}</p>`}</details>${renderResourceControls(char,CharacterEngine,controls,controls.length>1 || g.name==='Juramento Sagrado')}</section>`;
+        return `<section class="feature-entry">${featureConsultButton(g,disclosure,group.label,controls[0]?.note)}${renderResourceControls(char,CharacterEngine,controls,controls.length>1 || g.name==='Juramento Sagrado')}</section>`;
       });
       return `<section class="feature-level" data-feature-level="${level.level}">${group.classId?`<h5 class="feature-level-title">Nível ${level.level}</h5>`:''}${group.classId?items.join(''):columns(items)}</section>`;
     });

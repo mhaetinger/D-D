@@ -85,7 +85,9 @@ personagem. As regras continuam sendo de 2014 com as adaptações da mesa. Troca
 a exibição não converte regras, classes ou escolhas.
 
 **Características & escolhas** reúne os ganhos por origem e, nas classes, por
-nível. Cada habilidade conserva sua descrição e seus controles de uso. No preparo
+nível. Passe o mouse no nome para consultar a regra. Um clique ou toque fixa a
+consulta com origem, escolhas e link do livro; feche no ×, fora do balão ou com
+Esc. Os botões de ativar/gastar continuam separados da consulta. No preparo
 de magias, **Voltar à ficha** permite sair sem aplicar; escolhas pendentes pedem
 confirmação antes do descarte. O lembrete do descanso só é retirado ao aplicar.
 Avisos de limite ou validação aparecem dentro da janela que estiver em uso.

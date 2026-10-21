@@ -93,7 +93,7 @@
   .sheet-header-person { align-items:start; }
   .sheet-classic-sidebar { grid-template-columns:1fr; }
   .sheet-abilities { grid-column:1/-1; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.6rem; }
-  .sheet-abilities > * + * { margin-top:0; }
+  #sheetViewport .sheet-abilities > * { margin-block:0; }
   .sheet-proficiencies { grid-column:1/-1; }
   #sheetViewport .combat-stat-value { font-size:1.7rem; }
 }

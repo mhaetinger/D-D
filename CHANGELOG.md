@@ -2,6 +2,21 @@
 
 ## Não lançado
 
+### Consulta por toque e atributos alinhados no celular — 2026-10-21
+
+- Cartões de atributos na grade móvel deixam de herdar a margem vertical das
+  listas, igualando posição e altura dos cartões da mesma linha.
+- Características consultadas por hover ou por um toque/clique no nome, sem
+  expandir a ficha. O balão fixado conserva regra, origem, escolhas e livro;
+  fecha no ×, Esc ou toque fora. Consulta separada de ativar/gastar recursos,
+  com rolagem contida e encerramento ao trocar ficha/aba/conta.
+- Ponto de retorno anterior: `94e44d1`, etiqueta local
+  `checkpoint/antes-efeitos-dado-20261021-94e44d1`. Cópia do código e checksum
+  em `~/.local/state/critcall/checkpoints/`, fora dos dados pessoais da ficha.
+- Conferidos 385 testes Node, tipos/build e Chromium de consulta por toque,
+  regras e tipografia: hover/toque com mesmo texto, consulta sem ativação,
+  Esc/fora/rolagem contida, recursos/nós preservados e três temas/M/GG/mobile.
+
 ### Hierarquia dos nomes de recursos — 2026-10-21
 
 - Nomes secundários dentro das características, como Canalizar Divindade,
