@@ -38,6 +38,9 @@
 .rule-context button:disabled { opacity:.45; }
 .rule-context [aria-pressed=true] { outline:2px solid var(--text-main); outline-offset:1px; }
 .rule-concentration { flex-basis:100%; overflow-wrap:anywhere; }
+.rule-concentration-content { display:grid; gap:.65rem; }
+.rule-concentration-content > p { margin:0; font-size:var(--sheet-secondary,.875rem); line-height:1.5; }
+.rule-concentration-content > button { justify-self:start; }
 .rule-conditions { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr)); gap:.5rem; }
 .rule-damage-part { padding:.5rem; margin:.5rem 0; border-radius:.4rem; }
 .rule-damage-fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,9rem),1fr)); gap:.5rem; }

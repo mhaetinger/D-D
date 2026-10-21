@@ -3,6 +3,7 @@ import {preparation} from './spellcasting';
 import {resourcesAt} from './placement';
 import {renderResourceControls} from './ui';
 import {PREPARATION_HELP} from './spell-help';
+import {helpAttributes} from '../app/help';
 
 /** Agrupa controles existentes por origem. Não cria reservas por classe:
  * Conjuração continua compartilhada e Pacto/Feitiçaria conservam seus quadros. */
@@ -27,6 +28,6 @@ export function spellClassPanels(c:Sheet,E:Engine):string {
     // Contar o agrupamento como "magias conhecidas" confundiria origens de
     // raça, talentos e Segredos Mágicos. Só preparo tem contador verificado.
     const count=prep.prepares?`${prep.used}/${prep.limit} preparadas`:'Magias conhecidas';
-    return `<section class="spell-class-panel t-card-accent" data-spell-class="${escape(id)}" aria-label="Conjuração de ${escape(meta.name)}"><header><h3 class="font-rpg font-bold t-text-accent">${escape(meta.name)} · ${escape(title)}</h3><span class="spell-class-count t-inset" ${prep.prepares?`title="${escape(PREPARATION_HELP)}"`:''}>${escape(count)}</span></header><div class="spell-class-summary"><p class="t-text-muted">${note}</p>${prep.prepares?`<button type="button" title="${escape(PREPARATION_HELP)}" data-rule-action="prepare" data-class="${escape(id)}" aria-label="Preparar magias de ${escape(meta.name)}" class="t-inset font-bold">Preparar magias</button>`:''}</div>${owned.length?`<div class="spell-class-resources rule-context" data-rule-place="spellbook">${renderResourceControls(c,E,owned)}</div>`:''}</section>`;
+    return `<section class="spell-class-panel t-card-accent" data-spell-class="${escape(id)}" aria-label="Conjuração de ${escape(meta.name)}"><header><h3 class="font-rpg font-bold t-text-accent">${escape(meta.name)} · ${escape(title)}</h3><span class="spell-class-count t-inset" ${prep.prepares?helpAttributes('Preparo de magias',PREPARATION_HELP):''}>${escape(count)}</span></header><div class="spell-class-summary"><p class="t-text-muted">${note}</p>${prep.prepares?`<button type="button" ${helpAttributes('Preparo de magias',PREPARATION_HELP)} data-rule-action="prepare" data-class="${escape(id)}" aria-label="Preparar magias de ${escape(meta.name)}" class="t-inset font-bold">Preparar magias</button>`:''}</div>${owned.length?`<div class="spell-class-resources rule-context" data-rule-place="spellbook">${renderResourceControls(c,E,owned)}</div>`:''}</section>`;
   }).join('')}</div>`;
 }

@@ -66,6 +66,11 @@ recolhe o grupo do usuário; novas reservas após comparação abrem sem recriar
 O recolhimento considera os valores, não a classe, para preservar adaptações.
 A tipografia da revisão fica restrita ao diálogo em `import-review.css`, com
 16px de leitura/campos em M, rótulos de 15px e títulos Cinzel; a escala usa rem.
+O aceite de preparo adaptado tem margem própria após a lista, mesmo vazia.
+`app/help.ts` monta os atributos do balão compartilhado: preparo e adaptação
+dispensam `title` nativo e botões extras. `RuleTooltips` também reconhece foco
+visível no checkbox dentro do rótulo, sem acrescentar outra parada de Tab.
+O clique mantém a ação normal do controle; hover/foco apresentam a explicação.
 `importNotices` gera explicações por setor e a lista textual compatível gravada no
 histórico. `applySuggestedPools` aplica máximos após comparação, preserva usos e
 pontos atuais e recusa toda a proposta se algum valor não couber no novo máximo.
@@ -87,6 +92,10 @@ mínimo, sem inferir vínculos a partir de nomes importados. Não conta o agrupa
 como lista de magias conhecidas, pois ele pode conter origens especiais.
 `spellcastingStatusControls` mantém impedimentos e concentração comuns na barra;
 preparo/recuperação aparecem uma vez em cada quadro. O lembrete de descanso é único.
+`--sheet-panel-inset` padroniza as margens dos quadros por classe, barra e
+cabeçalhos dos círculos. Ações de recursos/concentração e preparo compartilham
+fonte, peso, cor e preenchimento no tema. O conteúdo de concentração usa uma
+grade com intervalo entre ações, duração e testes pendentes, nas duas abas.
 Na primeira etapa do preparo, Voltar à ficha reutiliza `CharacterWizard.close`,
 inclusive confirmação de descarte e retorno de foco. O lembrete só é confirmado
 na cópia aplicada por `finish`; abrir/cancelar não altera esse estado. A etapa de
@@ -130,6 +139,10 @@ documentos pessoais/backup. `styles/account-panel.css` mantém cartões quadrado
 quando o conteúdo cabe; nomes longos e fonte ampliada podem aumentar a altura
 para preservar a leitura. Alterações reais na coleção continuam pelo renderizador
 e pelos contratos existentes de abrir/excluir/importar.
+O escopo de `account-panel.css` dá ao perfil texto principal de 1rem, apoio de
+.875rem, ações de .9375rem e títulos próprios. Regras antigas `text-xs` dos
+botões não reduzem essa escala. A janela tem até 36rem e as ferramentas de
+backup passam a uma coluna quando necessário, preservando legibilidade em GG.
 
 ## Tipografia da ficha
 

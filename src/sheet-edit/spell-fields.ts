@@ -1,5 +1,6 @@
 import {escape,type Sheet,type Engine} from '../rules/model';
 import {PREPARATION_HELP,ALWAYS_PREPARED_HELP} from '../rules/spell-help';
+import {helpAttributes} from '../app/help';
 import {parseDiceFormula} from '../rules/dice-formula';
 const damageTypes={utilidade:'Utilidade',cura:'Cura',defesa:'Defesa',fogo:'Fogo',frio:'Frio',eletrico:'Elétrico',acido:'Ácido',veneno:'Veneno',necrotico:'Necrótico',radiante:'Radiante',psiquico:'Psíquico',trovejante:'Trovejante',energia:'Energia',cortante:'Cortante',perfurante:'Perfurante',concussao:'Concussão'};
 const defenses={nenhuma:'Sem ataque/resistência',atq_magico:'Ataque contra CA',auto_hit:'Acerto automático',tr_for:'Resistência de Força',tr_des:'Resistência de Destreza',tr_con:'Resistência de Constituição',tr_int:'Resistência de Inteligência',tr_sab:'Resistência de Sabedoria',tr_car:'Resistência de Carisma'};
@@ -13,7 +14,7 @@ export function createSpellFields(c:Sheet,existing:Sheet|null,E:Engine) {
   const draft:Sheet=structuredClone(existing||{name:'',circle:0,classId:c.classes[0]?.classId||'',castingAbility:E.data.classes[c.classes[0]?.classId||'']?.ability||'',prepared:true,extraSource:'Adição livre · adaptação da mesa',customRoll:'',notes:'',dmgType:'utilidade',defType:'nenhuma',range:'',time:'1 ação',conc:false,v:false,s:false,m:false});
   const select=(id:string,label:string,values:Record<string,string>,value:any)=>`<label>${label}<select data-spell-field="${id}">${Object.entries(values).map(([k,v])=>`<option value="${escape(k)}" ${k===value?'selected':''}>${escape(v)}</option>`).join('')}</select></label>`;
   const input=(id:string,label:string,type='text',min?:number,max?:number)=>`<label>${label}<input data-spell-field="${id}" type="${type}" ${min!==undefined?`min="${min}"`:''} ${max!==undefined?`max="${max}"`:''} ${type==='number'?'step="1"':''} value="${escape(draft[id]??'')}"></label>`;
-  const check=(id:string,label:string,help='')=>`<label class="import-check" ${help?`title="${escape(help)}"`:''}><input data-spell-field="${id}" type="checkbox" ${draft[id]?'checked':''}>${label}</label>`;
+  const check=(id:string,label:string,help='')=>`<label class="import-check" ${helpAttributes(label,help)}><input data-spell-field="${id}" type="checkbox" ${help?`aria-description="${escape(help)}"`:''} ${draft[id]?'checked':''}>${label}</label>`;
   const catalogue=!draft.customSpell&&!!E.spell(draft.bookId||draft.name);
   if(catalogue){const meta=E.spellMeta(E.spell(draft.bookId||draft.name));if(!draft.dmgType||draft.dmgType==='livro')draft.dmgType=meta.dmgType;if(!draft.defType||draft.defType==='nenhuma')draft.defType=meta.defType;}
   controls.innerHTML=`<h4 class="font-bold t-text-accent">${existing?'Editar magia':'Adicionar magia'}</h4><p>Magias do catálogo mantêm seus efeitos do livro. Personalizadas usam a fórmula e a descrição escritas, sem escalonamento automático. Adições livres são adaptações da mesa.</p>

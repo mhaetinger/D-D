@@ -2,6 +2,25 @@
 
 ## Não lançado
 
+### Legibilidade do perfil e padrão dos quadros de magia — 2026-10-21
+
+- Perfil e Personagens passam a usar texto principal de 16px, apoio de 14px,
+  ações de 15px e títulos distintos em M. P/M/G/GG continuam aplicáveis. Janela
+  com até 36rem e ferramentas de backup em uma coluna quando necessário.
+- Quadros por classe, barra e cabeçalhos dos círculos compartilham a margem
+  interna. Ações de preparo, concentração e recursos usam os mesmos tamanhos,
+  pesos, cores e preenchimentos do tema. Duração e testes de concentração têm
+  intervalo próprio após os botões, nas duas abas.
+- Preparo adaptado ganha espaço após a lista de magias, inclusive vazia. Dicas
+  de preparo usam o balão da ficha por hover/foco, sem ajuda nativa concorrente;
+  clique no checkbox apenas altera sua seleção. Teclado alcança a dica pelo
+  próprio controle, sem outra parada de Tab. Dados, rascunhos e regras preservados.
+- Conferidos 385 testes Node, tipos/build e seis scripts Chromium: perfil,
+  cadeado/dicas, quadros de classe, concentração, revisão por setores e criação.
+  Incluem hover sem seleção, clique independente, foco/Esc no diálogo nativo,
+  fontes em M, margens/ações/duração, cópias/cancelamento, offline e
+  320px/GG/três temas/dois layouts. Capturas visuais também conferidas.
+
 ### Ferramentas em Personagens e editor de armas alinhado — 2026-10-20
 
 - Backup, importação, revisão como cópia e inclusão de notas aparecem somente

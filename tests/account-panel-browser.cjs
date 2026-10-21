@@ -12,6 +12,9 @@ const {chromium}=require('playwright'),{serve}=require('./serve.cjs'),{warrior}=
     await page.evaluate(()=>{setDiceMode('off');setTheme('pergaminho_claro');setFontScale(100);openAuthAccountModal();});
     const modal=page.locator('#authAccountModal'),tab=id=>modal.locator(`[data-account-tab="${id}"]`),panel=id=>modal.locator(`[data-account-panel="${id}"]`),view=id=>modal.locator(`[data-account-view="${id}"]`),card=id=>modal.locator(`[data-account-character="account-test-${id}"]`),{dialog,accept,cancel}=confirmationActions(page);
     assert.equal(await panel('profile').isVisible(),true);assert.equal(await panel('characters').isVisible(),false);
+    const typeSizes=await modal.evaluate(e=>Object.fromEntries(['#workspaceDescription','#syncStatus','#offlineStatus','[data-avatar-edit=""]','#exportBackup','h2'].map(q=>[q,parseFloat(getComputedStyle(e.querySelector(q)).fontSize)])));
+    assert.ok(typeSizes['#workspaceDescription']>=16);assert.ok(typeSizes['#syncStatus']>=14);assert.ok(typeSizes['#offlineStatus']>=14);assert.ok(typeSizes['[data-avatar-edit=""]']>=15);assert.ok(typeSizes['#exportBackup']>=15);assert.ok(typeSizes.h2>=18);
+    await modal.locator('> section').screenshot({path:'/tmp/critcall-profile-type-desktop.png'});
     const characterTools=['exportBackup','importBackup','reviewImportedCharacter','backupIncludeNotes'];
     for(const id of characterTools)assert.equal(await page.locator('#'+id).isVisible(),false);
     const name=page.locator('#accPlayerName');await name.fill('Jogadora de teste');await name.evaluate(e=>window.accountNameNode=e);
@@ -42,7 +45,7 @@ const {chromium}=require('playwright'),{serve}=require('./serve.cjs'),{warrior}=
       await page.setViewportSize({width:320,height:900});await page.evaluate(t=>{setTheme(t);setFontScale(125);},theme);await view(style).click();
       assert.equal(await modal.locator('> section').evaluate(e=>e.scrollWidth>e.clientWidth),false);
       for(const entry of await modal.locator('[data-account-character]').all())assert.equal(await entry.evaluate(e=>e.scrollWidth>e.clientWidth||e.scrollHeight>e.clientHeight),false);
-      for(const id of characterTools)assert.equal(await page.locator('#'+id).isVisible(),true);await tab('profile').click();for(const id of characterTools)assert.equal(await page.locator('#'+id).isVisible(),false);assert.equal(await name.inputValue(),'Jogadora de teste');await tab('characters').click();
+      for(const id of characterTools)assert.equal(await page.locator('#'+id).isVisible(),true);await tab('profile').click();for(const id of characterTools)assert.equal(await page.locator('#'+id).isVisible(),false);assert.equal(await name.inputValue(),'Jogadora de teste');assert.equal(await modal.locator('> section').evaluate(e=>e.scrollWidth>e.clientWidth),false);await tab('characters').click();
     }
     await modal.locator('> section').screenshot({path:'/tmp/critcall-account-cards-mobile.png'});
     await page.setViewportSize({width:1280,height:1000});await page.evaluate(()=>{setTheme('pergaminho_claro');setFontScale(100);});await view('list').click();await modal.locator('> section').screenshot({path:'/tmp/critcall-account-list-desktop.png'});await view('cards').click();

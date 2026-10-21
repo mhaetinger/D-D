@@ -210,7 +210,9 @@
       if (
         target &&
         target !== dismissedTarget &&
-        target.matches?.(":focus-visible")
+        // Rótulos com checkbox também abrem a ajuda pelo foco do controle;
+        // não precisam de outra parada de Tab nem de um botão de ajuda.
+        event.target.matches?.(":focus-visible")
       )
         show(target);
       else hide();

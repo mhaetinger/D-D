@@ -47,6 +47,7 @@
 .import-skill-row > label { font-size:0; gap:0; }
 .import-skill-row input { font-size:.9rem; }
 .spell-preparation { display:flex; gap:1rem; flex-wrap:wrap; align-items:center; margin:.6rem 0; }
+.import-preparation-adaptation { margin-top:1rem; }
 .import-entry { padding:.65rem; border:1px solid var(--border-main); border-radius:.5rem; }
 .import-entry strong,.import-spell-card h3 { overflow-wrap:anywhere; }
 .import-spell-card { padding:.8rem; margin-bottom:.8rem; border:1px solid var(--border-main); border-radius:.65rem; background:var(--bg-card); }

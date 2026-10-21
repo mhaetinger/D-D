@@ -1598,7 +1598,7 @@ function buildSingleCirclePanelHtml(char, lvl, isClassicTwoCol) {
 
   return `
   <div class="t-card overflow-hidden" data-flow-key="${panelKey}">
-    <div onclick="togglePanel('${panelKey}')" class="p-3 flex flex-wrap items-center justify-between gap-2 cursor-pointer t-hover ${!isCollapsed ? "border-b t-border" : ""}">
+    <div onclick="togglePanel('${panelKey}')" class="spell-circle-heading flex flex-wrap items-center justify-between gap-2 cursor-pointer t-hover ${!isCollapsed ? "border-b t-border" : ""}">
       <div class="flex items-center gap-2">
         <i data-lucide="${isCollapsed ? "chevron-right" : "chevron-down"}" class="w-4 h-4 t-text-accent"></i>
         <span style="--circle-level:${lvl}" class="spell-circle-number w-6 h-6 rounded flex items-center justify-center font-rpg font-extrabold text-xs">${lvl}</span>

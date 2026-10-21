@@ -66,6 +66,9 @@ conta. A aba Personagens oferece Lista ou Cartões, com os mesmos retratos e
 ações de abrir/excluir ficha. A visualização é lembrada neste navegador. Backup,
 importação e revisão como cópia aparecem somente em Personagens; o estado do
 armazenamento e a sincronização continuam acessíveis nas duas abas.
+Em M, o perfil usa texto principal de 16 px, apoio de 14 px e botões de 15 px;
+os nomes dos personagens e o título da janela têm destaque próprio. A escala
+P/M/G/GG também se aplica a esses textos.
 
 A ficha mantém cores por classe, com a subclasse visível. A tipografia distingue
 nome, títulos, texto de leitura, rótulos e números de combate. Em M, o texto
@@ -86,6 +89,8 @@ nível. Cada habilidade conserva sua descrição e seus controles de uso. No pre
 de magias, **Voltar à ficha** permite sair sem aplicar; escolhas pendentes pedem
 confirmação antes do descarte. O lembrete do descanso só é retirado ao aplicar.
 Avisos de limite ou validação aparecem dentro da janela que estiver em uso.
+As dicas de preparo aparecem no balão ao passar o mouse ou focar o controle
+pelo teclado. Marcar uma checkbox continua apenas alterando sua seleção.
 
 Concentração acompanha um efeito ativo do personagem, como Bênção. Combate e
 grimório mostram o mesmo registro. Preparar uma magia só a deixa disponível;

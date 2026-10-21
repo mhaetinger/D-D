@@ -1,6 +1,6 @@
 # Retomada do CritCall em outro PC
 
-Estado conferido em **20/10/2026**. Este documento permite continuar sem o
+Estado conferido em **21/10/2026**. Este documento permite continuar sem o
 histórico da conversa. Leia também `AGENTS.md`, `README.md`, `CHANGELOG.md` e
 `docs/ARQUITETURA.md` antes de alterar o projeto.
 
@@ -20,6 +20,19 @@ foi retirado. Os valores agora são editados na própria ficha; não retomar o
 fluxo antigo de Criar/Ajustar ficha manual pelo perfil. A conexão foi recuperada:
 a implementação `fe2dc66` foi enviada em 20/10 e a [PR #9](https://github.com/mhaetinger/D-D/pull/9)
 foi atualizada com base `develop`. Não houve merge/publicação desta etapa.
+
+**Fontes, margens e dicas padronizadas:** Perfil/Personagens têm leitura 16px,
+apoio 14px, botões 15px e títulos distintos em M; acompanham P/M/G/GG. A janela
+tem até 36rem e o backup se reorganiza no celular. Quadros de classe, barra e
+cabeçalhos dos círculos usam `--sheet-panel-inset`; ações de preparo e recursos
+compartilham fonte, cor e preenchimento. Concentração separa ações/duração/testes.
+Na revisão, o preparo adaptado tem margem após a lista. `app/help.ts` usa o balão
+existente por hover/foco, incluindo foco no checkbox pelo teclado; clicar mantém
+a seleção normal. Preservados nós, rascunhos, regras e dados.
+Conferidos 385 testes Node, tipos/build e seis scripts Chromium: perfil,
+cadeado/dicas, quadros de classe, concentração, revisão por setores e criação;
+fontes em M, margens/ações/duração, hover/clique independentes, foco/Esc no
+diálogo nativo, cópias/cancelamento, offline e 320px/GG/três temas/dois layouts.
 
 **Quadros de conjuração por classe:** `rules/spell-class-panels.ts` reúne preparo
 e recuperações de `spellbook` em quadros compactos. Paladino/Clérigo/Druida/Mago
