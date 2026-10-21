@@ -369,6 +369,10 @@
 .rule-tooltip[hidden] {
   display: none;
 }
+.rule-tooltip[popover] {
+  margin: 0;
+  inset: auto;
+}
 .rule-tooltip > strong {
   display: block;
   font-size: 0.95rem;

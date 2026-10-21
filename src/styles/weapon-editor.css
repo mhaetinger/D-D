@@ -1,0 +1,22 @@
+/* A grade depende da largura do cartão, inclusive em colunas estreitas no desktop. */
+#homebrewModal[data-editor-type=weapon] > .t-inset { background:transparent; }
+#homebrewModal[data-editor-type=weapon] #hbModalBody { display:flex; flex-direction:column; gap:.85rem; font-size:1rem; line-height:1.45; }
+#homebrewModal[data-editor-type=weapon] #hbModalBody > * { margin-block:0; }
+#homebrewModal[data-editor-type=weapon] :is(input:not([type=checkbox]):not([type=hidden]),select,textarea) { display:block; width:100%; min-width:0; max-width:100%; padding:.45rem .55rem; border:1px solid var(--border-main); border-radius:.4rem; background:var(--bg-inset); color:var(--text-main); color-scheme:var(--control-color-scheme); font:inherit; line-height:1.4; }
+#homebrewModal[data-editor-type=weapon] :is(input,select,textarea):focus-visible { outline:2px solid var(--text-accent); outline-offset:1px; }
+#homebrewModal[data-editor-type=weapon] :is(input,button):disabled { opacity:.6; }
+#homebrewModal[data-editor-type=weapon] textarea { resize:vertical; }
+.weapon-editor-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,10.5rem),1fr)); gap:.7rem; }
+.weapon-editor-field { display:flex; flex-direction:column; gap:.3rem; min-width:0; }
+.weapon-editor-field > span { font-weight:700; }
+.weapon-editor-adjustments { margin-top:.6rem; }
+.weapon-editor-adjustments > summary { cursor:pointer; font-weight:700; }
+.weapon-editor-adjustments[open] > summary { margin-bottom:.65rem; }
+.weapon-editor-checks { display:grid; gap:.6rem; margin-top:.7rem; }
+.weapon-editor-checks label { display:grid; grid-template-columns:auto minmax(0,1fr); align-items:start; gap:.5rem; }
+.weapon-editor-checks input { width:1rem; height:1rem; margin:.2rem 0 0; padding:0; }
+.weapon-editor-hint { font-size:.875rem; color:var(--text-muted); }
+.weapon-editor-dice { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,4rem),1fr)); gap:.4rem; }
+.weapon-editor-dice-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.35rem; }
+#homebrewModal[data-editor-type=weapon] .weapon-editor-dice button { min-width:0; padding:.45rem .35rem; }
+#homebrewModal[data-editor-type=weapon] > div > div:last-child { flex-wrap:wrap; }

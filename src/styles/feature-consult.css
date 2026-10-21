@@ -1,0 +1,7 @@
+.feature-consult { display:block; max-width:100%; padding:0; border:0; background:none; color:var(--text-main); font:inherit; text-align:left; cursor:help; text-decoration:underline dotted var(--border-main); text-underline-offset:.2em; overflow-wrap:anywhere; }
+.feature-consult > strong { font-weight:700; }
+.feature-consultation { pointer-events:auto; max-height:min(70dvh,34rem); overscroll-behavior:contain; }
+.feature-consultation > strong { display:block; padding-right:2rem; }
+.feature-consultation p { white-space:pre-line; }
+.feature-consultation a { display:inline-block; margin-top:.5rem; text-decoration:underline; }
+.feature-consult-close { position:sticky; float:right; top:0; z-index:1; width:1.8rem; height:1.8rem; border:1px solid var(--border-main); border-radius:.35rem; background:var(--bg-inset); color:var(--text-main); font-size:1.3rem; line-height:1; }

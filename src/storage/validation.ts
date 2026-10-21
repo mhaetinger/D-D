@@ -1,4 +1,6 @@
 import { isAvatarRef } from "../media/avatar";
+import { legacyBackupFormat } from "./legacy";
+import { normalizeCharacterText } from "../rules/text";
 export interface CharacterRecord extends Record<string, unknown> {
   id: string;
   name: string;
@@ -67,12 +69,12 @@ export function validateCharacters(value: unknown): CharacterRecord[] {
     for (const entry of item.inventoryItems as unknown[]) expect(object(entry) && string(entry.name) && finite(entry.qty) && finite(entry.weightKg), "item do inventário");
     if (item.rules !== undefined) expect(object(item.rules) && Array.isArray(item.rules.history) && item.rules.history.every(object), "histórico de escolhas");
   }
-  return value as CharacterRecord[];
+  return (value as CharacterRecord[]).map(normalizeCharacterText);
 }
 
 export const MAX_BACKUP_BYTES = 20 * 1024 * 1024;
 export interface Backup {
-  format: "orbyt.character-backup";
+  format: "critcall.character-backup";
   version: 1;
   exportedAt: string;
   characters: CharacterRecord[];
@@ -82,8 +84,8 @@ export function parseBackup(text: string): Backup {
   expect(new TextEncoder().encode(text).length <= MAX_BACKUP_BYTES, "backup maior que 20 MB");
   let data: unknown;
   try { data = JSON.parse(text); } catch { throw new Error("O arquivo não contém JSON válido. Nenhum dado foi alterado."); }
-  if (Array.isArray(data)) return { format: "orbyt.character-backup", version: 1, exportedAt: "", characters: validateCharacters(data) };
-  expect(object(data) && data.format === "orbyt.character-backup" && data.version === 1, "tipo ou versão de backup não suportado");
+  if (Array.isArray(data)) return { format: "critcall.character-backup", version: 1, exportedAt: "", characters: validateCharacters(data) };
+  expect(object(data) && ["critcall.character-backup",legacyBackupFormat].includes(String(data.format)) && data.version === 1, "tipo ou versão de backup não suportado");
   expect(data.exportedAt === undefined || string(data.exportedAt), "data do backup");
   const characters = validateCharacters(data.characters);
   if (data.privateNotes !== undefined) {
@@ -91,5 +93,5 @@ export function parseBackup(text: string): Backup {
     const ids = new Set(characters.map((c) => c.id));
     expect(Object.entries(data.privateNotes).every(([id, text]) => ids.has(id) && string(text) && text.length <= 2_000_000), "anotações pessoais sem personagem correspondente");
   }
-  return { format: "orbyt.character-backup", version: 1, exportedAt: String(data.exportedAt || ""), characters, ...(data.privateNotes ? { privateNotes: data.privateNotes as Record<string, string> } : {}) };
+  return { format: "critcall.character-backup", version: 1, exportedAt: String(data.exportedAt || ""), characters, ...(data.privateNotes ? { privateNotes: data.privateNotes as Record<string, string> } : {}) };
 }

@@ -1,0 +1,121 @@
+#confirmationDialog.import-review-open { width:min(65rem,calc(100vw - 1.5rem)); }
+#confirmationDialog.import-review-open form { display:flex; flex-direction:column; gap:.65rem; max-height:calc(100dvh - 5rem); }
+#confirmationDialog.import-review-open form > * { margin-top:0; }
+#confirmationDialog.import-review-open #confirmationExtra { flex:1; min-height:0; overflow:auto; overscroll-behavior:contain; }
+.import-review .import-mobile-sector { display:none; }
+.import-review { display:flex; flex-direction:column; gap:.75rem; }
+.import-nav { position:sticky; top:0; z-index:2; display:flex; flex-wrap:wrap; gap:.3rem; padding:.35rem; background:var(--bg-card); border-bottom:2px solid var(--border-main); }
+.import-nav button { flex:1 1 9rem; font-size:.8rem; text-align:left; }
+.import-nav [aria-current=step] { background:var(--text-accent); color:var(--btn-primary-text,#fff); font-weight:700; border:2px solid var(--text-main); text-decoration:underline; text-underline-offset:.2em; }
+[data-import-body] { padding:.15rem .4rem .15rem .1rem; }
+.import-sector-title h2 { font-size:1.1rem; font-weight:700; color:var(--text-accent); margin-bottom:.8rem; }
+.import-card { background:var(--bg-card); border:1px solid var(--border-main); border-radius:.65rem; margin-bottom:1rem; overflow:hidden; }
+.import-card > h3 { color:var(--text-accent); font-weight:700; padding:.65rem .8rem; border-bottom:1px solid var(--border-main); background:var(--bg-inset); }
+.import-card > :not(h3) { margin:.8rem; }
+.import-card h4 { font-weight:700; }
+.import-review details { border:1px solid var(--border-main); border-radius:.4rem; padding:.6rem; margin-bottom:.6rem; }
+.import-review summary { cursor:pointer; font-weight:700; }
+.import-review details[open] > summary { margin-bottom:.65rem; }
+.import-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr)); gap:.8rem; margin:.65rem 0; align-items:start; }
+.import-class-row { display:grid; grid-template-columns:minmax(0,1fr) 5rem minmax(0,1.3fr) auto; gap:.6rem; padding:.75rem 0; align-items:end; border-bottom:1px solid var(--border-main); }
+.import-class-row button { font-size:.8rem; }
+.import-review label { display:flex; flex-direction:column; gap:.3rem; min-width:0; font-size:.85rem; }
+.import-review input, .import-review select, .import-review textarea { width:100%; min-width:0; }
+/* A regra antiga de números estreitos é útil nos cartões de jogo; na revisão
+ * a largura vem do setor, para alinhar rótulos, campos e ações. */
+.rule-context.import-review input[type=number] { width:100%; }
+.import-review textarea { background:var(--bg-inset); color:var(--text-main); border:1px solid var(--border-main); border-radius:.3rem; padding:.4rem; }
+.import-review .import-check { display:flex; flex-direction:row; align-items:center; gap:.5rem; }
+.import-review .import-check input { width:1rem; height:1rem; flex:none; margin:0; }
+.import-review fieldset { border:1px solid var(--border-main); border-radius:.4rem; padding:.6rem; min-width:0; }
+.import-review legend { font-weight:700; padding:0 .3rem; }
+.import-abilities { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:.5rem; }
+.import-stat { border:1px solid var(--border-main); border-radius:.5rem; padding:.65rem .35rem; background:var(--bg-inset); text-align:center; }
+.import-stat label { font-size:.75rem; font-weight:700; }
+.import-stat input { font-size:1.2rem; text-align:center; }
+.import-vitals { grid-template-columns:repeat(auto-fit,minmax(min(100%,8rem),1fr)); }
+.import-slots { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.6rem; }
+.import-slot { border:1px solid var(--border-main); border-radius:.4rem; padding:.6rem; background:var(--bg-inset); }
+.import-slot-values { display:grid; grid-template-columns:1fr 1fr; gap:.4rem; margin-top:.35rem; }
+.import-pool-groups { display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }
+.import-pool-groups .import-grid { grid-template-columns:repeat(auto-fit,minmax(4rem,1fr)); }
+.import-saves { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr)); gap:.65rem; margin:.4rem 0 .8rem; }
+.import-skill-row,.import-skill-head { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1.4fr) minmax(5rem,.6fr); gap:.6rem; align-items:center; padding:.65rem .4rem; }
+.import-skill-head { border-bottom:2px solid var(--border-main); font-weight:700; font-size:.8rem; }
+.import-skill-row:nth-child(even) { background:var(--bg-inset); }
+.import-skill-training { display:flex; gap:.6rem; flex-wrap:wrap; }
+.import-skill-row > label { font-size:0; gap:0; }
+.import-skill-row input { font-size:.9rem; }
+.spell-preparation { display:flex; gap:1rem; flex-wrap:wrap; align-items:center; margin:.6rem 0; }
+.import-preparation-adaptation { margin-top:1rem; }
+.import-entry { padding:.65rem; border:1px solid var(--border-main); border-radius:.5rem; }
+.import-entry strong,.import-spell-card h3 { overflow-wrap:anywhere; }
+.import-spell-card { padding:.8rem; margin-bottom:.8rem; border:1px solid var(--border-main); border-radius:.65rem; background:var(--bg-card); }
+.import-spell-card > header { display:flex; justify-content:space-between; gap:.7rem; align-items:start; }
+.import-spell-card h3 { font-weight:700; color:var(--text-accent); }
+.import-spell-card header p { font-size:.8rem; margin-top:.25rem; }
+.import-spell-card header button { font-size:.8rem; flex:none; }
+.import-spell-card > details { margin-top:.65rem; margin-bottom:0; }
+.import-spell-card .spell-fields > h4 { display:none; }
+.import-review .import-notices { margin-bottom:.8rem; }
+.import-notice { border-left:3px solid var(--text-accent); background:var(--bg-inset); padding:.6rem .75rem; border-radius:.25rem; margin-bottom:.65rem; font-size:.85rem; }
+.import-notice p { margin-top:.3rem; }
+.import-review table { width:100%; margin:.6rem 0; font-size:.85rem; }
+.import-review th { text-align:left; }
+.import-review td { text-align:center; }
+.import-review th,.import-review td { border-bottom:1px solid var(--border-main); padding:.3rem; }
+.import-actions { display:flex; justify-content:space-between; align-items:center; gap:.5rem; flex-wrap:wrap; margin:.5rem 0; }
+.import-review-footer { border-top:2px solid var(--border-main); padding-top:.65rem; display:grid; gap:.55rem; }
+[data-import-error]:not(:empty) { padding:.45rem; border:2px solid var(--text-accent); font-weight:700; }
+[data-import-status] { font-size:.8rem; }
+.import-review [hidden],.spell-fields [hidden] { display:none; }
+/* A revisão tem a mesma escala de leitura da ficha. O escopo mantém os
+ * formulários compartilhados da edição em linha com sua própria tipografia. */
+#confirmationDialog.import-review-open { font-size:1rem; line-height:1.5; }
+#confirmationDialog.import-review-open .import-review { font-size:1rem; line-height:1.5; }
+#confirmationDialog.import-review-open #confirmationTitle { font-size:1.25rem; line-height:1.35; }
+#confirmationDialog.import-review-open #confirmationMessage { font-size:1rem; line-height:1.5; }
+#confirmationDialog.import-review-open :is(.import-sector-title h2,.import-card > h3,.import-spell-card h3,.import-weapon h4) { font-family:"Cinzel",serif; line-height:1.4; }
+#confirmationDialog.import-review-open .import-sector-title h2 { font-size:1.1875rem; }
+#confirmationDialog.import-review-open :is(.import-card > h3,.import-spell-card h3,.import-weapon h4) { font-size:1.0625rem; }
+#confirmationDialog.import-review-open :is(label,summary,legend) { font-size:.9375rem; line-height:1.45; }
+#confirmationDialog.import-review-open :is(input,select,textarea) { font-size:1rem; line-height:1.4; }
+#confirmationDialog.import-review-open .import-stat input { font-size:1.375rem; }
+#confirmationDialog.import-review-open .import-stat label { font-size:.875rem; }
+#confirmationDialog.import-review-open button { font-size:.9375rem; line-height:1.4; }
+#confirmationDialog.import-review-open .import-nav button { min-height:2.6rem; }
+#confirmationDialog.import-review-open :is(.import-notice,.import-review table) { font-size:1rem; }
+#confirmationDialog.import-review-open :is([data-import-status],.import-spell-card header p,.import-skill-head,.import-weapon output) { font-size:.875rem; line-height:1.5; }
+#confirmationDialog.import-review-open .import-skill-row > label { font-size:0; }
+.import-review .import-pools { padding:0; }
+.import-review .import-pools > summary { margin:0; padding:.75rem .8rem; background:var(--bg-inset); color:var(--text-accent); font:700 1.0625rem/1.4 "Cinzel",serif; }
+#confirmationDialog.import-review-open .import-pools > summary { font-size:1.0625rem; }
+.import-review .import-pools[open] > summary { border-bottom:1px solid var(--border-main); }
+.import-review .import-pool-body { display:grid; gap:.8rem; }
+.import-pool-body > button { justify-self:start; }
+.import-review .import-pool { min-width:0; margin:0; }
+.import-review .import-pool-groups { align-items:start; }
+.import-review [data-import-pool-state] { display:block; margin-left:1.1rem; font:400 .875rem/1.5 var(--font-body); color:var(--text-muted); }
+.import-review .import-pool-body > [data-import-pool-comparison]:empty { display:none; }
+@media (max-width:700px) {
+  .import-review .import-nav { display:none; }
+  .import-review .import-mobile-sector { display:flex; position:sticky; top:0; z-index:2; padding:.4rem; background:var(--bg-card); border-bottom:1px solid var(--border-main); }
+  .import-class-row { grid-template-columns:minmax(0,1fr) 5rem; }
+  .import-abilities { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .import-slots { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .import-pool-groups { grid-template-columns:1fr; }
+  .import-skill-row { grid-template-columns:minmax(0,1fr) 6rem; }
+  .import-skill-row strong { grid-column:1/-1; }
+  .import-skill-row > label { align-self:end; font-size:.7rem; gap:.3rem; }
+  #confirmationDialog.import-review-open .import-skill-row > label { font-size:.875rem; }
+  .import-skill-head { display:none; }
+}
+@media (max-width:400px) {
+  #confirmationDialog.import-review-open { padding:.65rem; }
+  #confirmationDialog.import-review-open form { max-height:calc(100dvh - 3.5rem); }
+  .import-nav button { flex-basis:100%; }
+  .import-nav { position:static; }
+  .import-slots { grid-template-columns:1fr; }
+  .import-card > :not(h3) { margin:.6rem; }
+  .import-skill-row { grid-template-columns:minmax(0,1fr) 4rem; gap:.35rem; }
+}

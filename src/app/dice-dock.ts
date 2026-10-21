@@ -1,5 +1,6 @@
 import { currentWorkspaceKey } from "../storage/account-scope";
 import { readPreference, writePreference } from "../storage/preferences";
+import {updateDiceDockAppearance} from './dice-dock-appearance';
 
 export function setupDiceDock(roll: () => void, toggle: () => void) {
   const tray = document.getElementById("dice3dTray")!;
@@ -43,7 +44,7 @@ export function setupDiceDock(roll: () => void, toggle: () => void) {
     value.textContent = result;
     value.style.fontSize = result.length > 6 ? ".6rem" : result.length > 4 ? ".9rem" : "1.45rem";
     document.getElementById("diceTrayTotal")!.textContent = result;
-    dock.setAttribute("aria-label", `Último resultado: ${result}. Abrir bandeja de dados. Arraste para mover; arremesse para rolar d20. Tecla R rola; setas movem.`);
+    updateDiceDockAppearance();
   }
   function reflow() {
     if (!tray.offsetWidth || !tray.offsetHeight) return;
@@ -61,9 +62,16 @@ export function setupDiceDock(roll: () => void, toggle: () => void) {
   }
   function persist() { if (position) writePreference("dnd_dice_tray_position", JSON.stringify(position)); }
   dock.addEventListener("click", () => { if (!suppressClick) toggle(); });
+  dock.addEventListener("blur", () => { delete dock.dataset.keyboardRoll; });
   dock.addEventListener("keydown", event => {
     if (event.ctrlKey || event.metaKey || event.altKey) return;
-    if (event.key.toLowerCase() === "r" && !event.repeat) { event.preventDefault(); roll(); }
+    if (event.key.toLowerCase() === "r" && !event.repeat) {
+      event.preventDefault();
+      // Mantém o foco para repetir R, sem deixar o realce retangular nas pontas.
+      // Ao sair e voltar pelo teclado, o indicador de navegação reaparece.
+      dock.dataset.keyboardRoll = "true";
+      roll();
+    }
     if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
     event.preventDefault();
     const rect = tray.getBoundingClientRect();

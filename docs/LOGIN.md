@@ -23,12 +23,12 @@ identidade, nem altera os retornos já configurados no serviço.
 ## Estado desta branch
 
 O responsável confirmou e-mail/senha em 15/10/2026 e pediu um projeto Supabase
-exclusivo do CritCall, administrado pela mesma conta que já possui o projeto Orbyt.
+exclusivo do CritCall, administrado pela conta do responsável.
 O usuário criou e identificou o projeto novo: `qhrpgkpvwbztubnrdhya`, URL pública
 `https://qhrpgkpvwbztubnrdhya.supabase.co`. URL e chave publicável acompanham o
 build em `src/auth/public-project.ts`. São identificadores públicos feitos para
 o navegador, sem privilégio administrativo; o preflight confere o tipo da chave.
-Orbyt é outro aplicativo e não deve receber alterações.
+Outros aplicativos não devem receber alterações.
 Cada projeto Supabase tem seu
 próprio banco e serviço de autenticação: [projetos e organizações](https://supabase.com/docs/guides/platform).
 
@@ -66,7 +66,7 @@ e verificações em [SINCRONIZACAO.md](SINCRONIZACAO.md).
 ## Configurar o projeto exclusivo
 
 1. Usar somente o projeto **CritCall** identificado acima. Não criar outro por
-   repetição nem reaproveitar o banco, usuários ou chaves do Orbyt. A chave pública
+   repetição nem reaproveitar o banco, usuários ou chaves do outro aplicativo. A chave pública
    permite o cliente do aplicativo; não concede acesso à administração do projeto.
 2. Em Authentication, habilitar cadastro por e-mail/senha e manter confirmação
    de e-mail. Configurar senha mínima de 12 caracteres, compatível com a interface.
@@ -202,17 +202,18 @@ não transfere automaticamente as fichas locais. Procedimento e limites em
 
 ## Dados, sessão e troca de conta
 
-- O nome do aplicativo é CritCall. Algumas chaves e o formato
-  `orbyt.character-backup` são identificadores legados da primeira publicação,
-  que recebeu esse nome por engano. Eles são preservados para continuar lendo
+- O nome do aplicativo é CritCall. Identificadores históricos da primeira
+  publicação são reconhecidos em leitura silenciosa.
+  Os originais são preservados para continuar lendo
   fichas/backups existentes; não indicam vínculo com o outro aplicativo.
   Os novos espaços de autenticação/conta usam prefixos `dnd_auth_v1` e `dnd_account_v1`.
 - O bootstrap consulta a identidade antes de carregar a ficha. Online, `getUser`
   valida a sessão no Supabase. Não se usa um nome digitado ou um JWT decodificado
   pelo aplicativo como autorização de acesso ao serviço.
-- As chaves originais continuam pertencendo ao espaço **sem login**. Entrar não
-  copia nem vincula automaticamente fichas anteriores. Para levar uma ficha ao
-  espaço da conta, exportar no modo local, entrar e importar o backup como cópia.
+- As chaves originais continuam pertencendo ao espaço **sem login**. O fluxo de
+  entrada pode vincular cópias das fichas locais selecionadas à identidade
+  confirmada. Conta com fichas exige confirmação; a origem permanece preservada.
+  Backups manuais continuam criando cópias; veja `SINCRONIZACAO.md`.
 - Cada projeto/usuário tem um prefixo próprio para fichas, anotações, recuperação,
   nome do jogador, ficha ativa e preferências visuais. Tema/fundo/fonte entram
   na sincronização por conta; valores visuais antigos do navegador são apenas

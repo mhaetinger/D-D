@@ -1,13 +1,14 @@
 export const STANDARD = [15, 14, 13, 12, 10, 8];
 export const COST: Record<number, number> = { 8: 0, 9: 1, 10: 2, 11: 3, 12: 4, 13: 5, 14: 7, 15: 9 };
-const labels: Record<string, string> = { str: 'Força', dex: 'Destreza', con: 'Constituição', int: 'Inteligência', wis: 'Sabedoria', cha: 'Carisma' };
+export const labels: Record<string, string> = { str: 'Força', dex: 'Destreza', con: 'Constituição', int: 'Inteligência', wis: 'Sabedoria', cha: 'Carisma' };
 const hints: Record<string, string> = { str: 'Esforço físico, saltos e ataques corpo a corpo com muitas armas.', dex: 'Agilidade, furtividade, iniciativa e ataques à distância.', con: 'Resistência física, pontos de vida e concentração em magias.', int: 'Raciocínio, memória, investigação e magia dos magos.', wis: 'Atenção, intuição e magia de clérigos, druidas e patrulheiros.', cha: 'Presença, interação social e magia de bardos, bruxos e feiticeiros.' };
 export interface AbilitySetup { abilityMethod: string; baseScores: Record<string, number>; assignment: Record<string, string>; rolls: number[][] }
 export const totals = (s: AbilitySetup) => s.abilityMethod === 'rolled' ? s.rolls.map(g => g.reduce((a, b) => a + b, 0) - Math.min(...g)) : STANDARD;
 export const spent = (s: AbilitySetup) => Object.values(s.baseScores).reduce((sum, n) => sum + (COST[n] ?? 0), 0);
 export function adjust(s: AbilitySetup, ability: string, delta: number) {
-  if (!(ability in labels) || ![1, -1].includes(delta) || s.abilityMethod !== 'pointBuy') return false;
+  if (!(ability in labels) || ![1, -1].includes(delta) || !['pointBuy','adapted'].includes(s.abilityMethod)) return false;
   const value = s.baseScores[ability] ?? 8, next = value + delta;
+  if (s.abilityMethod === 'adapted') { if (next<0 || next>30) return false; s.baseScores[ability]=next; return true; }
   if (COST[next] === undefined || spent(s) - COST[value] + COST[next] > 27) return false;
   s.baseScores[ability] = next;
   return true;
@@ -25,16 +26,20 @@ export function assign(s: AbilitySetup, index: string, target: string) {
   }
   return true;
 }
+export function abilityCard(key:string,content:string,showHint=true) {
+  return `<section class="cw-ability-card" data-ability-card="${key}"><strong>${labels[key]}</strong>${showHint?`<p class="cw-muted">${hints[key]}</p>`:''}${content}</section>`;
+}
 export function abilityMarkup() {
-  return `<div id="cw-distribution"><p class="cw-ability-status" role="status"></p><div class="cw-token-pool" aria-label="Valores disponíveis"></div><div class="cw-grid">${Object.entries(labels).map(([key, name]) => `<section class="cw-ability-card" data-ability-card="${key}"><strong>${name}</strong><p class="cw-muted">${hints[key]}</p><div class="cw-stepper"><button type="button" data-adjust="-1" aria-label="Diminuir ${name}">−</button><output data-score></output><button type="button" data-adjust="1" aria-label="Aumentar ${name}">+</button></div><button type="button" class="cw-ability-slot" data-slot="${key}" aria-label="Atribuir valor a ${name}"></button><span class="cw-muted" data-final></span></section>`).join('')}</div></div>`;
+  return `<div id="cw-distribution"><p class="cw-ability-status" role="status"></p><div class="cw-token-pool" aria-label="Valores disponíveis"></div><div class="cw-grid">${Object.entries(labels).map(([key, name]) => abilityCard(key,`<div class="cw-stepper"><button type="button" data-adjust="-1" aria-label="Diminuir ${name}">−</button><output data-score></output><button type="button" data-adjust="1" aria-label="Aumentar ${name}">+</button></div><button type="button" class="cw-ability-slot" data-slot="${key}" aria-label="Atribuir valor a ${name}"></button><span class="cw-muted" data-final></span>`)).join('')}</div></div>`;
 }
 export function bindAbilities(host: HTMLElement, s: AbilitySetup, scores: () => Record<string, number>, save: () => void) {
   const panel = host.querySelector<HTMLElement>('#cw-distribution');
   if (!panel) return;
   let selected: string | null = null;
   const pointBuy = s.abilityMethod === 'pointBuy';
+  const adapted = s.abilityMethod === 'adapted', stepping = pointBuy || adapted;
   // Rascunhos anteriores usavam os valores diretamente. Migra sem alterar a distribuição.
-  if (!pointBuy && !Object.keys(s.assignment || {}).length) {
+  if (!stepping && !Object.keys(s.assignment || {}).length) {
     s.assignment = {};
     const used = new Set<number>();
     for (const key of Object.keys(labels)) {
@@ -43,8 +48,8 @@ export function bindAbilities(host: HTMLElement, s: AbilitySetup, scores: () => 
     }
   }
   const pool = panel.querySelector<HTMLElement>('.cw-token-pool')!;
-  pool.hidden = pointBuy;
-  const tokens = totals(s).map((n, i) => {
+  pool.hidden = stepping;
+  const tokens = (stepping ? [] : totals(s)).map((n, i) => {
     const button = document.createElement('button');
     button.type = 'button'; button.className = 'cw-ability-token'; button.draggable = true;
     button.dataset.token = String(i); button.textContent = String(n);
@@ -53,7 +58,7 @@ export function bindAbilities(host: HTMLElement, s: AbilitySetup, scores: () => 
   });
   function update() {
     const final = scores();
-    panel!.querySelector('.cw-ability-status')!.textContent = pointBuy
+    panel!.querySelector('.cw-ability-status')!.textContent = adapted ? 'Adaptação da mesa: valores livres, sem orçamento de pontos. Confira os limites finais com o Mestre.' : pointBuy
       ? `${27 - spent(s)} pontos disponíveis · ${spent(s)} de 27 usados. De 8 a 13, cada aumento custa 1; de 13 a 15, custa 2.`
       : selected === null ? 'Arraste um valor para uma habilidade, ou clique no valor e depois no destino. Para trocar dois valores, mova um sobre o outro.' : `Peça ${+selected + 1} selecionada: ${totals(s)[+selected]}. Escolha o destino.`;
     // Nós são movidos, não recriados: foco e acessibilidade sobrevivem à distribuição.
@@ -65,15 +70,15 @@ export function bindAbilities(host: HTMLElement, s: AbilitySetup, scores: () => 
     });
     for (const card of panel!.querySelectorAll<HTMLElement>('[data-ability-card]')) {
       const key = card.dataset.abilityCard!, n = s.baseScores[key];
-      card.querySelector<HTMLElement>('.cw-stepper')!.hidden = !pointBuy;
+      card.querySelector<HTMLElement>('.cw-stepper')!.hidden = !stepping;
       card.querySelector<HTMLElement>('[data-score]')!.textContent = String(n ?? '—');
       card.querySelector<HTMLElement>('[data-final]')!.textContent = `Após bônus raciais: ${n === undefined ? '—' : final[key]}`;
       const slot = card.querySelector<HTMLButtonElement>('[data-slot]')!;
-      slot.hidden = pointBuy;
+      slot.hidden = stepping;
       slot.textContent = n === undefined ? 'Colocar valor aqui' : `Trocar valor de ${labels[key]}`;
       for (const b of card.querySelectorAll<HTMLButtonElement>('[data-adjust]')) {
         const next = n + Number(b.dataset.adjust);
-        b.disabled = COST[next] === undefined || spent(s) - COST[n] + COST[next] > 27;
+        b.disabled = adapted ? next<0 || next>30 : COST[next] === undefined || spent(s) - COST[n] + COST[next] > 27;
       }
     }
   }

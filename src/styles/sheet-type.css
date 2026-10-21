@@ -1,0 +1,149 @@
+/* A escala P/M/G/GG continua no rem da página. Papéis visuais têm medidas
+ * próprias: títulos do grimório, texto de leitura, rótulos e números de jogo.
+ * O escopo evita alterar login, livro e diálogos independentes. */
+#sheetApp {
+  --sheet-text:1rem;
+  --sheet-secondary:.875rem;
+  --sheet-caption:.8125rem;
+  --sheet-heading:1.0625rem;
+  --sheet-panel-inset:1rem;
+}
+:is(#headerSection,#sheetViewport) { font-size:var(--sheet-text); line-height:1.5; }
+:is(#headerSection,#sheetViewport) .text-xs { font-size:var(--sheet-text); }
+:is(#headerSection,#sheetViewport) .text-sm { font-size:var(--sheet-text); }
+:is(#headerSection,#sheetViewport) :is([class~="text-[9px]"],[class~="text-[10px]"]) { font-size:var(--sheet-caption); }
+:is(#headerSection,#sheetViewport) [class~="text-[11px]"] { font-size:var(--sheet-secondary); }
+#sheetViewport :is(h2,h3).font-rpg { font-size:var(--sheet-heading); line-height:1.4; letter-spacing:.015em; }
+#sheetViewport :is(.rule-context,.rule-inline) { font-size:var(--sheet-text); }
+#sheetViewport :is(button,select,input) { line-height:1.35; }
+#sheetViewport :is(.rule-controls button,.spell-action-button,.spell-slot-select) { font-size:var(--sheet-secondary); }
+#sheetViewport :is(.sheet-skill-value button,.slot-resource) { font-size:var(--sheet-secondary); }
+#sheetViewport .sheet-skill-value { gap:.3rem; }
+#sheetViewport .sheet-skill-value .sheet-value { font-weight:700; font-size:var(--sheet-text); }
+#sheetViewport .sheet-skill-value .sheet-number { font-size:var(--sheet-text); }
+
+.sheet-header-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.3fr); grid-template-areas:"person facts" "classes classes"; gap:.6rem 1rem; align-items:center; }
+.sheet-header-person { grid-area:person; display:grid; grid-template-columns:auto minmax(0,1fr); gap:.2rem .65rem; align-items:center; min-width:0; }
+.sheet-header-person .sheet-casting-summary { grid-column:1/-1; }
+#headerSection .sheet-header-meta { font-size:var(--sheet-secondary); line-height:1.4; }
+.sheet-header-name { display:flex; flex-direction:column; align-items:flex-start; gap:.25rem; margin-top:.2rem; min-width:0; }
+#headerSection :is([data-sheet-value="name"],[data-sheet-field="name"]) { font:700 1.5rem/1.25 "Cinzel",serif; margin:0; }
+#headerSection .sheet-casting-summary { font-size:var(--sheet-secondary); line-height:1.45; overflow-wrap:anywhere; }
+.sheet-header-classes { grid-area:classes; display:flex; flex-wrap:wrap; align-items:flex-start; gap:.4rem; min-width:0; }
+#headerSection .sheet-class-chip { display:flex; align-items:baseline; gap:.5rem; border-radius:.4rem; padding:.25rem .55rem; font-size:.9375rem; min-width:0; max-width:min(25rem,100%); }
+.sheet-class-main { flex:none; max-width:100%; display:flex; align-items:center; flex-wrap:wrap; gap:.35rem; font-weight:700; }
+.sheet-class-level { display:inline-flex; align-items:baseline; gap:.2rem; white-space:nowrap; }
+#headerSection .sheet-class-chip .sheet-field { color:inherit; }
+#headerSection .sheet-class-chip .sheet-select { max-width:min(12rem,65vw); }
+#headerSection .sheet-class-subclass { min-width:0; max-width:16rem; margin-top:.1rem; font-size:var(--sheet-secondary); line-height:1.35; }
+#headerSection .sheet-class-subclass > summary { list-style-position:inside; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+#headerSection .sheet-class-subclass[open] > summary { white-space:normal; overflow-wrap:anywhere; }
+#headerSection[data-editing=true] .sheet-class-chip,#headerSection .sheet-class-chip:has(details[open]) { display:block; }
+#headerSection .sheet-class-subclass[open] { max-width:100%; }
+.sheet-header-facts { grid-area:facts; display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.4rem; align-items:stretch; }
+.sheet-identity-card { display:flex; flex-direction:column; justify-content:flex-start; gap:.2rem; padding:.4rem .6rem; border-radius:.4rem; min-width:0; }
+#headerSection .sheet-identity-label { font-size:var(--sheet-caption); text-transform:uppercase; letter-spacing:.035em; line-height:1.25; }
+#headerSection .sheet-identity-value { font-size:1rem; font-weight:700; line-height:1.35; overflow-wrap:anywhere; }
+#headerSection .sheet-level-card { flex-direction:row; justify-content:space-between; align-items:stretch; gap:.6rem; }
+#headerSection .sheet-level-card > div { display:flex; flex-direction:column; gap:.15rem; min-width:0; }
+#headerSection .sheet-xp { display:flex; align-items:baseline; gap:.2rem; font-size:var(--sheet-caption); }
+#headerSection .sheet-proficiency-value { font-size:1.4rem; font-weight:800; line-height:1.2; }
+
+/* Valor de jogo mantém o mesmo destaque com o cadeado aberto ou fechado. */
+#sheetViewport .combat-stat { align-items:center; padding:.65rem .4rem; row-gap:.35rem; }
+#sheetViewport .combat-stat-value { display:flex; align-items:baseline; justify-content:center; gap:.15rem; font-size:2rem; font-weight:800; line-height:1.2; font-variant-numeric:tabular-nums; }
+#sheetViewport .combat-stat-value .sheet-number { width:3.3ch; max-width:100%; font-size:inherit; }
+#sheetViewport .sheet-combat-summary { white-space:nowrap; margin-left:auto; font-size:var(--sheet-secondary); }
+#sheetViewport .spell-effect-badge { font-size:var(--sheet-secondary); }
+#sheetViewport .combat-stat-unit { font-size:var(--sheet-secondary); font-weight:400; }
+#sheetViewport .sheet-hp-values > .sheet-value { font-size:1.3rem; font-weight:700; }
+#sheetViewport .sheet-hp-values button { font-size:var(--sheet-secondary); }
+.sheet-inspiration { flex-basis:100%; min-width:0; border-top:1px solid var(--border-main); padding-top:.5rem; }
+.sheet-inspiration > span:first-child { font-weight:700; }
+.sheet-inspiration > .rule-controls { margin-left:auto; justify-content:flex-end; }
+#sheetViewport .sheet-ability-card > span { overflow-wrap:anywhere; hyphens:auto; letter-spacing:0; line-height:1.3; }
+#sheetViewport .sheet-ability-card > button { font-size:1.75rem; }
+
+#sheetViewport .sheet-inventory-load { font-size:var(--sheet-secondary); line-height:1.5; }
+#sheetViewport .sheet-coins .sheet-value { font-size:1.2rem; font-weight:700; }
+#sheetViewport [data-sheet-item] { padding-block:.65rem; line-height:1.5; }
+#sheetViewport [data-sheet-item] > button { font-size:var(--sheet-text); }
+#sheetViewport .sheet-backstory { line-height:1.65; }
+#sheetViewport .sheet-narrative { font-size:var(--sheet-text); line-height:1.65; }
+#sheetViewport [data-sheet-lore] strong { font-weight:700; }
+#sheetViewport .sheet-backstory > strong { font-family:"Cinzel",serif; font-size:var(--sheet-secondary); }
+#sheetViewport .sheet-pact-description { font-size:var(--sheet-text); line-height:1.55; }
+#sheetViewport .feature-entry summary { line-height:1.5; }
+#sheetViewport .feature-entry summary > strong { font-weight:700; }
+
+@media(max-width:900px) { .sheet-header-layout { grid-template-columns:1fr; grid-template-areas:"person" "classes" "facts"; } }
+@media(max-width:639px) {
+  .sheet-header-facts { display:flex; flex-wrap:wrap; gap:.35rem .8rem; border-top:1px solid var(--border-main); padding-top:.45rem; }
+  #headerSection .sheet-identity-card { flex:1 1 calc(50% - .4rem); flex-direction:row; align-items:baseline; gap:.35rem; padding:0; border:0; background:transparent; }
+  #headerSection .sheet-level-card { flex-basis:100%; gap:1rem; }
+  #headerSection .sheet-level-card > div { flex-direction:row; align-items:baseline; gap:.35rem; }
+  #headerSection .sheet-proficiency-value { font-size:1rem; }
+  #headerSection .sheet-identity-value { font-size:.9375rem; }
+  #headerSection .sheet-identity-label { font-size:.8125rem; letter-spacing:0; text-transform:none; }
+  #headerSection .sheet-header-meta { font-size:.8125rem; }
+  #headerSection :is([data-sheet-value="name"],[data-sheet-field="name"]) { font-size:1.25rem; }
+  #headerSection .sheet-class-chip { display:block; flex:1 1 calc(50% - .2rem); max-width:calc(50% - .2rem); padding:.25rem .4rem; font-size:.875rem; }
+  #headerSection .sheet-class-chip:has(details[open]) { flex-basis:100%; max-width:100%; }
+  #headerSection .sheet-class-subclass { font-size:.8125rem; }
+  .sheet-header-person { align-items:start; }
+  .sheet-classic-sidebar { grid-template-columns:1fr; }
+  .sheet-abilities { grid-column:1/-1; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.6rem; }
+  #sheetViewport .sheet-abilities > * { margin-block:0; }
+  .sheet-proficiencies { grid-column:1/-1; }
+  #sheetViewport .combat-stat-value { font-size:1.7rem; }
+}
+@media(max-width:400px) { .sheet-abilities { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+/* Os textos maiores não cabem na antiga altura fixa dos botões de magia. */
+#sheetViewport .spell-action-button { flex-basis:6.5rem; width:6.5rem; max-width:100%; height:auto; min-height:2.25rem; padding:.3rem .4rem; line-height:1.25; }
+#sheetViewport .spell-slot-select { height:2.25rem; }
+
+/* O texto usa a largura inteira. Rolagens e controles de mesa têm faixas
+ * próprias para não comprimir notas longas nem mudar ao preparar crítico. */
+.weapon-card { min-width:0; }
+.weapon-heading { display:flex; align-items:start; justify-content:space-between; gap:.6rem; }
+.weapon-heading > button:first-child { font-size:1rem; line-height:1.4; overflow-wrap:anywhere; }
+.weapon-description { margin:.35rem 0 .65rem; font-size:var(--sheet-secondary); line-height:1.5; overflow-wrap:anywhere; white-space:pre-line; }
+.weapon-description:empty { display:none; }
+.weapon-rolls { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1.6fr); gap:.5rem; padding-top:.6rem; border-top:1px solid var(--border-main); }
+#sheetViewport .weapon-rolls > button { width:100%; min-width:0; min-height:2.25rem; font-size:var(--sheet-secondary); line-height:1.35; }
+.weapon-secondary { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .8rem; margin-top:.6rem; font-size:var(--sheet-secondary); }
+.weapon-secondary:not(:has(*)) { display:none; }
+.weapon-grip { display:inline-flex; align-items:center; gap:.35rem; }
+.weapon-grip select { max-width:100%; background:var(--bg-card); color:var(--text-main); border:1px solid var(--border-main); border-radius:.3rem; padding:.15rem .3rem; }
+.weapon-secondary .weapon-tools { flex:1 1 11rem; justify-content:space-between; margin-top:0; }
+.weapon-tools > label { flex:none; }
+
+.spell-class-panels { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.8rem; align-items:start; }
+.spell-class-panels > section:only-of-type { grid-column:1/-1; }
+.spell-class-panel { min-width:0; padding:var(--sheet-panel-inset); }
+.spell-class-panel > header { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem .8rem; }
+.spell-class-panel h3 { min-width:0; overflow-wrap:anywhere; }
+.spell-class-count { max-width:100%; padding:.2rem .5rem; border-radius:.4rem; font-size:var(--sheet-secondary); font-weight:700; }
+.spell-class-summary { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem .8rem; margin-top:.55rem; }
+.spell-class-summary > p { flex:1 1 12rem; font-size:var(--sheet-secondary); line-height:1.45; }
+#sheetViewport :is(.rule-controls button,.rule-concentration-content > button,.spell-class-summary > button) { padding:.35rem .65rem; border:1px solid var(--border-main); border-radius:.4rem; background:var(--bg-inset); color:var(--text-main); font-family:inherit; font-size:var(--sheet-secondary); line-height:1.4; font-weight:700; }
+#sheetViewport [data-sheet-spell-tools] { padding:var(--sheet-panel-inset); }
+#sheetViewport .spell-circle-heading { padding:var(--sheet-panel-inset); }
+[data-sheet-spell-tools] > div { min-width:0; max-width:100%; }
+#sheetViewport [data-sheet-spell-tools] .rule-concentration-content > button { justify-self:end; }
+#sheetViewport [data-sheet-spell-tools] .rule-concentration-content > .rule-controls { justify-content:flex-end; }
+.spell-class-resources { border-top:1px solid var(--border-main); margin-top:.65rem; padding-top:.6rem; display:grid; gap:.65rem; }
+.spell-prepare-reminder { grid-column:1/-1; font-size:var(--sheet-secondary); }
+[data-spellcasting-block] { flex-basis:100%; }
+@media(max-width:900px) { .spell-class-panels { grid-template-columns:1fr; } }
+
+.app-preferences { display:contents; }
+.app-preferences > summary { display:none; }
+@media(max-width:639px) {
+  .app-account-bar { width:100%; }
+  .app-account-bar #charSelect { max-width:calc(100% - 5.75rem); }
+  .app-preferences { display:block; flex:1 1 4rem; min-width:0; font-size:.875rem; }
+  .app-preferences > summary { display:list-item; cursor:pointer; padding:.3rem .5rem; border:1px solid var(--border-main); border-radius:.35rem; background:var(--bg-inset); }
+  .app-preferences[open] { flex-basis:100%; }
+  .app-preferences > div { padding-top:.4rem; }
+}

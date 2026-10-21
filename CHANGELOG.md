@@ -2,6 +2,696 @@
 
 ## Não lançado
 
+## 2026-10-21
+
+Entrega autorizada pelo responsável após a revisão da ficha, importação,
+tipografia e dado. Integração por PR para `develop` e depois `main`; o workflow
+da `main` testa e publica o mesmo artefato `dist/`.
+
+### Dado sem realce de seleção após R — 2026-10-21
+
+- R mantém o foco para repetir a rolagem, mas oculta o realce retangular que
+  aparecia nas pontas do dado. Sair e voltar por Tab restaura o indicador de
+  navegação. O estado é transitório; desenho, efeitos e rolagens preservados.
+- O botão do dado desativa o realce nativo de toque e o menu de toque longo
+  do WebKit, mantendo os gestos e a proteção contra seleção de texto.
+- Conferidos 385 testes Node, tipos/build e Chromium do dado: imagem após R
+  idêntica à imagem sem foco, tecla repetida/foco/Tab, três modos, arraste,
+  posição/recarga, OFF, três temas/320px/GG e toque/arremesso/R em celular
+  emulado. Capturas desktop e móvel conferidas.
+
+### D20 rápido respeita vantagem e desvantagem — 2026-10-21
+
+- Arremessar o dado recolhido, usar R ou o botão de d20 rápido na bandeja segue
+  o modo escolhido: normal usa um d20; vantagem escolhe o maior de dois;
+  desvantagem, o menor. O número no dado mostra essa face, sem bônus do pool.
+- Preservados aparência, gestos, pool, modificador e inspiração preparada.
+  Alterar o modo durante a animação só vale para o próximo lançamento.
+  Dicas e nome do botão acompanham o modo, inclusive a ajuda de inspiração.
+- Conferidos 385 testes Node, tipos/build e Chromium de dado, PV/inspiração e
+  crítico/adicionais. Botão, arremesso e R testados nos três modos, com faces
+  controladas, preservação do pool/+7, troca de modo durante animação, posição,
+  recarga, movimento reduzido, três temas/320px/GG e OFF.
+
+### Aura do modo do dado, com retorno preservado — 2026-10-21
+
+- Dado recolhido indica o modo selecionado na ficha/bandeja: névoa suave e ↑
+  na vantagem; pequenas chamas e ↓ na desvantagem. O desenho original fica
+  intacto no normal. Efeitos externos, sem capturar cliques ou aumentar o dado;
+  movimento reduzido mantém somente a aparência estática.
+- Gestos, cálculos e persistência preservados, incluindo arremesso/R de um d20
+  normal e o pool montado. Implementação separada para reverter apenas os
+  efeitos, conservando as correções móveis e o ponto de retorno `94e44d1`.
+- Conferidos 385 testes Node, tipos/build e Chromium de dado. Comparação com
+  build do checkpoint confirmou imagens idênticas do dado normal nos três
+  temas, em desktop M e celular 320px/GG. Testados alternância, símbolos,
+  movimento reduzido, clique, teclado, arraste/arremesso, recarga e modo OFF.
+  Chromium de ataques e magias também passou, incluindo pool/inspiração,
+  recursos, modos físico/virtual/OFF, offline e layouts/temas/320px/GG.
+  Consulta por toque e concentração conferidas novamente após a integração.
+
+### Consulta por toque e atributos alinhados no celular — 2026-10-21
+
+- Cartões de atributos na grade móvel deixam de herdar a margem vertical das
+  listas, igualando posição e altura dos cartões da mesma linha.
+- Características consultadas por hover ou por um toque/clique no nome, sem
+  expandir a ficha. O balão fixado conserva regra, origem, escolhas e livro;
+  fecha no ×, Esc ou toque fora. Consulta separada de ativar/gastar recursos,
+  com rolagem contida e encerramento ao trocar ficha/aba/conta.
+- Ponto de retorno anterior: `94e44d1`, etiqueta local
+  `checkpoint/antes-efeitos-dado-20261021-94e44d1`. Cópia do código e checksum
+  em `~/.local/state/critcall/checkpoints/`, fora dos dados pessoais da ficha.
+- Conferidos 385 testes Node, tipos/build e Chromium de consulta por toque,
+  regras e tipografia: hover/toque com mesmo texto, consulta sem ativação,
+  Esc/fora/rolagem contida, recursos/nós preservados e três temas/M/GG/mobile.
+
+### Hierarquia dos nomes de recursos — 2026-10-21
+
+- Nomes secundários dentro das características, como Canalizar Divindade,
+  usam 14px em M, peso intermediário, itálico e a cor de apoio do tema. Os
+  títulos das características mantêm seu destaque; usos e botões conservam
+  sua legibilidade. P/M/G/GG e os mesmos nós de ajuda/controle são preservados.
+- Conferidos 385 testes Node, tipos/build e Chromium de regras na interface,
+  incluindo três temas, dois layouts, 320px/GG, foco e recursos preservados.
+  Capturas de desktop e celular também conferidas.
+
+### Concentração à direita e separadores de nível — 2026-10-21
+
+- Ações de concentração se alinham à direita na barra do grimório, incluindo
+  Registrar efeito da mesa, acompanhando as demais ações dos quadros.
+- Nível centralizado entre duas linhas finas nas características da classe,
+  com contraste de leitura e espaçamento compacto. Usa decoração CSS sobre o
+  título existente, preservando nós, controles e descrições abertas.
+- Conferidos 385 testes Node, tipos/build e Chromium de regras e quadros de
+  conjuração, com três temas, dois layouts, 320px/GG e dados/foco preservados.
+  Capturas conferidas em M no desktop e GG no celular.
+
+### Legibilidade do perfil e padrão dos quadros de magia — 2026-10-21
+
+- Perfil e Personagens passam a usar texto principal de 16px, apoio de 14px,
+  ações de 15px e títulos distintos em M. P/M/G/GG continuam aplicáveis. Janela
+  com até 36rem e ferramentas de backup em uma coluna quando necessário.
+- Quadros por classe, barra e cabeçalhos dos círculos compartilham a margem
+  interna. Ações de preparo, concentração e recursos usam os mesmos tamanhos,
+  pesos, cores e preenchimentos do tema. Duração e testes de concentração têm
+  intervalo próprio após os botões, nas duas abas.
+- Preparo adaptado ganha espaço após a lista de magias, inclusive vazia. Dicas
+  de preparo usam o balão da ficha por hover/foco, sem ajuda nativa concorrente;
+  clique no checkbox apenas altera sua seleção. Teclado alcança a dica pelo
+  próprio controle, sem outra parada de Tab. Dados, rascunhos e regras preservados.
+- Conferidos 385 testes Node, tipos/build e seis scripts Chromium: perfil,
+  cadeado/dicas, quadros de classe, concentração, revisão por setores e criação.
+  Incluem hover sem seleção, clique independente, foco/Esc no diálogo nativo,
+  fontes em M, margens/ações/duração, cópias/cancelamento, offline e
+  320px/GG/três temas/dois layouts. Capturas visuais também conferidas.
+
+### Ferramentas em Personagens e editor de armas alinhado — 2026-10-20
+
+- Backup, importação, revisão como cópia e inclusão de notas aparecem somente
+  na aba Personagens. Trocar de aba preserva os controles e sua seleção;
+  armazenamento/sincronização continuam acessíveis nas duas abas.
+- Editor de arma mantém nome, cálculo, ataque e dano organizados no próprio
+  bloco da ficha, com rótulos acima dos campos e controles seguindo o tema.
+  Proficiência, habilidade e ajustes adicionais ficam recolhidos. Grades usam
+  a largura disponível do cartão, e os botões de dados quebram em linhas.
+- Preservados cálculos, dados montados, rascunhos, cancelamento e metadados
+  anteriores das armas; os IDs usados pela ponte de eventos não mudaram.
+- Conferidos 385 testes Node, tipos/build e seis scripts Chromium: editor de
+  armas, perfil/coleção, aplicação, importação, edição na ficha e cadeado.
+  Incluem cálculo manual/automático, dados/ajustes/metadados, cancelamento e
+  recarga, cópias/notas/recuperação/offline e 320px/GG/três temas/dois layouts.
+
+### Perfil separado da coleção e visualização em cartões — 2026-10-20
+
+- Perfil e Personagens ficam em abas da mesma janela. A abertura começa em
+  Perfil, com nome, imagem e acesso à conta; backup/armazenamento mantêm o rodapé
+  comum. Navegação por teclado e formulários preservados durante a troca.
+- Personagens oferece Lista ou Cartões, lembrando a escolha neste navegador.
+  A mudança de visual conserva nós, retratos e ações; cartões se adaptam a nomes
+  longos e fonte ampliada, com uma coluna no celular. Estado Ativo é identificado
+  por texto, e os seletores têm marcas além da cor.
+- Conferidos 385 testes Node, tipos/build e quatro scripts Chromium: perfil e
+  coleção, aplicação, autenticação e sincronização com HTTP simulado. Incluem
+  abrir/excluir/cancelar após mudança de índices, retratos, nome, dados, backup,
+  isolamento/recuperação/falha de gravação, offline e 320px/GG/três temas.
+
+### Avisos dentro das janelas e ajuda de concentração — 2026-10-20
+
+- Notificações usam a janela em uso: criador/preparo, perfil, loja ou diálogo
+  nativo. O aviso fica no próprio formulário/rodapé, sem roubar foco, recriar
+  opções ou rolar a página até um erro distante. A ficha mantém seu toast normal.
+- Limite de preparo usa texto curto, sem repetir a descrição inteira do campo.
+  Avisos anteriores têm seu temporizador cancelado; fechar a janela oculta o
+  aviso para não reaparecer na próxima abertura. Textos continuam como dados;
+  falhas de gravação conservam prioridade sobre mensagens de sucesso.
+- Dica de concentração explica que combate e grimório mostram o mesmo registro
+  e que preparar magias não ativa o efeito. Regras e modos de dados preservados.
+- Conferidos 385 testes Node, tipos/build e seis scripts Chromium: quadros e
+  preparo, criação, dano de armas, concentração, revisão por setores e ataques
+  mágicos. Incluem sétima escolha recusada sem mudar ficha/nós/foco/rolagem,
+  item sem nome, validação com diálogo nativo aberto, cancelamento, modos de
+  dados, persistência/offline e 320px/GG/três temas/dois layouts.
+
+### Saída do preparo e características agrupadas — 2026-10-20
+
+- A primeira etapa de preparo oferece Voltar à ficha. Sair com escolhas pendentes
+  usa a confirmação de descarte existente; cancelar conserva opções, nós e
+  rolagem. Voltar da revisão mantém a seleção. O lembrete do descanso só é
+  retirado ao aplicar, e não ao abrir ou cancelar o assistente.
+- Removido o parágrafo introdutório da etapa de magias para ampliar a lista;
+  descrições e consultas por magia continuam disponíveis.
+- Características reunidas por classe/origem e nível, sem repetir esses rótulos
+  em cada habilidade. Descrições, escolhas e controles permanecem vinculados aos
+  ganhos; a origem completa de subclasse/escolha fica na descrição. Na ficha
+  larga, as colunas dividem níveis inteiros. Anotações manuais são preservadas.
+- Conferidos 385 testes Node, tipos/build e quatro scripts Chromium: quadros e
+  preparo, regras, criação e edição em linha. Incluem retorno/cancelamento/foco,
+  preparo com proteção, vínculos e controles multiclasse, descrições abertas,
+  persistência/offline e 320px/GG/três temas/dois layouts.
+
+### Quadros de conjuração por classe — 2026-10-20
+
+- Paladino, Clérigo, Druida e Mago ganham quadros compactos no grimório, com
+  contador e ação de preparo. Recuperação Arcana e Recuperação Natural ficam
+  junto à classe correspondente, com os mesmos usos e espaços compartilhados.
+- Bardo, Patrulheiro, Cavaleiro Arcano e Trapaceiro Arcano têm resumos de sua
+  conjuração. Usa classe/subclasse estruturada e nível mínimo; não infere origem
+  de textos do PDF nem apresenta contagem de magias conhecidas a partir do grupo.
+- Feitiçaria e Pacto mantêm seus quadros. A barra conserva filtros, ajustes,
+  impedimentos e uma única Concentração. Não duplica espaços ou ações de preparo.
+- Conferidos 385 testes Node, tipos/build e Chromium de quadros por classe,
+  regras e concentração. Incluem preparo protegido/sempre preparadas, recuperações
+  independentes/cancelamento, origem, níveis/subclasses, filtros, recarga offline
+  e 320px/GG/três temas/dois layouts.
+
+### Organização dos cartões de armas — 2026-10-20
+
+- Nome e descrição usam a largura inteira, preservando notas longas do PDF.
+  Ataque e dano ficam numa faixa própria, com colunas e alturas consistentes.
+  Empunhadura, crítico e registro manual ocupam o rodapé, com quebra em telas
+  pequenas; preparar crítico mantém as posições dos controles.
+- Conferidos 385 testes Node, tipos/build e Chromium de armas, regras e edição
+  em linha: notas extensas, alinhamento entre armas, empunhadura/foco, crítico,
+  recursos/cancelamento, editor, offline e 320px/GG/três temas/dois layouts.
+
+### Inspiração e explicações de combate — 2026-10-20
+
+- Inspiração sai da linha de Exaustão e fica em uma linha própria no quadro de
+  PV, sem criar outro cartão. Mantém receber, preparar/cancelar e usar na mesa,
+  com uma única instância nos dois layouts.
+- Títulos de Dano detalhado e Condições ganham dicas de finalidade; a ajuda de
+  Concentração começa pela explicação do que o controle acompanha.
+- Conferidos 385 testes Node, tipos/build e Chromium de PV e concentração:
+  inspiração, consumo/cancelamento, isolamento/histórico/offline e linha sem
+  transbordamento em 320px/GG, três temas e dois layouts.
+
+### Cabeçalho compacto e evolução protegida — 2026-10-20
+
+- Classes ocupam uma faixa própria e compacta, com cores e subclasse. Texto
+  longo não aumenta o cartão inteiro: o resumo abre para leitura completa.
+  Nome/retrato e conjuração ficam separados dos dados de identidade.
+- No celular, raça/antecedente/tendência/nível usam linhas compactas. Visual e
+  dados começam recolhidos; os controles permanecem acessíveis e montados.
+  Redimensionar mantém aberto um controle de preferência que esteja com foco.
+- Upar abre e aplica a evolução mesmo com o cadeado fechado, sem liberar os
+  campos de ajuste. Confere permissão ao abrir e confirmar; recusa uma proposta
+  de outra ficha. Recusa mantém o assistente e suas escolhas abertos.
+- Conferidos 385 testes Node, tipos/build e cinco scripts Chromium: tipografia,
+  cadeado, criação, edição em linha e aplicação. Incluem evolução com proteção,
+  revogação antes da confirmação, mestre/jogador, subclasse longa, 320/390/768/1140px,
+  M/GG/três temas/dois layouts, foco/rascunhos e evolução offline.
+
+### Leitura e reservas na revisão de importação — 2026-10-20
+
+- Revisão com texto principal e campos de 16px em M, rótulos de 15px e títulos
+  Cinzel distintos. Avisos, abas, perícias e editores de magia seguem a hierarquia;
+  P/M/G/GG e os três temas continuam disponíveis.
+- Reservas de magia iniciam recolhidas quando zeradas. Conjuração, Pacto e
+  Feitiçaria abrem separadamente conforme seus valores, sem depender apenas da
+  classe. Reservas com erro ficam para conferir; a confirmação revela campos
+  inválidos mesmo dentro de blocos recolhidos. A edição não fecha o grupo do
+  usuário; aplicar máximos abre reservas novas, preservando nós, usos e pontos.
+- Avisos distinguem armas do catálogo de ataques especiais, como sopros, e
+  explicam que incluir o texto extraído depende das anotações pessoais opcionais.
+- Conferidos 385 testes Node, tipos/build e três scripts Chromium de importação,
+  setores e edição em linha: cópias/notas/cancelamento, preservação de campos,
+  comparação de reservas, validação oculta, offline sob /D-D/ e 320px/GG/três temas.
+  Um PDF real autorizado também foi aberto/cancelado em contexto isolado para
+  conferir reservas zeradas e ataques manuais. Sem dados pessoais no repositório.
+
+### Legibilidade e hierarquia visual da ficha — 2026-10-20
+
+- Recuperadas as cores anteriores por classe, com nível e subclasse visível.
+  Cartões do cabeçalho alinham rótulos/valores; nome e dados de conjuração têm
+  linhas próprias, sem texto truncado em um único rótulo.
+- Texto principal em M passa a 16px, apoio 14px e títulos Cinzel distintos do
+  corpo. CA, deslocamento e PV recuperam destaque também com o cadeado fechado;
+  a unidade m acompanha seu valor. Inventário, história e regras mais legíveis.
+- Nova folha de tipografia restrita à ficha, mantendo tema D&D e escala P/M/G/GG.
+  Atributos clássicos se reorganizam em grade nas telas pequenas. Botões de magia
+  acomodam o texto maior, sem limitar a leitura à altura fixa anterior.
+- Seletores guardam seu valor confirmado, preservando foco/nós e evitando avisos
+  incorretos de rascunho ao fechar o cadeado sem ter alterado a ficha.
+- Conferidos 385 testes Node, tipos/build e 10 scripts Chromium pertinentes:
+  tipografia, cadeado, edição, armas, ataques mágicos, PV, regras, revisão de
+  importação, aplicação e ficha. Inspeção das três abas/temas em M, M/GG em 320px
+  nos dois layouts, foco/rascunhos e preservação de dados. Sem SQL/migração.
+
+
+### Cadeado de edição e ajuda de preparo — 2026-10-20
+
+- Cadeado ao lado do seletor começa fechado, com valores de consulta no lugar dos
+  campos de ajuste. Abrir libera classes, atributos, máximos, proficiências e
+  editores dos cartões; a ponte e a confirmação conferem a proteção novamente.
+- Rolagens, combate, condições, preparo, uso/recuperação de recursos, equipamento,
+  loja e histórico permanecem disponíveis. Notas pessoais independem do cadeado.
+- Troca de ficha/conta e recarga protegem novamente; ficha em branco abre em edição.
+  Estado transitório, separado da autorização do mestre e dos documentos/backups.
+- Rascunhos e painéis são preservados ao fechar/reabrir, com confirmação bloqueada
+  enquanto protegidos. Captura usa o dono do controle no DOM para não transferir
+  rascunhos entre personagens durante a troca de ficha.
+- Máximos numéricos compactos em recursos como Marés de Caos e indicadores de
+  Pacto. Dicas ao passar o mouse explicam preparo, sempre preparada e a adaptação
+  para exceder o limite, sem confundir com espaços de magia.
+- Conferidos 385 testes Node, tipos/build e os 19 scripts Chromium, incluindo
+  32 cenários auditados. Cadeado/ponte/rascunhos/quota, permissões, troca de ficha
+  e conta, recarga/offline, combate/recursos/preparo, cópias/notas, SDK com HTTP
+  simulado e 320px/GG/três temas/dois layouts. Sem SQL/migração.
+
+
+### Revisão por setores e remoção de classe — 2026-10-20
+
+- Revisão de importação separada em Identidade/classes, Atributos/combate,
+  Proficiências, Grimório e Inventário/história. Cartões e linhas de perícias
+  alinhados; navegação compacta no celular, rascunhos e nós mantidos por setor.
+- Magias usam os mesmos campos da ficha, com catálogo/personalizada, adicionar,
+  remover, origem/habilidade, preparo e usos. Sem formulários aninhados; erro de
+  validação revela o setor e os detalhes antes de focar um campo oculto.
+- Avisos explicados por setor: CA escrita, totais fixos, itens em texto e vínculos
+  manuais. A lista textual registrada no histórico vem dessas mesmas explicações.
+- Comparar máximos com o livro mostra os valores atuais e propostos. Aplicar não
+  recupera espaços usados/pontos atuais e recusa toda a proposta se não couberem.
+- Remoção de classe na ficha e na revisão compartilha confirmação inline. Magias
+  vinculadas podem ser removidas junto ou mantidas como adaptação com origem e
+  habilidade anteriores registradas. Exige classe restante; preserva atributos,
+  PV, reservas, textos e histórico. Escolhas e efeitos da classe removida deixam
+  de conceder bônus; escolhas raciais/antecedente continuam independentes.
+- Conferidos 382 testes Node, tipos/build e Chromium de importação, setores,
+  edição na ficha, criação, aplicação e 32 cenários auditados. Incluem cópias/notas,
+  cancelamento/quota/conta/offline, origens, remoção/desfazer, foco/rascunhos,
+  validação em setor oculto e todos os setores em 320px/GG/três temas.
+
+
+### Correções e criação diretamente na ficha — 2026-10-20
+
+- Retirados o formulário geral separado e os botões de criação/edição manual do
+  perfil. Níveis, classes/subclasses, atributos, PV, CA, deslocamento, perícias,
+  moedas e biografia são ajustados onde aparecem, com histórico da própria ficha.
+- Armas, itens, características e magias expandem seus ajustes no próprio bloco,
+  sem janela sobreposta. + Novo permite abrir uma ficha em branco para preencher
+  ali mesmo; a criação guiada e seus rascunhos continuam disponíveis.
+- Propostas validadas preservam ID/notas/retratos/escolhas. Campos mantêm seus
+  nós, foco, cursor e textos digitados durante renders. Blur da atualização
+  visual não salva rascunhos por acidente. Quota conserva o texto no campo.
+- Ajustes explícitos de máximos de reservas e movimento sobrevivem ao refresh;
+  descansos mantêm os máximos escolhidos. Máximos de recursos de classe aceitam
+  edição (vazio retoma o livro). Alterar nível diretamente não recria escolhas.
+- Contrato único para contexto de edição pessoal/mestre/jogador, conferido
+  também ao salvar editores abertos e nas ações da ponte. A permissão não vem
+  dos dados da ficha. Salas/autorização de gravação compartilhada no servidor
+  permanecem para a próxima etapa, sem SQL/migração nesta revisão.
+- Catálogo inteiro e magias próprias mantêm origem/habilidade/usos/fórmula e
+  ajustes de ataque/CD. Preservadas as melhorias de PDF: níveis sem espaços,
+  CA aritmética restrita, dados abreviados, deslocamento fracionário e confirmação
+  de origem também possível pela raça; nenhum bônus ausente é inventado.
+- Conferidos 378 testes Node, tipos/build e Chromium de edição, criação,
+  importação, aplicação, continuidade local/conta, regras, armas e ataques de
+  magias; 32 cenários auditados, quota/conta/foco/rascunhos/descanso/recarga,
+  preservação de dados e 320px/GG/três temas/dois layouts.
+
+### Importação de PDF e revisão de vínculos — 2026-10-20
+
+- Perfil aceita PDF preenchível e backups JSON com revisão antes de importar.
+  Leitor local recupera campos por página em formulários 2014/2024, com limites
+  de tamanho/páginas/campos/tempo; fotos e PDFs achatados não têm OCR.
+- A revisão reúne identidade, classes, raça/subclasse, atributos/PV, reservas,
+  origem/preparo das magias e cálculo das armas. Propõe aliases inequívocos e
+  exige confirmar ambiguidades; escolhas manuais ficam identificadas na cópia.
+- Campos adicionais do PDF podem ser preservados nas notas pessoais. Texto é
+  tratado como dado; retratos/PDF original não são embutidos. CA/ataques/perícias
+  escritos são preservados, e o catálogo de armas só é ativado por escolha.
+- Revisar a ficha atual também cria cópia. Cancelamento, troca de conta,
+  recuperação e falha de quota preservam a coleção anterior. Sem SQL/migração.
+- Conferidos 368 testes Node, tipos/build e Chromium de importação/aplicação/
+  autenticação/sincronização; SDK real com HTTP simulado, raiz e `/D-D/`, PDF
+  offline, quota/conta/cancelamento, texto não executável e 320px/GG/três temas.
+  Leitura de dois PDFs reais conferida em contextos isolados, sem importar.
+
+### Conferência de importações legadas — 2026-10-20
+
+- Registrada auditoria pontual de compatibilidade e próxima prioridade em
+  `docs/AUDITORIA-LIVRO-2014.md` e `docs/RETOMADA.md`: vínculos de raça/subclasse,
+  origem/preparação das magias e distinção entre arma manual e automática.
+  Conferidos motor e Chromium isolado com dois backups locais; dados pessoais
+  preservados fora do Git. Somente documentação, sem migração ou correção
+  automática de escolhas ambíguas.
+
+### Só Pool e ataque por magia — 2026-10-20
+
+- Só Pool bloqueia conjurações/rituais antes de gastar recursos, trocar
+  concentração, aplicar passivos ou criar histórico. A guarda também cobre
+  chamadas diretas e confirmação aberta antes da troca de modo.
+- Magias com ataque contra CA recebem Atq +bônus por cartão, usando a habilidade
+  da origem e o motor de vantagem/desvantagem/inspiração. Substitui o indicador
+  estático; resistência/acerto automático/utilidade não recebem d20.
+- Rolar ataque não conjura nem cobra outro espaço ao repetir raios/feixes.
+  O gasto continua no lançamento explícito. OFF conserva conjuração física;
+  controles de rolagem ficam desativados fora de Auto Ficha.
+- Conferidos 360 testes Node, tipos/build e Chromium de ataques mágicos,
+  concentração, dados e 32 cenários auditados. Casos cobrem Só Pool sem efeitos,
+  confirmação pendente, bônus por classe/habilidade, filtro, vantagem/inspiração,
+  raios, OFF físico e continuidade offline/layouts/temas/320px/GG.
+
+### Crítico automático e posição dos controles — 2026-10-20
+
+- Crítico/registro ficam na linha inferior da arma. O botão reserva espaço
+  para os dois rótulos, sem deslocar descrição ou controles ao marcar.
+- No Auto Ficha, cada ataque atualiza só sua arma pela face natural escolhida
+  após vantagem/desvantagem, incluindo o intervalo do Campeão. Ataque comum
+  desmarca; confirmar dano também limpa. Outros roladores e OFF/Só Pool não
+  mudam a preparação.
+- Registrar dano fica exclusivamente manual, sem seletor para rolar. Adicionais
+  conserva a opção virtual no Auto Ficha; OFF/Só Pool recebem só o total físico.
+- Conferidos 360 testes Node, tipos/build e Chromium de ataques, dados,
+  concentração e regras. Ataques verificam face natural versus total, seleção
+  com vantagem/desvantagem, consumo de inspiração, intervalo do Campeão,
+  isolamento por arma/ficha e posições estáveis em dois layouts/três temas/320px.
+
+### Uso de crítico e ajuda nas janelas — 2026-10-20
+
+- Crítico passa para a própria arma: marcar só prepara e atualiza a fórmula.
+  O botão de dano rola em Auto Ficha; OFF/Só Pool abrem o registro físico.
+  Confirmar limpa a marca, cancelar mantém, sem salvar esse estado no documento.
+  Adicionais/registro usam o diálogo existente sem segunda checkbox.
+- Campo físico explica que recebe o total já rolado, incluindo bônus/crítico,
+  sem nova rolagem ou multiplicação. A ação distingue registrar de rolar.
+- Balão compartilhado usa a camada superior nativa para aparecer acima de
+  diálogos, mantendo posição, foco, cliques e Esc. Sem SQL ou migração.
+- Conferidos 360 testes Node, tipos/build e Chromium de ataques/regras/criação/
+  PV/biblioteca. Regressões cobrem marcar sem rolar/gastar, clique/limpeza,
+  cancelamento, total físico sem rerrolar e ajuda acima do diálogo com Esc/foco.
+
+### Crítico e adicionais de armas — 2026-10-20
+
+- A própria arma oferece composição de um acerto com prévia: crítico dobra
+  dados e mantém bônus fixos, incluindo Furtivo, Colossos e Destruição.
+  Crítico Brutal/Ataques Selvagens acrescentam seus dados uma vez; o d8 de
+  Destruição Aprimorada já presente não é repetido.
+- Destruição permite espaço de Conjuração/Pacto, teto e alvo pertinentes,
+  descontando um só espaço após confirmar. Não é conjuração nem ação bônus.
+  Furtivo/Colossos exigem confirmação das condições/uso neste turno pela mesa.
+- Resultado físico funciona com dados OFF; virtual preserva pool/inspiração.
+  Cancelar ou alterar ficha/arma durante a confirmação não gasta. Histórico e
+  desfazer incluem resultado/espaço juntos; notas e outras fichas preservadas.
+- Analisador de dados compartilhado com os contratos anteriores. Botão comum
+  continua direto; fórmulas manuais não recebem adicionais inferidos. Limites
+  e fontes na auditoria; sem SQL/RLS/RPC, migração ou dados reais alterados.
+- Verificação: `npm run check`, 360 testes Node, tipos/build e 14 roteiros
+  Chromium aprovados, com 32 cenários auditados. Após preservar também `0-3`
+  como fórmula personalizada, Node/build/roteiro de ataques passaram novamente.
+  Conferidos composição/gasto único, cancelamento/concorrência, desfazer, dados,
+  notas/fichas/offline, dois layouts/três temas/320 px/GG e capturas.
+
+### Defesas condicionais e prevenção de queda — 2026-10-20
+
+- Maestria em Armadura Pesada reduz dano físico elegível; Esquiva Sobrenatural
+  oferece reação por ataque e ordem explícita com reduções. DES para metade
+  aplica Evasão conforme classe/nível/escolha e respeita falhas automáticas.
+- Resistência Implacável do meio-orc e Fúria Implacável do bárbaro 11 evitam
+  a queda antes de inconsciência/Frenesi. Teste físico/virtual, CD crescente
+  por tentativa, usos/recuperação e alternativa racial; concentração continua
+  usando o dano recebido. Atalhos de PV abrem a decisão quando pertinente.
+- Campos existentes, sem painel paralelo. Cancelar ou alterar a ficha durante
+  a confirmação preserva PV/usos; desfazer restaura ambos. Notas, outras fichas,
+  modo já resolvido e regras manuais da forma são preservados. Sem SQL/RLS/RPC.
+- Fontes, convenções de ordem/tipos mistos e limites documentados na auditoria;
+  outras reações, Proteção contra a Morte e efeitos não enumerados ficam na mesa.
+- Verificado com `npm run check`: 351 testes Node, tipos/build e 13 roteiros
+  Chromium, incluindo 32 cenários auditados. Novas regressões cobrem ordem,
+  elegibilidade, queda/usos/recuperação, cancelamento/concorrência, desfazer e
+  dados físico/virtual. Dois layouts/três temas/320 px/GG e capturas conferidos.
+
+### Alinhamento das ações de armas — 2026-10-20
+
+- Ataque e dano ficam juntos à direita de cada arma nos dois layouts. Descrições
+  longas quebram no espaço disponível; em cartões estreitos, os botões passam
+  juntos para a linha de baixo e continuam alinhados à direita.
+- Conferidos 342 testes Node, build, roteiro de regras no Chromium e alinhamento
+  em 12 combinações dos dois layouts/três temas, desktop e 320 px com fonte GG.
+
+### Dano por tipo e defesas reconhecidas — 2026-10-20
+
+- O controle de dano detalhado permite escolher a origem e até 13 tipos distintos
+  da mesma ocorrência. Prévia explica proteção, redução, resistência/imunidade,
+  vulnerabilidade e total; crítico é informado com seus dados já rolados.
+  Resistências repetidas não acumulam e vulnerabilidade dobra depois de arredondar.
+- Integra fontes verificadas de Fúria/Urso, Proteção contra Lâminas, petrificação,
+  resistências raciais estruturadas e algumas características/estados de classe.
+  Origem de magia não equivale a toda fonte mágica; arma mágica/prata só ignora
+  a Resistência Demoníaca pertinente. Matriz e limites na auditoria do livro.
+- Proteção Arcana absorve antes das defesas próprias de 2014. Em dano misto, a
+  ordem escolhida pela mesa determina sua alocação, com setas e prévia. Depois,
+  o total usa temporários/PV e gera uma única ocorrência de concentração/morte.
+  Imunidade ou redução a zero não gera teste/falhas pelo dano inexistente.
+- Ajustes da mesa valem só para aquela ocorrência. Digitar/selecionar atualiza a
+  prévia sem reconstruir a ficha ou gastar reservas. Controles de ordem/prata
+  aparecem quando pertinentes. Resultado permanece no histórico por ficha;
+  notas, outras fichas, documentos anteriores e uso offline são preservados.
+- Modo já resolvido e atalhos mantêm o contrato anterior. Forma Selvagem/excesso,
+  outras defesas de itens/magias, Maestria em Armadura Pesada, testes de
+  resistência, reações e características para evitar 0 PV seguem na mesa.
+  Sem alteração de banco, autenticação, catálogos gerados ou dados reais.
+- Verificação final: `npm run check`, 342 testes Node, tipos/build e os 13
+  roteiros Chromium aprovados, incluindo 32 cenários auditados. Regressões de
+  fontes/limites, resistência/vulnerabilidade/imunidade, mistura/ordem/proteção,
+  temporários, concentração/morte uma vez, ajustes, nós/foco, modo resolvido/
+  forma, notas/histórico/fichas, recarga/offline e três temas/320 px/GG.
+  Capturas desktop/celular conferidas; `git diff --check` sem problemas.
+- Roteiros de PV e concentração compartilham a espera pelo evento nativo de
+  fechamento e pela aplicação da confirmação. Evita conferir a ficha apenas
+  porque o diálogo já ficou oculto, sem depender de um atraso fixo. Ambos
+  passaram novamente no mesmo build após esse ajuste dos testes.
+
+### Concentração e condições de 2014 — 2026-10-20
+
+- Estado único de concentração por ficha, nos PV ou no grimório conforme a aba.
+  Troca de magia/ritual prolongado confirma antes de consumir espaços/usos;
+  cancelamento e escolhas alteradas preservam o efeito e os recursos anteriores.
+- Cada fonte de dano enfileira sua resistência de CON, CD 10 ou metade do dano,
+  o maior. Proteção Arcana não conta como dano ao personagem; temporários e
+  besta contam. Dado físico/virtual/OFF, bônus da forma, proficiência, Conjurador
+  de Guerra, exaustão e inspiração usam o fluxo existente, sem alterar o pool.
+  1/20 natural não decide esse teste automaticamente. Conjuração Focada protege
+  conjurações de quebra por dano, inclusive magias de outra classe.
+- 14 condições com ajuda e marcação compacta; incapacitação é derivada sem
+  segunda marca. Deslocamento 0 e falhas automáticas de FOR/DES entram nos
+  casos correspondentes. Outros modos de rolagem, sentidos, alvos, durações e
+  resistências a dano permanecem explícitos para a mesa.
+- Incapacitação/morte encerram concentração. Inconsciência também encerra Fúria
+  (processando Frenesi uma vez), reverte Forma Selvagem e registra queda;
+  paralisia isolada não encerra Fúria. Dormir no descanso longo encerra
+  concentração, com opção para exceções conscientes e duração manual.
+- Testes e condições pertencem à ficha/histórico e persistem offline; notas
+  continuam separadas. Lista conserva nós/foco e diálogos recusam callbacks de
+  outra ficha ou efeito. Dados ilegíveis são preservados. Sem SQL/RLS/RPC.
+- Verificação final: `npm run check`, 320 testes Node, tipos/build e os 12
+  roteiros Chromium aprovados, incluindo os 32 cenários auditados. Cobertura
+  nova: troca/cancelamento/recursos, ritual, fila/CD, proteção/temporários/forma,
+  físico/virtual/OFF, talentos/inspiração, condições/Fúria/sono, ficha antiga
+  a 0 PV, callbacks obsoletos, nós/foco, notas/histórico, isolamento e offline.
+  Três temas/320 px/GG e capturas desktop/celular conferidos; diff sem whitespace.
+- O roteiro de concentração aguarda o evento nativo de fechamento e sua
+  continuação antes de conferir a ficha; o estado oculto do diálogo ocorre
+  antes dessa conclusão e causava uma leitura prematura em uma execução da CI.
+  Roteiro aprovado novamente no build final após o ajuste da espera.
+
+### Dados de Vida, morte/estabilidade e inspiração — 2026-10-19
+
+- Dados de Vida têm saldo e gasto por classe, um dado por vez, com resultado
+  físico ou virtual, Constituição, limite de PV e mínimo de Resistente.
+  Canção do Descanso ouvida acrescenta seu dado uma vez por descanso, se houver
+  cura pelo Dado de Vida. A forma usa CON informada/PV da besta. Estável a 0 PV
+  pode gastar após o descanso curto; morto não é revivido.
+- Nos PV existentes, testes contra a morte controlam sucessos/falhas, 1/20
+  natural, bônus recebidos/Alma de Diamante, estabilidade e dano maciço. Dano
+  detalhado permite informar crítico; temporários a 0 não evitam as falhas pelo
+  dano recebido. Cura positiva zera contagens; ressurreição exige registro
+  explícito após resolução na mesa. Conjuração/ativação de recursos respeitam
+  morte e inconsciência a 0 PV, sem gastar o recurso recusado.
+- Inspiração usa a reserva por personagem de 2014: receber, preparar/cancelar
+  vantagem no próximo teste/ataque ou gastar na mesa após confirmação. Cancela
+  desvantagem e não gasta em dano/arremesso rápido. Não acumula nem rerrola.
+- Estados pertencem à ficha e seu histórico; notas permanecem separadas.
+  Cancelar/entrada inválida não altera a ficha. Dado virtual usa a animação
+  existente e preserva o pool; OFF exige resultado físico. Diálogos e foco
+  reutilizam os módulos existentes. Sem alteração de SQL/RLS/RPC.
+- Concentração, condições gerais, tempo de jogo, ressurreição/Medicina e
+  características que evitam cair a 0 PV continuam a cargo da mesa.
+- Verificação local: 299 testes Node e tipos/build aprovados; os dez roteiros
+  Chromium existentes passaram e o novo roteiro de PV passou no build final
+  após o ajuste de foco. Inclui físico/virtual/OFF, gasto/recuperação por classe,
+  forma/CON da besta, 1/20, estabilidade, crítico, dano maciço, retorno à vida,
+  inspiração, desfazer/refazer/notas, fichas isoladas, recarga/offline e três
+  temas/320 px/GG. Capturas de desktop/celular conferidas; `git diff --check` limpo.
+
+### Cálculos e interações identificados na auditoria — 2026-10-19
+
+- Fórmula mostrada e rolagem usam a mesma resolução: escalonamento de truques,
+  cura com modificador/aprimoramento, Discípulo da Vida e Explosão Agonizante.
+  Fórmulas personalizadas são preservadas. Raio/feixe pode ter o dano de outro
+  acerto rolado sem novo gasto; Gêmea considera os casos de múltiplos alvos e
+  mantém a adaptação existente de Mísseis Mágicos.
+- Repreensão Infernal racial usa círculo 2 também nas fichas anteriores.
+  Dominar Magia e Assinatura têm opções gratuitas próprias, sem trocar para
+  espaços pagos ao esgotar. Assinatura não ocupa preparação e recupera no
+  descanso curto/longo. Aprimoramento exige seleção explícita de espaço.
+- Corrigida a ordem proteção/temporários/besta/PV e o registro da absorção real.
+  Constituição permanente ajusta os PV manuais pelo nível e conserva o déficit,
+  sem reviver a 0 PV. Descanso longo exige 1 PV no início; curto preserva a forma.
+  Abjuração de outra classe pode criar/recuperar Proteção Arcana.
+- Iniciativa inclui Alerta e meia proficiência elegível, sem duplicação.
+  Armadura/escudo usados sem proficiência impedem conjurar; itens na mochila
+  não impedem. Moedas entram na carga. Atirador de Magia oferece Criar Chamas.
+- Extração regenerada dos 361 metadados de magia preserva os componentes
+  multilinha e os custos; V/S/M não confunde letras dos materiais. Chicote de
+  Espinhos é identificado como ataque mágico. Nenhum dado real de jogador ou
+  contrato de SQL/RLS/RPC foi alterado.
+- Verificação: 279 testes Node, tipos/build e dez roteiros Chromium aprovados,
+  incluindo 32 cenários auditados sem divergências. Nova passagem de Node,
+  build e cenários após os ajustes finais de compatibilidade/validação.
+  Concentração, morte, gasto de Dados de Vida, inspiração, condições gerais e
+  outros passivos continuam pendentes em `docs/AUDITORIA-LIVRO-2014.md`.
+
+### Auditoria aprofundada do livro e da ficha — 2026-10-19
+
+- Ampliado `docs/AUDITORIA-LIVRO-2014.md` com itens 15–27, cenários e a matriz
+  individual dos 42 talentos. Conferidas 368 ocorrências de características das
+  tabelas de 12 classes/41 subclasses, além do inventário dos capítulos/apêndices.
+- Reprodução de divergências entre fórmula mostrada/rolada, cura/modificador e
+  aprimoramento, Explosão Agonizante, nível racial do tiefling, Dominar/Assinatura,
+  Constituição manual, absorção da forma, descansos, abjuração multiclasse,
+  metadados de magias, opção de talento, carga e mensagem de dano no histórico.
+- Roteiro diagnóstico `scripts/audit-phb-scenarios.cjs`: somente fixtures,
+  Chromium e armazenamento descartáveis, servidor local e rede externa bloqueada.
+  Na base `7667ae9`, 21 cenários direcionados resultaram em 20 divergências e um
+  controle conforme. Casos podem compartilhar causas; não são um percentual de
+  cobertura nem integram a suíte de aprovação. As correções continuam pendentes.
+- Corrigida a descrição do contrato de absorção no plano anterior, identificando
+  que a implementação ainda requer ajuste. Nenhum comportamento da ficha, banco
+  ou dado de jogador foi alterado nesta auditoria.
+- Verificação: execução concluída do diagnóstico no build sob `/D-D/`, 266 testes
+  Node aprovados e `git diff --check`. A suíte existente não cobria os novos casos.
+
+### Ajuda discreta nos ajustes de defesa — 2026-10-19
+
+- Ajuda aparece ao passar o mouse sobre o nome de cada campo/efeito, usando o
+  balão existente. Rótulos também aceitam foco de teclado. Botões “?” removidos;
+  mantém o espaçamento entre as caixas e seus textos.
+- Corrigida a troca direta entre balões: o fechamento anterior não cancela a
+  abertura do próximo. Verificação: 266 testes Node, build e Chromium de regras
+  e criação aprovados, incluindo as sete ajudas por mouse, foco de teclado,
+  caixas preservadas e três temas/320 px/GG.
+
+### Histórico por ficha, zoom e revisão do livro — 2026-10-19
+
+- Cada personagem tem seu histórico/checkpoints e ponteiro de desfazer/refazer.
+  Restaurar um passo altera somente a ficha ativa, preservando outras fichas,
+  notas e preferências visuais. Fichas excluídas podem ser recuperadas pelo
+  histórico preservado, sem reverter a coleção inteira.
+- Migração copia mudanças reais do histórico coletivo por ID, sem apagar o
+  original; históricos ilegíveis são preservados e não bloqueiam fichas válidas.
+  A sincronização usa documentos separados por ficha, sem alteração de SQL/RLS/RPC.
+- O zoom do livro mantém os atalhos fixos e só a porcentagem livre atual.
+- Ajustes de defesa separam rótulos/campos e dão espaço às caixas dos efeitos.
+  Sete ajudas explicam fórmula, bônus e magias por mouse/teclado ou clique/toque,
+  incluindo os limites de aplicação automática. A dica dos Dados de Vida deixa
+  de anunciar recuperação integral obrigatória.
+- Auditoria de todos os capítulos/apêndices em `docs/AUDITORIA-LIVRO-2014.md`,
+  com matriz das 12 classes/41 subclasses e inventário de raças/talentos/magias.
+  Identifica iniciativa/passivos e 139 resumos de componentes cortados, além de
+  concentração, morte, Dados de Vida, inspiração e condições ainda incompletos.
+  As pendências estão registradas; não foram todas implementadas nesta entrega.
+- Verificação: `npm run check` aprovado com 266 testes Node, tipos/build e os
+  nove roteiros Chromium sob `/D-D/` (login também sob `/`). Inclui históricos
+  independentes/migração, exclusão/restauração/notas, alterações concorrentes em
+  documentos de fichas diferentes, zoom sem acúmulo, sete ajudas sem marcar
+  efeitos e espaçamento nos três temas/320 px/GG. Capturas de defesa escura
+  conferidas em desktop/celular. Testes de sync usam HTTP simulado; o projeto real
+  teve apenas leitura de metadados da RPC, sem escrita em dados de jogadores.
+
+### Contraste das listas nos temas escuros — 2026-10-19
+
+- Seletores nativos e suas opções acompanham o tema, incluindo a lista de
+  uma/duas mãos das armas. Evita texto claro sobre o menu branco do sistema.
+- Verificação: 262 testes Node, build e Chromium de regras aprovados; cores do
+  seletor/opções e troca de mãos conferidas nos três temas.
+
+### Incremento de habilidades na evolução — 2026-10-19
+
+- Os dois seletores de atributos foram substituídos pela grade visual da criação,
+  com +/−, valor atual/final e pontos disponíveis. Permite +2 em um atributo ou
+  +1 em dois, bloqueando o terceiro ponto e valores acima de 20.
+- Dicas por ponto e consulta duplicada da opção foram retiradas; a consulta da
+  regra permanece recolhível. Escolha de talento continua disponível quando
+  habilitada. Redistribuir e voltar de etapa preserva as escolhas.
+- Verificação: 262 testes Node, tipos/build e Chromium de regras/evolução e
+  criação, com aplicação real do nível, três temas/320 px/GG e preservação dos nós.
+
+### Controles nos campos existentes, sem painel redundante — 2026-10-19
+
+- Removido o bloco separado de recursos abaixo das armas. Usos e estados são
+  incorporados às características já listadas, aproveitando título e consulta.
+- Feitiçaria/Metamágica, Pacto, Arcanum e preparação usam seus controles no
+  grimório; Bênção do Obscuro fica nos PV temporários. Contadores de reserva
+  deixam de se repetir em cada atalho de gasto.
+- Exaustão, Proteção Arcana e PV da besta ficam junto aos PV; defesa junto à CA;
+  recuperação de Dados de Vida na lista correspondente. Campos preservam valores,
+  foco e consultas abertas ao usar os controles.
+- Verificação: 261 testes Node, tipos/build e Chromium de regras, ficha e
+  armazenamento/offline, com unicidade, persistência, layouts/temas/320 px/GG.
+
+### Regras, recursos por classe e continuidade de dados — 2026-10-19
+
+- Armas importadas são reconciliadas com o catálogo: habilidade, proficiência
+  de classe/raça/talento ou manual, magia, empunhadura versátil, Arquearia,
+  Fúria e Arma Sagrada. O editor separa cálculo automático de totais adaptados;
+  dados adicionais e intervalos de crítico mostram suas condições.
+- CA usa alternativas de base e bônus aditivos separados, incluindo a primeira
+  Defesa sem Armadura em multiclasse, armaduras, escudo mágico, Resiliência,
+  Armadura Arcana, Defesa, Escudo da Fé e Escudo Arcano. O balão explica a soma.
+- Novo painel por classe/subclasse com usos, reservas, custos compartilhados,
+  alvos, presságios e estados persistidos na ficha. Frenesi gera exaustão ao
+  encerrar Fúria; Proteção Arcana e PV da besta absorvem dano antes de reservas
+  temporárias/reais. Descansos, Dados de Vida e lembrete de preparação seguem
+  suas condições. Efeitos por alvo e duração têm resolução explícita do jogador.
+- Preparação por classe e magias sempre preparadas não são confundidas com
+  conhecer ou lançar como ritual. Magia ritual não preparada de mago não pode
+  ser lançada normalmente; preparada pode gastar espaço. Pacto permanece separado.
+- Balões têm corpos justificados e tipografia/padding compactos. Personalidade
+  usa seletores de sugestões + texto sempre editável, preservado ao trocar de
+  antecedente. Ctrl/Cmd + rodinha/+/-/0 ajusta só a página do leitor.
+- Atributos ganham modo livre identificado como adaptação. Compras validam
+  quantidades, catálogo, orçamento em cobre e milhares em português: luneta
+  de 1.000 po não custa mais 1 po. Valores monetários aceitam centavos exatos.
+- Textos estruturados antigos tornam-se legíveis com cópia do material original;
+  strings irrecuperáveis são identificadas. Exportações/chaves novas usam CritCall.
+  Leitura silenciosa preserva formatos históricos, originais e operações já
+  enfileiradas, sem troca de identidade, SQL ou autorização.
+- Plano, contratos e verificação em `docs/REFATORACAO-2014.md`.
+- Verificação: 260 testes Node, tipos/build e nove roteiros Chromium aprovados;
+  regras repetidas após os últimos ajustes. Inclui login, sincronização com HTTP
+  simulado, isolamento, offline e continuidade local. Sem alteração de SQL/RLS.
+
 ### PV iniciais, riqueza/mercado do Capítulo 5, balão sem bloquear clique, correções visuais e cabeçalho compacto — 2026-10-17
 
 - **Balão de consulta (`#ruleTooltip`) na criação**: mantém a rolagem pela rodinha
@@ -301,7 +991,7 @@
   ficaram disponíveis. Consulta real sem dados (`limit=0`) no projeto CritCall
   retornou 404/PGRST205 para a nova tabela. **Migração ainda não aplicada e
   sincronização real ainda não validada.** Sem e-mail real, merge/publicação,
-  mudança no Orbyt ou compra/ativação de domínio. Detalhes em SINCRONIZACAO.md.
+  mudança no outro aplicativo ou compra/ativação de domínio. Detalhes em SINCRONIZACAO.md.
 
 ### Recuperação local relatada como bem-sucedida — 2026-10-16
 
@@ -465,7 +1155,7 @@
 
 - Usuário definiu **CritCall** como nome do aplicativo de fichas de D&D.
   Atualizados título, instalação, pacote, nomes de downloads, documentação e
-  instruções de manutenção. Orbyt continua identificado como outro projeto.
+  instruções de manutenção. Outros aplicativos permanecem separados.
 - Chaves de armazenamento, formato dos backups e endereço publicado preservados.
   O projeto Supabase novo já foi criado pelo usuário e ainda aguarda identificação/conexão.
 - Verificação: tipos/build e conferência Chromium de título, manifest, ícone,
@@ -475,14 +1165,14 @@
 
 ### Identidade correta: Fichas D&D — 2026-10-15
 
-- Usuário esclareceu que **Orbyt é outro projeto** e informou que já criou o
+- Usuário esclareceu que **outro aplicativo é outro projeto** e informou que já criou o
   Supabase novo do D&D. Corrigidos título, nome de instalação, pacote, ícone,
   downloads e documentação para Fichas D&D; registrada a separação no AGENTS.md.
   Falta identificar/conectar o projeto novo; não criar outro por repetição.
 - Novos espaços de autenticação/conta usam prefixos `dnd_auth_v1` e
   `dnd_account_v1`. As chaves de fichas publicadas e o formato de backup legado
   são preservados para não interromper a leitura dos dados existentes; não
-  representam vínculo com a aplicação Orbyt.
+  representam vínculo com outros aplicativos.
 - Verificação desta correção: 18 testes de armazenamento/contas, tipos/build e
   roteiros Chromium de armazenamento e login passaram. Conferidos título,
   manifest, ícone e nome do download no navegador, com formato legado legível.

@@ -306,6 +306,7 @@
       nextSignatures.set(f.id, signature);
     }
     renderedChoices = nextSignatures;
+    guide().bindIncrements(host, E.scores(ctx()), draft.answers, persistDraft);
     persistDraft();
     restoreView(state);
     root.lucide?.createIcons();
@@ -327,6 +328,7 @@
     host = document.createElement("div");
     host.id = "characterWizard";
     host.className = "cw-overlay hidden";
+    host.dataset.noticeWindow = '';
     host.setAttribute("role", "dialog");
     host.setAttribute("aria-modal", "true");
     host.setAttribute("aria-labelledby", "cw-title");
@@ -343,6 +345,9 @@
       } else if (picker && !picker.contains(event.target)) closePicker();
     });
     host.addEventListener("click", async (event) => {
+      if(event.target.closest('[data-action="manual"]')) {
+        close(true);root.createBlankCharacter();return;
+      }
       const pick = event.target.closest("[data-pick-value]");
       if (pick) {
         const select = pickerSelect;
@@ -407,6 +412,7 @@
       if (action === "close") return close();
       if (action === "discardDraft") return discardDraft();
       if (action === "back") {
+        if (step === 0 && draft.mode === "prepare") return close();
         step = Math.max(0, step - 1);
         render();
       }
@@ -589,6 +595,12 @@
     host.addEventListener("change", async (event) => {
       const el = event.target,
         id = el.dataset.answer;
+      if (el.dataset.suggestionSelect && el.value !== '') {
+        const key = el.dataset.suggestionSelect;
+        const text = guide().backgroundSuggestions(draft.setup.backgroundId)[key]?.[Number(el.value)];
+        if (text) { draft.setup[key] = text; host.querySelector(`[data-text="${key}"]`).value = text; persistDraft(); }
+        return;
+      }
       if (el.hasAttribute("data-market-category")) {
         filterMarket();
         return;
@@ -626,7 +638,7 @@
         const previous = draft.setup[key];
         draft.setup[key] = next;
         if (key === "backgroundId" && previous !== next) {
-          for (const textKey of ["traits", "ideals", "bonds", "flaws"]) draft.setup[textKey] = "";
+          // Trocar o antecedente atualiza as sugestões, preservando a escrita.
           draft.setup.customizedFields = {};
         }
         if (key === "classId") {
@@ -641,7 +653,7 @@
         if (key === "abilityMethod") {
           rollRevision++; rolling = false; draft.setup.assignment = {};
           draft.setup.baseScores =
-            next === "pointBuy"
+            next === "pointBuy" || next === "adapted"
               ? Object.fromEntries(Object.keys(D.abilities).map((k) => [k, 8]))
               : {};
         }
@@ -712,9 +724,11 @@
           if (el.checked) selected.push(el.value);
           if (selected.length > spec.count) {
             el.checked = false;
-            // Aviso sem rolar a tela para um erro distante da lista.
+            // O aviso fica no rodapé da janela, conservando foco e rolagem.
             return root.showToast(
-              `Escolha no máximo ${spec.count} para “${spec.label}”.`,
+              id === "prepared"
+                ? `Escolha no máximo ${spec.count} magias preparadas. Desmarque uma para trocar.`
+                : `Escolha no máximo ${spec.count} para “${spec.label}”.`,
             );
           }
           draft.answers[id] = selected;
@@ -1078,6 +1092,7 @@
     auto_hit: "Acerto automático",
   };
   function choice(f) {
+    if (f.id === 'asi') return guide().incrementMarkup(f);
     const selected = array(draft.answers[f.id]);
     const items = f.options.map((o) => ({
       ...o,
@@ -1086,7 +1101,7 @@
     let control = "";
     if (f.count === 1) {
       const picked = items.find((o) => o.value === selected[0]);
-      control = `<select data-answer="${f.id}" ${items.some((o) => o.reference?.text) ? 'data-help-picker="true"' : ""} aria-label="${escape(f.label)}">${options(items, selected[0], f.min === 0 ? "Manter / não trocar" : "Escolha…")}</select>${picked?.spell ? spellDetails(picked.spell) : picked?.reference ? `<details class="cw-source"><summary>Consultar ${escape(picked.label)}</summary><p>${escape(root.RuleTooltips.formatText(picked.reference.text))}</p><a href="book.html#page=${picked.reference.pdfPage}" target="_blank" rel="noopener">Abrir no livro · p. ${picked.reference.page}</a></details>` : ""}`;
+      control = `<select data-answer="${f.id}" ${items.some((o) => o.reference?.text) ? 'data-help-picker="true"' : ""} aria-label="${escape(f.label)}">${options(items, selected[0], f.min === 0 ? "Manter / não trocar" : "Escolha…")}</select>${picked?.spell ? spellDetails(picked.spell) : picked?.reference && f.id !== 'advancement' ? `<details class="cw-source"><summary>Consultar ${escape(picked.label)}</summary><p>${escape(root.RuleTooltips.formatText(picked.reference.text))}</p><a href="book.html#page=${picked.reference.pdfPage}" target="_blank" rel="noopener">Abrir no livro · p. ${picked.reference.page}</a></details>` : ""}`;
     } else if (!f.unique)
       control = Array.from(
         { length: f.count },
@@ -1218,8 +1233,8 @@
           (key, i) =>
             `<div data-choice="char-${key}">${field(
               ["Personalidade", "Ideais", "Ligações", "Defeitos"][i],
-              editable ? `<textarea data-text="${key}" rows="2" ${s.customizedFields?.[key] ? "" : "readonly"}>${escape(s[key])}</textarea>` : `<div class="cw-readonly-text">${escape(s[key] || "Nenhum texto preenchido")}</div>`,
-            )}${editable ? guide().suggestionsMarkup(s.backgroundId, key) : ""}</div>`,
+              editable ? `<select data-suggestion-select="${key}" aria-label="Sugestões de ${["Personalidade","Ideais","Ligações","Defeitos"][i]}"><option value="">Escrever livremente ou escolher uma sugestão…</option>${(guide().backgroundSuggestions(s.backgroundId)[key] || []).map((text,index)=>`<option value="${index}">${escape(text)}</option>`).join('')}</select><input data-text="${key}" value="${escape(s[key])}" aria-label="Editar ${["Personalidade","Ideais","Ligações","Defeitos"][i]}">` : `<div class="cw-readonly-text">${escape(s[key] || "Nenhum texto preenchido")}</div>`,
+            )}</div>`,
         )
         .join("")}</div>
       ${field("História", editable ? `<textarea data-text="backstory" rows="2">${escape(s.backstory)}</textarea>` : `<div class="cw-readonly-text">${escape(s.backstory || "Nenhuma história preenchida")}</div>`)}
@@ -1248,6 +1263,7 @@
       { value: "standard", label: "Conjunto padrão: 15, 14, 13, 12, 10, 8" },
       { value: "rolled", label: "Rolagem: 4d6, descartar o menor; repetir seis vezes" },
       { value: "pointBuy", label: "Compra de pontos: 27 pontos (opcional do livro)" },
+      { value: "adapted", label: "Livre / Adaptado da mesa (não usa o orçamento de 27 pontos)" },
     ];
     return `${field("Método dos valores iniciais", `<select data-setup="abilityMethod">${options(methods, s.abilityMethod)}</select>`)}${s.abilityMethod === "rolled" ? `<button data-action="rollAbilities" ${rolling ? "disabled" : ""}>${rolling ? "Rolando…" : s.rolls.length ? "Rolar novamente" : "Rolar seis grupos de 4d6"}</button>${rolling ? '<div class="cw-rolling" role="status" aria-label="Rolando os seis grupos de dados"><span>⚄</span><span>⚂</span><span>⚅</span><span>⚃</span></div>' : `<div class="cw-rolls">${s.rolls.map((g, i) => `<div>Grupo ${i + 1}: ${g.map((n, j) => (j === g.indexOf(Math.min(...g)) ? `<s aria-label="${n}, descartado">${n}</s>` : `<strong>${n}</strong>`)).join(" + ")} = <strong>${totals[i]}</strong></div>`).join("")}</div>`}` : ""}${rolling ? "" : guide().abilityMarkup()}`;
   }
@@ -1547,10 +1563,11 @@
               : id === "review"
                 ? review()
                 : "";
-    host.innerHTML = `<section class="cw-dialog t-card-accent" data-scroll-window><header><h2 id="cw-title" tabindex="-1">${draft.mode === "create" ? "Criar personagem" : draft.mode === "prepare" ? "Preparar magias" : "Evoluir personagem"} · ${title}</h2><button data-action="close" aria-label="Fechar">×</button></header><nav aria-label="Etapas">${list.map(([, label], i) => `<span ${i === step ? 'aria-current="step"' : ""}>${i + 1}. ${label}</span>`).join("")}</nav><div class="cw-body" data-scroll-content><div id="cw-errors" role="alert" hidden></div>${guide().stepHelp[id] ? `<p class="cw-muted">${escape(guide().stepHelp[id])}</p>` : ""}${body}${id === "equipment" ? "" : `<div class="cw-fields" style="display:contents">${fields.map(choice).join("")}</div>`}${!body && !fields.length ? "<p>Nenhuma escolha adicional nesta etapa para a classe e o nível selecionados.</p>" : ""}</div><p class="cw-muted cw-draft-status" data-draft-status></p><footer><div class="cw-footer-left"><button type="button" data-action="back" ${step === 0 ? "disabled" : ""}>Voltar</button>${draft.mode === "create" ? `<button type="button" data-action="discardDraft" class="cw-btn-danger">Descartar rascunho</button>` : ""}</div><a href="book.html" target="_blank" rel="noopener">Consultar livro</a><button type="button" data-action="${step === list.length - 1 ? "finish" : "next"}" class="t-btn-primary">${step === list.length - 1 ? "Aplicar à ficha" : "Continuar"}</button></footer></section>`;
+    host.innerHTML = `<section class="cw-dialog t-card-accent" data-scroll-window><header><h2 id="cw-title" tabindex="-1">${draft.mode === "create" ? "Criar personagem" : draft.mode === "prepare" ? "Preparar magias" : "Evoluir personagem"} · ${title}</h2><button data-action="close" aria-label="Fechar">×</button></header><nav aria-label="Etapas">${list.map(([, label], i) => `<span ${i === step ? 'aria-current="step"' : ""}>${i + 1}. ${label}</span>`).join("")}</nav><div class="cw-body" data-scroll-content>${draft.mode === "create" && step === 0 ? '<p class="cw-muted">Prefere preencher diretamente na ficha? <button type="button" data-action="manual" class="underline">Usar ficha em branco</button></p>' : ""}<div id="cw-errors" role="alert" hidden></div>${id !== "magic" && guide().stepHelp[id] ? `<p class="cw-muted">${escape(guide().stepHelp[id])}</p>` : ""}${body}${id === "equipment" ? "" : `<div class="cw-fields" style="display:contents">${fields.map(choice).join("")}</div>`}${!body && !fields.length ? "<p>Nenhuma escolha adicional nesta etapa para a classe e o nível selecionados.</p>" : ""}</div><p class="cw-muted cw-draft-status" data-draft-status></p><footer><p class="window-notice" data-window-notice role="status" aria-live="polite" aria-atomic="true" hidden></p><div class="cw-footer-left"><button type="button" data-action="back" ${step === 0 && draft.mode !== "prepare" ? "disabled" : ""}>${step === 0 && draft.mode === "prepare" ? "Voltar à ficha" : "Voltar"}</button>${draft.mode === "create" ? `<button type="button" data-action="discardDraft" class="cw-btn-danger">Descartar rascunho</button>` : ""}</div><a href="book.html" target="_blank" rel="noopener">Consultar livro</a><button type="button" data-action="${step === list.length - 1 ? "finish" : "next"}" class="t-btn-primary">${step === list.length - 1 ? "Aplicar à ficha" : "Continuar"}</button></footer></section>`;
     renderedView = view;
     renderedChoices = new Map(fields.map((f) => [f.id, JSON.stringify(f)]));
     guide().bindAbilities(host, draft.setup, () => E.scores(ctx()), persistDraft);
+    guide().bindIncrements(host, E.scores(ctx()), draft.answers, persistDraft);
     persistDraft();
     restoreView(state);
     root.lucide?.createIcons();
@@ -1593,14 +1610,16 @@
           )
             s.prepared = values.includes(s.bookId || E.spell(s.name)?.id);
         });
-        root.commitLeveledCharacter(char, "Atualizou magias preparadas");
+        // Abrir ou cancelar o preparo não confirma o lembrete do descanso.
+        char.ruleState ||= {};
+        char.ruleState.prepareReminder = false;
+        if (root.commitLeveledCharacter(char, "Atualizou magias preparadas") === false) return;
       } else if (draft.mode === "create")
         root.commitCreatedCharacter(E.create(draft.setup, draft.answers));
-      else
-        root.commitLeveledCharacter(
+      else if (root.commitLeveledCharacter(
           E.levelUp(draft.char, draft.classId, draft.answers, draft.hpRoll),
           `${E.multiclassEligibility(draft.char, draft.classId).adding ? "Adicionou" : "Evoluiu"} ${D.classes[draft.classId].name}`,
-        );
+        ) === false) return;
       const creating = draft.mode === "create";
       close(true);
       if (creating) guide().completeDraft();

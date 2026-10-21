@@ -104,4 +104,4 @@ sem publicar portas ou consultar bancos existentes. Também aceita
 `CRITCALL_TEST_POSTGRES_BIN` para criar outra instância descartável com binários
 locais, conforme o README. Inclui RPCs e políticas do Storage de imagens.
 Executá-lo ao alterar SQL/RLS/RPC.
-A CI também o exige. Não aplicar migrações ao Orbyt; conferir projeto CritCall.
+A CI também o exige. Não aplicar migrações ao outro aplicativo; conferir projeto CritCall.

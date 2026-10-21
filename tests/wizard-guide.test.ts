@@ -8,10 +8,25 @@ import {
   type AbilitySetup,
 } from "../src/wizard/abilities";
 import { backgroundSuggestions } from "../src/wizard/guidance";
+import { adjustIncrement } from "../src/wizard/increments";
 const E = require("../public/rules/character-engine.js");
 const refs = require("../public/rules/phb2014-references.js");
 const T = require("../public/rules/rule-tooltips.js");
 const keys = ["str", "dex", "con", "int", "wis", "cha"];
+test('incremento distribui dois pontos sem ultrapassar 20 e permite redistribuir',()=>{
+  const base={str:19,dex:14,con:18,int:10,wis:12,cha:20},a:{asi:string[]}={asi:[]};
+  assert.equal(adjustIncrement(a,base,'cha',1),false);
+  assert.equal(adjustIncrement(a,base,'str',1),true);
+  assert.equal(adjustIncrement(a,base,'str',1),false);
+  assert.equal(adjustIncrement(a,base,'con',1),true);
+  assert.equal(adjustIncrement(a,base,'dex',1),false);
+  assert.equal(adjustIncrement(a,base,'str',-1),true);
+  assert.equal(adjustIncrement(a,base,'con',1),true);
+  assert.deepEqual(a.asi,['con','con']);
+  assert.deepEqual(base,{str:19,dex:14,con:18,int:10,wis:12,cha:20});
+  assert.equal(adjustIncrement(a,base,'unknown',1),false);
+  assert.equal(adjustIncrement(a,base,'dex',-1),false);
+});
 test("compra de pontos impede exceder 27 e devolve o custo correto", () => {
   const s: AbilitySetup = {
     abilityMethod: "pointBuy",

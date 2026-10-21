@@ -17,7 +17,7 @@ for (const file of core) hash.update(file).update(fs.readFileSync(path.join(dire
 const version = hash.digest("hex").slice(0, 16);
 const source = `/* Gerado pelo build. Atualizações aguardam as abas anteriores fecharem.
    O cache guarda arquivos do aplicativo; nunca lê ou apaga fichas/anotações. */
-const PREFIX = 'orbyt-offline:' + new URL(self.registration.scope).pathname + ':';
+const PREFIX = 'critcall-offline:' + new URL(self.registration.scope).pathname + ':';
 const CACHE = PREFIX + '${version}';
 const CORE = ${JSON.stringify(core)}.map(file => new URL(file, self.registration.scope).href);
 self.addEventListener('install', event => {
