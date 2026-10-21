@@ -10,6 +10,7 @@ import { concentration } from './concentration';
 import { concentrationControls, setupConcentrationUI } from './concentration-ui';
 import { setupWeaponDamageUI } from './weapon-damage-ui';
 import {sheetInput} from '../sheet-edit/ui';
+import {hasFeat} from './passives';
 
 export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
   const number = (n:number) => Number.isFinite(n)?n:'∞';
@@ -55,6 +56,7 @@ export function defenseControls(c:Sheet,E:Engine) {
     ['acAdjustment','Ajuste de CA','Some ou subtraia um bônus de CA que ainda não entrou no cálculo, como um item ou adaptação da mesa. Não repita aqui bônus da armadura, escudo ou efeitos marcados abaixo. Vazio equivale a 0.'],
   ];
   const effects=[
+    ...(hasFeat(c,E,'Ambidestro')?[['feat:dualWielder','Duas armas empunhadas · Ambidestro +1 CA','Marque enquanto empunhar uma arma corpo a corpo em cada mão. Não basta ter duas armas no inventário. Não se aplica com escudo, inconsciente ou em Forma Selvagem. CA escrita/manual já inclui seus bônus; não soma o talento novamente. Não repita esse +1 no ajuste de CA.']]:[]),
     ['spell:shieldOfFaith','Escudo da Fé +2','Marque enquanto estiver recebendo esta magia: soma +2 à CA, por até 10 minutos e com concentração de quem a conjurou. Desmarque quando terminar. Este controle não gasta espaço de magia.'],
     ['spell:shield','Escudo Arcano +5','Marque após usar a reação da magia Escudo Arcano: soma +5 à CA até o início do seu próximo turno, inclusive contra o ataque que a desencadeou, e impede dano de Mísseis Mágicos. Desmarque ao terminar; o espaço e a reação são controlados separadamente.'],
     ['spell:bladeWard','Proteção contra Lâminas · resistência','Até o fim do seu próximo turno, esta magia dá resistência a dano de concussão, cortante e perfurante causado por ataques com armas. Não aumenta a CA. Em Dano detalhado → Calcular por tipo, escolha ataque de arma para aplicar a resistência. No modo já resolvido, aplique-a na mesa.'],

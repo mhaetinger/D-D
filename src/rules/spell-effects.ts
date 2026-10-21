@@ -1,4 +1,6 @@
 import {ability, level, selections, subclass, type Engine, type Sheet} from './model';
+import {elementalAffinityBonus} from './passives';
+import {parseDiceFormula} from './dice-formula';
 
 const signed = (n:number) => n === 0 ? '' : n > 0 ? `+${n}` : String(n);
 const dice = (n:number, sides:number, modifier=0) => `${n}d${sides}${signed(modifier)}`;
@@ -19,11 +21,11 @@ export function twinEligible(c:Sheet, s:Sheet, circle:number, E:Engine, fallback
 }
 
 export interface SpellEffect {
-  formula:string|null; summary:string; canTwin:boolean; perRay:boolean; explanation:string;
+  formula:string|null; summary:string; canTwin:boolean; perRay:boolean; explanation:string; affinity?:number;
 }
 /** Uma resolução atende prévia e rolador. Fórmulas do jogador têm precedência;
  * os trechos genéricos só ampliam dados quando o texto explicita esse aumento. */
-export function resolveSpellEffect(c:Sheet, s:Sheet, circle:number, E:Engine, options:{twinned?:boolean;legacyFormula?:string|null;legacySummary?:string;canTwin?:boolean}={}):SpellEffect {
+export function resolveSpellEffect(c:Sheet, s:Sheet, circle:number, E:Engine, options:{twinned?:boolean;legacyFormula?:string|null;legacySummary?:string;canTwin?:boolean;elementalAffinity?:boolean}={}):SpellEffect {
   const entry=E.spell(s.bookId || s.name), meta=E.spellMeta(entry || s), canTwin=twinEligible(c,s,circle,E,options.canTwin);
   const twin=!!options.twinned && canTwin;
   if (s.customRoll) return {formula:s.customRoll,summary:s.customRoll,canTwin,perRay:false,explanation:'Fórmula personalizada preservada, sem bônus automáticos adicionais.'};
@@ -68,5 +70,13 @@ export function resolveSpellEffect(c:Sheet, s:Sheet, circle:number, E:Engine, op
     if (m && !perRay) formula=dice(Number(m[1])*2,Number(m[2]),Number(m[3] || 0)*2);
     summary=`2 alvos × (${summary})`;
   }
-  return {formula,summary,canTwin,perRay,explanation};
+  // Uma única rolagem, depois da composição de Gêmea: não soma CAR por alvo,
+  // dado ou raio. Dano adicional de outro raio usa elementalAffinity:false.
+  const affinity=entry && formula && options.elementalAffinity!==false?elementalAffinityBonus(c,meta.dmgType,E):0;
+  if(affinity && formula && Object.keys(parseDiceFormula(formula)?.counts || {}).length) {
+    formula+=signed(affinity);
+    summary+=` · Afinidade ${signed(affinity)} em uma rolagem`;
+    explanation+=' Afinidade Elemental soma CAR somente à rolagem inicial desta conjuração; os outros raios usam o dano sem esse bônus. Não gasta feitiçaria.';
+  }
+  return {formula,summary,canTwin,perRay,explanation,affinity};
 }

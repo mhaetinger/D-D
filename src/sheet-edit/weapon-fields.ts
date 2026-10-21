@@ -1,8 +1,10 @@
 import { escape, type Engine, type Sheet } from '../rules/model';
+import {bladePact} from '../rules/passives';
+import {helpAttributes} from '../app/help';
 
 /** Mantém os IDs consumidos pelo editor anterior; somente estrutura e rótulos
  * mudam. Ajustes recolhidos conservam seus valores e continuam no formulário. */
-export function weaponCalculationFields(original:Sheet,ruleWeapon:string|undefined,E:Engine):HTMLElement {
+export function weaponCalculationFields(original:Sheet,ruleWeapon:string|undefined,E:Engine,c?:Sheet):HTMLElement {
   const section=document.createElement('section');section.className='weapon-editor-calculation';
   const automatic=!!ruleWeapon&&original.calculationMode!=='manual';
   const field=(label:string,control:string)=>`<label class="weapon-editor-field"><span>${label}</span>${control}</label>`;
@@ -22,6 +24,7 @@ export function weaponCalculationFields(original:Sheet,ruleWeapon:string|undefin
       ${field('Ajuste de dano',number('hbWepDamageAdjust',original.damageAdjustment,-100,100))}
     </div>
     <div class="weapon-editor-checks">
+      ${c && bladePact(c,E)?`<label ${helpAttributes('Arma do pacto','Identifica a arma vinculada ao Pacto da Lâmina. Marcar transfere o vínculo desta ficha para esta arma. Sorvedor de Vida exige bruxo 12 e a invocação escolhida; seu dano necrótico entra só no cálculo automático. Valores manuais são preservados.')}><input id="hbWepPact" type="checkbox" ${original.pactWeapon===true?'checked':''}><span>Arma do pacto</span></label>`:''}
       <label><input id="hbWepDuel" type="checkbox" ${original.duelingEligible?'checked':''}><span>Única arma corpo a corpo na mão (Duelismo)</span></label>
       <label><input id="hbWepOffhand" type="checkbox" ${original.offHand?'checked':''}><span>Ataque bônus com segunda arma</span></label>
     </div>

@@ -2,6 +2,35 @@
 
 ## Não lançado
 
+### Bônus passivos de CA, perícias, pacto e linhagem — 2026-10-21
+
+- Ambidestro soma +1 à CA calculada após confirmar duas armas empunhadas nos
+  ajustes de defesa. Não soma novamente à CA manual/escrita e respeita escudo,
+  inconsciência e Forma Selvagem. Sem inferir equipamento pelo inventário.
+- Percepção e Investigação exibem os passivos com Observador nos dois layouts.
+  Preservados bônus ativos personalizados, zero, proficiência/especialização e
+  meia proficiência. A rolagem ativa não recebe o +5 passivo.
+- O editor de arma permite confirmar a arma do pacto. Salvar transfere o vínculo
+  entre armas; cancelar preserva os dados anteriores. Sorvedor de Vida exige
+  bruxo 12/Pacto da Lâmina/invocação e acrescenta CAR (mínimo 1) necrótico no
+  ataque automático, uma vez, sem dobrar o número no crítico. Armas manuais
+  continuam com seus valores escritos.
+- Afinidade Elemental usa linhagem/nível/ancestral da classe e soma CAR uma vez
+  ao dano inicial de tipo fixo reconhecido, após compor Gêmea. Outros raios não
+  repetem o bônus nem cobram outro espaço. O dano não custa feitiçaria nem exige
+  ativar a resistência. CAR negativo permanece na fórmula, com piso zero no
+  dano; tipos variáveis, fórmulas próprias e efeitos posteriores
+  continuam resolvidos na mesa e registrados em R5.
+- Novos cálculos puros em `src/rules/passives.ts`; dados seguem ficha/histórico
+  existentes, sem SQL ou migração destrutiva. Auditoria e retomada atualizadas
+  para distinguir R1 em revisão da versão publicada e apontar R2 como próxima.
+- Conferidos 395 testes Node, tipos/build, 25 roteiros anteriores na rodada
+  ampla e o novo roteiro R1. Após os últimos ajustes, R1/PV/concentração/regras/
+  crítico/ataques mágicos passaram novamente no build final, inclusive dano
+  mínimo zero. A suíte completa não foi repetida localmente no último artefato;
+  é exigida na CI. Capturas desktop/celular conferidas, diff e
+  62 links/âncoras locais válidos. Sem SQL/RLS/RPC; banco não repetido localmente.
+
 ### Documentação de retomada consolidada — 2026-10-21
 
 - `docs/RETOMADA.md` passa a ser o ponto de entrada, com a última publicação

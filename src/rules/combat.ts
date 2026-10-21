@@ -1,7 +1,8 @@
 import { ability, active, level, norm, proficiency, savingThrowBonus, selections, subclass, type Engine, type Sheet } from './model';
 import { hitPointMaximum, syncIncapacity, trackDamageAtZero } from './health';
 import { queueConcentrationDamage } from './concentration';
-import { conditionSpeed } from './conditions';
+import { conditionSpeed, hasCondition } from './conditions';
+import { hasFeat, lifedrinkerBonus } from './passives';
 import { arcaneWardPoints, previewTypedDamage, type DamagePacket } from './damage';
 import { commitSurvival, previewSurvival, type SurvivalChoice, type SurvivalPlan } from './survival';
 
@@ -58,15 +59,16 @@ export function weaponStats(c: Sheet, entry: Sheet, E: Engine):WeaponResult {
   }
   const damageBonus = (entry.offHand && !styles.includes('Combate com Duas Armas') ? Math.min(0,modifier) : modifier) + magic + rage + duel + Number(entry.damageAdjustment || 0);
   const improvedSmite = level(c,'paladino') >= 11 && !rangedWeapon ? '+1d8' : '';
-  const damage = die === '0' ? '0' : die + improvedSmite + (damageBonus < 0 ? '' : '+') + damageBonus;
+  const lifedrinker=lifedrinkerBonus(c,entry,E),totalBonus=damageBonus+lifedrinker;
+  const damage = die === '0' ? '0' : die + improvedSmite + (totalBonus < 0 ? '' : '+') + totalBonus;
   const extras = [];
   if (level(c,'ladino') && (rangedWeapon || /acuidade/i.test(w.properties))) extras.push({name:'Ataque Furtivo',formula:`${Math.ceil(level(c,'ladino')/2)}d6`,condition:'Uma vez por turno; vantagem ou aliado elegível junto do alvo, sem desvantagem.'});
   if (level(c,'paladino') >= 2 && meleeAttack) extras.push({name:'Destruição Divina',formula:'2d8',condition:'Após acertar, gaste espaço: +1d8 por nível acima do 1º (máx. 5d8), +1d8 contra morto-vivo/corruptor.'});
   if (selections(c,E,'hunter').includes('Assassino de Colossos')) extras.push({name:'Assassino de Colossos',formula:'1d8',condition:'Uma vez por turno, contra criatura que já está abaixo dos PV máximos.'});
   if (meleeAttack && level(c,'barbaro') >= 9) extras.push({name:'Crítico Brutal',formula:`${level(c,'barbaro') >= 17 ? 3 : level(c,'barbaro') >= 13 ? 2 : 1}d${die.match(/d(\d+)/)?.[1] || 6}`,condition:'Somente no acerto crítico corpo a corpo; não exige Fúria.'});
   const critical = subclass(c,'guerreiro',E) === 'campeao' && level(c,'guerreiro') >= 3 ? level(c,'guerreiro') >= 15 ? 18 : 19 : 20;
-  return { ...entry, ruleWeapon:w.name, proficient, magicBonus:magic, bonus:(attack >= 0 ? '+' : '')+attack, damage, weaponDie:die, damageBonus, improvedSmite:!!improvedSmite, meleeAttack, rangedWeapon, dmgTypeLabel:w.damageType, properties:w.properties, category:w.kind, critical, ability:key, extras,
-    explanation:`Ataque: ${key.toUpperCase()} ${modifier >= 0 ? '+' : ''}${modifier} + proficiência ${pb} + magia ${magic} + Arquearia ${archery} + Arma Sagrada ${sacred}${entry.attackAdjustment ? ' + ajuste '+entry.attackAdjustment : ''} = ${attack}. Dano: ${die}${improvedSmite} + habilidade ${modifier} + magia ${magic} + Fúria ${rage} + Duelismo ${duel}${entry.damageAdjustment ? ' + ajuste '+entry.damageAdjustment : ''}. ${w.properties}. Crítico: ${critical}–20.` };
+  return { ...entry, ruleWeapon:w.name, proficient, magicBonus:magic, bonus:(attack >= 0 ? '+' : '')+attack, damage, weaponDie:die, damageBonus, lifedrinker, improvedSmite:!!improvedSmite, meleeAttack, rangedWeapon, dmgTypeLabel:w.damageType, properties:w.properties, category:w.kind, critical, ability:key, extras,
+    explanation:`Ataque: ${key.toUpperCase()} ${modifier >= 0 ? '+' : ''}${modifier} + proficiência ${pb} + magia ${magic} + Arquearia ${archery} + Arma Sagrada ${sacred}${entry.attackAdjustment ? ' + ajuste '+entry.attackAdjustment : ''} = ${attack}. Dano: ${die}${improvedSmite} + habilidade ${modifier} + magia ${magic} + Fúria ${rage} + Duelismo ${duel}${lifedrinker?' + Sorvedor de Vida '+lifedrinker+' necrótico':''}${entry.damageAdjustment ? ' + ajuste '+entry.damageAdjustment : ''}. ${w.properties}. Crítico: ${critical}–20.` };
 }
 
 export function armorClass(c: Sheet, E: Engine) {
@@ -98,9 +100,11 @@ export function armorClass(c: Sheet, E: Engine) {
   const defense = wearing && styles.includes('Defesa') && !(c.rules?.manualMode&&c.acFormula==='legacy') && c.acFormula!=='written' ? 1 : 0;
   const spellBonuses = (active(c,'spell:shieldOfFaith') ? 2 : 0) + (active(c,'spell:shield') ? 5 : 0);
   const flat = defense + spellBonuses + Number(c.acAdjustment || 0);
-  const options = choices.map(x => ({...x, total:x.base + (x.shield ? shield : 0) + flat}));
+  const dual=hasFeat(c,E,'Ambidestro') && active(c,'feat:dualWielder') && !c.shieldEquipped && !active(c,'druida:wildShape') && !hasCondition(c,'inconsciente');
+  // A CA escrita já pode conter o talento. Só acrescenta às fórmulas calculadas.
+  const options = choices.map(x => ({...x, dualWielder:dual && !['legacy','written'].includes(x.id)?1:0, total:x.base + (x.shield ? shield : 0) + flat+(dual && !['legacy','written'].includes(x.id)?1:0)}));
   const chosen = options.find(x => x.id === c.acFormula) || options.reduce((a,b) => a.total >= b.total ? a : b);
-  return { total:chosen.total, chosen:chosen.id, options, explanation:`${chosen.label}: ${chosen.formula} + escudo ${chosen.shield ? shield : 0} + Defesa ${defense} + magias ${spellBonuses} + ajustes ${Number(c.acAdjustment || 0)} = ${chosen.total}. Fórmulas alternativas não se somam. Escudo Arcano: até seu próximo turno; Escudo da Fé exige concentração.` };
+  return { total:chosen.total, chosen:chosen.id, options, explanation:`${chosen.label}: ${chosen.formula} + escudo ${chosen.shield ? shield : 0} + Defesa ${defense} + magias ${spellBonuses}${chosen.dualWielder?' + Ambidestro 1':''} + ajustes ${Number(c.acAdjustment || 0)} = ${chosen.total}. Fórmulas alternativas não se somam. Escudo Arcano: até seu próximo turno; Escudo da Fé exige concentração.` };
 }
 export function exhaustion(c: Sheet) {
   const value = Math.max(0,Math.min(6,Math.floor(Number(c.exhaustion) || 0)));

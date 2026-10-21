@@ -11,6 +11,7 @@ import { resourcesAt } from "../rules/placement";
 import { featureGroups } from '../rules/feature-groups';
 import { canCastNormally, canRitual, preparation, wizardPrivilege, castingRestriction, armorProficiencies } from "../rules/spellcasting";
 import { resolveSpellEffect, innateCastLevel, twinEligible } from "../rules/spell-effects";
+import {skillBonus,passiveSkill} from '../rules/passives';
 import { consumeInspiration, deathStatus, healHitPoints, inspirationRollMode } from '../rules/health';
 import { damageDescription, deathControls, hitDiceControls, inspirationControls } from '../rules/health-ui';
 import { offerSurvivalForDamage } from '../rules/damage-ui';
@@ -740,12 +741,7 @@ function getSpellNotes(char, spell) {
 }
 
 function getSkillBonus(char, skill) {
-  // A personalização substitui o bônus inteiro; zero também é um valor válido.
-  return (
-    char.customSkillBonuses?.[skill.id] ??
-    (getMod(char.abilities[skill.ability].score) +
-      (char.skillsProf.includes(skill.id) ? getProfBonus(char) * (char.expertise?.includes(skill.id) ? 2 : 1) : (char.classes.some(c => c.classId === "bardo" && c.level >= 2) ? Math.floor(getProfBonus(char) / 2) : 0)))
-  );
+  return skillBonus(char,skill);
 }
 
 function getCalculatedAC(char) {
@@ -1099,7 +1095,7 @@ function evaluateDicePool(counts, modifier, mode) {
   return { total, d20Natural, breakdown, appliedMode };
 }
 
-function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligible = true) {
+function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligible = true, minimumZero = false) {
   const cube = document.getElementById("dice3dCube");
   const resultBox = document.getElementById("dice3dResultText");
   if (!cube || !resultBox) return;
@@ -1121,6 +1117,7 @@ function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligib
   const c=getChar(),inspired=inspirationEligible && !!c && dicePoolCounts[20]===1 && c.heroicInspiration && c.ruleState?.inspirationReady;
   const mode=inspired?inspirationRollMode(c,currentRollMode):currentRollMode;
   const result = evaluateDicePool(dicePoolCounts, modVal, mode);
+  if(minimumZero)result.total=Math.max(0,result.total);
   if(inspired && consumeInspiration(c)) saveRuleStep('Usou inspiração no d20 · '+(customLabel || 'pool'));
   presentDiceResult(result, customLabel);
   return result;
@@ -1204,7 +1201,7 @@ function triggerSheetRoll(formula, label, inspirationEligible = false, context =
   const modEl = document.getElementById("dicePoolModInput");
   if (modEl) modEl.value = parsed.modifier;
   updatePoolDisplay();
-  return rollCurrentPool(label, true, inspirationEligible);
+  return rollCurrentPool(label, true, inspirationEligible,context?.type==='damage');
 }
 
 // =========================================================================
@@ -1444,14 +1441,14 @@ function renderSpellCastControls(char, spell, index) {
   `;
 }
 
-function getSpellEffectDetails(char, spell, index) {
+function getSpellEffectDetails(char, spell, index, elementalAffinity=true) {
   const meta = resolveSpellMeta(spell);
   const chosen = getSelectedSpellCastLevel(char, spell, index);
   const level = getSpellSlotOptions(char,spell).find(option=>option.value===chosen)?.level ?? innateCastLevel(char,spell,CharacterEngine);
   const book = spell.customSpell ? null : BOOK_SPELLS_DB[spell.name];
   const canTwin=twinEligible(char,spell,level,CharacterEngine,meta.canTwin);
   const twin = !!twinnedActiveBySpell[spell.name] && canTwin && characterHasTwinned(char);
-  const options={legacyFormula:book?.diceFormula?.(level,false,char,spell),legacySummary:book?.calcEffect?.(level,false,char,spell),canTwin:meta.canTwin};
+  const options={legacyFormula:book?.diceFormula?.(level,false,char,spell),legacySummary:book?.calcEffect?.(level,false,char,spell),canTwin:meta.canTwin,elementalAffinity};
   const base=resolveSpellEffect(char,spell,level,CharacterEngine,options);
   const resolved=twin?resolveSpellEffect(char,spell,level,CharacterEngine,{...options,twinned:true}):base;
   return {...resolved,base:base.summary,enhanced:twin?resolved.summary:null,twin,canTwin,level,cost:spell.circle === 0 ? 1 : level};
@@ -1459,7 +1456,7 @@ function getSpellEffectDetails(char, spell, index) {
 function rollSpellRay(index) {
   if(diceMode!=='auto')return;
   const spell=getChar().spells[index];if(!spell) return;
-  const detail=getSpellEffectDetails(getChar(),spell,index);
+  const detail=getSpellEffectDetails(getChar(),spell,index,false);
   if(detail.perRay && detail.formula) triggerSheetRoll(detail.formula,`${spell.name} · dano de um raio/feixe que acertou (sem novo lançamento)`);
 }
 // O índice continua sendo o original da ficha, mesmo após filtrar por classe.
@@ -1751,6 +1748,12 @@ function renderSpellsToolbar(char) {
 function renderSkillAdjustment(char,sk,val,label) {
   return `<div class="sheet-skill-value">${sheetInput(char,`customSkillBonuses.${sk.id}`,char.customSkillBonuses?.[sk.id]??'',`Bônus total de ${label}`,'number',{min:-1000,max:1000,placeholder:fmtMod(val)})}<button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Perícia: ${label}', true)" aria-label="Rolar ${label}" class="t-text-accent"><i data-lucide="dices" class="w-3 h-3" aria-hidden="true"></i></button><button type="button" data-sheet-expertise="${sk.id}" aria-pressed="${char.expertise?.includes(sk.id)}" title="Especialização: proficiência dobrada" aria-label="Especialização em ${label}" ${canConfigureSheet(char)?'':'disabled'}>${char.expertise?.includes(sk.id)?'×2':'×1'}</button></div>`;
 }
+function renderPassiveSkill(char,sk) {
+  if(!['percepcao','investigacao'].includes(sk.id))return '';
+  const p=passiveSkill(char,sk,CharacterEngine);
+  const text=`10 + bônus de perícia ${p.bonus}${p.observer?' + Observador 5':''} = ${p.total}. Observador só afeta o valor passivo, não a rolagem ativa. Vantagem/desvantagem situacional altera o passivo em +5/−5, conforme a mesa; o modo do dado não altera este valor de referência.`;
+  return `<span class="sheet-skill-passive t-text-muted" tabindex="0" onclick="event.stopPropagation()" data-skill-passive="${sk.id}" ${RuleTooltips.attributes('Valor passivo',{text})}>Passiva ${p.total}</span>`;
+}
 function renderMainClassic2014(char) {
   const pb = getProfBonus(char);
   const abilitiesHtml = Object.entries(RULES_DB.abilities)
@@ -1799,7 +1802,7 @@ function renderMainClassic2014(char) {
     <div class="flex items-center justify-between py-1 px-2 rounded t-hover text-xs">
       <div onclick="toggleSkill('${sk.id}')" class="flex items-center gap-2 cursor-pointer">
         <span class="w-3 h-3 rounded-full border ${isProf ? "t-btn-primary" : "t-border"}"></span>
-        <span>${sk.name2014} <span class="t-text-muted">(${RULES_DB.abilities[sk.ability].short})</span></span>
+        <span>${sk.name2014} <span class="t-text-muted">(${RULES_DB.abilities[sk.ability].short})</span>${renderPassiveSkill(char,sk)}</span>
       </div>
       ${renderSkillAdjustment(char,sk,val,sk.name2014)}
     </div>
@@ -1881,7 +1884,7 @@ function renderMainModern2024(char) {
             <div class="flex items-center justify-between px-2 py-1 rounded t-hover text-xs">
               <div onclick="toggleSkill('${sk.id}')" class="flex items-center gap-2 cursor-pointer">
                 <span class="w-2.5 h-2.5 rounded-full border ${isProf ? "t-btn-primary" : "t-border"}"></span>
-                <span>${sk.name2024}</span>
+                <span>${sk.name2024}${renderPassiveSkill(char,sk)}</span>
               </div>
               ${renderSkillAdjustment(char,sk,val,sk.name2024)}
             </div>
@@ -2542,7 +2545,7 @@ function openHomebrewModal(type, index = null) {
       <div><label for="hbWepDescription" class="block font-bold mb-1">Descrição ao passar o mouse ou tocar no nome</label><textarea id="hbWepDescription" rows="4" maxlength="8000" class="w-full t-inset p-2 rounded-lg">${e(weapon.description ?? BOOK_ITEMS_DB[weapon.name]?.bookDesc ?? weapon.notes)}</textarea></div>`;
     initWeaponDamageBuilder(weapon.damage);
     const original = index!==null ? {magicBonus:weapon.magicBonus,...char.weapons[index]} : {};
-    const options = weaponCalculationFields(original,weapon.ruleWeapon,CharacterEngine);
+    const options = weaponCalculationFields(original,weapon.ruleWeapon,CharacterEngine,char);
     body.firstElementChild.after(options);
     const calculationHint = document.createElement('p'); calculationHint.className = 'weapon-editor-hint';
     options.after(calculationHint);
@@ -2571,6 +2574,11 @@ function openHomebrewModal(type, index = null) {
       Object.assign(updated,{calculationMode:document.getElementById('hbWepMode').value,ruleWeapon:document.getElementById('hbWepCatalog').value || undefined,
         proficient:document.getElementById('hbWepProf').value==='auto'?undefined:document.getElementById('hbWepProf').value==='yes',magicBonus:Number(document.getElementById('hbWepMagic').value),abilityOverride:document.getElementById('hbWepAbility').value,attackMode:document.getElementById('hbWepAttackMode').value,
         attackAdjustment:Number(document.getElementById('hbWepAttackAdjust').value),damageAdjustment:Number(document.getElementById('hbWepDamageAdjust').value),duelingEligible:document.getElementById('hbWepDuel').checked,offHand:document.getElementById('hbWepOffhand').checked});
+      const pactField=document.getElementById('hbWepPact');
+      if(pactField) {
+        updated.pactWeapon=pactField.checked;
+        if(updated.pactWeapon)for(const other of char.weapons)other.pactWeapon=false;
+      }
       if (index === null) char.weapons.push(updated);
       else char.weapons[index] = updated;
       closeHomebrewModal(true);
@@ -3104,6 +3112,8 @@ function castSpellWithUpcast(
     triggerSheetRoll(
       formulaToRoll,
       `${spellName}${effect.perRay?' · dano de um raio/feixe':''}${isTwinned ? " (⚡ Gêmea)" : ""}`,
+      false,
+      effect.affinity?{type:'damage'}:null,
     );
   }
 

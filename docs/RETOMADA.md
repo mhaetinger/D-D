@@ -13,16 +13,18 @@ A versão funcional foi publicada em **https://criticall.art/** pelas
 | Referência | Estado conferido em 21/10/2026 |
 | --- | --- |
 | Produção `main` | `27b30832bf94cd88805cdd1faced6dc00316ff67` |
-| Integração `develop` | `de3eda0cdcb2467fc56a83c28ffa6698455e5504`; mesmo conteúdo da produção |
+| Integração `develop` | `61d8ded`, documentação integrada pela PR #16; código funcional igual à produção |
 | Revisão offline publicada | `4e263eb66b70d44f` |
 | Verificação/publicação | [Workflow 39638188104](https://github.com/mhaetinger/D-D/actions/runs/39638188104), concluído com sucesso |
-| Trabalho seguinte | Roteiro de mecânicas organizado; implementação ainda não iniciada |
-| Esta revisão documental | `fix/documentacao-de-retomada`, criada de `develop` público; sem mudanças funcionais |
+| Trabalho seguinte | R1 implementada e verificada, em revisão; próxima implementação R2 |
+| Branch da tarefa | `feature/bonus-passivos-r1`, criada de `develop` público após a PR #16 |
 
-O responsável pediu **somente organizar a documentação nesta rodada**. A próxima
-etapa de regras é **R1 — bônus ausentes nos cálculos**, detalhada na
+A organização documental anterior foi integrada em `develop`. O responsável
+autorizou continuar a sequência; **R1 — bônus ausentes nos cálculos** está
+implementada e verificada no recorte descrito, com limites registrados na
 [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md#roteiro-de-implementação).
-As etapas seguintes e as matrizes de cobertura ficam naquele arquivo. Não
+A próxima implementação é **R2 — rolagens e gastos condicionais**. As matrizes
+e os critérios de conclusão ficam naquele arquivo. Não
 marcar uma mecânica como concluída por ter descrição, escolha ou contador.
 
 ## Como continuar
@@ -41,8 +43,8 @@ build; não precisa copiar `.env.local`. A porta 5173 pertence a outro aplicativ
 na máquina original.
 
 Em um clone existente, confira `git status`, preserve trabalho pendente e faça
-`git fetch origin`. Se esta revisão documental ainda não estiver integrada,
-continue em `fix/documentacao-de-retomada`. Para uma tarefa nova, parta do
+`git fetch origin`. Para continuar esta entrega ainda não integrada,
+use `feature/bonus-passivos-r1`. Para uma tarefa nova, parta do
 `develop` público atualizado e crie `feature/*` ou `fix/*`. Entregue por PR para
 `develop`; após revisão e aprovação, PR para `main`. Não fazer push direto à
 `main`, enviar tags extras ou mesclar o histórico privado do protótipo.
@@ -51,8 +53,8 @@ Texto para iniciar outra conversa:
 
 > Continue o CritCall. Leia AGENTS.md, docs/RETOMADA.md, README.md,
 > CHANGELOG.md e docs/ARQUITETURA.md. Confira a branch e o estado do Git.
-> O roteiro atual de regras está em docs/AUDITORIA-LIVRO-2014.md; a próxima
-> etapa é R1. A rodada anterior organizou somente documentação.
+> O roteiro atual de regras está em docs/AUDITORIA-LIVRO-2014.md. Confira
+> primeiro a entrega R1 e suas verificações/PR; a próxima implementação é R2.
 
 ## Mapa dos documentos
 
@@ -81,8 +83,9 @@ Não criar outro plano com uma cópia dessas listas.
 
 - 385 testes Node, tipos/build e 25 roteiros Chromium aprovados. O workflow da
   `main` também aprovou PostgreSQL descartável/RLS/Storage e a auditoria das
-  dependências de produção. São verificações da entrega anterior, não execuções
-  desta revisão documental nem certificação de todas as regras do livro.
+  dependências de produção. São verificações da entrega publicada anterior;
+  a entrega R1 tem registro próprio na auditoria. Nenhuma das duas certifica
+  todas as regras do livro.
 - Após a publicação, atualização real com cache HTTP nativo, duas abas e rascunho
   preservado; F5 comum recebeu a versão nova. Conferidos ícones das resistências,
   foco do dado após teclado/minimizar, 390px/GG e ficha/notas offline.
