@@ -2,6 +2,44 @@
 
 ## Não lançado
 
+### Documentação de retomada consolidada — 2026-10-21
+
+- `docs/RETOMADA.md` passa a ser o ponto de entrada, com a última publicação
+  concluída, próxima etapa e pendências externas identificadas. A conferência
+  do workflow/PR confirmou `main` em `27b3083`; atualização real após a publicação
+  já foi validada, substituindo a anotação antiga de que faltava esse smoke.
+- `docs/AUDITORIA-LIVRO-2014.md` concentra as etapas R1–R6, critérios de aceite,
+  primeiro recorte de passivos e matrizes de cobertura. Separados cálculos
+  ausentes, contexto da mesa e efeitos ainda não revisados; Esquiva/Evasão,
+  Fúria/Resistência Implacável, crítico racial e gasto de Destruição deixam de
+  aparecer como ausências em tabelas antigas. Nenhuma mecânica foi implementada
+  nesta revisão, conforme pedido do responsável.
+- Removidos três planos concluídos: `REFATORACAO-2014.md`, `PLANO-EXPERIENCIA.md`
+  e `PRIMEIRA-PUBLICACAO.md`. Contratos e cuidados vigentes foram preservados nos
+  documentos técnicos; entregas anteriores continuam no changelog e no Git.
+  Atualizados links, instruções de contribuição/manutenção e registros de
+  publicação, login, DNS e sincronização que ainda apontavam etapas antigas.
+- As notas de cache/atualização abaixo passam à entrega publicada de 21/10;
+  os resultados de testes daquela entrega não são execuções desta consolidação.
+- Verificação documental: diff, links/âncoras Markdown locais, preservação das
+  12 classes/41 subclasses e 42 talentos nas matrizes e referências históricas.
+  Sem alteração de fontes, build, SQL, configurações, dados ou ponto de retorno
+  do dado; testes de comportamento não repetidos.
+
+## 2026-10-21
+
+Entrega autorizada pelo responsável após a revisão da ficha, importação,
+tipografia e dado. Integração por PR para `develop` e depois `main`; o workflow
+da `main` testa e publica o mesmo artefato `dist/`.
+
+Publicação final concluída na `main` `27b3083` pela
+[PR #15](https://github.com/mhaetinger/D-D/pull/15), com
+[workflow 39638188104](https://github.com/mhaetinger/D-D/actions/runs/39638188104)
+aprovado. Revisão offline `4e263eb66b70d44f`, conferida após a entrega no site
+com duas abas/cache HTTP nativo, F5 comum, rascunho, dado, mobile e offline.
+
+### Integridade da atualização e cache HTTP — 2026-10-21
+
 - O instalador offline confere SHA-256 de cada arquivo antes de ativar uma
   entrega. HTML ou regras de outra versão, mesmo com resposta 200, invalidam a
   instalação e preservam a versão anterior. Os hashes incluem o HTML final;
@@ -34,12 +72,6 @@
   sem vulnerabilidades e Chromium de atualização/dado. A atualização foi testada
   com duas abas, rascunho/foco, worker antigo/reiniciado, instalação concorrente
   e incompleta, F5 comum, notas/fichas offline e aviso em 320px/GG.
-
-## 2026-10-21
-
-Entrega autorizada pelo responsável após a revisão da ficha, importação,
-tipografia e dado. Integração por PR para `develop` e depois `main`; o workflow
-da `main` testa e publica o mesmo artefato `dist/`.
 
 ### Dado sem realce de seleção após R — 2026-10-21
 
@@ -720,7 +752,9 @@ da `main` testa e publica o mesmo artefato `dist/`.
   strings irrecuperáveis são identificadas. Exportações/chaves novas usam CritCall.
   Leitura silenciosa preserva formatos históricos, originais e operações já
   enfileiradas, sem troca de identidade, SQL ou autorização.
-- Plano, contratos e verificação em `docs/REFATORACAO-2014.md`.
+- Plano original de refatoração concluído; contratos hoje em
+  `docs/ARQUITETURA.md`, cobertura em `docs/AUDITORIA-LIVRO-2014.md`.
+  O plano da época permanece no histórico do Git.
 - Verificação: 260 testes Node, tipos/build e nove roteiros Chromium aprovados;
   regras repetidas após os últimos ajustes. Inclui login, sincronização com HTTP
   simulado, isolamento, offline e continuidade local. Sem alteração de SQL/RLS.

@@ -2,14 +2,13 @@
 
 ## Estado
 
-Solicitado em 16/10/2026: dados do jogador no Supabase, incluindo nome, uso
-offline e atualização em outro PC. Cliente, migração e testes estão implementados
-nesta branch. **Migração aplicada ao projeto real em 16/10/2026; validação de
-sincronização entre dispositivos reais e publicação ainda pendentes.** As
-ferramentas do Supabase ficaram disponíveis e confirmaram o projeto exclusivo
-`qhrpgkpvwbztubnrdhya`, ativo em PostgreSQL 17.11, com nome D-D no painel e URL
-`https://qhrpgkpvwbztubnrdhya.supabase.co`. Antes da aplicação não havia tabelas
-públicas nem migrações. Outros projetos não receberam alterações.
+Cliente, fila e migrações estão implementados e publicados no CritCall.
+O projeto exclusivo é **`qhrpgkpvwbztubnrdhya`**, URL pública
+`https://qhrpgkpvwbztubnrdhya.supabase.co`, identificado como D-D no painel na
+inspeção de 16/10/2026. Nesse dia foram aplicadas as migrações descritas abaixo,
+sem alterações em outros projetos. A publicação atual e as validações externas
+pendentes estão somente na [RETOMADA.md](RETOMADA.md). Os testes controlados não
+substituem sincronização e isolamento com contas/dispositivos reais.
 
 ## Dados e fila
 
@@ -140,7 +139,7 @@ contém dados pessoais ou exclusões e pode ser reaplicado sem apagar registros.
 
 ## Alertas do serviço para revisão
 
-A inspeção do projeto real encontrou a função preexistente
+A inspeção de **16/10/2026** do projeto real encontrou a função preexistente
 `public.rls_auto_enable` executável por anon/authenticated. Revisar sua origem,
 necessidade e privilégios antes de alterar; ela não foi criada pela migração
 pessoal. Orientação do [linter de funções expostas](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable).
@@ -152,7 +151,8 @@ configuração de autenticação: [proteção de senhas](https://supabase.com/do
 escrita transacional por RPC. EXECUTE é restrito a authenticated, a função
 confere `auth.uid()` e o dono esperado e fixa `search_path` vazio. Essa decisão
 não dispensa a validação da autoria nem concede escrita direta nas tabelas.
-Nenhum desses alertas foi apresentado como corrigido nesta etapa.
+Nenhum desses alertas tem correção confirmada neste registro. A reinspeção está
+em V4 da [RETOMADA.md](RETOMADA.md); este texto não é uma nova consulta ao serviço.
 
 ## Testes
 
