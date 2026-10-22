@@ -10,6 +10,7 @@ import { SupabaseDocuments } from '../sync/supabase-port';
 
 const INTENT = 'critcall_guest_import_intent_v1';
 const RECEIPTS = 'critcall_guest_import_receipts_v1';
+const DECLINED = 'critcall_guest_import_declined_v1';
 const host = window as any;
 interface Receipt { state: 'pending' | 'done' | 'declined'; ids: Record<string, string>; avatars?: Record<string, string> }
 export function setupGuestImport(account: AccountSession) {
@@ -37,11 +38,21 @@ export function setupGuestImport(account: AccountSession) {
       if (!navigator.locks) throw new Error('Abra em um navegador com armazenamento e conexão segura para vincular as fichas.');
       await navigator.locks.request('critcall-guest-import:' + scope, async () => {
         if (!valid()) return;
+        const port = workspaceStorage(() => localStorage, scope);
+        const declined = () => {
+          // Preferência por conta/navegador: editar fichas, notas ou rascunho
+          // depois da recusa não deve reabrir a pergunta pelo novo fingerprint.
+          port.setItem(DECLINED, '1');
+          report('As fichas sem conta continuam neste navegador. Você pode retomar pelo perfil quando quiser.', true);
+        };
+        if (port.getItem(DECLINED) === '1') {
+          region.hidden=false;status.textContent='Você optou por manter as fichas sem conta neste navegador.';retry.hidden=false;
+          return; // Sem diálogo ou toast a cada recarga; só o lembrete no perfil.
+        }
         const source = new CharacterStore(() => localStorage), sourceCharacters = source.read();
         if (source.issue) throw new Error(source.issue.message);
         const draft = loadDraft('');
         if (!sourceCharacters.length && !draft) return;
-        const port = workspaceStorage(() => localStorage, scope);
         const remote = await new SupabaseDocuments(account.client!, identity.userId).pull();
         if (!valid()) return;
         const target = new CharacterStore(() => port, scope), current = target.read();
@@ -52,6 +63,10 @@ export function setupGuestImport(account: AccountSession) {
         const receipts: Record<string, Receipt> = JSON.parse(port.getItem(RECEIPTS) || '{}');
         let receipt = receipts[fingerprint];
         if (sourceCharacters.length === 1 && (receipt?.state === 'done' || receipt?.state === 'declined')) return;
+        // O digest é assíncrono: outra edição/confirmação pode ter aberto.
+        // Diálogo ocupado não é uma recusa do usuário a ser lembrada.
+        if (!valid()) return;
+        if (host.hasOpenAccountEditor?.()) throw new Error('Termine ou salve a edição aberta e retome a vinculação no perfil. Os originais locais foram mantidos.');
         const existing = current.length > 0 || remote.some(d => d.kind === 'character' && d.value !== null);
         let characters = sourceCharacters;
         if (sourceCharacters.length > 1) {
@@ -64,17 +79,17 @@ export function setupGuestImport(account: AccountSession) {
             const text = document.createElement('span'); text.textContent = character.name || 'Ficha sem nome';
             label.append(input, text); chooser.append(label);
           }
-          const accepted = await host.confirmDestructiveAction(existing ? 'Salvar uma ficha sem conta?' : 'Escolha a ficha para sua conta', `${existing ? 'Esta conta já tem fichas. ' : ''}Selecione as fichas que devem receber cópias${draft ? ' e o rascunho em andamento' : ''}. Os originais continuam no espaço sem conta.`, existing ? 'Salvar selecionadas' : 'Vincular selecionadas', chooser);
+          const accepted = await host.confirmDestructiveAction(existing ? 'Salvar uma ficha sem conta?' : 'Escolha a ficha para sua conta', `${existing ? 'Esta conta já tem fichas. ' : ''}Selecione as fichas que devem receber cópias${draft ? ' e o rascunho em andamento' : ''}. Os originais continuam no espaço sem conta.`, existing ? 'Salvar selecionadas' : 'Vincular selecionadas', chooser, {cancelLabel:'Não quero'});
           if (!valid()) return;
           const selectedIds = [...chooser.querySelectorAll<HTMLInputElement>('[data-guest-character]:checked')].map(input => input.value);
           characters = sourceCharacters.filter(character => selectedIds.includes(character.id));
           if (!accepted || !characters.length) {
-            report('As fichas sem conta continuam guardadas neste navegador.', true); return;
+            declined(); return;
           }
         } else if (existing) {
-          const accepted = await host.confirmDestructiveAction('Salvar o que você fez sem conta?', `Esta conta já tem fichas. Adicionar ${characters.length} ficha(s)${draft ? ' e o rascunho em andamento' : ''} como novas, junto das anotações e imagens? Os originais continuam no espaço sem conta.`, 'Salvar como novas');
+          const accepted = await host.confirmDestructiveAction('Salvar o que você fez sem conta?', `Esta conta já tem fichas. Adicionar ${characters.length} ficha(s)${draft ? ' e o rascunho em andamento' : ''} como novas, junto das anotações e imagens? Os originais continuam no espaço sem conta.`, 'Salvar como novas', null, {cancelLabel:'Não quero'});
           if (!valid()) return;
-          if (!accepted) { report('As fichas sem conta continuam guardadas neste navegador.', true); return; }
+          if (!accepted) { declined(); return; }
         }
         backup = source.backup(characters, true);
         fingerprint = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify({ characters, notes: backup.privateNotes, draft }))))].map(n => n.toString(16).padStart(2, '0')).join('');
@@ -141,6 +156,7 @@ export function setupGuestImport(account: AccountSession) {
     if (!account.identity) return;
     try {
       const port = workspaceStorage(() => localStorage, workspaceKey(account.identity));
+      port.removeItem(DECLINED); // Somente a ação explícita no perfil reabre a oferta.
       const receipts = JSON.parse(port.getItem(RECEIPTS) || '{}');
       for (const key of Object.keys(receipts)) if (receipts[key].state === 'declined') delete receipts[key];
       port.setItem(RECEIPTS, JSON.stringify(receipts));

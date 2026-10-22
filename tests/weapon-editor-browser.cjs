@@ -32,7 +32,7 @@ const {unlockSheet}=require('./sheet-lock-actions.cjs'),{confirmationActions}=re
      const r=control.getBoundingClientRect();if(r.left<bounds.left-1||r.right>bounds.right+1||r.width<10)result.push(control.id||control.textContent);
     }
     for(const label of e.querySelectorAll('.weapon-editor-field')){
-     const text=label.querySelector('span'),control=label.querySelector('input,select');if(!visible(control))continue;
+     const text=label.querySelector('span'),control=label.querySelector('input,select,textarea');if(!visible(control))continue;
      if(text.getBoundingClientRect().bottom>control.getBoundingClientRect().top)result.push(text.textContent+' sobreposto');
     }
     for(const label of e.querySelectorAll('.weapon-editor-checks label')){
@@ -59,6 +59,10 @@ const {unlockSheet}=require('./sheet-lock-actions.cjs'),{confirmationActions}=re
   await screenshot('/tmp/critcall-weapon-editor-auto.png');await field('hbSaveBtn').click();assert.deepEqual(await page.evaluate(()=>getChar().weapons[0].tableReference),c.weapons[0].tableReference);assert.equal(await page.evaluate(()=>getChar().weapons[0].ruleWeapon),'Alabarda');
   const card=page.locator('[data-weapon-card="0"]');assert.match(await card.locator('.weapon-rolls').innerText(),/Atq \+8/);assert.match(await card.locator('.weapon-rolls').innerText(),/Dano 1d10\+7/);
   const saved=await page.evaluate(()=>JSON.stringify(getChar()));await page.evaluate(()=>openHomebrewModal('weapon',0));await field('hbWepName').fill('Não salvar');await editor.getByRole('button',{name:'Cancelar',exact:true}).click();await cancel();assert.equal(await field('hbWepName').inputValue(),'Não salvar');await editor.getByRole('button',{name:'Cancelar',exact:true}).click();await accept();assert.equal(await page.evaluate(()=>JSON.stringify(getChar())),saved);
+  // Ausência de ataque permanece vazia numa edição manual; vincular ao
+  // catálogo calcula um bônus válido antes do próximo salvamento/backup.
+  await page.evaluate(()=>openHomebrewModal('weapon',getChar().weapons.length-1));await field('hbWepBonus').fill('');await field('hbSaveBtn').click();assert.equal(await page.evaluate(()=>getChar().weapons.at(-1).bonus),'');
+  await page.evaluate(()=>openHomebrewModal('weapon',getChar().weapons.length-1));assert.equal(await field('hbWepBonus').inputValue(),'');await field('hbWepMode').selectOption('auto');await field('hbWepCatalog').selectOption('Adaga');await field('hbSaveBtn').click();assert.match(await page.evaluate(()=>getChar().weapons.at(-1).bonus),/^[+-]?\d+$/);assert.equal(await page.evaluate(()=>getChar().weapons.at(-1).ruleWeapon),'Adaga');
   await page.reload({waitUntil:'networkidle'});assert.equal(await page.evaluate(()=>getChar().weapons.at(-1).damage),'1d4+1d8+3');assert.deepEqual(await page.evaluate(()=>getChar().weapons[0].tableReference),c.weapons[0].tableReference);assert.deepEqual(errors,[]);
   console.log('PASS editor de armas: manual/automático, dados/ajustes/metadados, cancelar e recarregar, mesmos nós/rascunhos, coluna estreita/320px/GG/três temas/dois layouts sem sobreposição.');
  }finally{await browser.close();await server.close();}

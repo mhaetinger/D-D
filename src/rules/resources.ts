@@ -2,6 +2,7 @@ import { ability, active, level, norm, selections, state, subclass, type Engine,
 import { deathStatus, endRage, requireConscious } from './health';
 import { endConcentration } from './concentration';
 import { relentlessDC } from './survival';
+import { hasFeat } from './passives';
 export interface Resource { id:string; classId:string; name:string; max:number; recovery:'short'|'long'|'none'; kind:'counter'|'pool'|'toggle'|'note'|'portent'; note:string; cost?:[string,number]; action?:string }
 
 /** Cada definição usa nível da própria classe, nunca nível total. Sem ficha-modelo. */
@@ -140,7 +141,7 @@ export function resourcesFor(c: Sheet, E: Engine): Resource[] {
     for (const [id,name] of options[sub('paladino')] || []) add('paladino',id,name,1,'none',E.reference(name,'paladino',sub('paladino'))?.text || 'Ação: escolha um alvo e resolva as condições do juramento.','toggle',{cost:['shared:channel',1]});
     if (paladin>=15 && sub('paladino')==='ancioes') add('paladino','undying','Sentinela Imortal',1,'long','Quando cair a 0 PV sem morrer, pode ficar com 1 PV.');
   }
-  if (sorcerer>=6 && sub('feiticeiro')==='draconica') add('feiticeiro','elementalAffinity','Afinidade Elemental · resistência',1,'none','Gaste 1 ponto de feitiçaria para resistência ao elemento de sua ancestralidade por 1 hora. O bônus de CAR em uma rolagem de dano da magia não tem custo.','toggle',{cost:['feiticeiro:sorceryPool',1]});
+  if (sorcerer>=6 && sub('feiticeiro')==='draconica') add('feiticeiro','elementalAffinity','Afinidade Elemental · resistência',1,'none','Gaste 1 ponto de feitiçaria para resistência ao elemento de sua ancestralidade por 1 hora. O bônus de CAR não tem custo: entra em uma rolagem inicial de dano da magia com tipo fixo reconhecido. Outros raios não repetem o bônus; tipos variáveis, dano posterior e fórmulas próprias são resolvidos na mesa.','toggle',{cost:['feiticeiro:sorceryPool',1]});
   if (sorcerer>=14 && sub('feiticeiro')==='draconica') add('feiticeiro','wings','Asas de Dragão',1,'none','Ação bônus para manifestar/recolher; armaduras precisam acomodar as asas.','toggle');
   if (sorcerer>=18 && sub('feiticeiro')==='draconica') add('feiticeiro','presence','Presença Dracônica',1,'none','Ação: 5 pontos para aura de respeito/medo, concentração até 1 minuto.','toggle',{cost:['feiticeiro:sorceryPool',5]});
   const metaCosts:Record<string,number> = {'Magia Acelerada':2,'Magia Aumentada':3,'Magia Cuidadosa':1,'Magia Distante':1,'Magia Estendida':1,'Magia Potencializada':1,'Magia Sutil':1};
@@ -161,6 +162,7 @@ export function resourcesFor(c: Sheet, E: Engine): Resource[] {
   if (wizard>=6 && sub('mago')==='encantamento') add('mago','instinctive','Encanto Instintivo',1,'none','Reação: escolha atacante e outra criatura ao alcance; após sucesso dele, não pode usar nesse atacante até descanso longo.','toggle');
   if (wizard>=10 && sub('mago')==='transmutacao') add('mago','shapechanger','Metamorfo',1,'short','Conjure Metamorfose em si mesmo sem espaço, virando besta ND 1 ou menor.');
   if (wizard>=14 && sub('mago')==='transmutacao') add('mago','masterTransmuter','Mestre Transmutador',1,'none','Consuma a pedra e escolha a transformação; exige ação e tocar o alvo. Recriar a pedra exige 8 horas.','toggle');
+  if(hasFeat(c,E,'Sortudo'))add('feat','lucky','Sortudo',3,'long','3 pontos por descanso longo. Gaste 1 antes de resolver um ataque, teste de habilidade ou resistência: role um d20 adicional e escolha a face, mesmo com vantagem/desvantagem. Pode afetar um ataque contra você; pontos de criaturas diferentes se cancelam, sem dado adicional. O Sortudo racial não gasta esta reserva.','counter',{action:'lucky'});
   for(const r of list){const value=c.rules?.resourceMaxOverrides?.[r.id];if(Number.isInteger(value)&&value>=0&&value<=100&&!r.cost)r.max=value;}
   return list;
 }
@@ -189,7 +191,9 @@ export function spend(c: Sheet, r: Resource, amount=1) {
 }
 /** Corrigir um clique deve devolver o mesmo uso na magia e no painel. */
 export function refund(c:Sheet,r:Resource) {
-  const value = Math.max(0,used(c,r)-1);
+  const recorded=c.ruleState?.used?.[r.id];
+  if(r.id==='feat:lucky' && recorded!==undefined && (!Number.isInteger(recorded) || recorded<0))throw new Error('Reserva de Sortudo ilegível preservada. Confira o registro antes de corrigi-lo.');
+  const value = Math.max(0,(r.id==='feat:lucky'?recorded ?? 0:used(c,r))-1);
   state(c).used[r.id] = value;
   for (const spell of arcanumSpells(c,r.id)) spell.usesUsed = value;
   if (r.id==='feiticeiro:tides') c.tidesOfChaosAvailable = true;
@@ -245,7 +249,7 @@ export function resetResources(c: Sheet, kind:'short'|'long', E: Engine, random=
     if (r.kind==='portent') s.portent = Array.from({length:r.max},()=>({value:1+Math.floor(random()*20),spent:false}));
   }
   // Um descanso curto não encerra automaticamente uma transformação de várias horas.
-  for (const key of Object.keys(s.active)) if (key !== 'mago:stone' && !(kind==='short' && key==='druida:wildShape')) s.active[key] = false;
+  for (const key of Object.keys(s.active)) if (key !== 'mago:stone' && !(kind==='short' && ['druida:wildShape','feat:dualWielder'].includes(key))) s.active[key] = false;
   for (const key of Object.keys(s.used)) if (key.startsWith('mago:signature:')) s.used[key]=0;
   if (kind==='long') { s.wardCreated = false; s.pools['mago:ward'] = 0; s.targets = s.active['mago:stone']?{'mago:stone':s.targets['mago:stone']}:{}; s.targetsUsed = {}; c.tidesOfChaosAvailable = true; }
   if (kind==='short' && level(c,'feiticeiro')>=20) c.sorceryPoints.current = Math.min(c.sorceryPoints.max,c.sorceryPoints.current+4);

@@ -9,7 +9,7 @@ interface SheetHost {
   characters: CharacterRecord[];
   activateAccountWorkspace: (identity: AccountSession["identity"]) => void;
   hasOpenAccountEditor: () => boolean;
-  openAuthAccountModal: () => void;
+  openAuthAccountModal: (tab?: 'profile' | 'characters') => void;
 }
 type AccessMode = "login" | "signup" | "reset" | "password";
 const host = window as unknown as SheetHost;
@@ -159,7 +159,7 @@ export function setupAccountUI(account: AccountSession) {
         if (!account.identity || !account.recovery) throw new Error("Sessão de recuperação ausente");
         const { error } = await auth.updateUser({ password: password.value });
         if (error) throw error;
-        account.recovery = false; setMode("login"); message("Senha atualizada."); host.openAuthAccountModal();
+        account.recovery = false; setMode("login"); message("Senha atualizada."); host.openAuthAccountModal('profile');
       }
     });
   });
@@ -168,7 +168,7 @@ export function setupAccountUI(account: AccountSession) {
     account.recovery = false;
     setMode("login");
     message("Sua senha não foi alterada.");
-    host.openAuthAccountModal();
+    host.openAuthAccountModal('profile');
   });
   document.getElementById("accountResend")!.addEventListener("click", () => {
     if (!email.reportValidity() || !email.value.trim()) { email.focus(); return; }
@@ -197,5 +197,5 @@ export function setupAccountUI(account: AccountSession) {
   });
   account.addEventListener("change", changed);
   setMode(mode);
-  if (account.message && account.identity && !account.recovery) host.openAuthAccountModal();
+  if (account.message && account.identity && !account.recovery) host.openAuthAccountModal('profile');
 }

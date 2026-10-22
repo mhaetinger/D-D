@@ -222,6 +222,14 @@ body.dice-tray-resizing { user-select: none; cursor: ne-resize; }
 .dice-pool-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.4rem; align-items: center; }
 #dicePoolDisplay { grid-column: 1 / -1; white-space: normal; overflow-wrap: anywhere; }
 .dice-tray-body .dice-pool-die { font-size: clamp(11px, 2.5vw, 0.8rem); min-height: 2.1rem; }
+.dice-context-action { font-size: max(14px, .875rem); min-height: 2.5rem; text-align: start; }
+[data-dice-context-actions] { display:grid; gap:.4rem; margin-top:.4rem; }
+.dice-result-with-actions { flex-wrap:wrap; }
+.dice-result-with-actions > [data-dice-context-actions] { flex-basis:100%; min-width:0; }
+.dice-context-choices { display:flex; flex-wrap:wrap; gap:.4rem; font-size:max(14px,.875rem); }
+.dice-context-choices > span { flex-basis:100%; }
+.dice-context-choices > button { min-height:2.5rem; min-width:2.75rem; padding:.35rem .6rem; border:1px solid var(--border-main); border-radius:.35rem; background:var(--bg-inset); color:var(--text-main); }
+.dice-context-choices > button[aria-pressed=true] { outline:2px solid var(--text-main); outline-offset:1px; font-weight:700; }
 @media print { #dice3dTray { display: none; } }
 
 .font-rpg {

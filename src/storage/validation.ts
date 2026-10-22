@@ -63,7 +63,9 @@ export function validateCharacters(value: unknown): CharacterRecord[] {
     expect(object(item.standardSlots), "espaços de magia");
     for (const slot of Object.values(item.standardSlots)) expect(object(slot) && finite(slot.used) && finite(slot.total), "espaço de magia");
     for (const weapon of item.weapons as unknown[]) {
-      expect(object(weapon) && string(weapon.name) && string(weapon.damage) && /^[\dd+\-\s]+$/i.test(weapon.damage) && /^[+\-]?\d+$/.test(String(weapon.bonus)), "arma e dados de dano");
+      // Vazio em um ataque manual significa dado ausente, não bônus +0.
+      // Sopros/efeitos com resistência também podem não fazer jogada de ataque.
+      expect(object(weapon) && string(weapon.name) && string(weapon.damage) && /^[\dd+\-\s]+$/i.test(weapon.damage) && (/^[+\-]?\d+$/.test(String(weapon.bonus)) || weapon.calculationMode==='manual' && weapon.bonus===''), "arma e dados de dano");
     }
     for (const spell of item.spells as unknown[]) expect(object(spell) && string(spell.name) && finite(spell.circle) && spell.circle >= 0 && spell.circle <= 9, "magia");
     for (const entry of item.inventoryItems as unknown[]) expect(object(entry) && string(entry.name) && finite(entry.qty) && finite(entry.weightKg), "item do inventário");

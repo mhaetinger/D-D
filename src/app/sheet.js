@@ -11,25 +11,29 @@ import { resourcesAt } from "../rules/placement";
 import { featureGroups } from '../rules/feature-groups';
 import { canCastNormally, canRitual, preparation, wizardPrivilege, castingRestriction, armorProficiencies } from "../rules/spellcasting";
 import { resolveSpellEffect, innateCastLevel, twinEligible } from "../rules/spell-effects";
+import {skillBonus,passiveSkill} from '../rules/passives';
 import { consumeInspiration, deathStatus, healHitPoints, inspirationRollMode } from '../rules/health';
 import { damageDescription, deathControls, hitDiceControls, inspirationControls } from '../rules/health-ui';
 import { offerSurvivalForDamage } from '../rules/damage-ui';
 import { parseDiceFormula } from '../rules/dice-formula';
+import { evaluateDicePool, sheetD20Rules, canRerollHalfling, rerollHalfling, addLuckyDie, chooseLuckyDie, luckyFaces } from '../rules/dice-roll';
+import { luckRemaining } from '../rules/lucky';
+import { askToUseLucky, chooseLuckyFace, payLuckyPoint } from '../rules/lucky-ui';
 import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponDamageLabel } from '../rules/weapon-damage-ui';
 import { applyCastConcentration, concentration, concentrationBlock, incapacityReason, needsConcentrationConfirmation, spellConcentration, validateConcentrationStart } from '../rules/concentration';
 import { concentrationControls } from '../rules/concentration-ui';
 import { automaticSaveFailure } from '../rules/conditions';
 import { takeRest } from "../rules/rest";
 import { onSpellCast } from "../rules/resources";
-import { characterSnapshot, historyComparable as characterHistoryComparable, historyKey, HISTORY_PREFIX, isCharacterHistoryKey, migrateCharacterHistories, splitLegacyHistory, validateCharacterHistory } from '../storage/character-history';
+import { characterSnapshot, historyComparable as characterHistoryComparable, historyKey, HISTORY_PREFIX, isCharacterHistoryKey, migrateCharacterHistories, splitLegacyHistory, validateCharacterHistory, boundedCharacterHistory } from '../storage/character-history';
 import { setupDiceDock } from "./dice-dock";
 import { avatarMarkup } from "../media/avatar";
-import {sheetInput,sheetSelect,sheetText,captureSheetFields,restoreSheetFields,requireSheetEdit,requireSheetConfiguration,updateSheetLockUI,poolEditorVisible,beginSheetRender,endSheetRender} from '../sheet-edit/ui';
+import {sheetInput,sheetSelect,sheetText,sheetIdentity,captureSheetFields,restoreSheetFields,requireSheetEdit,requireSheetConfiguration,updateSheetLockUI,poolEditorVisible,beginSheetRender,endSheetRender} from '../sheet-edit/ui';
 import {parkSheetPanels,restoreSheetPanels,clearSheetPanels,mountSheetPanel,closeSheetPanel,canSaveSheetPanel} from '../sheet-edit/panels';
 import {canEditSheet} from '../sheet-edit/access';
 import {canConfigureSheet} from '../sheet-edit/lock';
-import {weaponCalculationFields} from '../sheet-edit/weapon-fields';
-import {featureConsultButton} from './feature-consult';
+import {createWeaponFields} from '../sheet-edit/weapon-fields';
+import {featureConsultButton,bookConsultButton} from './feature-consult';
 import {updateDiceDockAppearance} from './dice-dock-appearance';
 
 // =========================================================================
@@ -530,6 +534,8 @@ let currentFontScale = parseInt(
 let diceMode = readPreference("dnd_dice_mode") || "auto";
 let currentRollMode = "normal"; // 'normal' | 'adv' | 'dis'
 let diceRollSequence = 0; // Impede uma animação antiga de sobrescrever o último lançamento.
+let pendingD20Roll = null;
+const pendingResolvedD20 = new WeakMap();
 // Migra somente a preferência visual antiga; fichas e resultados não mudam.
 let diceTrayDimensions = readDiceTrayDimensions();
 let diceTrayMinimized = true;
@@ -543,7 +549,8 @@ let expandedSingleSpells = {};
 let selectedCastLevelBySpell = {};
 let twinnedActiveBySpell = { "Mísseis Mágicos": true };
 let homebrewInitialState = "";
-let weaponDamageDraft = null; // Montagem do formulário; nunca usa o pool da bandeja.
+let bookTooltipTimer;
+let weaponEditor = null; // Instância compartilhada com a revisão da importação.
 const COIN_LABELS = { pc: "Cobre", pp: "Prata", pe: "Electro", po: "Ouro", pl: "Platina" };
 const LORE_LABELS = { traits: "Personalidade", ideals: "Ideais", bonds: "Ligações", flaws: "Defeitos", backstory: "História do personagem", appearance: "Aparência", allies: "Aliados", treasure: "Tesouros narrativos" };
 const PHYSICAL_LABELS = { age: "Idade", height: "Altura", weight: "Peso", eyes: "Olhos", skin: "Pele", hair: "Cabelo" };
@@ -604,7 +611,9 @@ function restoreSavedHistory() {
 function persistHistory() {
   if(!getChar() || historyOwnerId!==getChar().id) return;
   if (!historyWritable) { showToast('O histórico anterior está ilegível e foi preservado. Baixe um backup antes de fechar.'); return; }
-  if (!writePreference(historyKey(historyOwnerId), JSON.stringify({ version:2,characterId:historyOwnerId,stack: historyStack, pointer: historyPointer }))) showToast('O histórico não pôde ser salvo. Baixe um backup antes de fechar.');
+  const bounded=boundedCharacterHistory({version:2,characterId:historyOwnerId,stack:historyStack,pointer:historyPointer});
+  if (!writePreference(historyKey(historyOwnerId),JSON.stringify(bounded))) showToast('O histórico não pôde ser salvo. Baixe um backup antes de fechar.');
+  else {historyStack=bounded.stack;historyPointer=bounded.pointer;}
 }
 
 const COIN_RATES_IN_PC = { pc: 1, pp: 10, pe: 50, po: 100, pl: 1000 };
@@ -617,12 +626,13 @@ function escapeHTML(value) {
   })[char]);
 }
 
-function confirmDestructiveAction(title, message, label = "Excluir", extra = null) {
+function confirmDestructiveAction(title, message, label = "Excluir", extra = null, options = {}) {
   const dialog = document.getElementById("confirmationDialog");
   if (dialog.open) return Promise.resolve(false);
   document.getElementById("confirmationTitle").textContent = title;
   document.getElementById("confirmationMessage").textContent = message;
   document.getElementById("confirmationAccept").textContent = label;
+  dialog.querySelector('button[value="cancel"]').textContent = options.cancelLabel || 'Cancelar';
   const extraHost = document.getElementById("confirmationExtra");
   extraHost.replaceChildren();
   extraHost.hidden = !extra;
@@ -740,12 +750,7 @@ function getSpellNotes(char, spell) {
 }
 
 function getSkillBonus(char, skill) {
-  // A personalização substitui o bônus inteiro; zero também é um valor válido.
-  return (
-    char.customSkillBonuses?.[skill.id] ??
-    (getMod(char.abilities[skill.ability].score) +
-      (char.skillsProf.includes(skill.id) ? getProfBonus(char) * (char.expertise?.includes(skill.id) ? 2 : 1) : (char.classes.some(c => c.classId === "bardo" && c.level >= 2) ? Math.floor(getProfBonus(char) / 2) : 0)))
-  );
+  return skillBonus(char,skill);
 }
 
 function getCalculatedAC(char) {
@@ -768,6 +773,7 @@ function getCurrentLoadKg(char) {
 function recordStepAndSave(
   actionDescription,
   isManualCheckpoint = false,
+  redraw = true,
 ) {
   if(historyOwnerId!==(getChar()?.id || null)) restoreSavedHistory();
   if(!getChar()) { saveStateQuiet();return; }
@@ -788,7 +794,16 @@ function recordStepAndSave(
   historyPointer = historyStack.length - 1;
   if (!sheetStore.write(characters)) showToast(sheetStore.issue?.message || "Não foi possível salvar. Baixe um backup antes de fechar.");
   persistHistory();
-  renderAll();
+  // Um custo já pago durante a escolha de um dado precisa sobreviver a
+  // cancelamento/reload sem desmontar o formulário que receberá o resultado.
+  if(redraw)renderAll();else refreshHistoryControls();
+}
+
+function refreshHistoryControls() {
+  document.getElementById('btnUndo').disabled=historyPointer<=0;
+  document.getElementById('btnRedo').disabled=historyPointer>=historyStack.length-1;
+  document.getElementById('historyCountBadge').textContent=`${historyPointer}/${Math.max(0,historyStack.length-1)}`;
+  renderHistoryDrawerList();
 }
 
 function saveStateQuiet() {
@@ -910,6 +925,7 @@ function restoreDeletedCharacter(index) {
 // 5. MOTOR DOS 3 MODOS DE DADOS & POOL COMBINADO (1d20 + 1d4 + Bônus)
 // =========================================================================
 function setDiceMode(mode) {
+  if(mode!==diceMode)clearPendingD20();
   diceMode = mode;
   writePreference("dnd_dice_mode", mode);
   renderAll();
@@ -1061,45 +1077,7 @@ function updatePoolDisplay() {
   }
 }
 
-// Livro do Jogador, cap. 7: o teste usa o maior/menor de dois d20.
-// O primeiro d20 representa o teste; bônus como Bênção e dados extras rolam uma vez.
-function evaluateDicePool(counts, modifier, mode) {
-  const entries = Object.entries(counts).filter(([_, count]) => count > 0);
-  entries.sort(([a], [b]) => Number(b) - Number(a));
-  let total = 0;
-  let d20Natural = null;
-  const breakdown = [];
-  const appliedMode = counts[20] > 0 && ["adv", "dis"].includes(mode) ? mode : "normal";
-  const rollDie = sides => Math.floor(Math.random() * sides) + 1;
-  entries.forEach(([sidesStr, count]) => {
-    const sides = Number(sidesStr);
-    if (sides === 20 && appliedMode !== "normal") {
-      const first = rollDie(20), second = rollDie(20);
-      d20Natural = appliedMode === "adv" ? Math.max(first, second) : Math.min(first, second);
-      total += d20Natural;
-      breakdown.push(`d20 [${first}, ${second}] → ${appliedMode === "adv" ? "maior" : "menor"}: ${d20Natural}`);
-      for (let i = 1; i < count; i++) {
-        const extra = rollDie(20);
-        total += extra;
-        breakdown.push(`d20 extra [${extra}]`);
-      }
-    } else {
-      const rolls = [];
-      for (let i = 0; i < count; i++) {
-        const value = rollDie(sides);
-        rolls.push(value);
-        total += value;
-        if (sides === 20 && d20Natural === null) d20Natural = value;
-      }
-      breakdown.push(`${count}d${sides}[${rolls.join("+")}]`);
-    }
-  });
-  total += modifier;
-  if (modifier !== 0) breakdown.push(modifier > 0 ? `+${modifier}` : `${modifier}`);
-  return { total, d20Natural, breakdown, appliedMode };
-}
-
-function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligible = true) {
+function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligible = true, minimumZero = false, context = null) {
   const cube = document.getElementById("dice3dCube");
   const resultBox = document.getElementById("dice3dResultText");
   if (!cube || !resultBox) return;
@@ -1120,18 +1098,73 @@ function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligib
   // animação só vale para o próximo lançamento, nunca para o que já foi feito.
   const c=getChar(),inspired=inspirationEligible && !!c && dicePoolCounts[20]===1 && c.heroicInspiration && c.ruleState?.inspirationReady;
   const mode=inspired?inspirationRollMode(c,currentRollMode):currentRollMode;
-  const result = evaluateDicePool(dicePoolCounts, modVal, mode);
+  const result = evaluateDicePool(dicePoolCounts, modVal, mode,c?sheetD20Rules(c,context,CharacterEngine):{});
+  if(minimumZero)result.total=Math.max(0,result.total);
   if(inspired && consumeInspiration(c)) saveRuleStep('Usou inspiração no d20 · '+(customLabel || 'pool'));
-  presentDiceResult(result, customLabel);
+  presentDiceResult(result, customLabel,context?{c,context}:null);
+  if(canRerollHalfling(result) && diceTrayMinimized)showToast('Sortudo racial disponível: abra o dado para repetir um 1.');
   return result;
 }
 // Ações com resultado aplicado aos PV usam o mesmo motor/animação, sem alterar
 // o pool manual. OFF sempre exige registrar a face do dado físico.
 function ruleDiceSettings() { return {enabled:diceMode!=='off',automatic:diceMode==='auto',mode:currentRollMode}; }
-function rollRuleDie(sides,label,mode='normal') {
+function rollRuleDie(sides,label,mode='normal',context=null,repeatOne=false) {
   if(diceMode==='off') throw new Error('Dados virtuais desativados: registre o resultado do dado físico.');
-  const result=evaluateDicePool({[sides]:1},0,mode);
+  let result=evaluateDicePool({[sides]:1},0,mode,sheetD20Rules(getChar(),context,CharacterEngine));
+  // Estes testes aplicam o resultado imediatamente aos PV/concentração. A
+  // escolha é confirmada no diálogo antes da rolagem, nunca após a mutação.
+  if(repeatOne && canRerollHalfling(result))result=rerollHalfling(result);
   presentDiceResult(result,label);return result.total;
+}
+async function resolveRuleD20(label,mode,context,options={}) {
+  const c=getChar(),previous=pendingResolvedD20.get(c);
+  const resumable=previous && previous.key===options.key && previous.snapshot===JSON.stringify(c);
+  if(previous && !resumable)pendingResolvedD20.delete(c);
+  if(!options.lucky && !options.askLucky && !resumable)return window.rollRuleDie(20,label,mode,context,!!options.repeatOne);
+  if(diceMode==='off')throw new Error('Dados virtuais desativados: registre o resultado físico.');
+  let result,snapshot;
+  if(resumable) {result=previous.result;snapshot=previous.snapshot;}
+  else {
+    if(options.lucky)payLuckyPoint(c,CharacterEngine,label,!!options.inspired);
+    else if(options.inspired && consumeInspiration(c))recordStepAndSave('Usou inspiração no d20 · '+label,true,false);
+    snapshot=JSON.stringify(c);
+    result=evaluateDicePool({20:1},0,mode,sheetD20Rules(c,context,CharacterEngine));
+    if(options.repeatOne && canRerollHalfling(result))result=rerollHalfling(result);
+    if(options.lucky) {
+      result=addLuckyDie(result,options.opposed?null:evaluateDicePool({20:1},0,'normal').total);
+      if(options.repeatOne && canRerollHalfling(result))result=rerollHalfling(result);
+    }
+    pendingResolvedD20.set(c,{key:options.key,snapshot,result,label});
+  }
+  if(resumable && options.repeatOne && canRerollHalfling(result)) {
+    result=rerollHalfling(result);pendingResolvedD20.set(c,{key:options.key,snapshot,result,label});
+  }
+  presentDiceResult(result,label);
+  if(!result.luck) {
+    const decision=await askToUseLucky(result,label);
+    if(!decision) {showToast('Teste pendente: retome para usar o mesmo d20. Nenhum ponto de Sortudo foi gasto.');return null;}
+    if(getChar()!==c || JSON.stringify(c)!==snapshot) {pendingResolvedD20.delete(c);throw new Error('A ficha mudou; o teste antigo não foi aplicado.');}
+    if(decision.use) {
+      payLuckyPoint(c,CharacterEngine,label);
+      snapshot=JSON.stringify(c);
+      result=addLuckyDie(result,decision.opposed?null:evaluateDicePool({20:1},0,'normal').total);
+      if(options.repeatOne && canRerollHalfling(result))result=rerollHalfling(result);
+      pendingResolvedD20.set(c,{key:options.key,snapshot,result,label});
+      presentDiceResult(result,label);
+    }
+  }
+  const chosen=await chooseLuckyFace(result,label);
+  if(!chosen) {showToast('Escolha de Sortudo pendente: retome este teste para usar os mesmos dados. O ponto já foi gasto.');return null;}
+  if(getChar()!==c || JSON.stringify(c)!==snapshot) {
+    pendingResolvedD20.delete(c);throw new Error('A ficha mudou. O teste antigo não foi aplicado; o ponto lançado continua gasto.');
+  }
+  pendingResolvedD20.delete(c);
+  presentDiceResult(chosen,label,null,false);
+  return chosen.d20Natural;
+}
+function pendingRuleD20Label() {
+  const c=getChar(),pending=c && pendingResolvedD20.get(c);
+  return pending && pending.snapshot===JSON.stringify(c)?pending.label:'';
 }
 // Dano contextual usa a bandeja/animação, preservando o pool manual e sem
 // aplicar vantagem de d20 ou gastar inspiração em uma jogada de dano.
@@ -1146,18 +1179,21 @@ function rollQuickD20() {
   // Só o d20 usa o modo escolhido; pool, bônus e inspiração ficam preservados.
   presentDiceResult(evaluateDicePool({20: 1}, 0, currentRollMode), "d20 rápido");
 }
-function presentDiceResult(result, customLabel) {
+function presentDiceResult(result, customLabel, rerollContext = null, animate = true) {
   const cube = document.getElementById("dice3dCube");
   const resultBox = document.getElementById("dice3dResultText");
   const rollSequence = ++diceRollSequence;
-  cube.classList.add("dice-3d-rolling");
-  document.getElementById("diceDock").classList.add("dice-dock-rolling");
-
-  setTimeout(() => {
+  pendingD20Roll = rerollContext && (canRerollHalfling(result) || luckyFaces(result).length || result.rules.luckyFeat && !result.luck && luckRemaining(rerollContext.c,CharacterEngine)>0)?{
+    c:rerollContext.c,context:rerollContext.context,result,label:customLabel,sequence:rollSequence,busy:false,
+    workspace:currentWorkspaceKey(),snapshot:JSON.stringify(rerollContext.c),
+  }:null;
+  if(animate)document.querySelector('[data-dice-context-actions]')?.remove();
+  const display=() => {
     if (rollSequence !== diceRollSequence) return;
     cube.classList.remove("dice-3d-rolling");
-    cube.textContent = result.total;
     document.getElementById("diceDock").classList.remove("dice-dock-rolling");
+    if(rerollContext && getChar()!==rerollContext.c)return;
+    cube.textContent = result.total;
     diceDock?.result(result.total);
     const trayTotal = document.getElementById("diceTrayTotal");
     if (trayTotal) {
@@ -1165,8 +1201,9 @@ function presentDiceResult(result, customLabel) {
       trayTotal.title = `${customLabel ? `${customLabel} · ` : ""}Último total: ${result.total}`;
     }
     const isCrit = result.d20Natural === 20;
-    const isFumble = result.d20Natural === 1;
+    const isFumble = result.d20Natural === 1 && !result.rules?.reliableTalent;
     const modeLabel = { normal: "Normal", adv: "Vantagem", dis: "Desvantagem" }[result.appliedMode];
+    const pending=pendingD20Roll?.sequence===rollSequence?pendingD20Roll:null,faces=luckyFaces(result);
 
     resultBox.innerHTML = `
     ${customLabel ? `<div class="font-bold text-xs t-text-main">${escapeHTML(customLabel)}</div>` : ""}
@@ -1178,7 +1215,78 @@ function presentDiceResult(result, customLabel) {
     </div>
     <div class="text-[11px] t-text-muted leading-tight">${result.breakdown.join(" + ")}</div>
   `;
-  }, 380);
+    const stage=resultBox.parentElement,previous=stage.querySelector('[data-dice-context-actions]');
+    stage.classList.toggle('dice-result-with-actions',!!pending);
+    if(!pending)previous?.remove();
+    else {
+      const selected=i=>!!result.luck && !result.luck.canceled && result.luck.selected===i;
+      const faceLabel=(face,i)=>`${face}${i===faces.length-1?' +':''}${selected(i)?' ✓':''}`;
+      if(!animate && faces.length && previous?.dataset.faces===faces.join(',')) {
+        for(const button of previous.querySelectorAll('[data-dice-lucky-choice]')) {
+          const i=Number(button.dataset.diceLuckyChoice);button.setAttribute('aria-pressed',String(selected(i)));button.textContent=faceLabel(faces[i],i);
+        }
+      }else {
+        previous?.remove();
+        const actions=document.createElement('div');actions.dataset.diceContextActions='';actions.dataset.faces=faces.join(',');
+        actions.innerHTML=`
+      ${canRerollHalfling(result)?'<button type="button" class="dice-context-action t-btn-primary px-2 py-1 rounded" data-dice-halfling-luck onclick="rerollHalflingD20()">Sortudo racial · repetir um 1</button>':''}
+      ${result.rules.luckyFeat && !result.luck && luckRemaining(pending.c,CharacterEngine)>0?`<button type="button" class="dice-context-action t-btn-primary px-2 py-1 rounded" data-dice-lucky-feat onclick="useLuckyD20()">Sortudo (talento) · usar 1 ponto (${luckRemaining(pending.c,CharacterEngine)} disponíveis)</button>`:''}
+      ${faces.length?`<div class="dice-context-choices" role="group" aria-label="Escolher d20 de Sortudo"><span>Sortudo · escolha o d20</span>${faces.map((face,i)=>`<button type="button" data-dice-lucky-choice="${i}" onclick="chooseLuckyD20(${i})" aria-pressed="${selected(i)}" ${i===faces.length-1?'title="D20 adicional de Sortudo"':''} aria-label="${i===faces.length-1?'D20 adicional de Sortudo':'D20 inicial'} ${i+1}, usar face ${face}">${faceLabel(face,i)}</button>`).join('')}</div>`:''}`;
+        stage.append(actions);
+      }
+    }
+  };
+  if(animate) {
+    cube.classList.add('dice-3d-rolling');document.getElementById('diceDock').classList.add('dice-dock-rolling');
+    setTimeout(display,380);
+  }else display();
+}
+
+function clearPendingD20() {
+  pendingD20Roll=null;
+  const actions=document.querySelector('[data-dice-context-actions]');
+  actions?.parentElement.classList.remove('dice-result-with-actions');actions?.remove();
+}
+function validPendingD20(pending=pendingD20Roll,allowBusy=false) {
+  if(!pending || pending!==pendingD20Roll || pending.busy && !allowBusy)return null;
+  if(diceMode!=='auto' || pending.sequence!==diceRollSequence || currentWorkspaceKey()!==pending.workspace || getChar()!==pending.c || JSON.stringify(pending.c)!==pending.snapshot) {
+    clearPendingD20();showToast('A ficha ou a jogada mudou. Sortudo não foi aplicado ao resultado antigo.');return null;
+  }
+  return pending;
+}
+function updateContextCritical(pending,result) {
+  const weapon=pending.context.weapon;
+  if(weapon) {
+    const index=pending.c.weapons.indexOf(weapon),stats=CharacterEngine.weaponStats(pending.c,weapon);
+    if(index>=0 && stats)setWeaponCriticalPrepared(pending.c,index,CharacterEngine,result.d20Natural>=(stats.critical || 20));
+  }
+}
+function rerollHalflingD20() {
+  const pending=validPendingD20();if(!pending)return;
+  pendingD20Roll=null; // Um duplo clique nunca repete a nova face.
+  const result=rerollHalfling(pending.result);
+  updateContextCritical(pending,result);presentDiceResult(result,pending.label,pending);
+}
+async function useLuckyD20() {
+  const pending=validPendingD20();if(!pending || pending.result.luck)return;
+  pending.busy=true;
+  try {
+    const controls=document.createElement('div');controls.className='rule-context rule-dialog-fields';
+    controls.innerHTML='<label class="rule-check"><input type="checkbox" data-lucky-opposed><span>Outra criatura também usou Sortudo nesta jogada</span></label>';
+    if(!await confirmDestructiveAction('Usar Sortudo?','Gasta 1 ponto para lançar um d20 adicional e escolher a face antes de resolver a jogada. O modo original continua valendo. Pontos de criaturas diferentes se cancelam sem dado adicional.','Gastar 1 ponto',controls))return;
+    if(!validPendingD20(pending,true))return;
+    payLuckyPoint(pending.c,CharacterEngine,pending.label);
+    const result=addLuckyDie(pending.result,controls.querySelector('[data-lucky-opposed]').checked?null:evaluateDicePool({20:1},0,'normal').total);
+    presentDiceResult(result,pending.label,pending);
+    if(result.luck.canceled)showToast('Sortudos cancelados: ponto gasto, sem d20 adicional.');
+  }catch(error){showToast(error.message || 'Não foi possível usar Sortudo.');}
+  finally{pending.busy=false;}
+}
+function chooseLuckyD20(index) {
+  const pending=validPendingD20();if(!pending)return;
+  const result=chooseLuckyDie(pending.result,index);
+  updateContextCritical(pending,result);presentDiceResult(result,pending.label,pending,false);
+  document.querySelector(`[data-dice-lucky-choice="${index}"]`)?.focus({preventScroll:true});
 }
 
 // Disparo automático vindo da ficha (só executa se diceMode === 'auto'!)
@@ -1204,15 +1312,15 @@ function triggerSheetRoll(formula, label, inspirationEligible = false, context =
   const modEl = document.getElementById("dicePoolModInput");
   if (modEl) modEl.value = parsed.modifier;
   updatePoolDisplay();
-  return rollCurrentPool(label, true, inspirationEligible);
+  return rollCurrentPool(label, true, inspirationEligible,context?.type==='damage',context);
 }
 
 // =========================================================================
 // 6. CONTA DE USUÁRIO & CRIADOR DE NOVO PERSONAGEM
 // =========================================================================
-function openAuthAccountModal() {
+function openAuthAccountModal(tab = 'characters') {
   renderAccountCharactersList();
-  selectAccountTab('profile');
+  selectAccountTab(tab);
   document.getElementById("authAccountModal").classList.remove("hidden");
   if (window.lucide) window.lucide.createIcons();
 }
@@ -1246,6 +1354,7 @@ function activateAccountWorkspace(identity) {
   document.getElementById('hbModalBody').replaceChildren();
   document.getElementById('historyDrawer').classList.add('translate-x-full');
   diceRollSequence++;
+  clearPendingD20();
   document.getElementById('dice3dCube').classList.remove('dice-3d-rolling');
   document.getElementById('diceDock').classList.remove('dice-dock-rolling');
   clearDicePool();
@@ -1444,14 +1553,14 @@ function renderSpellCastControls(char, spell, index) {
   `;
 }
 
-function getSpellEffectDetails(char, spell, index) {
+function getSpellEffectDetails(char, spell, index, elementalAffinity=true) {
   const meta = resolveSpellMeta(spell);
   const chosen = getSelectedSpellCastLevel(char, spell, index);
   const level = getSpellSlotOptions(char,spell).find(option=>option.value===chosen)?.level ?? innateCastLevel(char,spell,CharacterEngine);
   const book = spell.customSpell ? null : BOOK_SPELLS_DB[spell.name];
   const canTwin=twinEligible(char,spell,level,CharacterEngine,meta.canTwin);
   const twin = !!twinnedActiveBySpell[spell.name] && canTwin && characterHasTwinned(char);
-  const options={legacyFormula:book?.diceFormula?.(level,false,char,spell),legacySummary:book?.calcEffect?.(level,false,char,spell),canTwin:meta.canTwin};
+  const options={legacyFormula:book?.diceFormula?.(level,false,char,spell),legacySummary:book?.calcEffect?.(level,false,char,spell),canTwin:meta.canTwin,elementalAffinity};
   const base=resolveSpellEffect(char,spell,level,CharacterEngine,options);
   const resolved=twin?resolveSpellEffect(char,spell,level,CharacterEngine,{...options,twinned:true}):base;
   return {...resolved,base:base.summary,enhanced:twin?resolved.summary:null,twin,canTwin,level,cost:spell.circle === 0 ? 1 : level};
@@ -1459,7 +1568,7 @@ function getSpellEffectDetails(char, spell, index) {
 function rollSpellRay(index) {
   if(diceMode!=='auto')return;
   const spell=getChar().spells[index];if(!spell) return;
-  const detail=getSpellEffectDetails(getChar(),spell,index);
+  const detail=getSpellEffectDetails(getChar(),spell,index,false);
   if(detail.perRay && detail.formula) triggerSheetRoll(detail.formula,`${spell.name} · dano de um raio/feixe que acertou (sem novo lançamento)`);
 }
 // O índice continua sendo o original da ficha, mesmo após filtrar por classe.
@@ -1532,12 +1641,12 @@ function renderExpandedSpellCard(char, sp, globalSpellIdx) {
     TARGET_TYPES_META[meta.targetType] || TARGET_TYPES_META.mira;
   const defMeta = getSpellDefenseMeta(char, sp);
   return `
-  <div class="spell-card" data-spell-card="${globalSpellIdx}" onmouseenter="showSpellTooltipByIndex(event, ${globalSpellIdx})" onmousemove="positionTooltip(event)" onmouseleave="hideBookTooltip()">
+  <div class="spell-card" data-spell-card="${globalSpellIdx}">
           <div class="flex flex-wrap items-center gap-2">
             <span class="font-rpg font-bold text-sm t-text-main">${escapeHTML(sp.name)}</span>
             <span class="px-2 py-0.5 rounded text-[10px] font-extrabold ${clsMeta.badgeColor}">${clsMeta.name.toUpperCase()}</span>
             <button onclick="openHomebrewModal('spell', ${globalSpellIdx})" class="t-text-main" aria-label="Editar ${escapeHTML(sp.name)}"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
-            ${Number.isInteger(sp.pdfPage) ? `<a href="book.html#page=${sp.pdfPage}" target="_blank" rel="noopener" aria-label="Consultar ${escapeHTML(sp.name)} no livro"><i data-lucide="book-open" class="w-3.5 h-3.5"></i></a>` : ''}
+            ${bookConsultButton(sp.name,spellConsultReference(char,sp,globalSpellIdx),'spell:'+globalSpellIdx)}
             ${sp.extraSource ? `<span class="text-[11px] t-text-muted">${escapeHTML(sp.extraSource)}</span>` : ''}
             ${sp.circle>0?`<span class="text-[11px] font-bold">${preparationLabel}</span>`:''}
           </div>
@@ -1749,7 +1858,13 @@ function renderSpellsToolbar(char) {
 // 8. ABA 1 & ABA 3
 // =========================================================================
 function renderSkillAdjustment(char,sk,val,label) {
-  return `<div class="sheet-skill-value">${sheetInput(char,`customSkillBonuses.${sk.id}`,char.customSkillBonuses?.[sk.id]??'',`Bônus total de ${label}`,'number',{min:-1000,max:1000,placeholder:fmtMod(val)})}<button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Perícia: ${label}', true)" aria-label="Rolar ${label}" class="t-text-accent"><i data-lucide="dices" class="w-3 h-3" aria-hidden="true"></i></button><button type="button" data-sheet-expertise="${sk.id}" aria-pressed="${char.expertise?.includes(sk.id)}" title="Especialização: proficiência dobrada" aria-label="Especialização em ${label}" ${canConfigureSheet(char)?'':'disabled'}>${char.expertise?.includes(sk.id)?'×2':'×1'}</button></div>`;
+  return `<div class="sheet-skill-value">${sheetInput(char,`customSkillBonuses.${sk.id}`,char.customSkillBonuses?.[sk.id]??'',`Bônus total de ${label}`,'number',{min:-1000,max:1000,placeholder:fmtMod(val)})}<button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Perícia: ${label}', true, {type:'check',skill:'${sk.id}'})" aria-label="Rolar ${label}" class="t-text-accent"><i data-lucide="dices" class="w-3 h-3" aria-hidden="true"></i></button><button type="button" data-sheet-expertise="${sk.id}" aria-pressed="${char.expertise?.includes(sk.id)}" title="Especialização: proficiência dobrada" aria-label="Especialização em ${label}" ${canConfigureSheet(char)?'':'disabled'}>${char.expertise?.includes(sk.id)?'×2':'×1'}</button></div>`;
+}
+function renderPassiveSkill(char,sk) {
+  if(!['percepcao','investigacao'].includes(sk.id))return '';
+  const p=passiveSkill(char,sk,CharacterEngine);
+  const text=`10 + bônus de perícia ${p.bonus}${p.observer?' + Observador 5':''} = ${p.total}. Observador só afeta o valor passivo, não a rolagem ativa. Vantagem/desvantagem situacional altera o passivo em +5/−5, conforme a mesa; o modo do dado não altera este valor de referência.`;
+  return `<span class="sheet-skill-passive t-text-muted" tabindex="0" onclick="event.stopPropagation()" data-skill-passive="${sk.id}" ${RuleTooltips.attributes('Valor passivo',{text})}>Passiva ${p.total}</span>`;
 }
 function renderMainClassic2014(char) {
   const pb = getProfBonus(char);
@@ -1760,7 +1875,7 @@ function renderMainClassic2014(char) {
       return `
     <div class="sheet-ability-card t-card-accent p-2.5 text-center flex flex-col items-center justify-center">
       <span class="text-[10px] font-bold uppercase tracking-wider t-text-muted">${meta.name}</span>
-      <button onclick="triggerSheetRoll('1d20${fmtMod(mod)}', 'Teste de ${meta.name}', true)" class="text-2xl font-extrabold t-text-main my-0.5 hover:scale-110 transition">
+      <button onclick="triggerSheetRoll('1d20${fmtMod(mod)}', 'Teste de ${meta.name}', true, {type:'check'})" class="text-2xl font-extrabold t-text-main my-0.5 hover:scale-110 transition">
         ${fmtMod(mod)}
       </button>
       <div class="flex items-center gap-1 t-inset px-2 py-0.5 rounded-full text-xs">
@@ -1799,7 +1914,7 @@ function renderMainClassic2014(char) {
     <div class="flex items-center justify-between py-1 px-2 rounded t-hover text-xs">
       <div onclick="toggleSkill('${sk.id}')" class="flex items-center gap-2 cursor-pointer">
         <span class="w-3 h-3 rounded-full border ${isProf ? "t-btn-primary" : "t-border"}"></span>
-        <span>${sk.name2014} <span class="t-text-muted">(${RULES_DB.abilities[sk.ability].short})</span></span>
+        <span>${sk.name2014} <span class="t-text-muted">(${RULES_DB.abilities[sk.ability].short})</span>${renderPassiveSkill(char,sk)}</span>
       </div>
       ${renderSkillAdjustment(char,sk,val,sk.name2014)}
     </div>
@@ -1857,7 +1972,7 @@ function renderMainModern2024(char) {
             <button onclick="changeAbility('${key}', 1)" class="px-1.5 t-inset rounded font-bold">+</button>
           </div>
         </div>
-        <button onclick="triggerSheetRoll('1d20${fmtMod(mod)}', 'Teste de ${meta.name}', true)" class="t-inset rounded-lg px-3 py-1 text-center hover:scale-105 transition">
+        <button onclick="triggerSheetRoll('1d20${fmtMod(mod)}', 'Teste de ${meta.name}', true, {type:'check'})" class="t-inset rounded-lg px-3 py-1 text-center hover:scale-105 transition">
           <span class="text-[9px] uppercase t-text-muted block">Mod</span>
           <span class="text-xl font-extrabold t-text-accent">${fmtMod(mod)}</span>
         </button>
@@ -1881,7 +1996,7 @@ function renderMainModern2024(char) {
             <div class="flex items-center justify-between px-2 py-1 rounded t-hover text-xs">
               <div onclick="toggleSkill('${sk.id}')" class="flex items-center gap-2 cursor-pointer">
                 <span class="w-2.5 h-2.5 rounded-full border ${isProf ? "t-btn-primary" : "t-border"}"></span>
-                <span>${sk.name2024}</span>
+                <span>${sk.name2024}${renderPassiveSkill(char,sk)}</span>
               </div>
               ${renderSkillAdjustment(char,sk,val,sk.name2024)}
             </div>
@@ -1940,7 +2055,7 @@ function renderCombatBlock(char) {
               ${char.mageArmorActive ? `Arcana: CA ${getMageArmorAC(char)}` : "Ativar Arcana"}
             </button>` : ''}
           </div>
-          <button onclick="triggerSheetRoll('1d20${fmtMod(dexMod)}', 'Iniciativa', true)" class="combat-stat t-inset p-2 rounded-lg hover:scale-105 transition">
+          <button onclick="triggerSheetRoll('1d20${fmtMod(dexMod)}', 'Iniciativa', true, {type:'check'})" class="combat-stat t-inset p-2 rounded-lg hover:scale-105 transition">
             <span class="text-[10px] uppercase t-text-muted block">Iniciativa</span>
             <span class="combat-stat-value">${fmtMod(dexMod)}</span>
           </button>
@@ -2021,9 +2136,9 @@ function renderAttacksBlock(char) {
                 <p class="weapon-description t-text-muted">${escapeHTML(w.notes)}${w.critical?`${w.notes?' · ':''}Crítico ${w.critical===20?'20':`${w.critical}–20`}`:''}</p>
 
               <div class="weapon-rolls">
-                <button onclick="rollWeapon(${idx}, 'attack')" class="px-2 py-1 badge-feiticeiro rounded font-bold">
+                ${w.bonus===''?'<span class="t-text-muted">Ataque não informado</span>':`<button onclick="rollWeapon(${idx}, 'attack')" class="px-2 py-1 badge-feiticeiro rounded font-bold">
                   Atq ${escapeHTML(w.bonus)}
-                </button>
+                </button>`}
                 <button onclick="rollWeapon(${idx}, 'damage')" data-weapon-damage-label="${idx}" class="weapon-damage-button px-2.5 py-1 t-btn-primary rounded font-extrabold shadow-sm">
                   <span aria-hidden="true" class="weapon-damage-sizer">${validDamage?escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine,false)):''}</span>
                   <span aria-hidden="true" class="weapon-damage-sizer">${validDamage?escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine,true)):''}</span>
@@ -2047,21 +2162,18 @@ function renderAttacksBlock(char) {
 }
 
 function renderFeaturesCollapsible(char, wide = false) {
-  // Cada classe aparece uma vez. Na ficha larga, a divisão acontece entre
-  // níveis inteiros, conservando a leitura por coluna e os controles do ganho.
+  // Cada origem fica inteira. CSS distribui as colunas pela largura disponível,
+  // sem dividir níveis pela quantidade de itens nem remontar nós ao redimensionar.
   const isCollapsed = !!collapsedPanels.features_box;
-  const columns = items => wide && items.length>1
-    ? `<div class="feature-levels">${[items.slice(0,Math.ceil(items.length/2)),items.slice(Math.ceil(items.length/2))].map(column=>`<div class="feature-column">${column.join('')}</div>`).join('')}</div>`
-    : items.join('');
   const entries = featureGroups(char,CharacterEngine).map(group => {
     const levels=group.levels.map(level=>{
       const items=level.entries.map(({gain:g,index,controls})=>{
         const disclosure=`feature:${g.classId || g.source}:${g.level}:${index}`;
         return `<section class="feature-entry">${featureConsultButton(g,disclosure,group.label,controls[0]?.note)}${renderResourceControls(char,CharacterEngine,controls,controls.length>1 || g.name==='Juramento Sagrado')}</section>`;
       });
-      return `<section class="feature-level" data-feature-level="${level.level}">${group.classId?`<h5 class="feature-level-title">Nível ${level.level}</h5>`:''}${group.classId?items.join(''):columns(items)}</section>`;
+      return `<section class="feature-level" data-feature-level="${level.level}">${group.classId?`<h5 class="feature-level-title">Nível ${level.level}</h5>`:''}${items.join('')}</section>`;
     });
-    return `<section class="feature-group" data-feature-group="${escapeHTML(group.key)}"><h4 class="feature-group-title t-text-accent">${escapeHTML(group.label)}</h4>${columns(levels)}</section>`;
+    return `<section class="feature-group" data-feature-group="${escapeHTML(group.key)}"><h4 class="feature-group-title t-text-accent">${escapeHTML(group.label)}</h4>${wide?`<div class="feature-levels">${levels.join('')}</div>`:levels.join('')}</section>`;
   });
   if (char.features?.length) entries.push(`<details><summary class="cursor-pointer font-bold">Anotações e adaptações já presentes nesta ficha</summary><ul class="list-disc pl-4 space-y-2 mt-2">${char.features.map((text,i) => `<li data-sheet-feature-row="${i}"><span>${escapeHTML(readableText(text))}</span> <button type="button" class="underline" onclick="openHomebrewModal('feature',${i})">Editar</button></li>`).join('')}</ul></details>`);
   const multiclass = CharacterEngine.multiclassNotes(char);
@@ -2196,12 +2308,7 @@ function renderAll() {
     writePreference(ACTIVE_CHARACTER_KEY, char.id);
   }
 
-  document.getElementById("btnUndo").disabled = historyPointer <= 0;
-  document.getElementById("btnRedo").disabled =
-    historyPointer >= historyStack.length - 1;
-  document.getElementById("historyCountBadge").textContent =
-    `${historyPointer}/${Math.max(0,historyStack.length - 1)}`;
-  renderHistoryDrawerList();
+  refreshHistoryControls();
 
   ["pergaminho_claro", "pergaminho_escuro", "obsidiana"].forEach((th) => {
     const btn = document.getElementById(`themeBtn-${th}`);
@@ -2375,15 +2482,15 @@ function renderHeader(char, isModern) {
     <div class="sheet-header-facts">
       <div class="sheet-identity-card t-inset">
         <div class="sheet-identity-label t-text-muted">${isModern ? "Espécie" : "Raça"}</div>
-        <div class="sheet-identity-value">${sheetInput(char,'race',char.race,'Raça / espécie','text',{wide:true})}</div>
+        <div class="sheet-identity-value">${sheetIdentity(char,'race','Raça / espécie')}</div>
       </div>
       <div class="sheet-identity-card t-inset">
         <div class="sheet-identity-label t-text-muted">Antecedente</div>
-        <div class="sheet-identity-value">${sheetInput(char,'background',char.background,'Antecedente','text',{wide:true})}</div>
+        <div class="sheet-identity-value">${sheetIdentity(char,'background','Antecedente')}</div>
       </div>
       <div class="sheet-identity-card t-inset">
         <div class="sheet-identity-label t-text-muted">Tendência</div>
-        <div class="sheet-identity-value">${sheetInput(char,'alignment',char.alignment,'Tendência','text',{wide:true})}</div>
+        <div class="sheet-identity-value">${sheetIdentity(char,'alignment','Tendência')}</div>
       </div>
       <div class="sheet-identity-card sheet-level-card t-inset">
         <div>
@@ -2417,44 +2524,11 @@ function getHomebrewFormState() {
     .map((input) => [input.id, input.value, input.checked]));
 }
 
-function initWeaponDamageBuilder(formula) {
-  const parsed = parseDiceFormula(formula);
-  weaponDamageDraft = { counts: {...(parsed?.counts || {})}, original: String(formula), changed: false };
-  document.getElementById("hbWepDamageMod").value = String(parsed?.modifier ?? 0);
-  renderWeaponDamageBuilder();
-}
-function changeWeaponDamageDie(sides, delta) {
-  if (!weaponDamageDraft || ![4,6,8,10,12,20,100].includes(sides) || ![1,-1].includes(delta)) return;
-  const counts = weaponDamageDraft.counts;
-  if (delta > 0 && Object.values(counts).reduce((sum,n) => sum+n,0) >= 100) {
-    showHomebrewError(`hbDamageDie${sides}`, "Use no máximo 100 dados nesta montagem."); return;
-  }
-  counts[sides] = Math.max(0, (counts[sides] || 0) + delta);
-  weaponDamageDraft.changed = true;
-  renderWeaponDamageBuilder();
-}
-function clearWeaponDamageDice() {
-  if (!weaponDamageDraft) return;
-  weaponDamageDraft.counts = {};
-  weaponDamageDraft.changed = true;
-  renderWeaponDamageBuilder();
-}
-function renderWeaponDamageBuilder(modifierChanged = false) {
-  if (!weaponDamageDraft) return;
-  if (modifierChanged) weaponDamageDraft.changed = true;
-  const input = document.getElementById("hbWepDamageMod"), modifier = Number(input.value);
-  const valid = input.value.trim() !== "" && Number.isSafeInteger(modifier) && Math.abs(modifier) <= 10000;
-  const entries = Object.entries(weaponDamageDraft.counts).filter(([,count]) => count > 0);
-  const dice = entries.map(([sides,count]) => `${count}d${sides}`).join("+");
-  // Sem edição, conserva até a escrita da fórmula legada. Alterar apenas
-  // notas/descrição não deve converter um ataque automático em manual.
-  const formula = !valid ? "" : !weaponDamageDraft.changed ? weaponDamageDraft.original
-    : dice ? dice + (modifier ? fmtMod(modifier) : "") : String(modifier);
-  document.getElementById("hbWepDmg").value = formula;
-  document.getElementById("hbWeaponDamagePreview").textContent = valid ? parseDiceFormula(formula)?.formula || "Escolha os dados do dano" : "Informe um modificador inteiro";
-  document.getElementById("hbWeaponDamageDice").innerHTML = entries.map(([sides,count]) => `<button type="button" class="t-inset px-2 py-1 rounded font-bold" onclick="changeWeaponDamageDie(${sides}, -1)" aria-label="Remover um d${sides}">${count}d${sides} <span aria-hidden="true">−</span></button>`).join("") || '<span class="t-text-muted">Nenhum dado</span>';
-  document.getElementById("hbFormError").classList.add("hidden");
-}
+// Ponte temporária para integrações anteriores; os campos são do módulo comum.
+function initWeaponDamageBuilder(formula) { weaponEditor?.setDamage(formula); }
+function changeWeaponDamageDie(sides, delta) { weaponEditor?.changeDie(sides, delta); }
+function clearWeaponDamageDice() { weaponEditor?.clearDice(); }
+function renderWeaponDamageBuilder(modifierChanged = false) { weaponEditor?.renderDamage(modifierChanged); }
 
 function saveCharacterCoins(values) {
   if(!requireSheetConfiguration())return;
@@ -2508,7 +2582,7 @@ function openHomebrewModal(type, index = null) {
   const saveBtn = document.getElementById("hbSaveBtn");
   const deleteBtn = document.getElementById("hbDeleteBtn");
   const e = escapeHTML;
-  weaponDamageDraft = null;
+  weaponEditor = null;
   document.getElementById("hbFormError").classList.add("hidden");
   hideBookTooltip();
   deleteBtn.classList.toggle("hidden", index === null);
@@ -2525,56 +2599,16 @@ function openHomebrewModal(type, index = null) {
     };
     if (!weapon) return;
     title.textContent = index !== null ? `Editar ataque: ${weapon.name}` : "Criar arma / ataque";
-    body.innerHTML = `
-      <div><label for="hbWepName" class="block font-bold mb-1">Nome</label><input id="hbWepName" maxlength="120" value="${e(weapon.name)}" class="w-full t-inset p-2 rounded-lg" /></div>
-      <div class="weapon-editor-grid">
-        <div><label for="hbWepBonus" class="block font-bold mb-1">Bônus de ataque</label><input id="hbWepBonus" value="${e(weapon.bonus)}" placeholder="+6" class="w-full t-inset p-2 rounded-lg" /></div>
-        <div><label for="hbWepDamageMod" class="block font-bold mb-1">Modificador de dano</label><input id="hbWepDamageMod" type="number" min="-10000" max="10000" step="1" required oninput="renderWeaponDamageBuilder(true)" class="w-full t-inset p-2 rounded-lg" /></div>
-      </div>
-      <fieldset class="space-y-2 min-w-0"><legend class="font-bold mb-1">Dados de dano</legend>
-        <div class="text-[11px] t-text-muted">Adicionar</div><div class="weapon-editor-dice">${[4,6,8,10,12,20,100].map(sides => `<button type="button" id="hbDamageDie${sides}" onclick="changeWeaponDamageDie(${sides}, 1)" aria-label="Adicionar d${sides} ao dano" class="t-inset p-2 rounded-lg font-bold">+d${sides}</button>`).join("")}</div>
-        <div class="border-t t-border pt-2 space-y-1.5"><div class="weapon-editor-dice-heading text-[11px] t-text-muted"><span>Selecionados</span><button type="button" onclick="clearWeaponDamageDice()" class="underline">Limpar dados</button></div><div id="hbWeaponDamageDice" class="flex flex-wrap gap-1.5" role="group" aria-label="Dados selecionados para o dano"></div></div>
-        <output id="hbWeaponDamagePreview" aria-label="Dano montado" aria-live="polite" class="sr-only"></output>
-        <input id="hbWepDmg" type="hidden" />
-      </fieldset>
-      <div><label for="hbWepType" class="block font-bold mb-1">Tipo de dano</label><input id="hbWepType" value="${e(weapon.dmgTypeLabel)}" placeholder="Cortante, fogo…" class="w-full t-inset p-2 rounded-lg" /></div>
-      <div><label for="hbWepNotes" class="block font-bold mb-1">Propriedades / resumo</label><input id="hbWepNotes" value="${e(weapon.notes)}" class="w-full t-inset p-2 rounded-lg" /></div>
-      <div><label for="hbWepDescription" class="block font-bold mb-1">Descrição ao passar o mouse ou tocar no nome</label><textarea id="hbWepDescription" rows="4" maxlength="8000" class="w-full t-inset p-2 rounded-lg">${e(weapon.description ?? BOOK_ITEMS_DB[weapon.name]?.bookDesc ?? weapon.notes)}</textarea></div>`;
-    initWeaponDamageBuilder(weapon.damage);
-    const original = index!==null ? {magicBonus:weapon.magicBonus,...char.weapons[index]} : {};
-    const options = weaponCalculationFields(original,weapon.ruleWeapon,CharacterEngine);
-    body.firstElementChild.after(options);
-    const calculationHint = document.createElement('p'); calculationHint.className = 'weapon-editor-hint';
-    options.after(calculationHint);
-    const updateCalculationMode = () => {
-      const automatic = document.getElementById('hbWepMode').value==='auto';
-      calculationHint.textContent = automatic ? 'Ataque e dano calculados pela ficha.' : 'Totais manuais: informe o bônus de ataque e monte o dano.';
-      for (const id of ['hbWepBonus','hbWepDamageMod']) document.getElementById(id).disabled = automatic;
-      for (const button of body.querySelectorAll('[id^="hbDamageDie"]')) button.disabled = automatic;
-    };
-    document.getElementById('hbWepMode').addEventListener('change',updateCalculationMode); updateCalculationMode();
+    weaponEditor = createWeaponFields(char,index!==null?char.weapons[index]:null,CharacterEngine,{legacyIds:true,description:BOOK_ITEMS_DB[weapon.name]?.bookDesc});
+    body.replaceChildren(weaponEditor.element);
     saveBtn.onclick = () => {
-      const name = document.getElementById("hbWepName").value.trim();
-      const bonus = document.getElementById("hbWepBonus").value.trim();
-      const damage = parseDiceFormula(document.getElementById("hbWepDmg").value);
-      if (!name) return showHomebrewError("hbWepName", "Informe o nome do ataque.");
-      if (!/^[+-]?\d+$/.test(bonus) || !Number.isSafeInteger(Number(bonus)) || Math.abs(Number(bonus)) > 1000) return showHomebrewError("hbWepBonus", "Use um bônus inteiro, por exemplo +6 ou -1 (entre -1000 e +1000).");
-      if (!damage) return showHomebrewError("hbWepDamageMod", "Selecione os dados e informe um modificador inteiro entre -10000 e +10000. Use 0 para não adicionar um modificador.");
-      // Só altera a ficha depois de validar todos os campos. Edições mantêm
-      // propriedades anteriores, inclusive metadados que o formulário não edita.
-      const updated = { ...weapon, ruleWeapon: bonus === weapon.bonus && damage.formula === weapon.damage ? weapon.ruleWeapon : undefined, name, bonus: fmtMod(Number(bonus)), damage: damage.formula,
-        dmgTypeLabel: document.getElementById("hbWepType").value.trim(),
-        notes: document.getElementById("hbWepNotes").value.trim(),
-        description: document.getElementById("hbWepDescription").value.trim() };
-      const numeric = ['hbWepMagic','hbWepAttackAdjust','hbWepDamageAdjust'];
-      if (numeric.some(id=>!Number.isInteger(Number(document.getElementById(id).value)) || Math.abs(Number(document.getElementById(id).value))>100)) return showHomebrewError('hbWepMagic','Use ajustes inteiros entre -100 e 100.');
-      Object.assign(updated,{calculationMode:document.getElementById('hbWepMode').value,ruleWeapon:document.getElementById('hbWepCatalog').value || undefined,
-        proficient:document.getElementById('hbWepProf').value==='auto'?undefined:document.getElementById('hbWepProf').value==='yes',magicBonus:Number(document.getElementById('hbWepMagic').value),abilityOverride:document.getElementById('hbWepAbility').value,attackMode:document.getElementById('hbWepAttackMode').value,
-        attackAdjustment:Number(document.getElementById('hbWepAttackAdjust').value),damageAdjustment:Number(document.getElementById('hbWepDamageAdjust').value),duelingEligible:document.getElementById('hbWepDuel').checked,offHand:document.getElementById('hbWepOffhand').checked});
-      if (index === null) char.weapons.push(updated);
-      else char.weapons[index] = updated;
-      closeHomebrewModal(true);
-      recordStepAndSave(`${index === null ? "Criou" : "Editou"} ataque: ${name} (${damage.formula})`);
+      try {
+        const updated=weaponEditor.read();
+        if(weaponEditor.field('hbWepPact')&&updated.pactWeapon)for(const other of char.weapons)other.pactWeapon=false;
+        if(index===null)char.weapons.push(updated);else char.weapons[index]=updated;
+        closeHomebrewModal(true);
+        recordStepAndSave(`${index===null?"Criou":"Editou"} ataque: ${updated.name} (${updated.damage})`);
+      } catch(error) { showHomebrewError(error.field?.id || 'hbWepName',error.message); }
     };
   } else if (type === "item") {
     const item = index !== null ? char.inventoryItems[index] : { name: "", qty: 1, weightKg: 0, description: "" };
@@ -2662,6 +2696,7 @@ function rollWeapon(index, kind) {
   const weapon = CharacterEngine.weaponStats(c, entry);
   if (!weapon) return;
   const bonus = String(weapon.bonus).trim();
+  if(kind==='attack' && bonus==='')return showToast('Ataque não informado. Confira o bônus da origem; efeitos com resistência são resolvidos na mesa.');
   if (kind === "attack" && !/^[+-]?\d+$/.test(bonus)) {
     showToast("Bônus de ataque inválido. Corrija o cadastro.");
     return;
@@ -2671,7 +2706,7 @@ function rollWeapon(index, kind) {
     showToast("Fórmula inválida. Corrija o ataque antes de rolar.");
     return;
   }
-  const result=triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}`,kind==='attack',kind==='attack'?{type:'attack'}:null);
+  const result=triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}`,kind==='attack',kind==='attack'?{type:'attack',weapon:entry}:null);
   // Usa o resultado resolvido neste clique, nunca o texto da animação ou o
   // total com bônus. Só ataques reais em Auto Ficha atualizam esta preparação.
   if(kind==='attack' && result && c===getChar() && c.weapons[index]===entry)
@@ -2684,6 +2719,7 @@ function setWeaponHands(index,value) {
 }
 
 function showEquipmentTooltip(event, type, index) {
+  queueBookTooltip(event,()=>{
   const stored = (type === "weapon" ? getChar().weapons : getChar().inventoryItems)[index];
   const item = type === "weapon" ? CharacterEngine.weaponStats(getChar(), stored) : stored;
   if (!item) return;
@@ -2705,10 +2741,10 @@ function showEquipmentTooltip(event, type, index) {
   container.append(heading, details, description);
   document.getElementById("bookTooltip").classList.remove("hidden");
   positionTooltip(event);
+  });
 }
 
-function showSpellTooltip(event, spellName, classId, baseCircle, index) {
-  const char = getChar();
+function spellTooltipDetails(char, spellName, classId, baseCircle, index) {
   const clsMeta =
     RULES_DB.classes[classId] || RULES_DB.classes.feiticeiro;
   const spellIndex = index ?? char.spells.findIndex((spell) => spell.name === spellName);
@@ -2740,6 +2776,35 @@ function showSpellTooltip(event, spellName, classId, baseCircle, index) {
   const defense = spell ? getSpellDefenseMeta(char, spell) : null;
   const spellStats = getSpellcastingStats(char, classId, spell);
 
+  return {clsMeta,spell,bookEntry,scaledEffect,defense,spellStats};
+}
+function spellConsultReference(char,spell,index) {
+  if(spell.customSpell)return {text:[
+    'Magia personalizada · adaptação da mesa',
+    `Tempo de conjuração: ${spell.time||'Conferir descrição'}\nAlcance: ${spell.range||'Conferir descrição'}`,
+    'Duração: '+(spell.duration||(spell.conc?'Concentração · conferir duração':'Conferir descrição')),
+    'Componentes: '+([spell.v?'V':'',spell.s?'S':'',spell.m?'M':''].filter(Boolean).join(', ')||'Não informados'),
+    spell.customRoll?'Fórmula informada: '+spell.customRoll:'',
+    spell.notes||'Sem descrição. Abra o lápis para registrar os efeitos combinados na mesa.',
+  ].filter(Boolean).join('\n\n')};
+  const {bookEntry,scaledEffect,defense}=spellTooltipDetails(char,spell.name,spell.classId,spell.circle,index);
+  const entry=CharacterEngine.spell(spell.bookId||spell.name);
+  const text=[
+    bookEntry.school+(defense?' · '+defense.label:''),
+    `Tempo de conjuração: ${spell.time||'Conferir descrição'}
+Alcance: ${spell.range||'Conferir descrição'}`,
+    `Duração: ${bookEntry.duration}
+Componentes: ${bookEntry.materialDesc}`,
+    scaledEffect?'Efeito atual: '+scaledEffect:'',
+    RuleTooltips.formatText(spell.bookId||BOOK_SPELLS_DB[spell.name]?bookEntry.bookDesc:spell.notes||bookEntry.bookDesc),
+    BOOK_SPELLS_DB[spell.name]&&spell.notes?'Notas da ficha: '+getSpellNotes(char,spell):'',
+    bookEntry.upcastRule?'Escalonamento / Metamágica: '+bookEntry.upcastRule:'',
+  ].filter(Boolean).join('\n\n');
+  return {text,page:entry?.page,pdfPage:Number.isInteger(spell.pdfPage)?spell.pdfPage:entry?.pdfPage};
+}
+function showSpellTooltip(event, spellName, classId, baseCircle, index) {
+  queueBookTooltip(event,()=>{
+  const char=getChar(),{clsMeta,spell,bookEntry,scaledEffect,defense,spellStats}=spellTooltipDetails(char,spellName,classId,baseCircle,index);
   const tooltipEl = document.getElementById("bookTooltip");
   document.getElementById("bookTooltipContent").innerHTML = `
   <div class="border-b t-border pb-2">
@@ -2760,6 +2825,7 @@ function showSpellTooltip(event, spellName, classId, baseCircle, index) {
 `;
   tooltipEl.classList.remove("hidden");
   positionTooltip(event);
+  });
 }
 
 function positionTooltip(event, tooltipId = "bookTooltip") {
@@ -2779,9 +2845,20 @@ function positionTooltip(event, tooltipId = "bookTooltip") {
   tooltipEl.style.left = `${Math.max(12, left)}px`;
   tooltipEl.style.top = `${Math.max(12, top)}px`;
 }
+function queueBookTooltip(event,render) {
+  clearTimeout(bookTooltipTimer);
+  if(event.type==='focus'&&!event.currentTarget?.matches(':focus-visible'))return;
+  hideBookTooltip();RuleTooltips.claim('bookTooltip');
+  const char=getChar(),target=event.currentTarget;
+  const show=()=>{if(char!==getChar()||target&&!target.isConnected)return;render();};
+  if(['mouseenter','pointerenter'].includes(event.type))bookTooltipTimer=setTimeout(show,RuleTooltips.hoverDelay);
+  else show();
+}
 function hideBookTooltip() {
+  clearTimeout(bookTooltipTimer);
   document.getElementById("bookTooltip").classList.add("hidden");
 }
+window.addEventListener('critcall-tooltip-request',event=>{if(event.detail?.owner!=='bookTooltip')hideBookTooltip();});
 
 function showToast(msg) {
   // Um sucesso de combate/cadastro não pode esconder a falha de gravação anterior.
@@ -2845,6 +2922,7 @@ function setTab(tab) {
 }
 function switchCharacter(idx) {
   hideBookTooltip();
+  clearPendingD20();
   activeCharIndex = parseInt(idx, 10);
   restoreSavedHistory();
   renderAll();
@@ -3104,6 +3182,8 @@ function castSpellWithUpcast(
     triggerSheetRoll(
       formulaToRoll,
       `${spellName}${effect.perRay?' · dano de um raio/feixe':''}${isTwinned ? " (⚡ Gêmea)" : ""}`,
+      false,
+      effect.affinity?{type:'damage'}:null,
     );
   }
 
@@ -3225,6 +3305,9 @@ Object.assign(window, {
   confirmDestructiveAction,
   ruleDiceSettings,
   rollRuleDie,
+  resolveRuleD20,
+  pendingRuleD20Label,
+  presentRuleDiceResult:presentDiceResult,
   rollWeaponFormula,
   parseDiceFormula,
   getChar,
@@ -3267,6 +3350,9 @@ Object.assign(window, {
   updatePoolDisplay,
   evaluateDicePool,
   rollCurrentPool,
+  rerollHalflingD20,
+  useLuckyD20,
+  chooseLuckyD20,
   rollQuickD20,
   triggerSheetRoll,
   openAuthAccountModal,

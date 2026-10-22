@@ -30,6 +30,7 @@ function markProne(c:Sheet) {
 export function becameUnconscious(c:Sheet) {
   markProne(c);const s=state(c);
   s.active['druida:wildShape']=false;
+  if(active(c,'feat:dualWielder'))s.active['feat:dualWielder']=false; // Larga as armas; cura não as empunha novamente.
   endConcentration(c);endRage(c);
 }
 export function syncIncapacity(c:Sheet) {
@@ -47,7 +48,10 @@ export function healHitPoints(c:Sheet,amount:number) {
   if (!Number.isInteger(amount) || amount<0) throw new Error('Informe uma cura inteira e não negativa.');
   if (deathStatus(c).dead) throw new Error('Cura comum não revive. Registre primeiro o retorno à vida após a decisão da mesa.');
   // Fichas anteriores podem estar a 0 PV sem a marca persistida de queda.
-  if(amount>0 && c.hpCurrent===0 && !active(c,'druida:wildShape'))markProne(c);
+  if(amount>0 && c.hpCurrent===0 && !active(c,'druida:wildShape')) {
+    markProne(c);
+    if(active(c,'feat:dualWielder'))state(c).active['feat:dualWielder']=false;
+  }
   const before=c.hpCurrent;c.hpCurrent=Math.min(hitPointMaximum(c),c.hpCurrent+amount);
   if (c.hpCurrent>before) state(c).death={successes:0,failures:0,stable:false,dead:false};
   return Math.max(0,c.hpCurrent-before);

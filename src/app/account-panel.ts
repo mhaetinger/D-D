@@ -40,7 +40,7 @@ export function setupAccountPanel():void {
     const current=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-account-tab]');
     if(!current || !['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
     event.preventDefault();
-    const tab=event.key==='Home'?'profile':event.key==='End'?'characters':current.dataset.accountTab==='profile'?'characters':'profile';
+    const tab=event.key==='Home'?'characters':event.key==='End'?'profile':current.dataset.accountTab==='profile'?'characters':'profile';
     selectAccountTab(tab,true);
   });
 }

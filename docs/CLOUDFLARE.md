@@ -1,5 +1,8 @@
 # Cloudflare: migração e crescimento do CritCall
 
+Procedimento de migração. O estado da produção e a pendência V5 ficam em
+[RETOMADA.md](RETOMADA.md). Domínio/DNS atuais: [DOMINIO.md](DOMINIO.md).
+
 ## Estado e direção
 
 Em 16/10/2026, o usuário confirmou a criação de uma conta Cloudflare. O objetivo
@@ -20,7 +23,11 @@ A proposta é GitHub privado para fontes, Cloudflare para o site e DNS, Supabase
 para contas/dados e SMTP separado para mensagens. O registro de `criticall.art`
 continua na Hostinger. Não é necessário criar outro repositório para o código.
 
-## Primeiro passo no painel
+## Configuração da zona — já executada em 16/10/2026
+
+Os passos abaixo registram o procedimento anterior. A zona e a troca de
+nameservers já foram concluídas; a pendência atual é o projeto de hospedagem
+e suas credenciais, descritos a seguir. Conferir o estado antes de repetir.
 
 1. Em **Domains / Domínios**, escolher **Onboard a domain / Adicionar domínio**.
 2. Informar `criticall.art`, usar a busca automática dos registros e escolher Free.

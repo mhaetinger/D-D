@@ -55,6 +55,7 @@ export function previewWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoic
     const modifier=Number(w.damageBonus);
     add('Arma',`${w.weaponDie}${modifier<0?'':'+'}${modifier}`,w.dmgTypeLabel);
     if(w.improvedSmite)add('Destruição Divina Aprimorada','1d8','radiante');
+    if(w.lifedrinker)add('Sorvedor de Vida',String(w.lifedrinker),'necrótico');
   }
   if(choice.sneak)add('Ataque Furtivo',`${Math.ceil(level(c,'ladino')/2)}d6`,w.dmgTypeLabel);
   if(choice.colossus)add('Assassino de Colossos','1d8',w.dmgTypeLabel);

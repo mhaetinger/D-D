@@ -1,6 +1,361 @@
 # Changelog
 
-## Não lançado
+## 2026-10-22
+
+Entrega solicitada pelo responsável, reunindo R1, os dois primeiros recortes de
+R2 e as melhorias de revisão de fichas/consulta/conta descritas abaixo.
+Integração pela [PR #19](https://github.com/mhaetinger/D-D/pull/19) e publicação
+pela [PR #20](https://github.com/mhaetinger/D-D/pull/20), via `develop` → `main`.
+A CI da entrega exige os 433 testes Node, PostgreSQL descartável, tipos/build,
+auditoria de produção e os 32 roteiros Chromium; o workflow da `main` publica
+somente o `dist/` que verificou. Resultados e limites em
+[RETOMADA.md](docs/RETOMADA.md). As etapas R2–R6 permanecem parciais/pendentes.
+
+### Personagens como primeira aba — 2026-10-22
+
+- Clicar no nome da conta abre Personagens, agora a primeira aba. Perfil fica
+  em segundo, mantendo seus campos e ações. Home/End seguem a nova ordem;
+  retornos de recuperação e avisos da conta continuam abrindo Perfil.
+- Verificados 433 testes Node, tipos/build e os quatro roteiros Chromium
+  pertinentes: abas da conta, autenticação, sincronização e cópia sem conta.
+  Incluídos reabertura, teclado, preservação de campos/retratos, 320px/GG/três
+  temas, offline e retornos de senha sob `/D-D/` e na raiz.
+
+### Origens, consulta de magias e retenção de versões — 2026-10-22
+
+- Características no moderno têm linhas entre colunas e entre origens da mesma
+  coluna. Ferramentas da importação separam veículos, kits, ofícios, jogos e
+  instrumentos; as opções têm divisórias sem remontar checkboxes.
+- Cartões de magia mostram a origem escolhida imediatamente e distinguem vínculo
+  ao catálogo de efeito da mesa. Somente ID válido e não personalizado recebe
+  o livrinho com texto/página do catálogo. A consulta usa o popover existente,
+  inclusive dentro da janela modal. A busca identifica **Listas de classe** e
+  traço racial: Taumaturgia informa Clérigo e Tiefling sem tratar um como exclusão
+  do outro. Não é uma certificação de todas as mecânicas de cada magia.
+- Cadeado aberto oferece listas de raça/espécie, antecedente e tendência, além
+  de texto livre. Raça/antecedente abrem prévia e exigem aceite dos totais/treinos
+  manuais. Escolhas antigas ficam aposentadas no evento; magias anteriores viram
+  adaptações identificadas, com usos preservados. Não reconstrói automaticamente
+  atributos/treinos importados nem preenche escolhas da nova origem. Tendência
+  altera somente o texto. Permissão, ficha e conteúdo são revalidados ao aplicar;
+  blur repetido não consome o clique de cancelamento.
+- Histórico de desfazer passa a até 100 estados / 2 MiB por ficha ao gravar,
+  preservando o ponteiro e um estado isolado maior; leitura/legado/ilegíveis
+  continuam preservados. Migração de retenção: 20 versões/documento,
+  30 dias, 200 versões / 8 MiB por conta. Envios normais deixam de versionar o
+  histórico inteiro; conflitos têm candidatas limitadas e recibos privados
+  preservam repetições. Documentos atuais/imagens ficam fora da limpeza.
+  Aplicada ao CritCall após aprovação explícita, versão remota `20261022213804`.
+  O diálogo só anuncia limites confirmados pela RPC. Teste transacional real
+  confirmou repetição idempotente e foi revertido; assinatura agregada dos
+  documentos atuais ficou igual antes/depois, sem conteúdo pessoal nos registros.
+- Verificados 433 testes Node, tipos/build, PostgreSQL 18 descartável e 11
+  roteiros Chromium: origens, revisão clara, guiada, setores, PDF/JSON, edição em
+  linha, cadeado, ajudas, consulta de características, sincronização e aplicativo/
+  offline. Incluídos RLS/duas contas, quantidade/prazo/bytes/recibos, conflitos
+  do histórico, recarga, cancelamento, proposta antiga e 320px/GG/três temas.
+  A suíte passa a 32 roteiros; não foi executada inteira localmente nesta etapa.
+
+### Blocos e observações da revisão de importação — 2026-10-22
+
+- Observações para conferir ganham faixa de atenção, símbolo, contagem e título
+  sublinhado. Vermelho no tema claro e tom claro nos escuros preservam leitura;
+  o destaque também depende de forma e texto.
+- Quem é o personagem passa a um quadro com relevo discreto até Tendência.
+  Ancestralidades ficam fora dele, antes das classes, em seus próprios quadros.
+- Idiomas conhecidos têm um único bloco, separado de armas/ferramentas/armaduras.
+  Nomes reconhecidos aparecem nas marcações; textos fora do catálogo continuam
+  visíveis e editáveis no próprio bloco. Retirado o resumo duplicado de idiomas.
+- Testes de resistência passam para Atributos e combate, logo após os atributos,
+  mantendo as seis marcações, os nós durante a navegação e os dados ao salvar.
+  Vida/defesa e divisão do grimório permanecem como estavam.
+- Reservas distinguem máximo, espaços gastos e pontos restantes, com exemplo
+  de usos disponíveis e explicações por recurso. Previsão e aplicação explícita
+  continuam preservando os gastos.
+- Verificados 427 testes Node, tipos/build e cinco roteiros Chromium: revisão
+  clara, guiada, setores, PDF/JSON e biblioteca. Incluídos preservação dos nós,
+  idiomas livres, salvamento/recarga das resistências e 320px/GG/três temas.
+  Capturas desktop/mobile conferidas; após o ajuste final de ícones, repetida
+  a revisão clara. Sem alteração de regras, dados existentes ou SQL/RLS/RPC.
+  Conferir a CI do último commit da PR #19 antes de integrar.
+
+### Ancestralidades de 2014 e revisão com hierarquia — 2026-10-22
+
+- Conferidas as dez cores de draconato com o livro: elemento, linha/cone,
+  DES/CON, CD por Constituição/proficiência e dano por nível total. A importação
+  oferece ancestralidades racial e de feiticeiro separadas, removíveis, com
+  observação quando faltarem. Mantém outras escolhas/metadados e o original;
+  cor da pele não vira uma ancestralidade. Resistência exige uma opção válida.
+  A consulta não implementa a resolução completa do sopro.
+- Rótulos, jogador/XP, legendas e títulos têm tamanhos/pesos distintos dos
+  valores. Grupos de magia têm cor, número e título próprios; classes e origens
+  raciais ficam identificadas. Cartões usam colunas quando couber; editor
+  aberto ocupa a largura inteira. Fonte GG e quadros internos cabem no celular.
+- O círculo é um único select, visível no cartão de efeito próprio mesmo
+  recolhido. Vazio pede escolher Truque ou 1º–9º círculo, sem “?º” nem assumir
+  zero na ajuda. Catálogo mantém o círculo do livro. Origem marcada pode ser
+  desmarcada sem recuperar usos ou apagar notas; elfo/gnomo/tiefling conferidos.
+- Raio Místico é reconhecido como Rajada Mística mesmo com dados escritos na
+  linha. O círculo vem do catálogo e a linha original permanece nas notas.
+- Previsão de reservas fica visível sem botão de conferir e acompanha classes,
+  níveis, subclasses e edição dos valores. Distingue máximos atuais/previstos;
+  aplicar continua explícito e conserva gastos. Subclasse de guerreiro/ladino
+  precisa estar vinculada para prever sua Conjuração.
+- Verificados 427 testes Node, tipos/build e nove roteiros Chromium: revisão
+  clara, revisão guiada, setores, PDF/JSON, edição em linha, cadeado, passivos,
+  dano e consulta de características. Incluídos persistência das ancestralidades,
+  equivalências de grafia, origem reversível, previsão sem recuperar usos,
+  classificação vazia e 320px/GG/três temas. Capturas desktop/mobile conferidas.
+  A suíte completa passa a 31 roteiros. PDF pessoal lido apenas localmente,
+  com cancelamento e original inalterado; nenhum dado desse PDF nos testes
+  publicados. Sem SQL/RLS/RPC; conferir a CI atual da PR #19 antes de integrar.
+
+### Importação guiada por opções e círculos de magia — 2026-10-22
+
+- Antecedente e tendência permitem manter a escrita livre ou escolher do livro,
+  em pares separados como a raça. Um antecedente reconhecido é vinculado na
+  proposta sem refazer treinos ou narrativa; personalizados continuam livres.
+- Idiomas têm checkboxes e uma ação explícita para acrescentar os da raça.
+  Armas/ferramentas oferecem listas; armas já reconhecidas pelas classes, raça
+  e escolhas indicam **Pela ficha**. Grupos de armas cobrem seus itens. Registros
+  livres, idiomas desconhecidos e textos da mesa são preservados nas escolhas.
+- Grimório separa truques e círculos em ordem, com grupos de classe e origem
+  especial visível. Cartões existentes começam recolhidos e identificados;
+  adicionar truque começa em 0 e magia em 1. O agrupamento não ordena o array
+  salvo nem move ancestrais durante o clique ou o foco da edição.
+- A busca de magias usa resultados locais no tema, com círculo/classes e
+  teclado/toque, em vez do datalist nativo que aparecia deslocado e preto.
+  Escolher do livro e criar um efeito próprio ficam explícitos. Fórmulas
+  próprias e ajustes opcionais explicam seu uso; campos alinham pela base e
+  componentes têm faixa própria. Enter na busca não confirma a importação.
+- Moedas passam de resumo para campos editáveis/validados. Armas mantêm o
+  editor compartilhado, com nomes mais claros para o cálculo e dicas dos
+  ajustes avançados. Cópias, cancelamento, metadados e usos gastos preservados.
+- Verificados 422 testes Node, tipos/build e oito roteiros Chromium: revisão
+  guiada, setores, PDF/JSON, edição em linha, armas, cadeado, ajudas e
+  aplicativo/offline. Incluídos dados desconhecidos, teclado/toque/Esc,
+  cancelamento/validação, nós/rascunhos, 320px/GG/três temas e capturas visuais.
+  A suíte completa passa a 30 roteiros. Sem alteração de SQL/RLS/RPC ou avanço
+  das pendências de mecânicas; conferir a CI atual da PR #19 antes de integrar.
+
+### Ajudas coordenadas e descrição no livrinho — 2026-10-22
+
+- A descrição da magia aparece somente no livrinho. As ajudas por mouse esperam
+  cerca de um segundo; trocar de alvo ou sair cancela a abertura pendente.
+  Livro, ataque, equipamento e consulta fixada compartilham exclusão, evitando
+  balões simultâneos e reaparecimento atrasado da ajuda anterior.
+- Clique, Enter ou toque no livro fixa a consulta existente, com acesso à página
+  do PDF. Teclado continua sem espera; Esc, × e toque fora fecham a consulta.
+  Metadados, efeito atual e notas são preservados; magias próprias usam seu texto
+  e fórmula, sem receber referência de livro por coincidência do nome.
+- Verificados 420 testes Node, tipos/build e nove roteiros Chromium: ajudas,
+  características, regras, ataque com magia, criação, biblioteca, revisão por
+  setores, cadeado e dano de armas. Incluídos atraso/cancelamento/Esc, exclusão
+  entre leitores, toque/Enter/link, notas como texto, rolagem contida e
+  320px/GG/três temas/dois layouts. Capturas desktop/mobile conferidas.
+  A suíte de navegador passa a ter 29 roteiros. Sem mudança nas mecânicas,
+  animação do dado ou SQL/RLS/RPC; conferir a CI atual da PR #19 antes de integrar.
+
+### Hierarquia da revisão de PDF e editor de armas compartilhado — 2026-10-22
+
+- Identificação com ícone de pergaminho e nome em destaque, separada das linhas
+  de classes/níveis e seu total. Resistências usam faixa compacta; registros de
+  proficiência/idiomas e armaduras dividem o espaço, com títulos e ícones locais.
+- Reservas explicam quando conferir máximos pelas classes e que a comparação
+  só propõe valores. Dicas de proficiência, especialização e total manual usam
+  os balões de hover/foco existentes, mantendo o clique normal das checkboxes.
+- Armas da ficha e da importação usam `createWeaponFields`: nome, bônus, dados,
+  modificador, tipo, propriedades, descrição e ajustes/catálogo. IDs são isolados
+  por instância; a ponte da ficha conserva seus IDs e delega ao módulo. A proposta
+  permite adicionar/remover ataques; prévia acompanha a edição sem salvar a origem.
+- Personalidade, história e aparência começam visíveis. Itens/quantidades,
+  moedas e tesouros têm sua própria apresentação; notas pessoais ficam separadas.
+  Validação de rascunhos alcança também outro personagem do mesmo arquivo,
+  revelando o campo correto. Metadados de armas, bônus ausente, valores e
+  cancelamento são preservados. Sem novos efeitos de regras ou alteração de SQL.
+- Verificados 420 testes Node, tipos/build e oito roteiros Chromium: importação,
+  revisão por setores, editor de armas, edição em linha, cadeado, passivos,
+  dano de armas e aplicativo/offline. Incluídos dados compostos, manual/catálogo,
+  metadados/cópias/cancelamento, validação em outra pessoa, dicas/treino/zero
+  manual, nós/rascunhos e 320px/GG/três temas. Capturas desktop/mobile conferidas.
+
+### Consulta racial/antecedentes, revisão de magias e recusa lembrada — 2026-10-22
+
+- A consulta usa os parágrafos dos traços raciais, sem cair na narrativa da raça
+  ou em um traço da página vizinha. Versatilidade em Perícia passa a mostrar suas
+  duas perícias; Ancestral Feérico conserva o texto próprio. O extrator gerou 115
+  parágrafos e preservou os 958 cabeçalhos anteriores. Há aliases para humano
+  variante e Ilusionista Natural; Engenhoqueiro mantém suas opções completas.
+- Corrigida a busca das características dos 13 antecedentes pelo prefixo do
+  catálogo, incluindo Pesquisador e o nome de Associados da Guilda no livro.
+- Magias têm os mesmos grupos Magia, Origem e Disponibilidade na ficha e na
+  importação. Fórmula, usos e notas ficam separados em detalhes opcionais.
+  Truques não pedem preparo; classes de magias conhecidas dispensam a seleção
+  diária. Sempre preparada fica nos ajustes. Ocultar controles preserva valores.
+  Na ambiguidade racial, a escolha explícita preenche habilidade, característica
+  e usos do traço disponível naquele nível; mostra recuperação/círculo de origem.
+  Trocar raça/classes atualiza sugestões sem remontar os campos.
+- **Não quero** lembra a recusa de copiar as fichas sem conta por conta/navegador.
+  Recargas, novos logins e mudanças nas fichas locais não repetem a pergunta ou
+  toast. Retomar fichas sem conta permite decidir de novo pelo Perfil; os
+  originais, notas, retratos e rascunhos permanecem preservados. Sem SQL/RLS/RPC.
+- Verificados 420 testes Node, tipos/build e os 28 roteiros Chromium completos.
+  Após a revisão final, repetidos os fluxos de importação de magias e cópia sem
+  conta, incluindo usos gastos preservados ao confirmar novamente a origem e
+  outra confirmação aberta durante o hash sem registrar uma recusa indevida.
+  Incluídos consulta por mouse/toque, recarga/login/conta B/retomada explícita,
+  preparo contextual, cancelamento, nós/foco e 320px/GG/três temas. Inspecionadas
+  capturas desktop e celular; 62 links/âncoras válidos e matrizes preservadas.
+  Conferir a CI do commit atual da PR #19 antes de integrar/publicar.
+
+### Conferência da importação e características no moderno — 2026-10-22
+
+- O moderno distribui origens/classes inteiras em colunas conforme a largura
+  disponível. Em quadros muito largos, os níveis mantêm duas colunas, agora
+  balanceadas pela altura real. Redimensionar preserva nós, controles e dados;
+  a fonte ampliada participa do ajuste, sem alterar o clássico.
+- Corrigida a consulta de Ancestral Feérico: o extrator passa a gerar as duas
+  referências de parágrafo, com páginas próprias de elfo e meio-elfo. A consulta
+  do meio-elfo abria sua introdução narrativa. Nenhuma nova automação de condição.
+- Proficiências/idiomas e ataques importados mostram os registros antes dos
+  campos. Correções e vínculo ao catálogo ficam recolhidos, com instruções sobre
+  quando usar. Valores, rascunhos e os mesmos nós permanecem montados; validação
+  revela o setor/detalhes quando necessário.
+- Ataque manual sem bônus pode continuar vazio, inclusive em sopros/efeitos de
+  resistência. Backup, importação, edição e recarga preservam essa ausência;
+  não vira +0 nem oferece um d20 de ataque. Dano continua disponível e vínculo
+  explícito ao catálogo calcula o bônus. Textos inválidos continuam recusados.
+- Verificados 419 testes Node, tipos/build e os 28 roteiros Chromium locais;
+  [CI da PR aprovada em `1ff5a3f`](https://github.com/mhaetinger/D-D/actions/runs/39787872702),
+  incluindo banco descartável/RLS/Storage e auditoria de produção. Regressões incluem
+  larguras intermediárias, três temas/M/GG, consulta por mouse/toque, campos
+  recolhidos, ausência de bônus, catálogo, cancelamento, foco/nós e recarga.
+  Conferidos 62 links/âncoras e as matrizes da auditoria. As 958 referências
+  anteriores foram preservadas; somente dois parágrafos foram acrescentados
+  pelo extrator. Conferir a CI do último commit na PR #19 antes de integrar/publicar.
+
+### Talento Sortudo e escolha contextual de d20 — 2026-10-22
+
+- O talento passa a ter uma reserva única de três pontos por descanso longo,
+  junto à escolha existente. Independe do Sortudo racial e do nível total;
+  preserva máximos adaptados e bloqueia gastos/correções sobre registros ilegíveis.
+- Jogadas da ficha permitem gastar um ponto para lançar somente um d20
+  adicional e escolher qualquer face, inclusive uma descartada pela desvantagem.
+  O modo original continua; bônus, inspiração e custos não se repetem. Crítico
+  preparado, Talento Confiável e repetição racial acompanham a face escolhida.
+- Concentração, morte e Fúria Implacável permitem decisão depois do d20 ou
+  gasto antecipado. Aplicação de PV/dano/fila aguarda a escolha. Cancelar depois
+  de rolar mantém o teste na sessão, com o gasto já feito; retomar usa os mesmos
+  dados, sem novo lançamento/cobrança. Alterações na ficha invalidam o resultado.
+- Controle para ataque recebido usa a face informada do atacante e o adicional
+  virtual/físico; bônus/acerto/dano continuam na mesa. OFF permite o registro
+  físico, e usos de criaturas diferentes se cancelam sem dados adicionais.
+- Custo é salvo antes de mostrar o adicional sem remontar o formulário de dano;
+  histórico/saldo atualizam pelos controles existentes. Escolhas preservam nós,
+  foco e posição. Desenho, auras e gestos do dado mantêm seus módulos.
+- PR #18 integrada em `develop` `19e4ceb`, após autorização e CI completa
+  aprovada: 404 testes, tipos/build, 27 roteiros Chromium e banco descartável.
+  Produção continua em `27b3083`; R2 segue parcial na auditoria.
+- Conferidos 417 testes Node, tipos/build e os 28 roteiros Chromium,
+  incluindo decisão tardia, cancelamento/retomada, concorrência, recebido/físico/
+  OFF/Só Pool, mínimo/racial/inspiração, layouts/temas/320px/GG/toque e offline
+  com pontos/notas preservados; 62 links/âncoras locais válidos e auditoria de
+  produção sem vulnerabilidades. Entrega `c304e83` na PR #19; CI completa e
+  banco exigidos antes da integração. Sem alteração de SQL/RLS/RPC.
+
+### Talento Confiável e Sortudo racial nas rolagens — 2026-10-21
+
+- Início de R2: ladino 11 trata d20 baixo como 10 nas perícias proficientes da
+  ficha, depois de escolher vantagem/desvantagem e antes dos bônus. Conservados
+  ajustes totais, inclusive zero; ataques, resistências e meia proficiência não
+  recebem o mínimo. Ferramentas sem ação própria continuam na mesa.
+- Halflings podem repetir um 1 no resultado de uma jogada automática. Muda só um
+  dado, uma vez, mantém o modo e os outros dados, aceita a nova face e atualiza
+  o crítico da arma. Não consome inspiração novamente nem afeta o d20 rápido/
+  pool livre. Troca de ficha/espaço, edição ou outra rolagem invalida a opção.
+- Concentração, morte e Fúria Implacável permitem confirmar a intenção de usar
+  Sortudo antes do dado virtual e da aplicação do resultado. Físico registra a
+  face final; cancelar e OFF preservam o contrato anterior.
+- Rolador extraído para `src/rules/dice-roll.ts`, mantendo os campos de resultado
+  existentes. Sem alterações no SVG, auras, física/gestos, dados salvos ou SQL.
+  O talento Sortudo de três pontos e os demais gastos/rerrolagens continuam em
+  R2; a auditoria e a retomada registram o recorte, sem concluir a etapa.
+- R1 integrada em `develop` pela PR #17 (`445939d`), após autorização e CI
+  completa aprovada: 395 testes Node, build/tipos, 26 roteiros Chromium, banco
+  descartável e auditoria de dependências. Produção permanece em `27b3083`.
+- Verificação desta entrega: 404 testes Node, tipos/build e 27 roteiros Chromium
+  completos aprovados no mesmo artefato, incluindo crítico, inspiração,
+  concentração/morte/Fúria Implacável, cancelamento/estado obsoleto,
+  físico/OFF/Só Pool, layouts/temas/320px/GG/toque e offline/notas.
+  Capturas conferidas, 62 links locais válidos e zero vulnerabilidades de
+  produção. Sem SQL/RLS/RPC; banco não repetido localmente.
+
+### Bônus passivos de CA, perícias, pacto e linhagem — 2026-10-21
+
+- Ambidestro soma +1 à CA calculada após confirmar duas armas empunhadas nos
+  ajustes de defesa. Não soma novamente à CA manual/escrita e respeita escudo,
+  inconsciência e Forma Selvagem. Sem inferir equipamento pelo inventário.
+- Percepção e Investigação exibem os passivos com Observador nos dois layouts.
+  Preservados bônus ativos personalizados, zero, proficiência/especialização e
+  meia proficiência. A rolagem ativa não recebe o +5 passivo.
+- O editor de arma permite confirmar a arma do pacto. Salvar transfere o vínculo
+  entre armas; cancelar preserva os dados anteriores. Sorvedor de Vida exige
+  bruxo 12/Pacto da Lâmina/invocação e acrescenta CAR (mínimo 1) necrótico no
+  ataque automático, uma vez, sem dobrar o número no crítico. Armas manuais
+  continuam com seus valores escritos.
+- Afinidade Elemental usa linhagem/nível/ancestral da classe e soma CAR uma vez
+  ao dano inicial de tipo fixo reconhecido, após compor Gêmea. Outros raios não
+  repetem o bônus nem cobram outro espaço. O dano não custa feitiçaria nem exige
+  ativar a resistência. CAR negativo permanece na fórmula, com piso zero no
+  dano; tipos variáveis, fórmulas próprias e efeitos posteriores
+  continuam resolvidos na mesa e registrados em R5.
+- Novos cálculos puros em `src/rules/passives.ts`; dados seguem ficha/histórico
+  existentes, sem SQL ou migração destrutiva. Auditoria e retomada atualizadas
+  para distinguir R1 em revisão da versão publicada e apontar R2 como próxima.
+- Conferidos 395 testes Node, tipos/build, 25 roteiros anteriores na rodada
+  ampla e o novo roteiro R1. Após os últimos ajustes, R1/PV/concentração/regras/
+  crítico/ataques mágicos passaram novamente no build final, inclusive dano
+  mínimo zero. A suíte completa não foi repetida localmente no último artefato;
+  é exigida na CI. Capturas desktop/celular conferidas, diff e
+  62 links/âncoras locais válidos. Sem SQL/RLS/RPC; banco não repetido localmente.
+
+### Documentação de retomada consolidada — 2026-10-21
+
+- `docs/RETOMADA.md` passa a ser o ponto de entrada, com a última publicação
+  concluída, próxima etapa e pendências externas identificadas. A conferência
+  do workflow/PR confirmou `main` em `27b3083`; atualização real após a publicação
+  já foi validada, substituindo a anotação antiga de que faltava esse smoke.
+- `docs/AUDITORIA-LIVRO-2014.md` concentra as etapas R1–R6, critérios de aceite,
+  primeiro recorte de passivos e matrizes de cobertura. Separados cálculos
+  ausentes, contexto da mesa e efeitos ainda não revisados; Esquiva/Evasão,
+  Fúria/Resistência Implacável, crítico racial e gasto de Destruição deixam de
+  aparecer como ausências em tabelas antigas. Nenhuma mecânica foi implementada
+  nesta revisão, conforme pedido do responsável.
+- Removidos três planos concluídos: `REFATORACAO-2014.md`, `PLANO-EXPERIENCIA.md`
+  e `PRIMEIRA-PUBLICACAO.md`. Contratos e cuidados vigentes foram preservados nos
+  documentos técnicos; entregas anteriores continuam no changelog e no Git.
+  Atualizados links, instruções de contribuição/manutenção e registros de
+  publicação, login, DNS e sincronização que ainda apontavam etapas antigas.
+- As notas de cache/atualização abaixo passam à entrega publicada de 21/10;
+  os resultados de testes daquela entrega não são execuções desta consolidação.
+- Verificação documental: diff, links/âncoras Markdown locais, preservação das
+  12 classes/41 subclasses e 42 talentos nas matrizes e referências históricas.
+  Sem alteração de fontes, build, SQL, configurações, dados ou ponto de retorno
+  do dado; testes de comportamento não repetidos.
+
+## 2026-10-21
+
+Entrega autorizada pelo responsável após a revisão da ficha, importação,
+tipografia e dado. Integração por PR para `develop` e depois `main`; o workflow
+da `main` testa e publica o mesmo artefato `dist/`.
+
+Publicação final concluída na `main` `27b3083` pela
+[PR #15](https://github.com/mhaetinger/D-D/pull/15), com
+[workflow 39638188104](https://github.com/mhaetinger/D-D/actions/runs/39638188104)
+aprovado. Revisão offline `4e263eb66b70d44f`, conferida após a entrega no site
+com duas abas/cache HTTP nativo, F5 comum, rascunho, dado, mobile e offline.
+
+### Integridade da atualização e cache HTTP — 2026-10-21
 
 - O instalador offline confere SHA-256 de cada arquivo antes de ativar uma
   entrega. HTML ou regras de outra versão, mesmo com resposta 200, invalidam a
@@ -34,12 +389,6 @@
   sem vulnerabilidades e Chromium de atualização/dado. A atualização foi testada
   com duas abas, rascunho/foco, worker antigo/reiniciado, instalação concorrente
   e incompleta, F5 comum, notas/fichas offline e aviso em 320px/GG.
-
-## 2026-10-21
-
-Entrega autorizada pelo responsável após a revisão da ficha, importação,
-tipografia e dado. Integração por PR para `develop` e depois `main`; o workflow
-da `main` testa e publica o mesmo artefato `dist/`.
 
 ### Dado sem realce de seleção após R — 2026-10-21
 
@@ -720,7 +1069,9 @@ da `main` testa e publica o mesmo artefato `dist/`.
   strings irrecuperáveis são identificadas. Exportações/chaves novas usam CritCall.
   Leitura silenciosa preserva formatos históricos, originais e operações já
   enfileiradas, sem troca de identidade, SQL ou autorização.
-- Plano, contratos e verificação em `docs/REFATORACAO-2014.md`.
+- Plano original de refatoração concluído; contratos hoje em
+  `docs/ARQUITETURA.md`, cobertura em `docs/AUDITORIA-LIVRO-2014.md`.
+  O plano da época permanece no histórico do Git.
 - Verificação: 260 testes Node, tipos/build e nove roteiros Chromium aprovados;
   regras repetidas após os últimos ajustes. Inclui login, sincronização com HTTP
   simulado, isolamento, offline e continuidade local. Sem alteração de SQL/RLS.

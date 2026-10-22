@@ -101,6 +101,7 @@ async function verify(prefix) {
     assert.equal(await page.locator("#accountEmail").isVisible(), true);
     assert.equal(await page.locator(".access-logo").evaluate(img => img.complete && img.naturalWidth > 0), true);
     async function login(email, pass = currentPasswords[email] || password) {
+      if (await page.locator('#authAccountModal').isVisible()) await page.locator('#accountTabProfile').click();
       await page.locator('[data-auth-mode="login"]').click();
       await page.locator('#accountEmail').fill(email);
       await page.locator('#accountPassword').fill(pass);
@@ -109,7 +110,7 @@ async function verify(prefix) {
       if (await page.locator('#sheetApp').isVisible()) {
         assert.equal(await page.locator('#accessScreen').isVisible(), false);
         assert.equal(await page.locator('#dice3dTray').getAttribute('data-minimized'), 'true');
-        await page.evaluate(() => openAuthAccountModal());
+        await page.evaluate(() => openAuthAccountModal('profile'));
       }
     }
     await login('a@example.test', 'incorreta');
@@ -143,7 +144,7 @@ async function verify(prefix) {
     await page.locator('#themeBtn-pergaminho_escuro').click();
     await page.locator('#backdropBtn-textured').click();
     await page.locator('#fontBtn-112').click();
-    await page.evaluate(() => openAuthAccountModal());
+    await page.evaluate(() => openAuthAccountModal('profile'));
     assert.notEqual(idA, guest.id);
     await page.locator('#accPlayerName').fill('Jogador A');
     await page.getByRole('button', { name: 'Salvar nome local', exact: true }).click();
@@ -159,7 +160,7 @@ async function verify(prefix) {
     await page.goto(server.url + 'index.html', { waitUntil: 'networkidle' });
     await page.waitForFunction(() => typeof window.getChar === 'function');
     assert.equal(await page.evaluate(() => getChar().id), idA, 'raiz e index.html compartilham a sessão');
-    await page.evaluate(() => openAuthAccountModal());
+    await page.evaluate(() => openAuthAccountModal('profile'));
     await page.locator('#accountSignOut').click();
     await page.waitForFunction((id) => getChar()?.id === id, guest.id);
     assert.equal(await page.evaluate(() => readPrivateNotes(getChar().id)), 'Nota do espaço sem login');
@@ -181,7 +182,7 @@ async function verify(prefix) {
     await page.reload({ waitUntil: 'networkidle' });
     await page.waitForFunction(() => typeof window.getChar === 'function');
     assert.equal(await page.evaluate(() => getChar().id), idA);
-    await page.evaluate(() => openAuthAccountModal());
+    await page.evaluate(() => openAuthAccountModal('profile'));
     assert.ok((await page.locator('#accountIdentity').textContent()).includes('offline'));
     await page.locator('#accountSignOut').click();
     await page.waitForFunction((id) => getChar()?.id === id, guest.id);
@@ -324,7 +325,7 @@ async function verify(prefix) {
     assert.equal(await page.locator('#characterWizard').isVisible(), true, 'o editor pode abrir depois da troca');
     await page.evaluate(() => CharacterWizard.close(true));
     revoked = false;
-    await page.evaluate(() => openAuthAccountModal());
+    await page.evaluate(() => openAuthAccountModal('profile'));
     await login('a@example.test');
     await page.waitForFunction((id) => getChar()?.id === id, idA);
     await page.locator('#backupFile').setInputFiles({ name: 'copia.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(imported)) });

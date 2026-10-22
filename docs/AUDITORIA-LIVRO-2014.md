@@ -1,294 +1,264 @@
-# Auditoria de cobertura do Livro do Jogador — 19/10/2026
+# Regras de 2014: cobertura e roteiro
 
-Há regras que ainda precisam de adaptação na ficha. Ter uma descrição, uma escolha
-no criador ou um contador não significa resolver todos os efeitos daquela regra.
-Este relatório distingue esses casos e serve de roteiro para as próximas entregas.
+Auditoria inicial em **19/10/2026**, implementações até **22/10/2026** e estado
+consolidado em **22/10/2026**. Este é o registro único de progresso das mecânicas.
+Para branch, publicação e validações externas, consulte [RETOMADA.md](RETOMADA.md).
+Contratos técnicos ficam em [ARQUITETURA.md](ARQUITETURA.md); entregas/testes
+históricos, no [CHANGELOG.md](../CHANGELOG.md).
 
-A segunda passada, na base `7667ae9`, encontrou **erros reproduzíveis além das
-ausências de controles**. A prioridade passou a ser alinhar o valor mostrado com
-o rolador, corrigir bônus/escalonamento e a interação entre dano, transformação e
-descansos. Os itens 15–27 e a tabela de cenários abaixo detalham esses achados.
-Seis etapas de correções já foram implementadas na branch de trabalho,
-conforme as tabelas abaixo. O restante continua identificado como pendência.
+**A versão publicada não automatiza integralmente o livro.** Consulta, escolha
+cadastrada e contador de usos não significam efeito aplicado. As matrizes abaixo
+registram os limites das implementações. A entrega de 22/10/2026 reúne R1
+(PR #17), o primeiro recorte de R2 (PR #18) e o talento Sortudo (PR #19),
+com publicação pela PR #20. Estado da publicação em RETOMADA.md.
 
-## Primeira etapa implementada — 19/10/2026
+## Como ler e atualizar o estado
 
-As descrições numeradas e a tabela histórica de reprodução registram o problema
-encontrado na base `7667ae9`; não descrevem todas o estado atual. O diagnóstico
-atual inclui regressões adicionais e é exigido na suíte de navegador.
+- **Calculado/controle existente:** operação implementada no escopo descrito;
+  não certifica todas as interações da característica.
+- **Parcial/pendente:** falta aplicar um efeito ou integrá-lo à operação atual.
+  Bônus ausente nos totais tem prioridade sobre novos auxiliares de consulta.
+- **Mesa:** contexto ou decisão que o jogador/Mestre deve informar. Isso pode
+  permanecer manual sem virar um defeito ou um novo campo obrigatório.
+- **A revisar:** cobertura ainda insuficiente para afirmar completude. As matrizes
+  são um levantamento de exemplos; não certificam cada efeito não mencionado.
 
-| Itens da auditoria | Estado desta etapa |
-| --- | --- |
-| 1 | Iniciativa soma Versatilidade/Atleta Extraordinário sem duplicar meia proficiência e soma Alerta; vantagens situacionais seguem manuais |
-| 2 | Campos longos regenerados; zero componentes com parênteses truncados nas 361 entradas |
-| 3 | Armadura/escudo sem proficiência impedem lançar e usar ritual, com motivo no grimório; desvantagens em outras rolagens ainda manuais |
-| 15–16 | Prévia e rolador compartilham fórmula; truques, cura/modificador e aumento explícito de dados corrigidos nos casos testados |
-| 17 | Explosão Agonizante por feixe corrigida; Sorvedor de Vida/outros passivos ainda pendentes |
-| 18 | Nível racial fixo do tiefling corrigido, inclusive em leitura de ficha anterior sem o campo |
-| 19 | Dominar/Assinatura no seletor de origem, sem duplicar magias; preparo/usos/recuperação/aprimoramento corrigidos; troca das escolhas por tempo fora da evolução ainda sem fluxo próprio |
-| 20, 22–23, 27 | Absorção real/ordem dos PV, abjuração de outra classe e Constituição permanente corrigidos; PV manuais e notas preservados |
-| 21 | Requisito de 1 PV e preservação da forma no descanso curto corrigidos; duração, interrupções e limite de 24 h seguem manuais |
-| 24–25 | Chicote classificado como ataque, Raio Ardente sem Gêmea e Criar Chamas no talento; classificação integral e todas as exceções do catálogo ainda precisam de revisão |
-| 26 | Carga inclui moedas e informa isso no campo existente |
-| 6–8 | Morte/estabilidade, Dados de Vida e inspiração receberam controles na segunda etapa abaixo |
-| 5, 9 | Concentração e parte dos efeitos das condições receberam controles na terceira etapa abaixo |
-| 4, 10–14 | Outros passivos e fluxos condicionais continuam pendentes |
+Ao implementar um recorte, registre aqui regra/fonte, condição de elegibilidade,
+cálculo afetado, limite restante, teste e commit/PR. Atualize a linha da matriz
+correspondente e o changelog na mesma entrega. Só conclua uma etapa depois de
+conferir seus critérios; marcar um item parcial não conclui a família inteira.
+Use fichas sintéticas e preserve fórmulas manuais, dados, notas e escolhas antigas.
 
-Fórmulas personalizadas não recebem bônus automáticos adicionais. Feixes/raios
-mostram a quantidade e rolam dano de um acerto; o botão contextual repete o dano
-sem cobrar a magia. Regras de alvo/duração e as demais famílias de efeitos não
-passam a ser automaticamente resolvidas por essa correção de fórmulas.
+## Roteiro de implementação
 
-## Segunda etapa implementada: bloco de PV e inspiração — 19/10/2026
+A ordem começa pelos números que o jogador pode presumir já calculados. Cada
+etapa deve ser dividida em entregas pequenas; as listas abaixo não autorizam
+reescrever a ficha nem automatizar toda decisão da mesa.
 
-- Dados de Vida têm saldo e gasto por classe, um dado por vez, com origem física
-  ou virtual, CON, piso zero e mínimo de Resistente. A recuperação longa continua
-  com orçamento compartilhado e escolha explícita da classe; não duplica reservas.
-- Canção do Descanso é opcional quando ouvida: dado de quem realizou a atuação,
-  uma vez entre descansos e somente se o Dado de Vida recuperar PV. Em Forma
-  Selvagem, exige a CON da besta e cura sua reserva; não cura os PV humanos.
-- A 0 PV, sucessos/falhas, 1/20 natural, estabilidade, dano comum/crítico e dano
-  maciço são registrados/calculados nos PV existentes. Cura positiva limpa
-  contagens; morto não é revivido por cura/descanso. Retorno à vida tem registro
-  explícito após resolver a magia e a causa da morte na mesa.
-- Inspiração de 2014 usa uma reserva por ficha: preparar/cancelar vantagem na
-  próxima jogada elegível ou gastar na mesa. Não acumula, não rerrola depois do
-  resultado e não gasta em dano/arremesso rápido. Desvantagem cancela a vantagem.
-- Novos estados entram no documento/histórico da ficha, preservando notas.
-  Diálogos revalidam a ficha após confirmar; OFF exige face física e os dados
-  virtuais não alteram o pool. Sem mudança de SQL/RLS/RPC.
+| Etapa | Estado desta sequência | Trabalho e critério de conclusão |
+| --- | --- | --- |
+| R1 — bônus nos cálculos | **Implementada; entrega da PR #20** | Quatro passivos integrados com elegibilidade e preservação de valores manuais. Tipos variáveis/efeitos posteriores seguem em R5. |
+| R2 — rolagens e gastos condicionais | **Segundo recorte implementado; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo implementados na entrega da PR #20. Faltam demais rerrolagens/dados mínimos, -5/+10 e adicionais de talentos/estilos. Integrar escolha/gasto à jogada pertinente, sem duplicar reservas ou aplicar bônus a jogadas inelegíveis. |
+| R3 — condições, defesas e características | Planejada; já há cobertura parcial | Completar efeitos das condições, imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
+| R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
+| R5 — famílias de magias | Planejada; fórmulas auditadas já corrigidas | Revisar metadados e exceções do catálogo por família: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
+| R6 — equipamento e contexto de combate | Planejada | Munição/recarga/consumíveis, penalidades de equipamento, carga e ações condicionais. Definir antes qualquer acompanhamento opcional de turno; alvos, alcance, cobertura e viagem podem continuar na mesa, com essa limitação clara. |
 
-Limites: horas/atividade do descanso, Medicina CD 10, origem/tempo dos bônus,
-passagem de 1d4 horas para acordar, ressurreição e características que evitam
-cair a 0 PV dependem da mesa. Concentração e condições foram tratadas na etapa
-seguinte abaixo. Essa etapa não certifica todos os efeitos das classes/talentos.
+### Primeiro recorte: R1
 
-Verificação local: 299 testes Node, tipos/build, dez roteiros Chromium existentes
-e o novo roteiro de PV, este repetido no build final após ajuste de foco.
-Inclui gasto físico/virtual/OFF, classe/forma/CON, canção, reserva/recuperação,
-1/20/estabilidade/crítico/dano maciço, retorno à vida, inspiração, notas e
-desfazer/refazer preservados, fichas isoladas, recarga/offline e três temas/320 px/GG.
-Capturas de desktop/celular conferidas. A suíte daquela etapa incluía onze roteiros.
+- [x] **Ambidestro:** CA condicional no cálculo existente, somente com a condição
+  de equipamento confirmada; não transformar o registro do talento em bônus universal.
+- [x] **Observador:** bônus nos valores passivos de Percepção e Investigação,
+  distinguindo-os das rolagens ativas.
+- [x] **Sorvedor de Vida:** dano da arma do pacto elegível; selecionar a invocação
+  não deve aumentar todas as armas ou ser confundido com Explosão Agonizante.
+- [x] **Afinidade Elemental:** bônus de dano nas condições da linhagem/elemento,
+  separado da resistência já controlada e sem repetir o bônus por cada dado/raio.
 
-## Terceira etapa implementada: concentração e condições — 20/10/2026
+R1 exige prévia/total/rolagem coerentes, casos elegíveis e inelegíveis,
+multiclasse/legado e preservação de ajustes manuais. Quando houver nova escolha
+na interface, conferir cancelamento, foco/rolagem, mobile/GG e persistência
+sem rede. O recorte implementado e seus limites estão descritos abaixo.
 
-- Item 5: efeito único por ficha nos PV ou no grimório; troca confirmada antes
-  dos recursos, inclusive rituais/conjurações prolongadas. Reconjurar o mesmo
-  efeito começa outro registro. Duração e interrupções durante uma conjuração
-  prolongada continuam na mesa; o botão registra sua conclusão.
-- Cada fonte de dano gera uma resistência de CON, CD 10 ou metade do dano,
-  o maior. Proteção Arcana não conta como dano ao personagem; temporários e
-  besta contam. Fila ordenada persiste com a ficha e não resolve outro efeito.
-- Dado físico/virtual/OFF, proficiência/efeitos próprios, bônus total da forma,
-  bônus recebido, Conjurador de Guerra, exaustão e inspiração. Vantagem e
-  desvantagem se cancelam independentemente de sua quantidade. 1/20 natural
-  não é resultado automático. Conjuração Focada protege conjurações contra
-  quebra por dano, sem restringir a origem de classe da magia.
-- Item 9 parcialmente: 14 condições com marcação e ajuda; incapacitação
-  derivada, impedimentos de movimento e falhas automáticas de FOR/DES.
-  Incapacitação/morte encerram concentração. Inconsciência também encerra
-  Fúria, processa Frenesi uma vez, reverte Forma Selvagem e causa queda.
-  Paralisia isolada não encerra Fúria; cura não levanta automaticamente.
-- Descanso curto mantém concentração; sono no longo encerra, com opção para
-  exceções conscientes. Sem cronômetro real. Dados ilegíveis, notas, histórico,
-  seleção/foco e pool são preservados. Sem alteração de SQL/RLS/RPC.
+### Entrega R1 — 21/10/2026
 
-Limites daquela etapa: outras vantagens/desvantagens de condições, sentidos,
-alvos/origem, dano tipado, resistências/imunidades, prazos e economia de ações.
-Dano por tipo recebeu o controle da quarta etapa abaixo. Não se encerram ajustes de
-defesa recebidos ao terminar concentração própria: podem vir de outro conjurador.
-A ficha ainda não integra blocos de estatísticas das bestas. Esta etapa não
-certifica todos os efeitos das classes/talentos/magias.
+Implementação no commit `8bcab7dfcaa5750e512264a8ef43b8ebffcb6748`,
+em `src/rules/passives.ts`, integrada aos cálculos e controles existentes. Fonte: Livro do Jogador local, páginas físicas do PDF **166**
+(Ambidestro), **170–171** (Observador), **61** (Sorvedor de Vida) e **79**
+(Afinidade Elemental), conferidas no texto extraído e referências do motor.
 
-Verificação final: `npm run check`, 320 testes Node, tipos/build e os 12 roteiros
-Chromium aprovados, incluindo 32 cenários auditados. Novo roteiro cobre troca,
-cancelamento/revalidação sem gastos, rituais, fontes/CD/fila, proteção/temporários/
-forma, físico/virtual/OFF, talentos/inspiração, condições/Fúria/sono, queda de
-ficha antiga a 0 PV, nós/foco, callbacks obsoletos, notas/histórico por ficha,
-recarga/offline e três temas/320 px/GG. Capturas desktop/celular conferidas.
+- Ambidestro usa a confirmação de duas armas corpo a corpo empunhadas nos
+  ajustes de defesa; inventário não é equipamento em uso. Soma +1 às fórmulas
+  calculadas, sem escudo, inconsciência ou Forma Selvagem. Inconsciência encerra
+  a confirmação, e cura não a reativa; descanso curto a preserva. CA escrita/legada
+  permanece intacta. Regras de sacar/guardar e elegibilidade de duas armas
+  além desse bônus continuam na mesa/R6.
+- Percepção e Investigação mostram o passivo junto à perícia, nos dois layouts:
+  10 + bônus ativo + Observador. Ajustes ativos, inclusive zero, proficiência,
+  especialização e Versatilidade são preservados. O modo do dado não altera o
+  passivo de referência; vantagem/desvantagem por contexto continua na mesa.
+- Arma do pacto é um vínculo explícito no editor de arma, somente com Pacto da
+  Lâmina. Confirmar transfere o vínculo; cancelar não altera nenhuma arma.
+  Sorvedor exige bruxo 12 e a invocação, soma CAR (mínimo 1) como necrótico,
+  uma vez por acerto, sem duplicar o bônus no crítico. Armas manuais não recebem
+  acréscimos inferidos; uma arma importada não é identificada pelo nome.
+- Afinidade exige feiticeiro 6/linhagem dracônica e ancestral da classe
+  estruturado. Soma CAR uma vez à fórmula da conjuração de tipo fixo reconhecido,
+  depois de compor Gêmea; os outros raios não repetem o bônus. CAR negativo
+  permanece na fórmula, com piso zero no resultado do dano. Não cobra
+  feitiçaria nem exige ativar a resistência. Fórmulas próprias e tipos variáveis
+  (como Orbe Cromática) não recebem bônus inferido; efeitos posteriores e a
+  classificação integral das magias continuam em R5. A aplicação automática é
+  na rolagem inicial do lançamento, não um executor de todos os acertos/alvos.
 
-## Quarta etapa implementada: dano por tipo — 20/10/2026
+Regressões em `tests/passives.test.ts` e `tests/passives-browser.cjs`, incluindo
+casos inelegíveis/multiclasse, valores manuais, crítico, cancelamento, vínculo
+único, raios sem gasto repetido, Só Pool, recarga offline/notas e layouts/temas
+em 320px/GG. Verificações executadas: **395 testes Node** e tipos/build
+aprovados; os **25 roteiros anteriores** passaram na rodada ampla. Após os
+últimos ajustes de inconsciência, foco e piso de dano, foram reexecutados no
+build final **R1, PV, concentração, regras, crítico/adicionais e ataques mágicos**,
+todos aprovados, incluindo CAR negativo com dano mínimo zero. A suíte completa
+não foi repetida localmente após esses ajustes; é exigida na CI da PR. Capturas
+desktop/celular conferidas; diff e 62 links/âncoras locais válidos.
+SQL/RLS/RPC não foram alterados; teste de banco não repetido localmente.
 
-O controle existente de dano tem modo por tipo, com origem declarada, até 13
-tipos distintos de uma única ocorrência e prévia. Imunidade impede dano,
-redução adicional tem piso zero, resistência divide uma vez e vulnerabilidade
-dobra depois do arredondamento. Ajustes da mesa substituem a defesa ou acrescentam
-redução/vulnerabilidade somente naquela ocorrência, sem mudar benefícios salvos.
+A [PR #17](https://github.com/mhaetinger/D-D/pull/17) foi integrada em `develop`
+em `445939d`, após autorização do responsável e aprovação da CI completa no
+[workflow 39675036022](https://github.com/mhaetinger/D-D/actions/runs/39675036022):
+395 testes Node, tipos/build, os 26 roteiros Chromium, banco/RLS/Storage
+descartável e auditoria das dependências de produção. Isso complementa as
+execuções locais acima; não significa publicação ou cobertura integral do livro.
 
-Em 2014, a Proteção Arcana é externa: recebe dano antes das defesas do personagem.
-Em dano misto, a mesa escolhe a ordem dos tipos, visível na prévia e alterável
-pelas setas. O total recebido usa temporários/PV e gera uma única ocorrência
-de concentração/morte; dano impedido integralmente não gera teste ou falhas.
-Crítico deve estar incluído nos dados informados; a marca só muda as falhas a 0.
+### Primeiro recorte de R2 — 21/10/2026
 
-| Fonte reconhecida no modo por tipo | Condição e limite verificados |
-| --- | --- |
-| Resistência Infernal, Resiliência Anã e ancestral racial | IDs de raça estruturados; fogo de tiefling, veneno de anão e elemento escolhido do draconato. Não deduz de texto livre |
-| Fúria / Espírito do Urso | Fúria ativa; básica resiste aos três tipos físicos sem armadura pesada. Urso do nível 3 resiste a tudo exceto psíquico pelo texto próprio, sem confundir Aspecto do nível 6 |
-| Proteção contra Lâminas | Efeito marcado e origem ataque de arma, mágico ou não; só concussão/cortante/perfurante |
-| Petrificado | Condição marcada: resistência geral e imunidade ao dano de veneno. Não cura nem apaga veneno/doença registrados |
-| Pureza Corporal / Proteção Natural | Monge 10 ou druida da Terra 10: imunidade ao dano de veneno. Condições/doenças não ganham executor geral |
-| Corpo Vazio | Monge 18 e estado ativo: resistência exceto energia. Sem novo gasto automático de Chi |
-| Escudo de Pensamentos | Bruxo do Grande Antigo 10: resistência a psíquico; refletir dano ao causador é manual |
-| Resistência Demoníaca | Bruxo do Corruptor 10, tipo registrado na evolução. Arma mágica/de prata ignora só essa fonte. Troca de tipo após descanso continua manual |
-| Resistência à Magia | Mago abjurador 14, dano de magia; arma mágica não equivale a magia |
-| Pedra do Transmutador | Mago transmutador 6, pedra ativa e benefício de resistência selecionado no controle existente |
-| Afinidade Elemental | Feiticeiro dracônico 6, estado ativo e elemento do ancestral da classe; independente do ancestral racial |
+Implementação `ba4a182`, ajustada até `7dc30eb` e integrada em `develop`
+`19e4ceb` pela [PR #18](https://github.com/mhaetinger/D-D/pull/18), após
+autorização e [CI completa aprovada](https://github.com/mhaetinger/D-D/actions/runs/39687594114).
+Não há publicação deste recorte.
 
-Fontes: PDF físico 197, capítulos de raça/classe e apêndice das condições;
-[regras básicas de 2014](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/combat#DamageResistanceandVulnerability)
-e [Sage Advice Compendium de 2014](https://www.dndbeyond.com/sources/dnd/sac/sage-advice-compendium),
-interação da proteção externa e imunidade de Pureza Corporal. O compêndio de
-2024 difere na ordem da proteção e não deve reger esta ficha.
+Fonte: Livro do Jogador local, páginas físicas **27** (Sortudo racial), **90**
+(Talento Confiável) e **174** (um único dado rerrolado com vantagem/desvantagem).
+Implementação em `src/rules/dice-roll.ts`, integrada ao rolador existente.
+O [Sage Advice v2.4/2020 para as regras de 2014](https://media.wizards.com/2019/dnd/downloads/SA-Compendium.pdf)
+também foi conferido: meia proficiência de Versatilidade/Atleta não habilita
+Talento Confiável. Não usar a revisão de 2024 para essa combinação.
 
-Limites: Forma Selvagem/estatísticas da besta e excesso entre formas continuam
-na mesa; o modo por tipo é bloqueado durante a forma. Modo já resolvido/atalhos
-mantêm o contrato anterior. Com proteção, a mesa resolve absorção antes das
-defesas e informa proteção absorvida + dano final às outras reservas.
-Maestria em Armadura Pesada, outras reduções de itens/magias, reações/Evasão,
-resultados de testes, alvos e gatilhos para evitar 0 PV não são automatizados
-por esta etapa. Defesas desconhecidas/importadas sem escolhas estruturadas
-exigem os ajustes da mesa. Não certifica todas as resistências/classes/magias.
+- [x] **Talento Confiável nas perícias:** exige ladino 11 e proficiência real
+  naquela perícia; trata o d20 escolhido de 9 ou menos como 10 antes de somar
+  bônus e outros dados. Conserva especialização e ajustes escritos, inclusive
+  zero/negativos. Não infere proficiência pelo valor do bônus nem pelo nome.
+  Não se aplica a ataques, resistências, testes simples de atributo, iniciativa
+  ou à meia proficiência de Versatilidade/Atleta. Testes com ferramentas seguem
+  na mesa, pois não existe uma ação de rolagem própria para eles nesta ficha.
+- [x] **Sortudo racial contextual:** exige o vínculo de uma das duas sub-raças
+  halfling. Após um 1 em ataque, perícia, atributo, iniciativa ou resistência
+  em Auto Ficha, oferece repetir um único dado na bandeja. Com vantagem/desvantagem,
+  mantém o outro dado e o modo original; dois 1 ainda permitem só uma repetição.
+  O novo resultado é obrigatório, mesmo outro 1. Não gasta inspiração novamente,
+  não rola outros dados e atualiza o crítico preparado da arma.
+- [x] **Resistências com consequências imediatas:** concentração, morte e Fúria
+  Implacável permitem optar por repetir um 1 na confirmação do dado virtual,
+  antes de rolar/aplicar consequências. Dado físico registra a face final
+  resolvida na mesa; cancelar ou usar OFF não lança dados virtuais.
+- [x] **Contexto preservado:** opção transitória termina com outra rolagem ou
+  troca de ficha/espaço; alteração da ficha invalida o resultado anterior.
+  Dado rápido e pool livre não inferem regras de uma jogada. O desenho, auras e
+  gestos do dado permanecem nos módulos existentes.
 
-Verificação final: `npm run check`, com 342 testes Node, tipos/build e os 13
-roteiros Chromium aprovados, incluindo 32 cenários auditados. Roteiro novo:
-fontes/defesas/prévia, resistência/vulnerabilidade/imunidade, mistura/ordem/
-proteção/temporários, concentração/morte uma vez, ajustes/limites, nós/foco,
-modo resolvido/forma, notas/históricos por ficha, recarga/offline e três temas/
-320 px/GG. Capturas desktop/celular conferidas; diff sem whitespace. Roteiros
-anteriores de PV/concentração usam seletores específicos após as novas abas.
+O primeiro recorte não incluiu o **talento Sortudo**, descrito no segundo
+recorte abaixo. A etapa R2 continua parcial. Resultado/acerto e o momento de
+usar a opção antes de resolver a jogada continuam a cargo da mesa.
 
-## Quinta etapa implementada: reduções, Esquiva/Evasão e queda — 20/10/2026
+Regressões: `tests/dice-roll.test.ts` e `tests/conditional-rolls-browser.cjs`.
+Verificações finais: **404 testes Node**, tipos/build e os **27 roteiros
+Chromium completos** aprovados no mesmo artefato, incluindo R1, desenho/gestos
+do dado, PV, concentração, ataques e importação. O novo roteiro cobre opção
+única/cancelamento/estado obsoleto, crítico, inspiração, resistências com
+consequências, dois layouts, três temas, 320px/GG, toque e recarga offline sob
+`/D-D/` com notas preservadas. Capturas desktop/celular conferidas; 62 links
+locais válidos e auditoria de produção sem vulnerabilidades. Sem SQL/RLS/RPC;
+banco não repetido localmente, permanecendo exigido na CI.
 
-- Maestria em Armadura Pesada: vestindo armadura pesada, reduz até 3 contra
-  dano físico de um ataque não mágico, conforme a errata de 2014. Não protege
-  de queda, fogo ou ataque mágico. Em tipos físicos mistos, a convenção da
-  ficha é uma reserva de 3 por ataque, alocada pela ordem declarada das linhas.
-- Esquiva Sobrenatural: ladino 5 ou escolha do Caçador 15; um ataque, inclusive
-  de magia, visão e reação disponível confirmadas pelo jogador. Incapacitação
-  e cegueira impedem a escolha automática. A mesa declara a ordem entre a
-  metade e as reduções fixas; resistência/vulnerabilidade vêm depois.
-- DES para metade: resultado informado pela mesa, dano bruto antes do teste.
-  Evasão do ladino/monge 7 ou escolha do Caçador 15 zera no sucesso/divide na
-  falha, sem ação/reação. Falhas automáticas das condições são respeitadas.
-  Resultado do teste precede a proteção; cada tipo arredonda separadamente.
-- Resistência Implacável do meio-orc e Fúria Implacável do bárbaro 11 em Fúria:
-  escolha antes da queda, com 1 PV no sucesso, sem inconsciência transitória.
-  Uso racial recupera no longo; tentativas da Fúria elevam CD em 5 até curto/
-  longo. Teste físico/virtual, bônus, modo, exaustão e inspiração; não recebe
-  Conjurador de Guerra nem sucesso/falha automáticos por 1/20. Alternativa
-  racial após falha é opcional. Dano maciço, morte prévia e forma não aceitam
-  essas escolhas. Atalhos de PV abrem a decisão sem descontar antes.
-- Usa os campos de dano/PV existentes; opções transitórias não viram estados
-  permanentes. Cancelamento/alteração concorrente preservam o documento; uso,
-  dano e histórico entram juntos. Sem SQL/RLS/RPC ou dados reais alterados.
+### Segundo recorte de R2: talento Sortudo — 22/10/2026
 
-Fontes adicionais: [errata do PHB de 2014](https://media.wizards.com/2020/dnd/downloads/PH-Errata.pdf),
-[Sage Advice de 2014](https://media.wizards.com/2020/dnd/downloads/SA-Compendium.pdf)
-e [SRD 5.1](https://media.dndbeyond.com/compendium-images/srd/5.1/SRD-OGL_V5.1.pdf),
-além do exemplar local. Outros testes/reações, Proteção contra a Morte, outras
-reduções de itens/magias e efeitos que matam sem dano continuam manuais.
-Não há relógio de turnos ou estatísticas completas de Forma Selvagem.
+Implementação `c304e83`, em revisão na
+[PR #19](https://github.com/mhaetinger/D-D/pull/19) para `develop`.
+Conferir a CI completa antes de integrar; sem publicação deste recorte.
 
-Verificação: `npm run check`, 351 testes Node, tipos/build e 13 roteiros Chromium
-aprovados, incluindo 32 cenários auditados. Regressões novas focam nas ordens e
-elegibilidade, usos/recuperação, queda/concentração/Frenesi, cancelamento e
-alteração concorrente, desfazer e dados físico/virtual. Layouts/temas/320 px/GG
-e capturas desktop/celular conferidos. Sem testes unitários para cosmética simples.
+Fonte: Livro do Jogador local, página física **171**, e
+[Sage Advice v2.4/2020, página 8](https://media.wizards.com/2019/dnd/downloads/SA-Compendium.pdf#page=8).
+Na regra de 2014, o talento permite escolher qualquer um dos d20, inclusive
+o que seria descartado pela desvantagem; o modo original continua valendo.
+Não usa os pontos por proficiência nem os efeitos da versão de 2024.
 
-## Sexta etapa implementada: crítico e adicionais de arma — 20/10/2026
+- [x] **Reserva única:** `feat:lucky`, três pontos por descanso longo,
+  independente de classe/nível e do traço racial homônimo. Usa o histórico,
+  salvamento e controles de recurso existentes, junto à escolha do talento.
+  Descanso curto não recupera. Máximos adaptados explicitamente permanecem
+  editáveis; registros ilegíveis não viram pontos novos nem são apagados.
+- [x] **Jogadas próprias:** ataque, perícia, atributo, iniciativa e resistência
+  em Auto Ficha oferecem o uso após o lançamento inicial. Confirmar gasta um
+  ponto e lança apenas um d20 adicional. Permite escolher inclusive a face
+  original; não duplica bônus, outros dados, inspiração ou custo. Crítico
+  preparado da arma e mínimo do ladino acompanham a face escolhida.
+- [x] **Concentração, morte e Fúria Implacável:** escolha antes de rolar,
+  decisão após ver o d20 ou resolução sem o talento. Duração/fila/PV/dano não
+  são aplicados antes da decisão. Cancelar após a rolagem mantém o teste
+  pendente na sessão; retomá-lo usa os mesmos dados e não cobra novamente.
+  Inspiração preparada é consumida no lançamento inicial, mesmo se a escolha
+  for interrompida. Mudanças na ficha invalidam a aplicação antiga.
+- [x] **Ataque contra o personagem e mesa:** controle junto ao talento para
+  informar a face já escolhida do atacante e escolher entre ela e seu d20
+  adicional virtual/físico. Usa os bônus do atacante na mesa; não calcula
+  acerto, não lança a sua arma e não aplica dano/PV automaticamente. OFF
+  mantém o registro físico; **Usar na mesa** registra somente o ponto.
+- [x] **Interações e apresentação:** uso declarado por outra criatura cancela
+  os dados adicionais, preservando o gasto. Sortudo racial pode repetir um 1
+  do conjunto, inclusive do dado adicional, uma única vez. Botões das faces
+  conservam nós, foco e posição ao selecionar. Cor, texto, símbolo/contorno e
+  `aria-pressed` distinguem a escolha; desenho/auras/gestos do dado continuam
+  nos módulos anteriores. D20 rápido, pool livre e dano não gastam por inferência.
 
-- Uma composição por acerto, com crítico preparado na arma e ação de adicionais, sem outro
-  cadastro. Crítico duplica dados da arma/Furtivo/Colossos/Destruição/Aprimorada,
-  preserva bônus fixos e acrescenta os dados individuais de Crítico Brutal e
-  Ataques Selvagens uma vez. Tipos/parcelas aparecem na prévia.
-- Ataque Furtivo exige nível próprio e arma adequada; Colossos exige Caçador
-  e escolha do nível 3. A mesa confirma vantagem/inimigo elegível, alvo ferido
-  e uso disponível neste turno. Não cria um contador por rodada incorreto.
-- Destruição Divina exige paladino 2 e ataque corpo a corpo com arma; lê os
-  espaços existentes de Conjuração/Pacto. Teto 5d8 mais 1d8 do alvo pertinente,
-  antes de duplicar no crítico. Gasta um único espaço, sem conjurar, acionar
-  proteção, exigir ação bônus ou encerrar concentração/Fúria.
-- Confirma resultado físico ou rola virtual sem alterar pool/inspiração. Prévia
-  e cancelamento não gastam; mudança de ficha/arma/documento invalida envio.
-  Gasto e resultado entram no histórico individual e podem ser desfeitos juntos.
-  Analisador de dados extraído sem mudar contrato/limites. Sem SQL ou dados reais.
+O controle cobre uma aplicação do talento por jogada. O anúncio dos usos de
+outras criaturas e o momento anterior à resolução continuam na mesa; não há
+servidor de turnos/alvos. As faces pendentes são transitórias desta página:
+recarregar ou trocar de instalação não restaura o conjunto de d20; o gasto já
+salvo permanece na ficha. Isso não é restauração de uma rolagem por backup.
 
-Ajuste posterior de uso: marcar crítico só prepara a fórmula no botão de dano;
-o clique é que rola em Auto Ficha. OFF/Só Pool abrem o registro do total já
-rolado. Não há checkbox duplicada no diálogo. Confirmar limpa a marca e cancelar
-mantém a preparação, sem persistir esse estado efêmero. Ajuda fica acima dos
-diálogos; o registro físico não rola nem duplica o total recebido.
+Regressões: `tests/lucky.test.ts` e `tests/lucky-browser.cjs`. Conferidos
+**417 testes Node**, tipos/build e os **28 roteiros Chromium** locais, incluindo
+decisão tardia, custo/cancelamento/retomada, modificações concorrentes,
+vantagem/desvantagem, críticos, inspiração, racial/mínimo, dados físicos/OFF,
+dois layouts/três temas/320px/GG/toque e pontos/notas offline sob `/D-D/`.
+Conferidos 62 links/âncoras locais e auditoria de produção sem vulnerabilidades.
+CI completa e banco descartável são exigidos antes da integração. Banco não
+repetido localmente; não houve SQL/RLS/RPC nem validação entre dispositivos reais.
 
-Fonte: PHB local, [críticos de 2014](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/combat#CriticalHits)
-e [Sage Advice de 2014](https://www.dndbeyond.com/sources/dnd/sac/sage-advice-compendium).
-O botão comum de dano e fórmulas manuais são preservados. Armas manuais só
-duplicam os dados explicitamente informados, sem bônus inferidos. Forma Selvagem,
-outros adicionais/passivos, estilos de rerrolagem, alvos/acerto/CA, duração,
-munição e limite de ataques por ação continuam manuais. Essa etapa não é um
-executor geral de combate nem certifica todos os talentos.
+Continuam pendentes em R2: Atacante Bestial, Combate com Armas Grandes,
+Adepto Elemental, Atirador Aguçado/Mestre de Armas Grandes (-5/+10) e
+adicionais/manobras dos demais talentos/estilos. **R2 não está concluída.**
 
-Verificação: `npm run check`, 360 testes Node, tipos/build e 14 roteiros Chromium
-aprovados, incluindo 32 cenários auditados. Regressões novas de composição,
-elegibilidade/limites, recursos/gasto único, cancelamento/concorrência, desfazer,
-dados físico/virtual/OFF, pool/inspiração e continuidade offline. Após preservar
-a fórmula personalizada `0-3`, Node/build/roteiro de ataques passaram novamente.
-Dois layouts, três temas, 320 px/GG e capturas conferidos; diff limpo.
+## Progresso já entregue
 
-## Compatibilidade de fichas importadas — 20/10/2026
+Correções de consulta/interface da PR #19, na entrega de 22/10 (PR #20): Ancestral Feérico
+usa o próprio parágrafo racial e página; o moderno distribui origens/níveis
+conforme a largura do quadro; revisão de importação começa pelos resumos e
+preserva ataque manual sem bônus como não informado. A apresentação foi
+reorganizada com identificação/classes distintas, dicas de treino/reservas,
+narrativa aberta e editor de armas compartilhado com a ficha. Essas mudanças
+facilitam conferir a cópia. As ajudas passam a se substituir com atraso de um
+segundo por mouse; a descrição da magia fica no livrinho, com consulta por
+clique/teclado/toque. Nenhuma dessas correções completa um efeito de classe ou
+origem. A revisão também oferece antecedente/tendência por catálogo ou texto,
+idiomas/armas/ferramentas por opções e moedas editáveis; truques e círculos têm
+grupos por classe, sem misturar sua apresentação ou ordenar o array salvo.
+As opções de treino usam o cálculo já existente; escolher um antecedente não
+refaz os treinos importados. As dez ancestralidades de draconato foram cruzadas
+com a tabela de 2014; a revisão preserva escolhas racial/feiticeiro separadas e
+mostra elemento, área, teste, CD e dano do sopro para consulta. Não resolve o
+sopro nem a aplicação automática de outras vantagens/imunidades; R3–R5
+mantêm seus limites e pendências abaixo.
 
-Uma conferência pontual de dois backups pessoais legados encontrou fichas
-estruturalmente válidas, mas com vínculos mecânicos incompletos. Os arquivos,
-conteúdo pessoal e cópias de trabalho continuam fora do repositório. Essa
-conferência não representa o estado atual de uma conta ou do navegador do jogador.
+As entregas funcionais de 19 a 21/10 estão resumidas aqui e antecedem a nova
+sequência R1–R6. Seus contratos completos estão na arquitetura. Os casos
+corrigidos não devem voltar à lista de ausências.
 
-- Nome de raça preenchido não garante `rules.raceId`: defesas e gatilhos que
-  dependem do identificador podem ficar indisponíveis.
-- Um `subclassId` legado não canônico pode impedir recursos específicos mesmo
-  quando a descrição da subclasse está presente. A função `subclass` prioriza
-  o identificador preenchido; não o corrige pela descrição.
-- Magias reconhecidas pelo nome podem continuar sem `bookId`, sem preparação
-  e sem a origem adicional necessária. Reconhecer o catálogo não confirma
-  elegibilidade por juramento/talento nem seleciona magias preparadas.
-- Arma genérica ou personalizada pode conservar valores manuais. Isso é um
-  contrato de preservação; não é prova de vínculo com os cálculos automáticos.
-- Textos importados de características podem divergir dos recursos calculados.
-  O texto deve ser preservado, com a divergência apontada para revisão.
+| Entrega | Cobertura existente | Limite ainda relevante |
+| --- | --- | --- |
+| Fórmulas e cálculos auditados | Prévia/rolador unificados nos casos de truques, cura, aprimoramento, Discípulo da Vida e Explosão Agonizante; nível racial do tiefling; Dominar/Assinatura; iniciativa com Versatilidade/Atleta/Alerta; componentes longos regenerados | Outros passivos; classificação integral do catálogo; troca temporal de escolhas do mago fora da evolução; contexto de vantagem na iniciativa |
+| PV e inspiração | Ordem de Proteção Arcana/temporários/besta/PV e absorção real; CON permanente; Dados de Vida por classe e Canção do Descanso opcional; morte/estabilidade; inspiração de 2014 | Ressurreição, passagem do tempo, requisitos/limites temporais de descanso e outros gatilhos dependem da mesa |
+| Concentração e condições | Registro único nas duas abas, substituição confirmada, fila de testes por dano, físico/virtual, incapacidade e encerramentos; 14 condições, movimento e falhas de FOR/DES pertinentes | Outros modos de rolagem, sentidos, fontes/alvos e imunidades; sem relógio de duração/turnos |
+| Dano por tipo | Uma ocorrência com tipos/origem, prévia, proteção externa, imunidade/redução/resistência/vulnerabilidade; fontes raciais, Fúria e outras fontes explicitamente verificadas | Não abrange todas as fontes; formas usam o modo já resolvido; ajustes da mesa não viram bônus permanentes |
+| Defesas e prevenção de queda | Maestria em Armadura Pesada, Esquiva Sobrenatural, Evasão, Resistência Implacável e Fúria Implacável/CD crescente | Proteção contra a Morte, outras reações/reduções e morte sem dano; reação/visibilidade/contexto são confirmados pela mesa |
+| Críticos e adicionais de arma | Crítico, Ataque Furtivo, Colossos, Destruição com gasto único de Conjuração/Pacto, Aprimorada, Crítico Brutal e Ataques Selvagens; modos físico/virtual e histórico | Outros adicionais, rerrolagens e ataques da forma; alvo/acerto, uso no turno e limite de ataques permanecem manuais |
+| Importação e evolução | Revisão por setores de PDF preenchível/JSON/ficha atual; cópias, vínculos propostos, preparação/origem, valores escritos preservados e avisos de campos manuais; consulta de magia por ID do catálogo e prévia ao trocar raça/antecedente | Troca de origem mantém totais/treinos manuais mediante aceite e aposenta escolhas antigas; não reconstrói automaticamente bônus/escolhas raciais. Não reconstrói integralmente talentos/equipamento/características em prosa; OCR/PDF achatado ausentes; ciclo com PDFs reais segue em V1 da retomada |
 
-**Contrato adotado para a importação:** auditoria de vínculos na importação e nas fichas legadas,
-com identificação da origem real (classe, raça, talento ou outra característica).
-Separar vínculos confirmados, aliases conhecidos e decisões ausentes/ambíguas.
-Exibir problemas e permitir revisão sem bloquear a leitura ou sobrescrever
-ajustes pessoais. Não escolher juramento, raça com sub-raça ambígua, arma ou
-preparação em nome do jogador. Migração proposta deve preservar originais e
-ser verificada com exemplos sintéticos, incluindo persistência após recarga,
-evolução, recursos raciais, subclasses, preparação e magias de origem adicional.
-Também distinguir visualmente rituais de talento da classe usada para agrupá-los.
-
-Verificações executadas: validação estrutural e chamadas ao motor em cópias em
-memória; abertura dos dois backups em contextos Chromium isolados sob `/D-D/`,
-com chamadas externas bloqueadas. Conferidos cartões de magias, vínculo de arma,
-variação do dano em Fúria e disponibilidade dos recursos/defesas pertinentes.
-Nenhum dado foi alterado nos arquivos pessoais ou em contas. Essa conferência
-inicial foi somente diagnóstica, sem SQL ou migração.
-
-**Entrega seguinte implementada:** `src/import/` lê PDFs preenchíveis, inclusive
-widgets recuperáveis por página em formulários comuns 2014/2024, e abre revisão
-também para backups JSON e ficha atual. Vínculos são propostos em cópia; origem
-ambígua, atributos ausentes e escolhas necessárias não viram valores definitivos
-sem revisão. Armas, CA e bônus escritos podem permanecer manuais. Textos extras
-podem ser guardados nas notas pessoais. A importação gera IDs novos pelo contrato
-existente, com cancelamento, recuperação e troca de conta preservados.
-O original PDF e os retratos não são enviados pelo importador. Fotos/OCR/PDF
-achatado não são suportados. Escolhas de talentos, equipamento e características
-em prosa continuam na revisão manual; não se certifica reconstrução integral.
-
-Verificação da entrega: 368 testes Node, tipos/build e roteiros Chromium de
-importação, aplicação, autenticação e sincronização aprovados; autenticação em
-`/` e `/D-D/`, SDK real com HTTP simulado. A importação foi conferida nas duas
-bases de URL e offline, com falha de quota/conta/cancelamento, texto não executável,
-origem ambígua, campos ausentes e três temas/320px/GG. Dois PDFs pessoais foram
-lidos na tela nova e a revisão cancelada, sem importar ou alterar dados reais.
+Armadura/escudo sem proficiência já impedem conjuração/ritual com motivo, mas
+outras desvantagens ainda não estão integralmente integradas. Carga já inclui
+moedas. Descanso longo exige 1 PV no início e o curto preserva a forma; duração,
+interrupções e limite de um longo por 24 h seguem manuais. Não reabrir esses
+casos corrigidos como se toda a funcionalidade estivesse ausente.
 
 ## Fonte, método e limites
 
@@ -299,7 +269,7 @@ lidos na tela nova e a revisão cancelada, sem importar ou alterar dados reais.
 - Revisão por capítulos e apêndices: índice/texto integral extraído com
   `pdftotext -layout`, regras relevantes cruzadas com criação/evolução,
   `src/app/sheet.js`, `src/rules/` e os catálogos de `public/rules/`.
-- As páginas abaixo são **as páginas físicas do PDF**, usadas pelo leitor em
+- As referências são **as páginas físicas do PDF**, usadas pelo leitor em
   `book.html#page=N`. A numeração impressa diverge e não tem um deslocamento único.
 - Foi conferida a presença de 12 classes/41 subclasses, 15 opções raciais,
   13 antecedentes, 42 talentos, 37 armas, 361 magias e 958 referências. Nas 361
@@ -327,7 +297,7 @@ lidos na tela nova e a revisão cancelada, sem importar ou alterar dados reais.
 | Cap. 6, personalização, 164–171 | Pré-requisitos/escolhas de multiclasse/talentos, espaços combinados e Pacto separado | Vários talentos só registram a escolha; o efeito numérico não está aplicado |
 | Cap. 7, habilidades, 174–180 | Modificadores, proficiência, especialização, perícias, resistências, modo vantagem/desvantagem e bônus auditados de iniciativa | Testes passivos/condicionais, vantagem na iniciativa e rolagens mínimas ainda incompletos |
 | Cap. 8, aventuras, 182–188 | Deslocamento, inventário, descansos, exaustão e gasto/recuperação de Dados de Vida por classe | Tempo de descanso, viagem, luz, sufocamento, alimento/água e atividades entre aventuras são manuais |
-| Cap. 9, combate, 189–198 | Ataques/dano, CA, PV, reservas, morte/estabilidade e dano por tipo com fontes verificadas, prévia e ajuste da mesa | Outras defesas/reações, crítico completo dos ataques, cobertura, alvos e exceções de classe ainda exigem controle manual |
+| Cap. 9, combate, 189–198 | Ataques/dano, CA, PV, reservas, morte/estabilidade e dano por tipo com fontes verificadas, prévia e ajuste da mesa | Outras defesas/reações, adicionais de ataque, cobertura, alvos e exceções de classe ainda exigem controle manual |
 | Cap. 10, conjuração, 201–205 | Preparação, rituais elegíveis, espaços por classe/Pacto, CDs, custos de feitiçaria e concentração com fila por dano | Componentes, duração, interrupções durante conjuração prolongada e economia de ações seguem manuais |
 | Cap. 11, magias, 207–288 | 361 descrições e metadados, campos longos corrigidos, fórmulas auditadas unificadas e escalonamento | Não há executor de todos os efeitos das 361 magias; consultar limitações por família |
 | Apêndice A, condições, 289–291 | Exaustão e 14 condições com ajuda; incapacitação, movimento, falhas de FOR/DES e defesas de dano da petrificação no modo por tipo | Outros modos de rolagem, sentidos, alvos e imunidade a condições ainda seguem manuais |
@@ -337,233 +307,6 @@ lidos na tela nova e a revisão cancelada, sem importar ou alterar dados reais.
 | Apêndice E, leituras, 311 | Consulta no livro | Bibliografia; sem automação necessária |
 | Divisórias, páginas sem conteúdo mecânico e formulários finais, demais páginas | Exibidos no leitor | Não representam regras adicionais a automatizar |
 
-## Problemas confirmados e ordem de correção
-
-### P1 — cálculos ou resumos que podem induzir erro
-
-1. **Iniciativa sem todos os bônus.** `renderCombatBlock` usa apenas o modificador
-   de DES. Exemplo: bardo 2, DES 14 e proficiência +2 mostra/rola +2; Versatilidade
-   exige +3. O +5 de **Alerta** também não entra. Revisar **Atleta Extraordinário**
-   do Campeão sem somar duas vezes a meia proficiência. Fontes: bardo 50–54,
-   guerreiro 82–87, talentos 164–171 e iniciativa 189. Implementar um cálculo
-   compartilhado para exibição e rolagem, com teste dessas combinações.
-2. **Componentes cortados no resumo de magias.** Em 139 das 361 entradas, o campo
-   `components` abre parênteses e não fecha. Ex.: Amizade, Bordão Místico, Luz.
-   O extrator usa somente a primeira linha após `Componentes:`; o corpo completo
-   permanece em `text`. Isso pode esconder custos e consumos. Corrigir
-   `scripts/extract-phb.py`, regenerar os catálogos e conferir materiais com
-   preço/consumo e campos em várias linhas. **Não editar o catálogo à mão.**
-3. **Armadura sem proficiência.** A ficha calcula a CA, mas `canCastNormally` não
-   verifica a proibição de conjurar por armadura sem proficiência. Também não
-   integra todas as desvantagens em FOR/DES. Fonte: PDF 145–147. Deve informar a
-   causa, considerar escudo, raça/classe/talento e preservar opções adaptadas.
-4. **Passivos de talentos incompletos.** Exemplos confirmados: Alerta não soma
-   iniciativa; Ambidestro não soma sua CA condicional; Observador não acrescenta
-   o bônus aos testes passivos. Fonte: PDF 164–171. Não resolver isso com campos
-   duplicados de “bônus total”: aplicar no cálculo existente com condições claras.
-
-### P1 — controles básicos que ainda faltam
-
-5. **Concentração.** O cadastro identifica concentração, mas não há estado único
-   da magia ativa, substituição ao lançar outra, teste de CON ao sofrer dano
-   (CD 10 ou metade do dano, o maior) nem encerramento integrado por incapacidade
-   ou Fúria. Fonte: PDF 203–204 e descrição de Fúria. Integrar ao grimório e ao
-   fluxo atual de dano, mantendo decisão explícita quando a mesa usar dado físico.
-6. **Testes contra a morte.** Não há sucessos/falhas, estabilidade, efeitos de
-   1/20 natural, dano a 0 PV ou morte por dano maciço. Hoje os PV apenas param em
-   zero. Fonte: PDF 197–198. Usar o bloco de PV existente; cura deve encerrar o
-   estado correto e não reviver automaticamente um personagem morto.
-7. **Gastar Dados de Vida.** `hitDiceUsed` existe e a recuperação longa permite
-   escolher a classe, mas a ficha só mostra os dados e não oferece seu gasto no
-   descanso curto. Fonte: PDF 187–188. Permitir escolher classe, gastar um dado,
-   somar CON e ajustar PV sem consumir dados inexistentes; efeitos como Canção
-   do Descanso precisam de decisão explícita. Nesta entrega foi corrigida a dica
-   antiga que anunciava recuperação integral obrigatória: ela é uma opção da mesa.
-8. **Inspiração de 2014.** Existe o campo `heroicInspiration` no modelo, sem
-   controle funcional correspondente na ficha. Fonte: PDF 126. Criar marcação e
-   gasto para vantagem em uma jogada; não confundir com Inspiração de Bardo nem
-   aplicar o rerrolar da edição 2024 ao layout moderno.
-9. **Condições além da exaustão.** Envenenado, caído, agarrado, impedido,
-   paralisado, cego, surdo, amedrontado, enfeitiçado, invisível, incapacitado,
-   inconsciente, atordoado e petrificado estão consultáveis, sem um registro
-   integrado de estado e aplicação. Fonte: PDF 289–291. Exaustão já controla
-   deslocamento/PV, mas a desvantagem exibida também precisa ser considerada
-   explicitamente nas rolagens. Não somar vantagens múltiplas: presença de ambas
-   as condições cancela vantagem/desvantagem conforme o capítulo 7.
-
-### P2 — dano, ações e efeitos condicionais
-
-10. **Resistências, vulnerabilidades e imunidades.** A marca de Proteção contra
-    Lâminas registra o efeito, mas `applyDamage` recebe apenas uma quantidade,
-    sem tipo/origem. Fúria, traços raciais e outras resistências não reduzem esse
-    dano automaticamente. Fonte: PDF 197. Pedir tipo/origem quando necessário,
-    sem aplicar duas vezes uma redução já calculada pelo jogador.
-11. **Críticos e ataques extras.** A sexta etapa compõe crítico, Furtivo,
-    Destruição e os adicionais enumerados acima, com escolha contextual e gasto
-    compartilhado. Acerto/condições do alvo, demais adicionais e limite de
-    ataques por ação continuam manuais. Fontes: PDF 193–198 e características
-    de classe. O clique no dano comum preserva seu comportamento anterior.
-12. **Ações/reações, cobertura e alcance.** Não existe relógio de turnos nem estado
-    dos alvos. Ataque de oportunidade, combate com duas armas, agarrar/empurrar,
-    combate montado/submerso, surpresa e cobertura são resolvidos na mesa.
-    Conjuração com ação bônus/reação depende disso. Fontes: PDF 189–198, 201–204.
-    Antes de bloquear ações, definir um modo opcional de acompanhamento de turno.
-13. **Equipamento e viagem.** Munição, recarga, armas arremessadas/consumíveis,
-    tempo de vestir/tirar, desvantagem de Furtividade de certas armaduras e
-    variante de sobrecarga não têm resolução integral. A carga básica e algumas
-    penalidades de deslocamento já são calculadas. Fontes: PDF 144–160, 182–188.
-    Viagem, fome/sede, sufocamento e atividades entre aventuras podem continuar
-    manuais, com consulta e auxiliares opcionais, sem lotar a ficha de campos.
-14. **Bestas, familiares e companheiros.** A Forma Selvagem controla PV separados
-    e dano excedente, mas não importa estatísticas completas de criatura nem
-    valida todas as formas. Fonte: PDF 70–75, 114–120, 303–310. Reutilizar o bloco
-    da forma/companheiro, sem substituir a ficha humana ou suas notas.
-
-## Segunda passada: erros de cálculo e interação reproduzidos
-
-### P1 — corrigir os resultados antes de acrescentar controles
-
-15. **Truques mostram o escalonamento, mas nem todos o rolam.** Clérigo 5 com
-    Chama Sagrada: o selo mostra `2d8`, mas o clique monta `1d8`. A apresentação
-    usa `getCantripDiceCount`; o lançamento genérico usa a fórmula-base de
-    `spellMeta`, sem escalonamento. As magias com tratamento próprio no
-    `BOOK_SPELLS_DB` seguem outro caminho. Fonte: PDF 224 e capítulo 6 sobre nível
-    total. Centralizar a fórmula resolvida, inclusive em multiclasse, para selo,
-    prévia, gasto e rolador usarem o mesmo resultado. Não basta mudar o texto.
-16. **Cura genérica omite o modificador e o espaço maior.** Clérigo do Conhecimento
-    com SAB 16: Curar Ferimentos deve rolar `1d8+3` no 1º círculo e `3d8+3` no 3º;
-    ambos enviaram `1d8`. No Domínio da Vida, o 1º círculo deveria curar `1d8+6`
-    nesse cenário, incluindo Discípulo da Vida, e também enviou `1d8`. Fontes:
-    PDF 234 e 69. O problema está na extração/resolução genérica da fórmula,
-    que não interpreta todos os modificadores e trechos “Em Níveis Superiores”.
-17. **Explosão Agonizante não entra no dano.** Bruxo 2 com CAR 16 e a invocação
-    escolhida: Rajada Mística enviou `1d10`, quando deveria enviar `1d10+3` para
-    aquele feixe que acertou. Fonte: PDF 60 e 273. Em níveis maiores, resolver
-    cada feixe/ataque e seu bônus; somar todos os dados sem conhecer os acertos
-    não equivale à resolução completa. Sorvedor de Vida e outros passivos devem
-    entrar na mesma revisão de modificadores condicionais.
-18. **Legado Infernal perde o nível fixo da magia racial.** O tiefling de nível 3
-    recebe Repreensão Infernal de 2º círculo pelo traço, mas o seletor/resolvedor
-    usa 1º círculo. O dano-base correspondente fica `2d10` em vez de `3d10`.
-    Fontes: PDF 42 e 276. `refresh` concede o uso racial, mas não registra
-    `castLevel: 2`. Preservar a origem racial separada da magia aprendida pela
-    classe, suas cargas e sua habilidade de conjuração.
-19. **Dominar Magia e Assinatura Mágica ficam só nas escolhas.** Mago 18 escolhe
-    as magias, mas conjurar a magia dominada, preparada e no círculo mínimo,
-    gastou um espaço normal. No nível 20, a primeira utilização da assinatura
-    também gastou um espaço de 3º, sem o uso gratuito registrado. Fonte: PDF 96.
-    Faltam projeção das escolhas nos controles, assinatura sempre preparada,
-    usos que recuperam no descanso curto/longo e opção normal de aprimorar
-    gastando espaços. Não marcar toda magia da assinatura como ilimitada.
-20. **PV temporários e Forma Selvagem estão na ordem errada.** Besta com 10 PV,
-    personagem com 5 PV temporários e dano 4: o resultado foi besta 6/temporários
-    5; deveria ser besta 10/temporários 1. Fontes: PDF 72–73 e 198. A Proteção
-    Arcana continua antecedendo o dano ao personagem; depois dela, temporários
-    devem proteger os PV atuais, inclusive quando esses PV são os da forma.
-    A afirmação do plano anterior de que a besta sempre antecede temporários
-    precisa ser corrigida junto da implementação. O teste existente usa dano
-    que esgota todas as reservas: seu resultado final não distingue a ordem;
-    acrescentar regressão com dano parcial, como o cenário acima.
-21. **Descansos apagam estados ou concedem benefícios sem todos os requisitos.**
-    Druida 8 tem Forma Selvagem por até 4 horas; um descanso de uma hora iniciado
-    logo após transformar não precisa encerrá-la, mas `resetResources` limpa
-    todos os estados ativos, exceto a pedra. Já `takeRest` permite iniciar o
-    descanso longo a 0 PV e voltar ao máximo, embora o livro exija pelo menos
-    1 PV no início. Fontes: PDF 73 e 187. Definir duração/requisitos por efeito;
-    não usar uma limpeza geral como substituto da passagem do tempo. Limite de
-    um descanso longo por 24 h e interrupções também seguem manuais.
-22. **Proteção Arcana ignora abjuração de outra classe.** Mago abjurador 2/clérigo
-    1 com INT 16, conjurando Escudo da Fé como clérigo, deveria poder criar a
-    proteção de 7 PV; a reserva ficou em 0. Fonte: PDF 96. `onSpellCast` exige
-    `spell.classId === 'mago'`, condição que a característica não impõe. A
-    elegibilidade deve vir do personagem e da escola/círculo da magia.
-23. **Ajuste direto de Constituição não acompanha os PV.** Guerreiro 5, CON 14
-    para 16 pelo botão da ficha: PV máximos ficaram 44, em vez de 49. Fonte:
-    PDF 178. O motor de evolução já calcula a mudança retroativa; `changeAbility`
-    não o faz. Separar ajuste permanente de atributo de transformações/bônus
-    temporários e preservar danos/ajustes manuais existentes ao recalcular.
-24. **Metadados de alvo/ataque não são confiáveis em todas as magias.** Raio
-    Ardente aparece elegível para Gêmea, embora possa atingir mais de uma
-    criatura; Chicote de Espinhos não recebe a indicação de ataque mágico.
-    Fontes: PDF 79, 271 e 224. A quebra `corpo-a- corpo` no texto extraído não
-    casa com a expressão de detecção. Rever normalização, múltiplos raios/alvos
-    e dependência do nível de conjuração. Preservar e identificar a adaptação
-    específica de Mísseis Mágicos; ela não autoriza toda magia de vários alvos.
-
-### P2 — completude, apresentação e adaptações não identificadas
-
-25. **Atirador de Magia omite uma opção válida.** No criador, ao escolher a lista
-    de druida para esse talento, só Chicote de Espinhos é oferecido; Criar Chamas
-    também envolve ataque mágico e deveria estar disponível. Fontes: PDF 166 e
-    descrição da magia. A lista de seis IDs em `featRequirements` é incompleta.
-    A seleção e a descrição de ataque devem compartilhar classificação validada.
-26. **A carga exclui moedas sem identificar a adaptação.** Acrescentar 1.000 po
-    não mudou o peso mostrado: 57,75 kg permaneceu 57,75 kg, quando incluir as
-    moedas levaria a 67,75 kg. Fonte: PDF 144, aproximadamente 10 g por moeda.
-    `getCurrentLoadKg` exclui moedas expressamente. Oferecer escolha ou identificar
-    que o total é apenas dos itens; não anunciar carga total conforme o livro.
-27. **O histórico pode atribuir absorção à reserva errada.** Com proteção de 10
-    PV e 5 PV temporários, sofrer 4 de dano deixa temporários intactos, mas a
-    ação salva diz “4 absorvidos por PV temporários”. O registro calcula essa
-    quantidade antes de aplicar proteção/forma. Retornar de `applyDamage` a
-    decomposição efetiva e usá-la na mensagem, sem recalcular por aproximação.
-
-## Cenários executados e reprodução
-
-O diagnóstico original executou `scripts/audit-phb-scenarios.cjs` contra o build da base `7667ae9`,
-em Chromium descartável sob `/D-D/`, com fixtures sintéticas. São **21 cenários
-direcionados, 20 divergências e 1 controle conforme**. Algumas divergências
-compartilham a mesma causa; isso não representa 20 regras independentes nem uma
-porcentagem de cobertura do livro. Não houve consulta a contas ou dados reais.
-A tabela abaixo preserva os achados dessa base. Após as correções da primeira
-etapa, o roteiro ampliado passou em **32 cenários, sem divergências**; agora
-também integra a suíte de aprovação por `tests/audited-rules-browser.cjs`.
-
-| Cenário | Resultado do livro no cenário | Resultado observado |
-| --- | --- | --- |
-| Chama Sagrada, clérigo 5 | Mostrar e rolar 2d8 | Mostra 2d8, rola 1d8 |
-| Curar Ferimentos, SAB 16, círculo 1 | 1d8+3 | 1d8 |
-| Mesma magia no círculo 3 | 3d8+3 | 1d8 |
-| Mesma magia, Domínio da Vida, círculo 1 | 1d8+6 | 1d8 |
-| Explosão Agonizante, CAR 16, bruxo 2 | 1d10+3 no feixe que acertou | 1d10 |
-| CON 14 → 16, guerreiro 5 | PV máximos 44 → 49 | 44 → 44 |
-| Repreensão Infernal racial do tiefling 3 | Uso como círculo 2 | Círculo 1 |
-| Dominar Magia, mago 18, magia preparada | Círculo mínimo sem gastar espaço | Gastou 1 espaço |
-| Assinatura Mágica, mago 20, primeiro uso | Uso gratuito próprio | Gastou espaço; sem carga própria |
-| Forma 10 PV + temporários 5, dano 4 | Forma 10, temporários 1 | Forma 6, temporários 5 |
-| Forma recém-ativada, druida 8, descanso 1 h | Pode continuar dentro das 4 h | Desativada incondicionalmente |
-| Descanso longo iniciado a 0 PV | Sem benefícios do descanso longo | Recuperou 44 PV |
-| Abjurador 2/clérigo 1, INT 16, Escudo da Fé | Pode criar proteção de 7 PV | Proteção 0 |
-| Mago sem proficiência, cota/escudo, conjurar | Restrição informada/aplicada | Lançamento permitido |
-| Proteção 10 + temporários 5, dano 4, registro | 0 absorvido por temporários | Histórico informa 4 |
-| Bardo 2, DES 14, iniciativa | +3 com Versatilidade | +2 |
-| Raio Ardente, elegibilidade de Gêmea 2014 | Não elegível | Elegível |
-| Chicote de Espinhos, classificação | Ataque mágico | Nenhuma defesa/ataque indicado |
-| Acrescentar 1.000 moedas à carga | +10 kg, ou adaptação identificada | Nenhuma alteração na carga |
-| Atirador de Magia, lista de druida | Oferecer Criar Chamas | Opção ausente |
-| Controle: guerreiro 5 → 6, PV fixos | 44 → 52 | 44 → 52, conforme |
-
-Para repetir, com dependências e Chromium instalados:
-
-```sh
-npm run build
-node scripts/audit-phb-scenarios.cjs > /tmp/critcall-auditoria.json
-```
-
-Nesta máquina foi necessário prefixar o segundo comando com
-`PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=ubuntu24.04-x64`. O script bloqueia requisições
-fora do servidor local e usa armazenamento do navegador temporário. Ele relata
-`matches: false` como achado; na CLI, seu código 0 indica execução concluída,
-não aprovação das regras. O wrapper de navegador exige zero divergências e
-falha quando qualquer cenário diverge. `sourceCommit` identifica o código da
-execução; não distribuir `dist/` antigo ao auditar outro commit.
-
-Verificação após a implementação: 279 testes Node, tipos/build e os dez
-roteiros Chromium aprovados, incluindo o wrapper dos 32 cenários. No ambiente
-local, a última execução completa foi seguida de uma nova passagem de Node,
-build e cenários auditados após os ajustes finais de compatibilidade/validação.
-Esses resultados cobrem os casos descritos, sem equivaler à automação do livro.
-
 ## Classes e subclasses: o contador não é o efeito completo
 
 Todas as subclasses do catálogo estão nesta matriz. A coluna final registra
@@ -572,17 +315,17 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 
 | Classe / PDF | Subclasses conferidas | Cobertura operacional existente | Próxima revisão necessária |
 | --- | --- | --- | --- |
-| Bárbaro, 45–49 | Furioso; Guerreiro Totêmico | Fúria, dano com FOR, resistências de Fúria/Urso por tipo, Frenesi/exaustão, CA alternativa e extras de Crítico Brutal | Vantagens situacionais; duração/gatilhos; teste/CD crescente de Fúria Implacável |
+| Bárbaro, 45–49 | Furioso; Guerreiro Totêmico | Fúria, dano com FOR, resistências por tipo, Frenesi/exaustão, CA alternativa, Crítico Brutal e Fúria Implacável | Vantagens situacionais e duração/gatilhos |
 | Bardo, 50–54 | Conhecimento; Bravura | Reserva/dado de inspiração, proficiências/especialização, segredos, conjuração, iniciativa de Versatilidade e Canção do Descanso opcional | Inspiração de Bardo recebida/Palavras de Interrupção na jogada; recuperação ao iniciar combate |
-| Bruxo, 55–61 | Arquifada; Corruptor; Grande Antigo | Pacto, Arcanum, usos, Bênção do Obscuro, Explosão Agonizante e resistências de patrono registradas | Sorvedor de Vida, troca da resistência após descanso e reflexão de psíquico; espaço de invocações não equivale ao contador diário; alvos |
+| Bruxo, 55–61 | Arquifada; Corruptor; Grande Antigo | Pacto, Arcanum, usos, Bênção do Obscuro, Explosão Agonizante, Sorvedor de Vida na arma vinculada e resistências de patrono registradas | Troca da resistência após descanso e reflexão de psíquico; espaço de invocações não equivale ao contador diário; alvos |
 | Clérigo, 62–69 | Conhecimento; Enganação; Guerra; Luz; Natureza; Tempestade; Vida | Preparação/domínios, Canalizar compartilhado, usos e Intervenção | Efeitos de cada domínio no alvo, cura/dano condicionado e Expulsar/Destruir Mortos-Vivos por ND |
 | Druida, 70–75 | Terra; Lua | Preparação/círculo, Forma Selvagem/PV, cura da Lua, Recuperação Natural e concentração mantida na transformação | Bloco de besta/estatísticas e custo de elemental; CON da forma informada no teste |
-| Feiticeiro, 76–81 | Magia Selvagem; Linhagem Dracônica | Feitiçaria/metamágica, conversão, Marés, CA e resistência ativa de Afinidade Elemental no modo por tipo | Surto/gatilhos, bônus de dano de Afinidade e elegibilidade completa de metamagias; adaptações identificadas |
+| Feiticeiro, 76–81 | Magia Selvagem; Linhagem Dracônica | Feitiçaria/metamágica, conversão, Marés, CA, resistência e bônus inicial de Afinidade Elemental nos casos reconhecidos | Surto/gatilhos, tipos variáveis/efeitos posteriores e elegibilidade completa de metamagias; adaptações identificadas |
 | Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa de Atleta Extraordinário | Outros testes de Atleta; rerrolagem de Combate com Armas Grandes; manobras/reações; Sobrevivente |
-| Ladino, 88–92 | Ladrão; Assassino; Trapaceiro Arcano | Especialização, dados/condições de Ataque Furtivo, usos avançados e magias | Talento Confiável na rolagem; Esquiva Sobrenatural/Evasão; surpresa/Assassinar e Ação Ardilosa |
+| Ladino, 88–92 | Ladrão; Assassino; Trapaceiro Arcano | Especialização, composição de Ataque Furtivo, Esquiva/Evasão, usos avançados, magias e Talento Confiável nas perícias da ficha (R2 inicial) | Testes com ferramentas na mesa; surpresa/Assassinar e Ação Ardilosa |
 | Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, Dominar/Assinatura, recuperação, Proteção Arcana inclusive multiclasse, Conjuração Focada, Presságio e usos/estados de escola | Efeitos por alvo, demais bônus de escola, lacaios, pedra e Sobrecarga; fluxo de troca temporal das escolhas |
-| Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi, movimento/CA, curas/usos e defesas de Pureza Corporal/Corpo Vazio no dano por tipo | Imunidade a condições, Artes Marciais/dano desarmado em todas as condições, Atordoar/Evasão/Defletir Projéteis e recuperação ao iniciar combate |
-| Paladino, 107–113 | Devoção; Anciões; Vingança | Cura pelas Mãos, Canalizar, Arma Sagrada, aura própria nos testes, preparação e dados de Destruição | Aplicação a aliados/consciência e condições dos juramentos; cura no alvo e consumo de espaços no fluxo de dano |
+| Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi, movimento/CA, curas/usos, Evasão e defesas de Pureza Corporal/Corpo Vazio no dano por tipo | Imunidade a condições, Artes Marciais/dano desarmado em todas as condições, Atordoar/Defletir Projéteis e recuperação ao iniciar combate |
+| Paladino, 107–113 | Devoção; Anciões; Vingança | Cura pelas Mãos, Canalizar, Arma Sagrada, aura própria nos testes, preparação e Destruição com gasto de espaço | Aplicação a aliados/consciência e condições dos juramentos; cura no alvo |
 | Patrulheiro Revisado, 114–120 | Besta; Caçador; Rastreador Subterrâneo | Progressão/seleções da adaptação, conjuração, extras condicionais e PV do companheiro | Inimigo favorito, exploração, iniciativa/primeiro turno e estatísticas/comandos do companheiro; não misturar regras do patrulheiro original |
 
 ## Raças e antecedentes
@@ -591,13 +334,23 @@ As 15 opções são Anão da Colina/Montanha, Alto Elfo/Elfo da Floresta/Drow,
 Halfling Pés Leves/Robusto, Humano/Humano Variante, Draconato, Gnomo da
 Floresta/das Rochas, Meio-Elfo, Meio-Orc e Tiefling.
 
-Os ajustes/seleções de criação não bastam para executar **Sortudo dos halflings**,
-**Ataques Selvagens/Resistência Implacável do meio-orc**, sopro do draconato,
-sensibilidade solar do drow e outras resistências/vantagens raciais. O dano por
-tipo já reconhece as fontes de anão/tiefling/draconato da quarta etapa. Os demais casos
-precisam de efeitos condicionais ou uso no lugar existente. Visão no escuro,
-idiomas, ferramentas, transe, máscaras naturais e características sociais podem
-permanecer como consulta quando não houver uma ação mecânica da ficha a resolver.
+O dano por tipo já reconhece as fontes de anão/tiefling/draconato. Resistência
+Implacável do meio-orc está integrada à prevenção de queda, e Ataques Selvagens
+à composição de crítico corpo a corpo. Não retomar esses casos como ausentes.
+A revisão permite informar/corrigir a ancestralidade do draconato e a da
+Linhagem Dracônica do feiticeiro, em escolhas independentes. Elementos seguem
+as dez cores válidas do livro; cor de pele e textos arbitrários não concedem
+resistência. A consulta do sopro confere área, DES/CON, CD e dados por nível
+total; gasto, alvos, teste e aplicação de seu dano continuam fora dessa consulta.
+
+Sortudo dos halflings foi integrado às rolagens contextuais no primeiro recorte
+de R2, conforme condições e limites acima; não é o talento homônimo.
+Continuam pendentes a resolução completa do sopro do draconato, sensibilidade
+solar do drow e outras resistências/vantagens e gatilhos raciais.
+Visão no escuro, idiomas, ferramentas, transe, máscaras naturais e
+características sociais podem permanecer como consulta quando não houver uma
+operação da ficha a resolver. Antecedentes e origens ambíguas não devem ser
+inferidos a partir de texto livre nem substituir escolhas antigas.
 
 Os 13 antecedentes são Acólito, Artesão de Guilda, Artista, Charlatão, Criminoso,
 Eremita, Forasteiro, Herói do Povo, Marinheiro, Nobre, Sábio, Soldado e Órfão,
@@ -624,7 +377,7 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 | Adepto Elemental | Escolha do elemento | Resistência ignorada e mínimo dos dados |
 | Adepto Marcial | Escolha de duas manobras | Dado extra d6 e interação com a reserva de superioridade |
 | Alerta | +5 na iniciativa | Surpresa/atacante oculto |
-| Ambidestro | Registro | +1 CA condicional, armas elegíveis e sacar/guardar |
+| Ambidestro | +1 CA calculada com duas armas empunhadas confirmadas, sem duplicar CA escrita | Elegibilidade de duas armas, sacar/guardar e contexto da mesa |
 | Atacante Bestial | Registro | Nova rolagem de dano uma vez por turno |
 | Atirador Aguçado | Registro | -5/+10 por ataque, cobertura e alcance |
 | Atirador de Magia | Escolha de truque de ataque, incluindo Criar Chamas | Alcance/cobertura |
@@ -644,23 +397,23 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 | Líder Inspirador | Registro | PV temporários CAR+nível e elegibilidade por destinatário |
 | Maestria em Arma de Haste | Registro | Ataque bônus d4 e oportunidade ao entrar no alcance |
 | Maestria em Armadura Média | Teto de DES +3 na CA | Remover desvantagem de Furtividade; não há aplicação integrada dela |
-| Maestria em Armadura Pesada | +1 FOR; redução 3 no dano por tipo da quinta etapa | Outras interações continuam na mesa |
+| Maestria em Armadura Pesada | +1 FOR; redução 3 no dano por tipo | Outras interações continuam na mesa |
 | Matador de Conjuradores | Registro | Reação, concentração do alvo e vantagem situacional |
 | Mente Afiada | +1 INT | Orientação, horário e memória consultáveis |
 | Mestre de Armas | +1 FOR/DES, quatro proficiências | Demais condições do ataque usam o fluxo comum |
 | Mestre de Armas Grandes | Registro | -5/+10 e ataque bônus após crítico/abate |
 | Mestre de Escudo | Registro | Empurrão, bônus de resistência e reação condicionais |
 | Mobilidade | +3 m no deslocamento | Terreno difícil/Disparada e oportunidade |
-| Observador | +1 INT/SAB | +5 passivo; leitura labial consultável |
+| Observador | +1 INT/SAB; +5 nos passivos de Percepção/Investigação | Leitura labial consultável; contexto de vantagem/desvantagem na mesa |
 | Perito | Três perícias/ferramentas | Revisar escolhas já dominadas e rolagem contextual com ferramenta |
 | Poliglota | +1 INT e três idiomas | Cifras consultáveis |
 | Resiliente | +1 atributo e proficiência em resistência | Não concede vantagem nem bônus adicional além da proficiência |
-| Robusto | +2 PV por nível, inclusive retroativo | Edição manual de atributos/efeitos segue os limites apontados acima |
+| Robusto | +2 PV por nível, inclusive retroativo | PV e ajustes manuais devem ser preservados ao evoluir |
 | Sentinela | Registro | Oportunidade, reação e deslocamento do alvo |
 | Sorrateiro | Registro | Ocultação/luz e revelação por ataque falho |
-| Sortudo | Registro | Três pontos e escolha do dado no contexto da jogada |
+| Sortudo | Reserva única de três pontos/descanso longo, escolha contextual do d20, ataques recebidos e dado físico; segundo recorte de R2 em revisão | Acerto, momento anterior à resolução e anúncio dos usos de outras criaturas são informados pela mesa; escolhas de dados são transitórias |
 | Resistente | +1 CON; mínimo de cura ao gastar Dados de Vida | Efeitos cobertos nos cenários testados de descanso |
-| Proteção Leve | +1 FOR/DES e proficiência leve | Penalidades de armadura ainda precisam integração |
+| Proteção Leve | +1 FOR/DES e proficiência leve | Conjuração já respeita proficiência; outras penalidades de armadura seguem parciais |
 | Proteção Moderada | +1 FOR/DES, média e escudo | Mesma revisão de elegibilidade/penalidades |
 | Proteção Pesada | +1 FOR e proficiência pesada | Mesma revisão de elegibilidade/penalidades |
 
@@ -668,46 +421,52 @@ Não há evidência suficiente para marcar todos esses efeitos como concluídos.
 Cada implementação deve registrar a condição exata, o cálculo que passa a usar
 e o caso de teste, em vez de um único “talentos implementados”.
 
-## Magias e conteúdo narrativo
+## Magias e decisões da mesa
 
-As 361 magias possuem consulta. `spellMeta` também infere efeitos por texto e
-há tratamentos específicos; uma fórmula encontrada não equivale à execução da
-magia. Área/alvos, componentes consumidos, alcance, cobertura, resistência do
-alvo, duração e várias curas/transformações continuam sob decisão do jogador.
+As 361 magias possuem consulta. `spellMeta` infere metadados pelo texto e há
+tratamentos específicos; encontrar uma fórmula não equivale a executar todos
+os efeitos. A elegibilidade integral de metamagias e exceções do catálogo ainda
+precisa de revisão. Mísseis Mágicos com Magia Gêmea é adaptação identificada da mesa.
 
-A concentração recebeu controle na terceira etapa e o dano por tipo na quarta.
-O trabalho seguinte inclui outras defesas/reações e organização das magias por família.
-Não acrescentar 361 controles separados. Reutilizar
-os campos do grimório, PV/efeitos e o rolador existentes. A Magia Gêmea adaptada
-da mesa deve ser distinguida do texto de 2014, sem mudar escolhas pessoais.
+Área/alvos, componentes consumidos, alcance, cobertura, resistência do alvo,
+duração, interrupções de conjuração prolongada e várias curas/transformações
+continuam sob controle do jogador. Concentração já tem estado/testes; não há
+relógio de combate. Encerrar concentração própria não apaga automaticamente
+defesas recebidas que podem ter vindo de outro conjurador.
 
-Deuses, planos, interpretação e bibliografia não estão “faltando” por permanecerem
-consultáveis. A ficha deve ajudar a decidir e registrar, sem tentar arbitrar toda
-a aventura ou transformar consulta narrativa em campos obrigatórios.
+Ações/reações, oportunidade, duas armas, agarrar/empurrar, montaria, combate
+submerso, surpresa e ataques por ação exigem contexto da mesa. Antes de impor
+bloqueios por turno, definir acompanhamento opcional. Tempo de vestir/tirar,
+munição, recarga, consumíveis, penalidades de Furtividade e sobrecarga não têm
+resolução integral. Viagem, luz, sufocamento, fome/sede e atividades entre
+aventuras podem permanecer manuais ou receber auxiliares opcionais.
 
-## Entregas seguintes sugeridas
+Deuses, planos, interpretação, benefícios sociais dos antecedentes e bibliografia
+podem permanecer consultáveis. Não são tarefas de automação obrigatória.
 
-1. [x] Unificar fórmula mostrada/rolada nos casos auditados: truques, cura,
-   aprimoramento, Discípulo da Vida/Explosão Agonizante, nível racial e Gêmea.
-   Acrescentadas regressões. Outros passivos continuam na matriz de pendências.
-2. [x] Corrigir dano/temporários/forma, Constituição permanente, descanso longo
-   a 0 PV, forma no descanso curto, Proteção Arcana multiclasse e absorção real.
-   Duração/interrupções da forma e limite de descansos seguem manuais.
-3. [x] Corrigir bônus auditados de iniciativa, Dominar Magia/Assinatura, campos
-   longos de componentes, Atirador de Magia e inclusão de moedas na carga.
-4. [x] Completar o bloco de PV: Dados de Vida, morte/estabilidade e inspiração,
-   nos locais existentes e com dado físico/virtual.
-5. [ ] Unificar concentração/condições/dano tipado e a explicação dos efeitos;
-   concentração, parte das condições, dano por tipo, Esquiva/Evasão e duas
-   defesas de queda já integrados. Outras fontes/reações e efeitos seguem pendentes; não
-   automatizar redução sem a origem.
-6. [ ] Revisar a matriz de efeitos das 12 classes/41 subclasses, raças e 42
-   talentos, marcando cada efeito como calculado, uso controlado ou manual.
-7. [ ] Ampliar famílias de magias e criaturas, após os contratos comuns estarem
-   definidos. Viagem e atividades entre aventuras ficam como auxiliares opcionais.
+## Evidências e histórico da auditoria
 
-Os cenários da primeira etapa foram corrigidos; os controles e exceções restantes
-seguem nas listas de pendências. Zoom, históricos por ficha, ajustes de defesa e
-ajudas vieram das entregas anteriores. O plano anterior de refatoração continua em
-[REFATORACAO-2014.md](REFATORACAO-2014.md); seus itens concluídos não substituem
-esta auditoria mais ampla.
+A base `7667ae9` teve 21 cenários direcionados: 20 divergências e um controle
+conforme. As causas foram corrigidas nas entregas resumidas acima, com ampliação
+para 32 cenários sem divergências. Os achados daquela base não descrevem a
+produção atual. O relatório detalhado anterior pode ser recuperado com
+`git show de3eda0:docs/AUDITORIA-LIVRO-2014.md`; changelog e arquitetura preservam
+as implementações e seus contratos.
+
+A última versão publicada passou 385 testes Node, tipos/build, 25 roteiros
+Chromium e banco descartável na CI, conforme [RETOMADA.md](RETOMADA.md).
+Esses números não são porcentagem de cobertura do livro. A consolidação documental anterior
+não repetiu a auditoria integral do PDF. As verificações específicas da entrega
+R1 ficam na seção correspondente, sem certificar as etapas R2–R6.
+
+Para repetir o diagnóstico direcionado após uma mudança funcional:
+
+```sh
+npm run build
+node scripts/audit-phb-scenarios.cjs
+```
+
+O script usa Chromium e dados fictícios sob `/D-D/`, bloqueia chamadas externas
+e relata `matches: false` como divergência. Seu código 0 só indica que executou;
+o wrapper `tests/audited-rules-browser.cjs`, incluído em `npm run test:browser`,
+exige zero divergências. Não usar build antigo ao auditar outro commit.

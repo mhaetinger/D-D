@@ -4,6 +4,8 @@ import { arcaneWardPoints, previewTypedDamage, typedDamageSummary } from './dama
 import { previewSurvival, survivalOptions, type SurvivalChoice } from './survival';
 import { consumeInspiration, deathSaveBonus, deathStatus, hitDiceRemaining, hitPointMaximum, inspirationRollMode, resolveDeathSave, returnToLife, songOfRestDie, spendHitDie, stabilize, validateHitDie } from './health';
 import { ability, active, escape, state, type Engine, type Sheet } from './model';
+import { hasHalflingLuck } from './dice-roll';
+import { luckyResource, luckRemaining } from './lucky';
 
 const tip=(name:string,text:string)=>`tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name,text}))}"`;
 const action=(id:string,label:string,disabled=false,attrs='')=>`<button type="button" data-health-action="${id}" ${disabled?'disabled':''} ${attrs}>${label}</button>`;
@@ -27,9 +29,11 @@ export function damageDescription(c:Sheet,result:Sheet,amount:number,critical=fa
 
 /** O diálogo só decide a origem da rolagem. Mutação e gasto acontecem depois
  * da confirmação, revalidando a ficha e todos os resultados. */
-export function dieSourceControls(sides:number) {
-  const host=window as any;
-  return `<label>Dados <select data-health-source><option value="physical">Registrar dado físico</option><option value="virtual" ${host.ruleDiceSettings().enabled?'':'disabled'}>Rolar dado virtual</option></select></label><label data-health-face-label>Face do d${sides} <input type="number" min="1" max="${sides}" step="1" data-health-face></label>`;
+export function dieSourceControls(sides:number,traits=true) {
+  const host=window as any,c=host.getChar(),luck=traits && sides===20 && hasHalflingLuck(c),feat=traits && sides===20 && !!luckyResource(c,host.CharacterEngine);
+  const pending=traits && sides===20?host.pendingRuleD20Label?.():'';
+  const available=feat && luckRemaining(c,host.CharacterEngine)>0;
+  return `<label>Dados <select data-health-source><option value="physical">Registrar dado físico</option><option value="virtual" ${host.ruleDiceSettings().enabled?'':'disabled'}>Rolar dado virtual</option></select></label><label data-health-face-label>Face ${luck || feat?'final ':''}do d${sides}${luck || feat?' (após Sortudo, se usado)':''} <input type="number" min="1" max="${sides}" step="1" data-health-face></label>${luck?'<label class="rule-check" data-health-luck-label><input type="checkbox" data-health-luck><span>Sortudo racial · repetir um 1, uma única vez, no dado virtual</span></label>':''}${feat?`<label data-health-lucky-feat-label>Sortudo (talento)<select data-health-lucky-feat ${available?'':'disabled'}><option value="ask" ${available?'selected':''}>Decidir após o d20</option><option value="before">Gastar 1 ponto antes de rolar</option><option value="none" ${available?'':'selected'}>Sem usar Sortudo${available?'':' · sem pontos'}</option></select></label><label class="rule-check" data-health-lucky-opposed-label hidden><input type="checkbox" data-health-lucky-opposed><span>Outra criatura também usou Sortudo nesta jogada</span></label>`:''}${pending?`<p data-lucky-pending>Escolha pendente: ${escape(pending)}. Retome o teste virtual para usar os mesmos dados, sem gastar outro ponto.</p>`:''}`;
 }
 export function chooseDieSource(controls:HTMLElement) {
   const host=window as any,source=controls.querySelector<HTMLSelectElement>('[data-health-source]')!;
@@ -37,8 +41,20 @@ export function chooseDieSource(controls:HTMLElement) {
   const update=()=>{
     const virtual=source.value==='virtual',face=controls.querySelector<HTMLInputElement>('[data-health-face]')!;
     controls.querySelector<HTMLElement>('[data-health-face-label]')!.hidden=virtual;face.disabled=virtual;face.required=!virtual;
+    const luck=controls.querySelector<HTMLInputElement>('[data-health-luck]');
+    if(luck) {luck.disabled=!virtual;controls.querySelector<HTMLElement>('[data-health-luck-label]')!.hidden=!virtual;}
+    const feat=controls.querySelector<HTMLSelectElement>('[data-health-lucky-feat]');
+    if(feat) {
+      feat.disabled=!virtual || luckRemaining(host.getChar(),host.CharacterEngine)<1;
+      controls.querySelector<HTMLElement>('[data-health-lucky-feat-label]')!.hidden=!virtual;
+      controls.querySelector<HTMLElement>('[data-health-lucky-opposed-label]')!.hidden=!virtual || feat.value!=='before';
+    }
   };
-  source.addEventListener('change',update);update();
+  controls.addEventListener('change',update);update();
+}
+export function ruleD20Options(controls:HTMLElement,inspired=false) {
+  const plan=controls.querySelector<HTMLSelectElement>('[data-health-lucky-feat]');
+  return {repeatOne:!!controls.querySelector<HTMLInputElement>('[data-health-luck]')?.checked,lucky:plan?.value==='before' && !plan.disabled,askLucky:plan?.value==='ask' && !plan.disabled,opposed:!!controls.querySelector<HTMLInputElement>('[data-health-lucky-opposed]')?.checked,inspired};
 }
 async function chooseDamageSurvival(c:Sheet,received:number,form:HTMLElement,E:Engine) {
   const host=window as any,kind=form.querySelector<HTMLSelectElement>('[data-damage-survival]')?.value;
@@ -64,8 +80,14 @@ async function chooseDamageSurvival(c:Sheet,received:number,form:HTMLElement,E:E
   const d=details(),virtual=controls.querySelector<HTMLSelectElement>('[data-health-source]')!.value==='virtual';
   const choice:SurvivalChoice={kind:'rage',natural:virtual?1:Number(controls.querySelector<HTMLInputElement>('[data-health-face]')!.value),extraBonus:Number(controls.querySelector<HTMLInputElement>('[data-survival-extra]')!.value),fallbackEndurance:!!controls.querySelector<HTMLInputElement>('[data-survival-fallback]')?.checked};
   previewSurvival(c,received,choice); // Valida antes de rolar ou gastar qualquer coisa.
-  if(virtual)choice.natural=host.rollRuleDie(20,'Fúria Implacável',d.mode);
-  return {choice,description:previewSurvival(c,received,choice)!.description,inspired:d.inspired};
+  const optionsD20=ruleD20Options(controls,d.inspired);
+  if(virtual) {
+    const natural=await host.resolveRuleD20('Fúria Implacável',d.mode,{type:'save'},{...optionsD20,key:'rage:'+received+':'+beforeFields});
+    if(natural===null)return null;
+    if(host.getChar()!==c || !form.isConnected || fields()!==beforeFields)throw new Error('O dano mudou durante a escolha. O resultado antigo não foi aplicado.');
+    choice.natural=natural;
+  }
+  return {choice,description:previewSurvival(c,received,choice)!.description,inspired:d.inspired && !(virtual && (optionsD20.lucky || optionsD20.askLucky))};
 }
 export function setupHealthUI(E:Engine,save:(description:string)=>void) {
   const host=window as any;
@@ -147,7 +169,9 @@ export function setupHealthUI(E:Engine,save:(description:string)=>void) {
         const virtual=controls.querySelector<HTMLSelectElement>('[data-health-source]')!.value==='virtual',bonus=Number(controls.querySelector<HTMLInputElement>('[data-health-bonus]')!.value),face=Number(controls.querySelector<HTMLInputElement>('[data-health-face]')!.value);
         resolveDeathSave(structuredClone(c),virtual?10:face,bonus);
         const mode=inspirationRollMode(c,controls.querySelector<HTMLSelectElement>('[data-health-mode]')!.value as 'normal'|'adv'|'dis');
-        const natural=virtual?host.rollRuleDie(20,'Teste contra a morte',mode):face;
+        const natural=virtual?await host.resolveRuleD20('Teste contra a morte',mode,{type:'save'},{...ruleD20Options(controls,!!(c.heroicInspiration && c.ruleState?.inspirationReady)),key:'death-save'}):face;
+        if(natural===null)return;
+        if(host.getChar()!==c)return;
         const result=resolveDeathSave(c,natural,bonus),inspired=consumeInspiration(c);
         save(`Teste contra a morte: d20 ${natural}, total ${result.total} · ${result.outcome}${inspired?' · usou inspiração':''}`);host.showToast(result.outcome);return;
       }

@@ -128,7 +128,7 @@ export async function initializeSync(account: AccountSession) {
           if (selected !== remote || selectedScope !== currentWorkspaceKey()) return;
           if (host.hasOpenAccountEditor?.()) { status.textContent = "Termine a edição antes de restaurar uma versão."; return; }
           dialog.close();
-          if (!await host.confirmDestructiveAction("Restaurar versão?", "A versão atual ficará no histórico da nuvem. Esta versão será registrada como uma nova alteração.", "Restaurar")) return;
+          if (!await host.confirmDestructiveAction("Restaurar versão?", "Esta versão será registrada como uma nova alteração. Baixe um backup antes se precisar conservar o estado atual por prazo indeterminado.", "Restaurar")) return;
           if (selected !== remote || selectedScope !== currentWorkspaceKey()) return;
           try {
             const doc = validateDocument(await selected.version(version.version_id));
@@ -148,7 +148,11 @@ export async function initializeSync(account: AccountSession) {
       status.textContent = offset ? "Versões privadas desta conta. Anotações ficam separadas das fichas." : "Ainda não há versões salvas na nuvem.";
     } catch { status.textContent = "Não foi possível consultar as versões. Confira a conexão e a configuração do Supabase."; }
   }
-  document.getElementById("syncVersions")!.addEventListener("click", () => { list.replaceChildren(); offset = 0; dialog.showModal(); void loadVersions(); });
+  document.getElementById("syncVersions")!.addEventListener("click", () => {
+    list.replaceChildren();offset=0;dialog.showModal();void loadVersions();
+    const selected=remote,selectedScope=scope,policy=document.getElementById('syncVersionsPolicy')!;policy.textContent='Conferindo limite de versões…';
+    void selected?.versionPolicy().then(text=>{if(selected===remote&&selectedScope===scope)policy.textContent=text;}).catch(()=>{if(selected===remote&&selectedScope===scope)policy.textContent='Não foi possível conferir o limite de versões.';});
+  });
   document.getElementById("syncVersionsMore")!.addEventListener("click", () => { void loadVersions(); });
   update();
 }

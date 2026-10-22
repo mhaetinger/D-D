@@ -10,20 +10,24 @@ import { concentration } from './concentration';
 import { concentrationControls, setupConcentrationUI } from './concentration-ui';
 import { setupWeaponDamageUI } from './weapon-damage-ui';
 import {sheetInput} from '../sheet-edit/ui';
+import {hasFeat} from './passives';
+import { luckRemaining } from './lucky';
+import { setupLuckyUI } from './lucky-ui';
 
 export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
   const number = (n:number) => Number.isFinite(n)?n:'∞';
   const tip = (r:Resource) => {
-    const ref = E.reference(r.name,r.classId);
+    const ref = r.id==='feat:lucky'?E.reference('Sortudo',null,null,'feat'):E.reference(r.name,r.classId);
     return `data-rule-tooltip="${escape(JSON.stringify({name:r.name,text:r.note,page:ref?.page || E.data.classes[r.classId]?.page,pdfPage:ref?.pdfPage || E.data.classes[r.classId]?.page}))}"`;
   };
   return resources.map(r=>{
     const maxInput=!r.cost&&Number.isFinite(r.max)&&['counter','pool','toggle'].includes(r.kind)?sheetInput(c,`resourceMax.${r.id}`,c.rules?.resourceMaxOverrides?.[r.id]??'',`Máximo de ${r.name} (vazio = automático)`,'number',{min:0,max:100,placeholder:String(r.max)}):number(r.max);
-    const value = remaining(c,r), enabled = active(c,r.id);
+    const value = r.id==='feat:lucky'?luckRemaining(c,E):remaining(c,r), enabled = active(c,r.id);
     const source = r.cost ? r.cost[0]==='feiticeiro:sorceryPool' ? {id:r.cost[0],max:c.sorceryPoints.max,kind:'pool'} as Resource : resourcesFor(c,E).find(x=>x.id===r.cost![0]) : null;
     const affordable = !r.cost || !!source && remaining(c,source)>=r.cost[1];
     let control = '';
-    if (r.kind==='portent') control = c.ruleState?.portent?.length ? c.ruleState.portent.map((p:Sheet,i:number)=>`<button type="button" data-rule-action="portent" data-index="${i}" ${p.spent?'disabled':''} aria-label="Gastar presságio ${i+1}, resultado ${p.value}">${p.value}${p.spent?' ✓':''}</button>`).join('') : '<button type="button" data-rule-action="portentInitial">Rolar dados iniciais</button>';
+    if(r.id==='feat:lucky')control=`<span><span data-lucky-balance>${number(value)}</span>/${maxInput} pontos</span><button type="button" data-lucky-action="table" ${value<1?'disabled':''}>Usar na mesa</button><button type="button" data-lucky-action="incoming" ${value<1?'disabled':''}>Ataque contra mim</button><button type="button" data-rule-action="refund" data-resource="feat:lucky" ${value===r.max?'disabled':''} aria-label="Devolver um ponto de Sortudo">↶</button>`;
+    else if (r.kind==='portent') control = c.ruleState?.portent?.length ? c.ruleState.portent.map((p:Sheet,i:number)=>`<button type="button" data-rule-action="portent" data-index="${i}" ${p.spent?'disabled':''} aria-label="Gastar presságio ${i+1}, resultado ${p.value}">${p.value}${p.spent?' ✓':''}</button>`).join('') : '<button type="button" data-rule-action="portentInitial">Rolar dados iniciais</button>';
     else if (r.kind==='toggle' || r.action==='rage') control = `<button type="button" data-rule-action="toggle" data-resource="${r.id}" aria-pressed="${enabled}">${enabled?'✓ Ativo · encerrar':'Ativar'}</button>${r.action==='rage'?`<span>${number(value)}/${maxInput} usos</span>`:''}`;
     else if (r.kind==='pool') control = `<label>Reserva <input type="number" min="0" max="${r.max}" step="1" data-rule-pool="${r.id}" value="${value}" aria-label="${escape(r.name)} atuais"></label><span>/ ${maxInput}</span>`;
     else if (r.kind==='counter') control = `<span>${r.cost?`Custo ${r.cost[1]} ${r.cost[0]==='monge:ki'?'Chi':r.cost[0]==='feiticeiro:sorceryPool'?'pt':'uso'}`:`${number(value)}/${maxInput} usos`}</span><button type="button" data-rule-action="use" data-resource="${r.id}" ${value<1 || !affordable?'disabled':''}>Usar</button>${!r.cost?`<button type="button" data-rule-action="refund" data-resource="${r.id}" ${value===r.max?'disabled':''} aria-label="Devolver um uso de ${escape(r.name)}">↶</button>`:''}`;
@@ -55,6 +59,7 @@ export function defenseControls(c:Sheet,E:Engine) {
     ['acAdjustment','Ajuste de CA','Some ou subtraia um bônus de CA que ainda não entrou no cálculo, como um item ou adaptação da mesa. Não repita aqui bônus da armadura, escudo ou efeitos marcados abaixo. Vazio equivale a 0.'],
   ];
   const effects=[
+    ...(hasFeat(c,E,'Ambidestro')?[['feat:dualWielder','Duas armas empunhadas · Ambidestro +1 CA','Marque enquanto empunhar uma arma corpo a corpo em cada mão. Não basta ter duas armas no inventário. Não se aplica com escudo, inconsciente ou em Forma Selvagem. CA escrita/manual já inclui seus bônus; não soma o talento novamente. Não repita esse +1 no ajuste de CA.']]:[]),
     ['spell:shieldOfFaith','Escudo da Fé +2','Marque enquanto estiver recebendo esta magia: soma +2 à CA, por até 10 minutos e com concentração de quem a conjurou. Desmarque quando terminar. Este controle não gasta espaço de magia.'],
     ['spell:shield','Escudo Arcano +5','Marque após usar a reação da magia Escudo Arcano: soma +5 à CA até o início do seu próximo turno, inclusive contra o ataque que a desencadeou, e impede dano de Mísseis Mágicos. Desmarque ao terminar; o espaço e a reação são controlados separadamente.'],
     ['spell:bladeWard','Proteção contra Lâminas · resistência','Até o fim do seu próximo turno, esta magia dá resistência a dano de concussão, cortante e perfurante causado por ataques com armas. Não aumenta a CA. Em Dano detalhado → Calcular por tipo, escolha ataque de arma para aplicar a resistência. No modo já resolvido, aplique-a na mesa.'],
@@ -110,6 +115,7 @@ export function setupRuleUI(E: Engine) {
   setupHealthUI(E,save);
   setupConcentrationUI(E,save);
   setupWeaponDamageUI(E,save);
+  setupLuckyUI(E,save);
   const rand = (sides:number) => 1+Math.floor(Math.random()*sides);
   document.addEventListener('change',event=>{
     const input = event.target as HTMLInputElement;

@@ -3,7 +3,8 @@
 #confirmationDialog.import-review-open form > * { margin-top:0; }
 #confirmationDialog.import-review-open #confirmationExtra { flex:1; min-height:0; overflow:auto; overscroll-behavior:contain; }
 .import-review .import-mobile-sector { display:none; }
-.import-review { display:flex; flex-direction:column; gap:.75rem; }
+.import-review { --import-notice-accent:#8b1e1e; display:flex; flex-direction:column; gap:.75rem; }
+[data-theme="pergaminho_escuro"] .import-review,[data-theme="obsidiana"] .import-review { --import-notice-accent:#ffb4ad; }
 .import-nav { position:sticky; top:0; z-index:2; display:flex; flex-wrap:wrap; gap:.3rem; padding:.35rem; background:var(--bg-card); border-bottom:2px solid var(--border-main); }
 .import-nav button { flex:1 1 9rem; font-size:.8rem; text-align:left; }
 .import-nav [aria-current=step] { background:var(--text-accent); color:var(--btn-primary-text,#fff); font-weight:700; border:2px solid var(--text-main); text-decoration:underline; text-underline-offset:.2em; }
@@ -49,6 +50,12 @@
 .spell-preparation { display:flex; gap:1rem; flex-wrap:wrap; align-items:center; margin:.6rem 0; }
 .import-preparation-adaptation { margin-top:1rem; }
 .import-entry { padding:.65rem; border:1px solid var(--border-main); border-radius:.5rem; }
+.import-proficiency-summary dt { font-weight:700; }
+.import-proficiency-summary dd { margin-top:.25rem; overflow-wrap:anywhere; }
+.import-weapon output { display:block; margin:.4rem 0 .65rem; overflow-wrap:anywhere; }
+.import-weapon > details { margin-bottom:0; }
+.import-weapon details > label { margin-top:.65rem; }
+.import-field-help { color:var(--text-muted); font-size:.875rem; line-height:1.5; }
 .import-entry strong,.import-spell-card h3 { overflow-wrap:anywhere; }
 .import-spell-card { padding:.8rem; margin-bottom:.8rem; border:1px solid var(--border-main); border-radius:.65rem; background:var(--bg-card); }
 .import-spell-card > header { display:flex; justify-content:space-between; gap:.7rem; align-items:start; }
@@ -57,8 +64,10 @@
 .import-spell-card header button { font-size:.8rem; flex:none; }
 .import-spell-card > details { margin-top:.65rem; margin-bottom:0; }
 .import-spell-card .spell-fields > h4 { display:none; }
-.import-review .import-notices { margin-bottom:.8rem; }
-.import-notice { border-left:3px solid var(--text-accent); background:var(--bg-inset); padding:.6rem .75rem; border-radius:.25rem; margin-bottom:.65rem; font-size:.85rem; }
+.import-review .import-notices { margin-bottom:1rem; padding:.7rem .8rem; border-left:4px solid var(--import-notice-accent); background:color-mix(in srgb,var(--import-notice-accent) 9%,var(--bg-card)); }
+.import-notices > summary { color:var(--import-notice-accent); text-decoration:underline; text-underline-offset:.2em; }
+.import-notice { border-left:2px solid var(--border-main); background:var(--bg-card); padding:.6rem .75rem; border-radius:.25rem; margin-bottom:.65rem; font-size:.85rem; }
+.import-notice:last-child { margin-bottom:0; }
 .import-notice p { margin-top:.3rem; }
 .import-review table { width:100%; margin:.6rem 0; font-size:.85rem; }
 .import-review th { text-align:left; }
@@ -118,4 +127,127 @@
   .import-slots { grid-template-columns:1fr; }
   .import-card > :not(h3) { margin:.6rem; }
   .import-skill-row { grid-template-columns:minmax(0,1fr) 4rem; gap:.35rem; }
+}
+/* Identificação, formação e narrativa têm formatos próprios, sem depender
+ * de cores para o jogador reconhecer onde está. Combate mantém sua grade. */
+.import-card > h3 { display:flex; align-items:center; gap:.55rem; }
+.import-card > h3 svg { width:1.2rem; height:1.2rem; flex:none; }
+.import-review .import-identity { border-top:3px solid var(--text-accent); box-shadow:var(--shadow-card); padding-bottom:.2rem; }
+.import-identity > h3 svg { width:2.6rem; height:2.6rem; padding:.55rem; border:1px solid var(--border-main); border-radius:.6rem; background:var(--bg-inset); }
+.import-review .import-identity > .import-grid { margin:.8rem; }
+.import-identity-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr)); }
+.import-character-name { grid-column:1/-1; }
+#confirmationDialog.import-review-open .import-character-name input { font-family:"Cinzel",serif; font-size:1.3rem; font-weight:700; color:var(--text-accent); background:transparent; border:0; border-bottom:2px solid var(--border-main); border-radius:0; padding:.35rem .1rem; }
+.import-review .import-class-section { background:var(--bg-inset); border-top:3px solid var(--text-accent); }
+.import-class-section > h3 { background:transparent; }
+.import-class-section .import-class-row:last-child { border-bottom:0; }
+.import-class-section [data-import-total-level] { font-weight:600; }
+.import-resistance-section .import-saves { grid-template-columns:repeat(auto-fit,minmax(min(100%,8rem),1fr)); }
+.import-proficiency-section > fieldset .import-saves { grid-template-columns:repeat(auto-fit,minmax(min(100%,8rem),1fr)); }
+.import-proficiency-summary { grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr)); }
+.import-proficiency-summary > div { border-left:2px solid var(--border-main); padding-left:.6rem; }
+.import-review .import-narrative { border:0; border-radius:0; overflow:visible; background:transparent; }
+.import-review .import-narrative > h3 { padding:.6rem 0; background:transparent; }
+.import-review .import-narrative > .import-grid { margin:.8rem 0 1rem; }
+.import-personality,.import-history { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.import-history .import-lore-backstory { grid-column:1/-1; }
+.import-narrative textarea { resize:vertical; }
+.import-belongings ul { display:grid; gap:.5rem; margin-bottom:.7rem; }
+.import-belongings li { display:flex; gap:1rem; justify-content:space-between; border-bottom:1px solid var(--border-main); padding-bottom:.3rem; overflow-wrap:anywhere; }
+.import-belongings li span { flex:none; }
+.import-coins { display:flex; flex-wrap:wrap; gap:.5rem 1rem; padding:.65rem 0; }
+.import-pool-compare { display:flex; align-items:start; gap:.75rem; flex-wrap:wrap; }
+.import-pool-compare > p { flex:1 1 17rem; }
+.import-pools > summary > span:first-child { display:inline-flex; align-items:center; gap:.5rem; }
+.import-pools > summary svg { width:1.2rem; height:1.2rem; }
+.import-weapon { margin-bottom:.75rem; background:var(--bg-inset); }
+.import-weapon > header { display:flex; align-items:center; justify-content:space-between; gap:.65rem; }
+.import-weapon > header h4 { font-family:"Cinzel",serif; font-weight:700; }
+.import-review .import-weapon > details { border:0; border-top:1px solid var(--border-main); border-radius:0; padding:.6rem 0 0; }
+.import-weapon .weapon-fields { padding:.3rem 0; }
+.import-weapons-section .import-actions p { flex:1 1 22rem; }
+.import-identity-grid > .import-identity-pair { grid-column:1/-1; display:grid; grid-template-columns:1fr 1fr; gap:.65rem .9rem; margin:0; border:0; border-top:1px solid var(--border-main); border-radius:0; padding:.55rem 0 0; }
+.import-identity-pair legend { color:var(--text-accent); }
+.import-identity-pair > p { grid-column:1/-1; }
+.import-coin-fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,7rem),1fr)); gap:.65rem; }
+.import-review .import-language-section { border-left:4px solid var(--text-accent); }
+.import-language-options > button { margin:.5rem 0; }
+.import-language-options > details { margin-top:.8rem; }
+.import-language-options details > label { margin-top:.65rem; }
+.import-choice-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,10rem),1fr)); gap:.55rem .85rem; margin:.65rem 0; }
+.import-choice-list .import-check { align-items:start; }
+.import-choice-list > .import-check { padding:.25rem .15rem; border-bottom:1px solid var(--border-main); }
+.import-tool-groups { display:grid; gap:.8rem; margin-top:.65rem; }
+.import-tool-groups > section { border:1px solid var(--border-main); border-radius:.4rem; padding:.6rem; background:var(--bg-inset); }
+.import-tool-groups h4 { border-bottom:1px solid var(--border-main); padding-bottom:.4rem; color:var(--text-accent); }
+.import-choice-list .import-check input { margin-top:.2rem; }
+.import-choice-list small { color:var(--text-muted); }
+.import-proficiency-picker details > fieldset { margin-block:.7rem; }
+.import-spell-add-actions { display:flex; gap:.5rem; flex-wrap:wrap; }
+.import-review .import-spell-circle { margin:1.25rem 0; border-top:2px solid var(--text-accent); }
+.import-spell-circle > h3 { display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:.65rem .75rem; background:var(--bg-inset); font:700 1.1rem/1.4 "Cinzel",serif; color:var(--text-accent); border-bottom:1px solid var(--border-main); margin-bottom:.7rem; }
+.import-spell-circle > h3 small { font:700 .9rem/1.4 var(--font-body); border:1px solid var(--border-main); border-radius:.4rem; padding:.1rem .45rem; }
+.import-spell-class > h4 { margin:.6rem .1rem; font-weight:700; }
+.import-spell-kind { display:inline-block; border:1px solid var(--text-accent); border-radius:.3rem; padding:.1rem .4rem; margin-bottom:.3rem; font-size:.875rem; font-weight:700; }
+.import-spell-card > header > div { display:flex; flex-wrap:wrap; align-items:center; gap:.35rem .6rem; min-width:0; }
+.import-spell-card .import-spell-kind { margin:0; flex:none; }
+.import-spell-card [data-import-spell-meta] { flex-basis:100%; margin:0; }
+.import-spell-card [data-import-spell-source] { flex-basis:100%; margin:0; }
+.import-spell-origin { border:1px solid var(--text-muted); border-radius:.3rem; padding:.1rem .4rem; font-weight:700; }
+.import-spell-card:has(> details[open]) { border:2px solid var(--text-accent); }
+@media (max-width:600px) { .import-identity-grid > .import-identity-pair { grid-template-columns:1fr; } }
+@media (max-width:600px) { .import-personality,.import-history { grid-template-columns:1fr; } }
+/* Hierarquia da revisão: setor > quadro/subtítulo > rótulo > valor > apoio.
+ * O texto dos controles tem peso/tamanho próprios, sem herdar o rótulo. */
+#confirmationDialog.import-review-open .import-sector-title h2 { font-size:1.375rem; }
+#confirmationDialog.import-review-open :is(.import-card > h3,.import-pools > summary) { font-size:1.25rem; }
+#confirmationDialog.import-review-open legend { font-size:1.1875rem; line-height:1.4; }
+#confirmationDialog.import-review-open label { font-size:1.0625rem; font-weight:600; }
+#confirmationDialog.import-review-open :is(input,select,textarea) { font-size:1rem; font-weight:400; }
+#confirmationDialog.import-review-open .import-check { font-size:1rem; font-weight:400; }
+#confirmationDialog.import-review-open summary { font-size:1.0625rem; }
+#confirmationDialog.import-review-open .import-spell-circle > h3 { font-size:1.25rem; }
+.import-card > h3 > span { min-width:0; overflow-wrap:anywhere; }
+#confirmationDialog.import-review-open .import-skill-row > label { font-size:0; }
+#confirmationDialog.import-review-open :is(.import-player-field,.import-xp-field) > label { font-size:1.125rem; font-weight:700; }
+.import-identity-grid { grid-template-columns:minmax(0,1.6fr) minmax(7rem,.65fr); }
+.import-ancestry-fields { display:grid; gap:.8rem; margin-bottom:1rem; }
+.import-review .import-ancestry-fields > fieldset { background:var(--bg-inset); border-left:3px solid var(--text-accent); padding:.8rem; }
+.import-ancestry-fields p { margin-top:.65rem; line-height:1.5; }
+.import-pool-forecast { border-left:3px solid var(--text-accent); padding-left:.8rem; }
+.import-pool-forecast h4 { font-weight:700; margin-bottom:.4rem; }
+.import-review .import-spell-circle { --circle-accent:#2c5ba6; margin:1.5rem 0 2rem; padding:.75rem; border:1px solid var(--circle-accent); border-left-width:6px; border-radius:.7rem; background:color-mix(in srgb,var(--circle-accent) 5%,var(--bg-card)); }
+.import-spell-circle[data-import-circle="-1"] { --circle-accent:#8d5313; border-style:dashed; }
+.import-spell-circle[data-import-circle="0"] { --circle-accent:#176b52; }
+.import-spell-circle[data-import-circle="2"] { --circle-accent:#713fa3; }
+.import-spell-circle[data-import-circle="3"] { --circle-accent:#9b3b3b; }
+.import-spell-circle[data-import-circle="4"] { --circle-accent:#236b76; }
+.import-spell-circle[data-import-circle="5"] { --circle-accent:#805c16; }
+.import-spell-circle[data-import-circle="6"] { --circle-accent:#604778; }
+.import-spell-circle[data-import-circle="7"] { --circle-accent:#8b3461; }
+.import-spell-circle[data-import-circle="8"] { --circle-accent:#456327; }
+.import-spell-circle[data-import-circle="9"] { --circle-accent:#354e80; }
+.import-spell-circle > h3 { margin:-.75rem -.75rem .7rem; padding:.75rem; color:var(--text-main); background:color-mix(in srgb,var(--circle-accent) 15%,var(--bg-card)); border-bottom-color:var(--circle-accent); border-radius:.5rem .5rem 0 0; }
+.import-spell-circle > h3 [data-import-circle-title] { flex:1; }
+.import-spell-circle > h3 [data-import-circle-title] { min-width:0; overflow-wrap:anywhere; }
+.import-review legend { max-width:100%; white-space:normal; overflow-wrap:anywhere; }
+.import-spell-card > header { flex-wrap:wrap; }
+.import-spell-card > header > div { flex:1 1 14rem; }
+.import-circle-mark { display:grid; place-items:center; width:2rem; height:2rem; flex:none; border-radius:.35rem; background:var(--circle-accent); color:#fff; font:700 1.25rem/1 "Cinzel",serif; }
+.import-spell-class { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr)); gap:.8rem; margin-top:.8rem; }
+.import-spell-class > h4 { grid-column:1/-1; margin:.15rem 0; padding-bottom:.35rem; border-bottom:1px solid var(--border-main); }
+.import-spell-class > .import-spell-card { min-width:0; margin:0; background:var(--bg-card); }
+.import-spell-class > .import-spell-card:has(> details[open]) { grid-column:1/-1; }
+.import-spell-class > .import-spell-card:only-of-type { grid-column:1/-1; }
+.import-spell-card [data-import-circle-choice] { margin-top:.6rem; }
+.import-spell-card [data-import-circle-choice]:not(:has(> label:not([hidden]))) { display:none; }
+@media (max-width:600px) {
+ .import-identity-grid { grid-template-columns:1fr; }
+ .import-identity > h3 svg { width:2rem; height:2rem; padding:.35rem; }
+ .import-review .import-spell-circle { padding:.5rem; }
+ .import-spell-circle > h3 { margin:-.5rem -.5rem .6rem; padding:.5rem; flex-wrap:wrap; }
+ .import-spell-class > .import-spell-card { padding:.5rem; }
+ .import-review .spell-fields .spell-field-group { padding:.35rem 0 .65rem; border-width:0 0 1px; border-radius:0; background:transparent; }
+ .import-review .spell-fields > details { padding:.5rem .4rem; }
+ #confirmationDialog.import-review-open .import-skill-row > label { font-size:1rem; }
 }

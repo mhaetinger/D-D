@@ -2713,6 +2713,10 @@
     const refs = (referenceIndex.get(key) || []).filter((r) => r.text.trim());
     if (kind === "feat")
       return refs.find((r) => r.page >= 167 && r.page <= 172) || null;
+    if(kind === 'background') {
+      const featureKey=key==='membro-de-guilda'?'associados-da-guilda':key;
+      return (referenceIndex.get('caracteristica-'+featureKey) || []).find(r=>r.page>=125 && r.page<=143) || null;
+    }
     if (kind === "race") {
       const race = O.races[subclassId],
         id = subclassId || "";
@@ -2736,6 +2740,17 @@
       const raceHeading =
         { halflingLeve: "PÉS LEVES", halflingRobusto: "ROBUSTO" }[id] ||
         race?.name;
+      // A proximidade de uma página não basta: o meio-elfo fica ao lado do
+      // gnomo, mas cada família deve consultar seu próprio parágrafo.
+      const [first,last]=({'ANÕES':[19,20],'ELFOS':[23,24],'HALFLINGS':[27,28],
+        'HUMANOS':[30,31],'DRACONATOS':[33,34],'GNOMOS':[36,37],
+        'MEIO-ELFOS':[38,39],'MEIO-ORCS':[40,41],'TIEFLINGS':[42,43]})[family];
+      const traitKey=({'versatilidade-humana':'aumento-no-valor-de-habilidade',
+        'incremento-em-duas-habilidades':'aumento-no-valor-de-habilidade',
+        'pericia-adicional':'pericia','ilusionista-natural':'ilusionista-nato'})[originalKey] || key;
+      const paragraphs=(referenceIndex.get(traitKey) || []).filter(r=>r.page>=first && r.page<=last && r.kind==='race');
+      const paragraph=id==='humanoVariante'?paragraphs.at(-1):paragraphs[0];
+      if(paragraph)return paragraph;
       const candidates = [
         ...(referenceIndex.get(norm(raceHeading)) || []),
         ...(referenceIndex.get(
@@ -2747,11 +2762,7 @@
         ) || []),
       ].filter((r) => r.page <= 43);
       return (
-        refs.find(
-          (r) =>
-            r.page <= 43 &&
-            candidates.some((c) => Math.abs(c.page - r.page) <= 1),
-        ) ||
+        refs.find(r=>r.page>=first && r.page<=last) ||
         candidates.find((r) => norm(r.text).includes(originalKey)) ||
         candidates[0] ||
         null
@@ -2804,6 +2815,7 @@
           level: 1,
           order: 0,
           source: r.name,
+          choices: r.dragonChoice && name === 'Ancestral Dracônico' ? selections(char,null,'raceDragon').slice(-1) : [],
           reference: reference(name, null, char.rules?.raceId, "race"),
         }),
       );
@@ -2813,7 +2825,7 @@
         level: 1,
         order: 0,
         source: bg.name,
-        reference: reference(bg.feature),
+        reference: reference(bg.feature,null,char.rules?.backgroundId,'background'),
       });
     let offset = 0;
     for (const cls of char.classes) {

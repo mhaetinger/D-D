@@ -35,3 +35,13 @@ test('documentos de histórico são validados por dono da ficha, projetados sepa
   assert.equal(values.get(historyKey(a.id)),'{ilegível');
   assert.ok(recovered[documentKey('character',a.id)]);
 });
+
+test('limite de histórico conserva o estado atual, ponteiro e vizinhos sem alterar a origem',async()=>{
+ const {boundedCharacterHistory,HISTORY_MAX_STEPS,HISTORY_MAX_BYTES}=await import('../src/storage/character-history');
+ const c=warrior(),stack=Array.from({length:150},(_,i)=>step('Passo '+i,[{...c,hpCurrent:i}]));
+ const original={version:2 as const,characterId:c.id,stack,pointer:50},bounded=boundedCharacterHistory(original);
+ assert.equal(original.stack.length,150);assert.equal(bounded.stack.length,HISTORY_MAX_STEPS);assert.equal(bounded.stack[bounded.pointer],stack[50]);assert.equal(bounded.stack[bounded.pointer-1],stack[49]);assert.equal(bounded.stack[bounded.pointer+1],stack[51]);
+ const large={...original,pointer:149,stack:stack.map(s=>({...s,action:'ç'.repeat(20000)}))},limited=boundedCharacterHistory(large);
+ assert.ok(new TextEncoder().encode(JSON.stringify(limited)).byteLength<=HISTORY_MAX_BYTES);assert.equal(limited.stack[limited.pointer],large.stack[149]);
+ const huge={...original,pointer:0,stack:[{...stack[0],action:'a'.repeat(HISTORY_MAX_BYTES+1)}]};assert.equal(boundedCharacterHistory(huge).stack[0],huge.stack[0]);
+});

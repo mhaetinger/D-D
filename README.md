@@ -1,24 +1,19 @@
 # CritCall
 
-Este aplicativo se chama CritCall e é dedicado às fichas de D&D, com
-infraestrutura própria. O projeto Supabase exclusivo
-do CritCall foi identificado e configurado localmente. A conexão com a API foi
-conferida. O build já inclui a configuração pública, sem variables do GitHub;
-o usuário confirmou cadastro, confirmação de e-mail e entrada no teste local.
-Os retornos locais foram corrigidos e conferidos. O link de recuperação foi
-aberto em outro navegador/dispositivo, incompatível com o fluxo atual. Após a
-orientação, o usuário relatou sucesso na recuperação/troca no teste local em
-16/10/2026. Salvamento pessoal e sincronização estão implementados/testados nesta
-branch; a migração foi aplicada ao Supabase real em 16/10/2026. A validação
-entre dispositivos reais e SMTP próprio ainda aguardam. A entrega foi autorizada
-e publicada em **https://criticall.art/** em 16/10/2026; o estado da implantação
-está nos [workflows](https://github.com/mhaetinger/D-D/actions).
-Consulte [docs/LOGIN.md](docs/LOGIN.md). Para continuar em outro computador,
-siga [docs/RETOMADA.md](docs/RETOMADA.md).
-
 Aplicação de fichas individuais de D&D 5e, com criador, evolução, multiclasse,
 grimório, inventário, anotações pessoais e consulta aos livros da mesa.
-As regras são de 2014, com Patrulheiro Revisado; o seletor 2024 muda a apresentação.
+As regras são de **2014 com Patrulheiro Revisado**; o seletor 2024 muda somente
+a apresentação. A cobertura das mecânicas é parcial e está registrada na
+[auditoria e roteiro de regras](docs/AUDITORIA-LIVRO-2014.md).
+
+Versão publicada em **https://criticall.art/**, hospedada no GitHub Pages.
+O DNS usa Cloudflare; a migração da hospedagem está preparada, sem ativação.
+Login e sincronização pessoal estão publicados, com migrações aplicadas ao
+projeto exclusivo CritCall. O envio deve ser confirmado no perfil; validação
+entre dispositivos reais e SMTP próprio continuam pendentes.
+
+Para continuar o desenvolvimento, comece por [docs/RETOMADA.md](docs/RETOMADA.md).
+Esse arquivo registra a última entrega, a próxima etapa e as validações externas.
 
 ## Executar
 
@@ -60,9 +55,13 @@ ou entrar, uma conta vazia recebe cópias das fichas, notas e imagens locais;
 se já tiver fichas, pergunta se deseja acrescentar novas. A identidade precisa
 estar confirmada e a coleção remota precisa ter sido consultada. Os originais
 locais são preservados; o perfil informa falhas e permite retomar a cópia.
+**Não quero** lembra a recusa para aquela conta neste navegador, inclusive após
+recarregar, entrar novamente ou editar as fichas sem conta. **Retomar fichas sem
+conta**, no Perfil, permite decidir de novo. A escolha não apaga os originais.
 
-A janela **Perfil e personagens** abre em Perfil, com nome, imagem e acesso à
-conta. A aba Personagens oferece Lista ou Cartões, com os mesmos retratos e
+A janela **Perfil e personagens** abre em Personagens, a primeira aba. Perfil
+fica como segunda aba, com nome, imagem e acesso à conta. Personagens oferece
+Lista ou Cartões, com os mesmos retratos e
 ações de abrir/excluir ficha. A visualização é lembrada neste navegador. Backup,
 importação e revisão como cópia aparecem somente em Personagens; o estado do
 armazenamento e a sincronização continuam acessíveis nas duas abas.
@@ -77,6 +76,12 @@ cadeado fechado. P/G/GG continuam ampliando ou reduzindo essa mesma hierarquia.
 Classes ficam numa faixa compacta; uma subclasse longa pode ser aberta para
 leitura completa. No celular, os dados de identidade usam linhas e **Visual e
 dados** recolhe as preferências para deixar mais espaço à ficha.
+Com o cadeado aberto, raça/espécie, antecedente e tendência oferecem sugestões
+do livro além do texto livre. Trocar raça ou antecedente abre uma prévia dos
+traços e exige conferir os valores mantidos manualmente. Não reconstrói a ficha
+importada; escolhas da nova origem ainda precisam ser registradas. Tendência
+altera somente a identificação. As colunas de características têm divisórias
+verticais e uma linha entre origens/classes da mesma coluna.
 
 Cores, textura, tamanho de fonte e dados são preferências do usuário. No modo
 local ficam neste navegador; na conta entram também na fila de sincronização.
@@ -91,6 +96,32 @@ Esc. Os botões de ativar/gastar continuam separados da consulta. No preparo
 de magias, **Voltar à ficha** permite sair sem aplicar; escolhas pendentes pedem
 confirmação antes do descarte. O lembrete do descanso só é retirado ao aplicar.
 Avisos de limite ou validação aparecem dentro da janela que estiver em uso.
+Na revisão da importação, proficiências e ataques mostram primeiro os registros
+lidos. Idiomas têm opções para marcar; armas indicam **Pela ficha** quando o
+treino já vem das classes, raça e escolhas. Ferramentas e registros livres ficam
+na edição opcional, preservando textos que o catálogo não reconheceu.
+Antecedente e tendência permitem escrita livre ou escolha do livro.
+O grimório separa **Truques** e cada círculo, com agrupamento por classe e
+origem visível. **Adicionar truque / Adicionar magia** permite escolher no livro
+ou criar um efeito próprio; a busca mostra círculo e classes antes da escolha.
+Efeitos sem círculo têm uma única lista visível para escolher **Truque** ou
+**Magia de 1º a 9º círculo**. Faixas de cor, número e título distinguem os grupos;
+magias raciais ficam identificadas pela raça. Uma origem marcada pode ser
+desmarcada clicando novamente, sem recuperar usos gastos ou apagar notas.
+O cartão mostra a origem escolhida imediatamente. **Vinculada ao catálogo de
+2014** distingue a magia reconhecida de um efeito próprio; só a vinculada recebe
+o livrinho com descrição e página do catálogo. Na busca, **Listas de classe**
+não exclui outras origens: Taumaturgia também informa o traço racial do tiefling.
+Abra um cartão para corrigir seus campos. Ajustes de fórmula substituem os
+dados por uma adaptação; não são necessários para usar o efeito do livro.
+Moedas também são editáveis antes de importar. Abra **Corrigir ou vincular arma**
+quando precisar mudar um ataque ou usar o catálogo. Um bônus não informado pode ficar
+vazio, inclusive em efeitos que usam resistência; isso não inventa um bônus +0.
+A previsão de reservas aparece automaticamente pelas classes e níveis; aplicar
+os máximos continua sendo uma escolha explícita, sem recuperar os usos gastos.
+Draconatos têm escolha das dez ancestralidades de 2014, com consulta de dano,
+área, teste e CD do sopro. A ancestralidade da Linhagem Dracônica do feiticeiro
+fica em outra escolha. A resolução completa do sopro continua na auditoria.
 As dicas de preparo aparecem no balão ao passar o mouse ou focar o controle
 pelo teclado. Marcar uma checkbox continua apenas alterando sua seleção.
 
@@ -112,6 +143,16 @@ modo selecionado: **normal** rola um d20; **vantagem**, dois e usa o maior;
 bônus ou outros dados do pool. A tecla **R** e o botão **Rolar d20** na bandeja
 fazem a mesma rolagem. Não gasta inspiração preparada nem altera o pool ou o
 modo escolhido. As setas movem o ícone; OFF continua ocultando os dados.
+
+Quem tem o **talento Sortudo** encontra seus três pontos junto à característica.
+Nas jogadas automáticas da ficha, use **Sortudo (talento)** para lançar um d20
+adicional e escolher a face antes de resolver a jogada. O modo original continua
+valendo. Concentração, morte e Fúria Implacável permitem decidir após ver o d20;
+um teste interrompido pode ser retomado com os mesmos dados durante a sessão.
+O ponto é gasto ao lançar o adicional. **Usar na mesa** registra o gasto físico;
+**Ataque contra mim** permite escolher o d20 de um ataque recebido, com bônus e
+acerto resolvidos na mesa. Descanso longo recupera os pontos. O Sortudo racial
+do halfling aparece separado e não usa essa reserva.
 
 O modo selecionado na bandeja também aparece ao redor do dado recolhido:
 **vantagem** tem névoa suave e **↑**; **desvantagem**, pequenas chamas e **↓**.
@@ -135,7 +176,7 @@ a recuperação de uma versão da ficha não restaura pixels antigos no servidor
 
 ## Salvamento e backups
 
-Fichas e notas mantêm uma cópia neste navegador. A branch inclui salvamento por
+Fichas e notas mantêm uma cópia neste navegador. A aplicação inclui salvamento por
 conta no Supabase com fila offline, perfil, preferências e versões recuperáveis;
 **migração aplicada no projeto real; validação entre dispositivos reais pendente**.
 Confira o estado de envio no perfil. Estar conectado não significa que tudo já
@@ -148,6 +189,13 @@ Cada personagem tem sua própria linha do tempo, com desfazer/refazer e marcos.
 Voltar um passo afeta somente essa ficha; notas pessoais e as outras fichas são
 preservadas. A linha do tempo também permite restaurar fichas excluídas. O
 histórico coletivo antigo é copiado por personagem sem apagar o original.
+Ao gravar, o histórico de desfazer mantém até 100 estados / 2 MiB por ficha,
+preservando o estado apontado. Um único estado maior é mantido inteiro.
+Checkpoints também participam desse limite. Versões em nuvem têm política
+própria, conferida no diálogo e descrita em [SINCRONIZACAO.md](docs/SINCRONIZACAO.md).
+A retenção do servidor foi ativada no CritCall em 22/10/2026: até 20 versões
+por documento / 30 dias, com teto de 200 versões / 8 MiB por conta. A limpeza
+ocorre ao sincronizar; os documentos atuais ficam preservados.
 
 No perfil local, **Baixar backup** salva suas fichas em JSON. As anotações pessoais
 ficam fora do arquivo por padrão; marque a opção para incluí-las em um backup
@@ -166,12 +214,32 @@ Antes de salvar, **Revisar importação** separa Identidade e classes, Atributos
 combate, Proficiências, Grimório e Inventário e história. Os setores mantêm seus
 rascunhos; as observações explicam cada consequência no setor correspondente.
 A revisão usa texto/campos de 16px em M e títulos distintos, acompanhando P/M/G/GG.
+Observações para conferir têm faixa de destaque, símbolo e contagem.
+Identificação tem relevo discreto e ícone de pergaminho, reunindo do nome até
+Tendência. Ancestralidades e classes ficam em quadros separados, com o nível
+total nas classes. Testes de resistência ficam abaixo dos atributos, em
+Atributos e combate. Idiomas conhecidos têm seu próprio quadro, sem resumo
+duplicado, separado de armas, ferramentas e armaduras. Textos fora do catálogo
+continuam visíveis e editáveis. As dicas de proficiência, especialização e total
+manual explicam o cálculo ao passar o mouse ou focar pelo teclado.
+Personalidade, história e aparência ficam abertas para conferir e editar;
+itens, quantidades, moedas e tesouros aparecem no setor de inventário.
+Armas usam o mesmo editor da ficha: nome, ataque, montador de dados, modificador,
+tipo, propriedades e descrição. Para calcular pelo catálogo, escolha Automático
+e a arma correspondente. Adicionar/remover atua somente na cópia em revisão.
 Reservas zeradas começam recolhidas; Conjuração, Pacto e Feitiçaria podem ser
 abertas separadamente para conferir ou corrigir. Reservas preenchidas ou com campos
 inválidos começam abertas; a confirmação revela qualquer campo obrigatório recolhido.
-Magias usam o mesmo editor da ficha, com adicionar/remover, catálogo ou criação
-personalizada. **Comparar máximos com o livro** mostra os valores atuais e os
-calculados antes de aplicar; não recupera espaços gastos nem pontos atuais.
+Magias usam o mesmo editor da ficha, com blocos de **Magia**, **Origem** e
+**Disponibilidade**; fórmula, usos e notas ficam em detalhes separados.
+Truques não pedem preparo; magias conhecidas também dispensam a seleção diária.
+**Sempre preparada** fica nos ajustes opcionais, para características/adaptações.
+Se a magia puder vir da raça ou da classe, escolha a origem indicada: a opção
+racial preenche habilidade e usos do traço, sem escolher por você ao abrir.
+Catálogo e criação personalizada continuam disponíveis.
+A previsão automática pelas classes mostra os valores preenchidos e os
+calculados antes de aplicar. Máximos, espaços gastos e pontos restantes têm
+rótulos e explicações próprios; aplicar não recupera espaços nem pontos atuais.
 Vínculos inequívocos
 são propostos pelo catálogo; ambiguidades exigem escolha. A origem da magia
 fica separada do recurso usado para lançá-la. Raça ou subclasse personalizada
@@ -268,7 +336,7 @@ O servidor de desenvolvimento não instala o cache offline.
 
 O aplicativo guarda seu código, regras, estilos, fontes e ícones. Os PDFs não são
 baixados automaticamente: a consulta aos livros exige conexão, ou você pode abrir
-uma cópia previamente baixada fora do leitor integrado. A fila da branch envia
+uma cópia previamente baixada fora do leitor integrado. A fila de sincronização envia
 alterações ao reconectar; o banco real já recebeu a migração. Outro PC só recebe edições
 offline depois de seu envio.
 
@@ -293,19 +361,14 @@ O leitor PDF.js é hospedado junto do aplicativo e tem texto selecionável. Os
 balões e consultas do criador também oferecem as descrições das regras.
 O zoom livre mantém apenas a porcentagem atual na lista, junto dos atalhos fixos.
 
-A [auditoria do Livro do Jogador](docs/AUDITORIA-LIVRO-2014.md) percorre todos os
-capítulos/apêndices e distingue cálculo, consulta e pendências. Concentração
-e condições já têm os controles descritos abaixo; duração, alvos e vários
-efeitos condicionais ainda exigem decisão da mesa.
-A revisão aprofundada também reproduziu divergências de fórmulas/rolagens,
-cura, transformação/descansos e recursos de alto nível. A primeira etapa de
-correções unifica a fórmula mostrada/rolada, corrige os cenários de PV e usa
-Dominar Magia/Assinatura no seletor de origem já existente. Componentes de
-magias não ficam mais cortados na quebra de linha. O diagnóstico
-`scripts/audit-phb-scenarios.cjs` usa somente personagens fictícios; o teste
+A [auditoria do Livro do Jogador](docs/AUDITORIA-LIVRO-2014.md) reúne a cobertura
+por capítulo, classe/raça e talento, as correções já entregues e as etapas R1–R6.
+Uma descrição ou escolha cadastrada não garante aplicação do efeito. Os
+cenários direcionados usam somente personagens fictícios, e o teste
 `tests/audited-rules-browser.cjs` exige os resultados corrigidos na suíte.
+Isso não certifica todas as combinações ou a execução integral das 361 magias.
 
-## Login em desenvolvimento
+## Login e contas
 
 O fluxo escolhido é e-mail/senha no Supabase, em um projeto separado do outro
 aplicativo do responsável. Consulte [docs/LOGIN.md](docs/LOGIN.md) para cadastro,
@@ -325,6 +388,14 @@ e sem substituir fichas existentes. Ao sair, as cópias são preservadas. Isso n
 criptografa o dispositivo. A migração do banco foi aplicada; conferir a
 confirmação de envio no perfil antes de trocar de computador. Login e
 sincronização real entre dispositivos e SMTP próprio ainda precisam de validação/configuração.
+
+Bônus de regras da etapa R1: Percepção e Investigação mostram o valor passivo
+com Observador, separado da rolagem. Nos ajustes de defesa, Ambidestro oferece
+confirmação de duas armas empunhadas para +1 à CA calculada. No editor de arma,
+**Arma do pacto** identifica qual ataque automático recebe Sorvedor de Vida.
+Afinidade Elemental soma CAR uma vez ao dano inicial de tipo reconhecido; não
+repete o bônus nos outros raios nem cobra feitiçaria. Totais manuais e fórmulas
+próprias são preservados. Limites e cobertura estão na auditoria de regras.
 
 ## Criação guiada
 
@@ -461,8 +532,9 @@ prepara vantagem para o próximo teste/ataque da ficha ou d20 do pool; desvantag
 cancela essa vantagem. **Usar na mesa** gasta após confirmação para jogar com
 dado físico. Preparar pode ser cancelado; dano e arremesso rápido não gastam a
 inspiração preparada. Não é a reserva de Inspiração de Bardo nem uma rerrolagem.
-Tempo de descanso, Medicina, ressurreição, fontes de bônus e gatilhos de classe
-que evitam cair a 0 PV continuam dependendo da resolução da mesa.
+Tempo de descanso, Medicina, ressurreição, fontes de bônus e os gatilhos de
+queda ainda não integrados continuam dependendo da mesa. Resistência Implacável
+e Fúria Implacável já têm o fluxo descrito acima.
 
 Magias que precisam de preparo só oferecem lançamento normal quando preparadas;
 Domínio/Círculo/Juramento ficam **Sempre Preparadas**. Ritual de mago no grimório
@@ -479,6 +551,13 @@ origem da magia, vantagem/desvantagem e inspiração preparada. Repetir ataques
 dos raios/feixes não gasta outro espaço. O ataque não conjura: **Conjurar/Truque**
 continua registrando o lançamento e seu gasto, mesmo se o ataque errar. Magias
 de resistência, acerto automático e utilidade não recebem esse botão.
+
+Para consultar a descrição, pare o mouse por cerca de um segundo no **livrinho**
+da magia. As demais ajudas usam o mesmo atraso; trocar de alvo substitui o balão
+e sair cancela sua abertura. O cartão inteiro não dispara a descrição.
+Clique, Enter ou toque no livro fixa a consulta com o link do PDF; feche pelo ×,
+Esc ou fora do balão. O foco por teclado continua abrindo a ajuda sem espera.
+
 **Só Pool** desativa conjurações, rituais e rolagens dos cartões de magia, antes
 de gastar espaços/usos/feitiçaria, trocar concentração ou gravar no histórico.
 **OFF** conserva o registro explícito de conjuração com dados físicos.
@@ -536,35 +615,24 @@ alternativa passou também com PostgreSQL 18.6. A CI mantém Docker/PostgreSQL 1
 
 ## Desenvolvimento e publicação
 
-Migração para Cloudflare em preparação, após o usuário criar a conta. O roteiro
-está em [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md); a configuração de publicação
-descrita abaixo continua sendo a atual até a transição revisada. O workflow já
-aceita o destino opcional Cloudflare pelo mesmo artefato verificado; as variáveis
-e os Secrets necessários estão no roteiro. O destino Cloudflare ainda não foi ativado.
+Branches de tarefa partem de `develop` e seguem por PR; uma entrega revisada e
+aprovada segue por PR para `main`. A pipeline verifica tipos, testes, build,
+navegador e banco descartável. Somente a `main` publica o artefato `dist/`, com
+GitHub Actions; não publicar a raiz com arquivos de desenvolvimento.
+O estado e as evidências da última publicação ficam em
+[docs/RETOMADA.md](docs/RETOMADA.md).
 
-Branches por tarefa seguem para `develop`; uma entrega revisada segue para
-`main`. Não fazer push direto à `main`. A pipeline verifica tipos, testes,
-build e navegador; somente um push na `main` pode publicar `dist/` no Pages.
-Para essa nova estrutura, a fonte do Pages deve ser **GitHub Actions**. Não publicar
-a raiz com os arquivos de desenvolvimento. A primeira versão já está em
-[mhaetinger.github.io/D-D](https://mhaetinger.github.io/D-D/), integrada pelas
-PRs #1/#2 e verificada em 15/10/2026. O login desta branch ainda aguarda ativação.
+O endereço atual é **https://criticall.art/**. Domínio registrado na Hostinger,
+DNS na Cloudflare e hospedagem no GitHub Pages. O workflow também aceita o
+destino Cloudflare com o mesmo artefato verificado, mas projeto/credenciais e
+ativação continuam pendentes. Procedimentos em [docs/DOMINIO.md](docs/DOMINIO.md)
+e [docs/CLOUDFLARE.md](docs/CLOUDFLARE.md).
 
-O usuário confirmou a compra de `criticall.art` na Hostinger em 16/10/2026.
-Confirmou OK no DNS check do GitHub e na Cloudflare. Consulta pública confirmou
-nameservers Cloudflare, HTTPS na raiz e retorno de `www`. A hospedagem ainda é
-GitHub Pages; migração para Cloudflare Pages e login no domínio aguardam validação.
-O retorno novo já foi aceito pelo Supabase. O procedimento está em [docs/DOMINIO.md](docs/DOMINIO.md).
-
-Veja [CONTRIBUTING.md](CONTRIBUTING.md) e [docs/ARQUITETURA.md](docs/ARQUITETURA.md)
-para os módulos, contratos, decisões e próximas etapas.
-O [guia da primeira publicação](docs/PRIMEIRA-PUBLICACAO.md) reúne a entrega,
-as verificações, o pacote de revisão no GitHub e os passos para ativar o site.
-
-O site é acessível a qualquer pessoa com o endereço. `noindex` orienta mecanismos
-de busca e não restringe acesso. Histórico/checkpoints da interface ainda são da
-cache pessoal e entram na fila da branch; validação real entre dispositivos,
-publicação e salas seguem pendentes.
+Veja [CONTRIBUTING.md](CONTRIBUTING.md) para contribuir e
+[docs/ARQUITETURA.md](docs/ARQUITETURA.md) para os contratos dos módulos. O roteiro
+de mecânicas está somente na auditoria; as validações externas ficam na retomada.
+O site é acessível a quem obtiver o endereço. `noindex` orienta buscadores e não
+restringe acesso. Salas e voz/vídeo não estão implementados.
 
 Código próprio sob MIT. Fontes/ícones e demais componentes conservam suas licenças
 em [public/licenses](public/licenses/README.md); PDF.js e seus avisos ficam em

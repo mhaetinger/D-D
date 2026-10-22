@@ -22,7 +22,7 @@ export function restoreSheetPanels():void {
   for(const p of panels.values()) {
     const target=document.querySelector(p.anchor);if(!target)continue;target.append(p.node);
     for(const el of p.node.querySelectorAll<HTMLInputElement>('input,select,textarea,button')) {
-      if(el.hasAttribute('data-spell-cancel')||el.hasAttribute('data-class-removal-cancel')||el.getAttribute('onclick')?.startsWith('closeHomebrewModal'))continue;
+      if(el.hasAttribute('data-spell-cancel')||el.hasAttribute('data-class-removal-cancel')||el.hasAttribute('data-origin-cancel')||el.getAttribute('onclick')?.startsWith('closeHomebrewModal'))continue;
       if(!canConfigureSheet(p.character)){if(!el.hasAttribute('data-access-disabled'))el.dataset.accessDisabled=String(el.disabled);el.disabled=true;}
       else if(el.hasAttribute('data-access-disabled')){el.disabled=el.dataset.accessDisabled==='true';delete el.dataset.accessDisabled;}
     }

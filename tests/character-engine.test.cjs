@@ -3,6 +3,33 @@ const assert = require("node:assert/strict");
 const E = require("../public/rules/character-engine");
 const { setup, choose, create } = require("./character-choices.cjs");
 
+test('Ancestral Feérico consulta o parágrafo racial e a página correta, sem a narrativa do meio-elfo',()=>{
+  for(const [race,page] of [['altoElfo',22],['elfoFloresta',22],['drow',22],['meioElfo',38]]) {
+    const ref=E.reference('Ancestral Feérico',null,race,'race');
+    assert.equal(ref.id,'ancestral-feerico');assert.equal(ref.pdfPage,page);
+    assert.match(ref.text,/vantagem/);assert.match(ref.text,/resistência/);assert.match(ref.text,/dormir/);
+    assert.ok(ref.text.length<250);assert.doesNotMatch(ref.text,/FLINT|embaixadores|Transe|Versatilidade/);
+  }
+});
+
+test('traços de todas as raças consultam parágrafos próprios; antecedentes usam suas características',()=>{
+  for(const [id,race] of Object.entries(E.options.races))for(const name of race.traits){
+    const ref=E.reference(name,null,id,'race');
+    assert.equal(ref?.kind,'race',id+': '+name);assert.ok(ref.text.trim().length>20);
+    assert.doesNotMatch(ref.text,/FLINT|Tanis|embaixadores/);
+  }
+  const skill=E.reference('Versatilidade em Perícia',null,'meioElfo','race');
+  assert.equal(skill.pdfPage,38);assert.match(skill.text,/proficiência em duas perícias/);assert.ok(skill.text.length<120);
+  assert.match(E.reference('Incremento em Duas Habilidades',null,'humanoVariante','race').text,/Dois valores/);
+  for(const [id,bg] of Object.entries(E.options.backgrounds)){
+    const c=create('guerreiro','campeao','humano',id),feature=E.features(c).find(f=>f.name===bg.feature);
+    assert.ok(feature?.reference?.text?.length>100,id+': '+bg.feature);
+    assert.match(feature.reference.id,/^caracteristica-/);assert.ok(feature.reference.page>=125&&feature.reference.page<=143);
+  }
+  const research=E.reference('Pesquisador',null,'sabio','background');
+  assert.equal(research.pdfPage,140);assert.match(research.text,/biblioteca/);assert.match(research.text,/Mestre/);
+});
+
 test("o livro local contém 12 classes, 41 subclasses e 361 magias com descrição e página", () => {
   assert.equal(Object.keys(E.data.classes).length, 12);
   assert.equal(
@@ -275,7 +302,8 @@ test("Sortudo racial não consulta o talento homônimo", () => {
   const racial = E.reference("Sortudo", null, "halflingLeve", "race"),
     feat = E.reference("Sortudo", null, null, "feat");
   assert.equal(racial.page, 28);
-  assert.match(racial.text, /Sortudo/);
+  assert.equal(racial.name, 'Sortudo');
+  assert.match(racial.text, /1 natural/);
   assert.doesNotMatch(racial.text, /3 pontos de sorte/);
   assert.equal(feat.page, 172);
   assert.match(feat.text, /3 pontos de sorte/);
