@@ -2,6 +2,37 @@
 
 ## Não lançado
 
+### Ancestralidades de 2014 e revisão com hierarquia — 2026-10-22
+
+- Conferidas as dez cores de draconato com o livro: elemento, linha/cone,
+  DES/CON, CD por Constituição/proficiência e dano por nível total. A importação
+  oferece ancestralidades racial e de feiticeiro separadas, removíveis, com
+  observação quando faltarem. Mantém outras escolhas/metadados e o original;
+  cor da pele não vira uma ancestralidade. Resistência exige uma opção válida.
+  A consulta não implementa a resolução completa do sopro.
+- Rótulos, jogador/XP, legendas e títulos têm tamanhos/pesos distintos dos
+  valores. Grupos de magia têm cor, número e título próprios; classes e origens
+  raciais ficam identificadas. Cartões usam colunas quando couber; editor
+  aberto ocupa a largura inteira. Fonte GG e quadros internos cabem no celular.
+- O círculo é um único select, visível no cartão de efeito próprio mesmo
+  recolhido. Vazio pede escolher Truque ou 1º–9º círculo, sem “?º” nem assumir
+  zero na ajuda. Catálogo mantém o círculo do livro. Origem marcada pode ser
+  desmarcada sem recuperar usos ou apagar notas; elfo/gnomo/tiefling conferidos.
+- Raio Místico é reconhecido como Rajada Mística mesmo com dados escritos na
+  linha. O círculo vem do catálogo e a linha original permanece nas notas.
+- Previsão de reservas fica visível sem botão de conferir e acompanha classes,
+  níveis, subclasses e edição dos valores. Distingue máximos atuais/previstos;
+  aplicar continua explícito e conserva gastos. Subclasse de guerreiro/ladino
+  precisa estar vinculada para prever sua Conjuração.
+- Verificados 427 testes Node, tipos/build e nove roteiros Chromium: revisão
+  clara, revisão guiada, setores, PDF/JSON, edição em linha, cadeado, passivos,
+  dano e consulta de características. Incluídos persistência das ancestralidades,
+  equivalências de grafia, origem reversível, previsão sem recuperar usos,
+  classificação vazia e 320px/GG/três temas. Capturas desktop/mobile conferidas.
+  A suíte completa passa a 31 roteiros. PDF pessoal lido apenas localmente,
+  com cancelamento e original inalterado; nenhum dado desse PDF nos testes
+  publicados. Sem SQL/RLS/RPC; conferir a CI atual da PR #19 antes de integrar.
+
 ### Importação guiada por opções e círculos de magia — 2026-10-22
 
 - Antecedente e tendência permitem manter a escrita livre ou escolher do livro,

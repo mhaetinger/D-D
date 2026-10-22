@@ -73,6 +73,17 @@ Antecedente tem nome livre e vínculo opcional ao catálogo, como raça. Tendên
 compartilha as nove sugestões do criador e permite texto próprio. Vínculo de
 antecedente só é proposto por correspondência exata, fora do modo manual;
 escolher um não reescreve os treinos ou a narrativa importados.
+`ancestry-fields.ts` permite conferir as escolhas `raceDragon` e `dragon`
+separadamente. `draconic-ancestry.ts` cruza as dez opções com a tabela da p. 34
+impressa (PDF 33): elemento, linha/cone, DES/CON, CD por CON/proficiência e
+2d6/3d6/4d6/5d6 por nível total. A consulta não resolve o sopro como ataque.
+Confere também com a tabela do [SRD 5.1, p. 5](https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf#page=5).
+Só o nome explícito da raça com uma cor pode propor ancestralidade, sem trocar
+uma escolha prévia nem deduzir pela pele. Alterações confirmadas na proposta
+mudam apenas a chave pertinente do histórico, preservando os demais dados.
+Ausência/valor desconhecido gera observação; não inventa resistência.
+O dano por tipo exige uma das dez escolhas válidas, com origem racial e
+Afinidade Elemental independentes; a segunda conserva seu custo/ativação.
 Proficiências e ataques começam com resumos dos valores lidos.
 `proficiency-fields.ts` oferece checkboxes de idiomas, armas e ferramentas;
 `isProficient` marca e protege armas já concedidas pelas regras existentes.
@@ -89,7 +100,7 @@ inclusive em outro personagem editado no mesmo arquivo.
 Bônus vazio em um ataque manual representa ausência de informação, não +0:
 o armazenamento preserva a string vazia e a ficha oferece somente o dano até
 haver bônus informado/calculado. Isso não infere que todo ataque sem bônus seja
-um efeito de resistência, nem calcula a CD de um sopro. Vincular explicitamente
+um efeito de resistência, nem resolve o sopro pela consulta de ancestralidade. Vincular explicitamente
 ao catálogo com modo Automático ativa o cálculo; editar/cancelar mantém os contratos anteriores.
 A validação revela o setor e os detalhes antes de focar o primeiro campo inválido.
 `spell-groups.ts` distribui os cartões de importação por círculo e classe sem
@@ -102,6 +113,18 @@ e soltar do mouse e cancelar o clique. Nós/rascunhos são mantidos nas escolhas
 O editor compartilhado distingue escolher do livro de criar um efeito próprio;
 fórmula e lançamentos especiais continuam opcionais. Campos numéricos e selects
 alinham pela base; checkboxes de componentes ficam em faixa própria.
+O círculo usa um único select (Truque ou 1º–9º círculo). Na importação,
+`circleMount` move o mesmo controle ao cabeçalho do cartão, visível com a edição
+recolhida. O mapa de campos preserva sua referência e a leitura numérica, sem
+inputs espelhados; seu change passa pelo editor antes de atualizar a proposta.
+Vazio continua indefinido: não aparece como círculo 0 na ajuda ou na validação.
+Grupos têm faixa de cor, número e título, cartões em colunas quando couber e
+editor aberto na largura inteira. Origens raciais têm grupo próprio, separado
+de Conjuração/Pacto; a classificação visual não muda o círculo de lançamento.
+Uma origem marcada pode ser desmarcada; a escolha volta a pendente, mantendo
+contadores gastos e notas. Elfo/gnomo usam INT e tiefling usa CAR em seus traços
+verificados. O sinônimo Raio Místico é associado a Rajada Mística na leitura,
+com círculo do catálogo e a linha original preservada nas notas.
 `catalog-search.ts` substitui o datalist nativo por resultados locais no tema,
 no fluxo do cartão, com círculo e classes. Não há portal fixo sobre outro campo.
 Usa o padrão [combobox da WAI](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/):
@@ -114,10 +137,15 @@ válidas começam recolhidas por reserva; o círculo de Pacto também deve ser v
 Dados ausentes/inconsistentes não são tratados como zero. Durante a edição não
 recolhe o grupo do usuário; novas reservas após comparação abrem sem recriar nós.
 O recolhimento considera os valores, não a classe, para preservar adaptações.
-O botão Conferir máximos pelas classes tem explicação visível antes da ação:
-compara uma proposta; não escolhe magias, recupera usos ou aplica valores sozinho.
+`syncPoolComparison` compara automaticamente uma cópia ao mudar classes, níveis,
+subclasses ou reservas. Assinatura evita remontar a previsão sem mudança; o
+formulário original permanece montado. Guerreiro/ladino de nível 3+ precisam da
+subclasse para a previsão de Conjuração. Máximos e Pacto são apresentados com
+classes/níveis e valores atuais; aplicar é explícito, sem recuperar gastos.
 A tipografia da revisão fica restrita ao diálogo em `import-review.css`, com
-16px de leitura/campos em M, rótulos de 15px e títulos Cinzel; a escala usa rem.
+16px de valores em M, rótulos de 17px, jogador/XP em 18px e legendas/títulos
+maiores, preservando a escala em rem. Checkboxes mantêm texto de leitura;
+as margens de quadros internos se reduzem no celular para acomodar G/GG.
 O aceite de preparo adaptado tem margem própria após a lista, mesmo vazia.
 `app/help.ts` monta os atributos do balão compartilhado: preparo e adaptação
 dispensam `title` nativo e botões extras. `RuleTooltips` também reconhece foco

@@ -2815,6 +2815,7 @@
           level: 1,
           order: 0,
           source: r.name,
+          choices: r.dragonChoice && name === 'Ancestral Dracônico' ? selections(char,null,'raceDragon').slice(-1) : [],
           reference: reference(name, null, char.rules?.raceId, "race"),
         }),
       );

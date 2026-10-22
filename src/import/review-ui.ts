@@ -3,15 +3,16 @@ import {PREPARATION_ADAPTATION_HELP} from '../rules/spell-help';
 import {helpAttributes} from '../app/help';
 import {preparation,armorProficiencies} from '../rules/spellcasting';
 import {catalogueWeapon,weaponStats} from '../rules/combat';
-import {proposeImport,importWarnings,importNotices,validateImport,suggestPdfPools,applySuggestedPools} from './character-review';
+import {proposeImport,importWarnings,importNotices,validateImport,applySuggestedPools} from './character-review';
 import {createWeaponFields} from '../sheet-edit/weapon-fields';
 import {reviewIcon,reviewCard as card,identityFields,historyFields,PROFICIENCY_HELP,EXPERTISE_HELP,MANUAL_SKILL_HELP} from './review-presentation';
+import {ancestryFields} from './ancestry-fields';
 import {createProficiencyFields} from './proficiency-fields';
 import {groupImportSpells} from './spell-groups';
 import {ALIGNMENTS} from '../wizard/guidance';
 import {createSpellFields} from '../sheet-edit/spell-fields';
 import {classRemovalControls,removeClass} from '../sheet-edit/class-removal';
-import {importPoolFields,syncImportPoolDisclosures} from './pool-fields';
+import {importPoolFields,syncImportPoolDisclosures,syncPoolComparison} from './pool-fields';
 import type {Backup} from '../storage/validation';
 
 const host=window as any;
@@ -31,6 +32,7 @@ export async function reviewImport(original:Backup,E:Engine,isCurrent:()=>boolea
   const proposal=proposeImport(original,E),controls=document.createElement('div');controls.className='rule-context import-review';controls.dataset.importReview='';
   let current=0,active:Sector='identity';const editedWeapons=new Set<number>(),reviewedManual=new Set<number>(),positions=new Map<string,number>();
   let spellFields:ReturnType<typeof createSpellFields>[]=[];
+  let ancestryPicker:ReturnType<typeof ancestryFields>;
   let proficiencyPicker:ReturnType<typeof createProficiencyFields>;
   let weaponFields:ReturnType<typeof createWeaponFields>[]=[];
   controls.innerHTML=`<label ${proposal.characters.length===1?'hidden':''}>Personagem<select data-import-person>${proposal.characters.map((c,i)=>`<option value="${i}">${escape(c.name||'Sem nome')} (${i+1}/${proposal.characters.length})</option>`).join('')}</select></label><label class="import-mobile-sector">Setor da revisão<select data-import-sector-select>${Object.entries(sectors).map(([id,name],i)=>`<option value="${id}">${i+1}. ${name}</option>`).join('')}</select></label><nav class="import-nav" aria-label="Setores da revisão">${Object.entries(sectors).map(([id,name],i)=>`<button type="button" data-import-sector="${id}" aria-controls="import-panel-${id}">${i+1}. ${name}</button>`).join('')}</nav><div data-import-body data-scroll-content></div><p data-import-error role="alert"></p><div class="import-review-footer"><p data-import-status role="status"></p><label class="import-check"><input type="checkbox" data-import-ack>Conferi os itens mantidos manualmente, indicados em cada setor.</label><label class="import-check"><input type="checkbox" data-import-notes ${proposal.privateNotes?'checked':''} ${proposal.privateNotes?'':'disabled'}>Incluir anotações pessoais${(proposal.characters[0] as Sheet).rules?.pdfImport?' e texto original do PDF':''}</label></div>`;
@@ -48,7 +50,7 @@ export async function reviewImport(original:Backup,E:Engine,isCurrent:()=>boolea
   }
   function reveal(el:HTMLElement){const panel=el.closest<HTMLElement>('[data-import-panel]');if(panel)showSector(panel.dataset.importPanel as Sector);for(let parent=el.parentElement;parent&&parent!==body;parent=parent.parentElement)if(parent instanceof HTMLDetailsElement)parent.open=true;}
   function updateStatus(){
-    const c=char(),notices=importNotices(c,E);proficiencyPicker?.sync();
+    const c=char(),notices=importNotices(c,E);proficiencyPicker?.sync();ancestryPicker?.sync();syncPoolComparison(body,c,E);
     for(const id of ['weapons','tools','languages']) {
       const summary=body.querySelector<HTMLElement>(`[data-import-proficiency="${id}"]`);
       if(summary)summary.textContent=c.proficiencies[id] || (id==='weapons'?'Pelas classes, raça e escolhas':'Nenhum registro no arquivo');
@@ -95,15 +97,16 @@ export async function reviewImport(original:Backup,E:Engine,isCurrent:()=>boolea
     body.innerHTML=panel('identity',identityFields(c,input,options(E.options.races,c.rules.raceId||'','Escolha a raça…')+`<option value="manual" ${c._importManualRace?'selected':''}>Personalizada / manter manual</option>`,options(E.options.backgrounds,c.rules.backgroundId||'','Manter texto livre / personalizado'))+card('Classes e níveis',`<p class="import-field-help">Cada linha é uma classe. Em multiclasse, confira o nível de cada uma.</p><div data-import-classes>${c.classes.map(classRow).join('')}</div><div class="import-actions"><button type="button" data-import-add-class>+ Adicionar classe</button><span data-import-total-level></span></div><div data-import-class-removal></div>`,'swords','import-class-section'))+
     panel('combat',card('Atributos',`<div class="import-abilities">${Object.entries(E.data.abilities).map(([id,name])=>`<div class="import-stat">${input(c,`abilities.${id}.score`,escape(name),'number',true,0,30)}</div>`).join('')}</div>`,'dices')+card('Vida e defesa',`<div class="import-grid import-vitals">${input(c,'hpMax','PV máximos','number',true,1)}${input(c,'hpCurrent','PV atuais','number',true,0)}${input(c,'hpTemp','PV temporários','number',true,0)}${input(c,'baseAcArmor','CA escrita / total manual','number',true,0)}${input(c,'speed','Deslocamento (metros)','number',true,0)}</div>`,'shield')+importPoolFields((path,label,min=0,max=100)=>input(c,path,label,'number',true,min,max)))+
     panel('skills','<div class="import-training-overview">'+card('Resistências',`<div class="import-saves">${Object.entries(E.data.abilities).map(([id,name])=>check(c,`abilities.${id}.saveProf`,escape(name))).join('')}</div>`,'shield','import-resistance-section')+card('Proficiências e idiomas',`<div class="import-proficiency-records">${proficiencyFields()}</div><fieldset><legend>Armaduras</legend><div class="import-saves">${Object.entries({leve:'Leves',media:'Médias',pesada:'Pesadas',escudo:'Escudos'}).map(([id,name])=>`<label class="import-check"><input type="checkbox" data-import-armor="${id}" ${armorProficiencies(c,E).includes(id)?'checked':''}>${name}</label>`).join('')}</div><button type="button" data-import-armor-auto>Usar proficiências da classe e escolhas</button></fieldset>`,'book-open','import-proficiency-section')+'</div>'+card('Perícias',`<p>Proficiência soma o bônus; especialização dobra esse bônus. O total manual substitui o cálculo. Deixe vazio para calcular automaticamente.</p><div class="import-skill-list"><div class="import-skill-head" aria-hidden="true"><span>Perícia</span><span>Treino</span><span>Total manual</span></div>${Object.entries(E.data.skills).map(([id,name])=>`<div class="import-skill-row"><strong>${escape(name)}</strong><div class="import-skill-training"><label class="import-check" ${helpAttributes('Proficiência',PROFICIENCY_HELP)}><input type="checkbox" data-import-skill="${id}" ${c.skillsProf.includes(id)?'checked':''}>Proficiente</label><label class="import-check" ${helpAttributes('Especialização',EXPERTISE_HELP)}><input type="checkbox" data-import-expertise="${id}" ${c.expertise.includes(id)?'checked':''}>Especialização</label></div>${input(c,`customSkillBonuses.${id}`,'Total manual','number',false,-1000,1000).replace('<label>',`<label ${helpAttributes('Total manual',MANUAL_SKILL_HELP)}>`)}</div>`).join('')}</div>`,'target'))+
-    panel('spells',`<div class="import-actions"><p data-import-preparation></p><div class="import-spell-add-actions"><button type="button" data-import-add-cantrip>+ Adicionar truque</button><button type="button" data-import-add-spell>+ Adicionar magia</button></div></div><p>Confira por círculo e origem. Abra um cartão para revisar; ao adicionar, escolha do livro ou crie um efeito da mesa.</p><div data-import-spells></div><div class="import-preparation-adaptation">${check(c,'rules.importPreparationAdapted','Preparo acima do limite · adaptação da mesa',PREPARATION_ADAPTATION_HELP)}</div>`)+
+    panel('spells',`<div class="import-actions"><p data-import-preparation></p><div class="import-spell-add-actions"><button type="button" data-import-add-cantrip>+ Adicionar truque</button><button type="button" data-import-add-spell>+ Adicionar magia</button></div></div><p>Os grupos mostram o círculo do livro. Truques não gastam espaços; os espaços de Pacto podem ter outro círculo. Abra um cartão para revisar.</p><div data-import-spells></div><div class="import-preparation-adaptation">${check(c,'rules.importPreparationAdapted','Preparo acima do limite · adaptação da mesa',PREPARATION_ADAPTATION_HELP)}</div>`)+
     panel('equipment',card('Armas e ataques',`<div class="import-actions"><p class="import-field-help">Confira ataque e dano. Abra uma arma para corrigir os valores ou calcular pelo catálogo.</p><button type="button" data-import-add-weapon>+ Adicionar ataque</button></div><div data-import-weapons></div>`,'swords','import-weapons-section')+historyFields(c,input));
     proficiencyPicker=createProficiencyFields(c,E);body.querySelector('[data-import-proficiency-picker]')!.append(proficiencyPicker.element);
+    ancestryPicker=ancestryFields(c,E);body.querySelector('.import-identity')!.append(ancestryPicker.element);
     syncBackground();
     syncImportPoolDisclosures(body,c,true);renderSpells();renderWeapons();updatePreviews();updateStatus();showSector(active,false);host.lucide?.createIcons();
   }
   function spellTitle(article:HTMLElement,s:Sheet){
     article.querySelector('[data-import-spell-title]')!.textContent=s.name||(s.circle===0?'Novo truque':'Nova magia');
-    article.querySelector('[data-import-spell-kind]')!.textContent=s.circle===0?'Truque':`${s.circle??'?'}º círculo`;
+    article.querySelector('[data-import-spell-kind]')!.textContent=s.circle===0?'Truque':Number.isInteger(s.circle)?`${s.circle}º círculo`:'Escolha o grupo';
     const origin=article.querySelector<HTMLElement>('[data-import-spell-meta]')!;
     origin.textContent=s.extraSource||(!E.data.classes[s.classId]?'⚠ Escolha a origem':'');origin.hidden=!origin.textContent;
   }
@@ -112,9 +115,10 @@ export async function reviewImport(original:Backup,E:Engine,isCurrent:()=>boolea
     if(!c.spells.length){list.innerHTML='<p class="import-empty">Nenhuma magia. Use Adicionar magia para escolher no catálogo ou criar uma própria.</p>';return;}
     c.spells.forEach((s:Sheet,i:number)=>{
       const article=document.createElement('article');article.className='spell-card import-spell-card';article.dataset.importSpell=String(i);
-      article.innerHTML=`<header><div><span class="import-spell-kind" data-import-spell-kind></span><h3 data-import-spell-title></h3><p data-import-spell-meta></p></div><button type="button" data-import-remove-spell="${i}" aria-label="Remover ${escape(s.name||'nova magia')}">Remover</button></header><details ${!s.name?'open':''}><summary>Revisar / editar magia</summary></details>`;
-      const fields=createSpellFields(c,s,E);spellFields.push(fields);article.querySelector('details')!.append(fields.element);
+      article.innerHTML=`<header><div><span class="import-spell-kind" data-import-spell-kind></span><h3 data-import-spell-title></h3><p data-import-spell-meta></p></div><button type="button" data-import-remove-spell="${i}" aria-label="Remover ${escape(s.name||'nova magia')}">Remover</button></header><div data-import-circle-choice></div><details ${!s.name?'open':''}><summary>Revisar / editar magia</summary></details>`;
+      const fields=createSpellFields(c,s,E,{circleMount:article.querySelector('[data-import-circle-choice]')!});spellFields.push(fields);article.querySelector('details')!.append(fields.element);
       fields.element.querySelectorAll<HTMLInputElement>('[data-spell-field]').forEach(el=>{const id=el.dataset.spellField!;if(!['editorMode','castMode'].includes(id))el.dataset.importField=`spells.${i}.${id}`;});
+      fields.field('circle').dataset.importField=`spells.${i}.circle`;
       fields.field('classId').dataset.importOrigin=String(i);fields.field('classId').required=true;
       fields.element.querySelector<HTMLInputElement>('[data-spell-catalog]')!.dataset.importBook=String(i);
       const update=()=>{c.spells[i]=fields.read(true);spellTitle(article,c.spells[i]);updateStatus();};
@@ -142,19 +146,19 @@ export async function reviewImport(original:Backup,E:Engine,isCurrent:()=>boolea
   controls.querySelector('[data-import-person]')!.addEventListener('change',e=>{current=Number((e.target as HTMLSelectElement).value);error.textContent='';render();});
   ack.addEventListener('change',()=>{if(ack.checked)reviewedManual.add(current);else reviewedManual.delete(current);});
   body.addEventListener('input',e=>{
-    const el=e.target as HTMLInputElement;if(el.closest('.spell-fields,.weapon-fields')||!el.hasAttribute('data-import-field'))return;
+    const el=e.target as HTMLInputElement;if(el.closest('.spell-fields,.weapon-fields,[data-import-circle-choice]')||!el.hasAttribute('data-import-field'))return;
     const path=el.dataset.importField!,c=char(),value=el.type==='checkbox'?el.checked:el.type==='number'?el.value===''?undefined:Number(el.value):el.value;
-    put(c,path,value);if(/^(classes|standardSlots|pactMagic|sorceryPoints)\./.test(path))body.querySelector('[data-import-pool-comparison]')?.replaceChildren();if(path==='baseAcArmor'&&c.rules.manualMode)c.acFormula='legacy';if(path==='alignment'){(body.querySelector('[data-import-alignment]') as HTMLSelectElement).value=String(value) in ALIGNMENTS?String(value):'';body.querySelector('[data-import-alignment-help]')!.textContent=ALIGNMENTS[String(value)]||'Sua tendência, escrita livremente.';}
+    put(c,path,value);if(path==='baseAcArmor'&&c.rules.manualMode)c.acFormula='legacy';if(path==='alignment'){(body.querySelector('[data-import-alignment]') as HTMLSelectElement).value=String(value) in ALIGNMENTS?String(value):'';body.querySelector('[data-import-alignment-help]')!.textContent=ALIGNMENTS[String(value)]||'Sua tendência, escrita livremente.';}
     // Correções explícitas não devem desaparecer no próximo refresh do motor.
     const pool=path.match(/^(standardSlots|pactMagic|sorceryPoints)\./);if(pool){c.rules.fieldOverrides ||= {};c.rules.fieldOverrides[pool[1]]=true;syncImportPoolDisclosures(body,c);}
     error.textContent='';updateStatus();updatePreviews();
   });
   body.addEventListener('change',e=>{
-    const el=e.target as HTMLSelectElement,c=char();if(el.closest('.spell-fields,.weapon-fields'))return;
+    const el=e.target as HTMLSelectElement,c=char();if(el.closest('.spell-fields,.weapon-fields,[data-import-circle-choice]'))return;
     if(el.hasAttribute('data-import-field')){
       const path=el.dataset.importField!;if(el.tagName==='SELECT')put(c,path,el.value||undefined);
       const match=path.match(/^classes\.(\d+)\.(classId|level)$/);
-      if(match){body.querySelector('[data-import-pool-comparison]')?.replaceChildren();const cls=c.classes[Number(match[1])],meta=E.data.classes[cls.classId];cls.hitDie=meta?.die||6;if(!meta?.subclasses?.[cls.subclassId]){cls.subclassId='';cls.subclass='';}const sub=body.querySelector<HTMLSelectElement>(`[data-import-subclass="${match[1]}"]`)!;sub.innerHTML=subclassOptions(cls);sub.required=!!meta&&cls.level>=meta.subLevel;refreshClasses();}
+      if(match){const cls=c.classes[Number(match[1])],meta=E.data.classes[cls.classId];cls.hitDie=meta?.die||6;if(!meta?.subclasses?.[cls.subclassId]){cls.subclassId='';cls.subclass='';}const sub=body.querySelector<HTMLSelectElement>(`[data-import-subclass="${match[1]}"]`)!;sub.innerHTML=subclassOptions(cls);sub.required=!!meta&&cls.level>=meta.subLevel;refreshClasses();}
     }
     for(const [key,list] of [['importSkill','skillsProf'],['importExpertise','expertise']])if(el.dataset[key]){const id=el.dataset[key];c[list]=c[list].filter((x:string)=>x!==id);if((el as unknown as HTMLInputElement).checked)c[list].push(id);if(key==='importSkill'&&!(el as unknown as HTMLInputElement).checked){c.expertise=c.expertise.filter((x:string)=>x!==id);body.querySelector<HTMLInputElement>(`[data-import-expertise="${id}"]`)!.checked=false;}if(key==='importExpertise'&&(el as unknown as HTMLInputElement).checked&&!c.skillsProf.includes(id)){c.skillsProf.push(id);body.querySelector<HTMLInputElement>(`[data-import-skill="${id}"]`)!.checked=true;}}
     if(el.hasAttribute('data-import-armor')){const list=armorProficiencies(c,E),id=el.dataset.importArmor!;c.armorProficiencies=list.filter((x:string)=>x!==id);if((el as unknown as HTMLInputElement).checked)c.armorProficiencies.push(id);}
@@ -169,7 +173,7 @@ export async function reviewImport(original:Backup,E:Engine,isCurrent:()=>boolea
     if(target.closest('[data-import-add-class]')){const i=c.classes.length;if(i>=12)return;c.classes.push({classId:'',level:1,subclass:'',subclassId:'',hitDie:6,hitDiceUsed:0});body.querySelector('[data-import-classes]')!.insertAdjacentHTML('beforeend',classRow(c.classes[i],i));body.querySelectorAll<HTMLButtonElement>('[data-import-remove-class]').forEach(e=>e.disabled=false);body.querySelector<HTMLInputElement>(`[data-import-field="classes.${i}.classId"]`)!.focus();}
     const remove=target.closest<HTMLButtonElement>('[data-import-remove-class]');
     if(remove&&c.classes.length>1){const index=Number(remove.dataset.importRemoveClass),mount=body.querySelector('[data-import-class-removal]')!;
-      const apply=(resolution?:Parameters<typeof removeClass>[3])=>{const next=removeClass(c,index,E,resolution);Object.assign(c,next);body.querySelector('[data-import-classes]')!.innerHTML=c.classes.map(classRow).join('');mount.replaceChildren();reviewedManual.delete(current);renderSpells();updateStatus();updatePreviews();body.querySelector('[data-import-pool-comparison]')?.replaceChildren();};
+      const apply=(resolution?:Parameters<typeof removeClass>[3])=>{const next=removeClass(c,index,E,resolution);Object.assign(c,next);body.querySelector('[data-import-classes]')!.innerHTML=c.classes.map(classRow).join('');mount.replaceChildren();reviewedManual.delete(current);renderSpells();updateStatus();updatePreviews();};
       // Uma classe nova/vazia não possui efeitos; removê-la não pede confirmação.
       if(!c.classes[index].classId)apply();else{mount.replaceChildren(classRemovalControls(c,index,E,apply,()=>mount.replaceChildren()));mount.scrollIntoView({block:'nearest'});}
     }
@@ -178,13 +182,7 @@ export async function reviewImport(original:Backup,E:Engine,isCurrent:()=>boolea
     const removeWeapon=target.closest<HTMLButtonElement>('[data-import-remove-weapon]');if(removeWeapon){editedWeapons.add(current);c.weapons.splice(Number(removeWeapon.dataset.importRemoveWeapon),1);renderWeapons();updatePreviews();updateStatus();body.querySelector<HTMLButtonElement>('[data-import-add-weapon]')!.focus({preventScroll:true});}
     if(target.closest('[data-import-add-spell],[data-import-add-cantrip]')){c.spells.push({name:'',circle:target.closest('[data-import-add-cantrip]')?0:1,classId:c.classes[0].classId,extraSource:'Adição livre · adaptação da mesa',castingAbility:E.data.classes[c.classes[0].classId]?.ability||'',prepared:true});renderSpells();const last=body.querySelector<HTMLElement>(`[data-import-spell="${c.spells.length-1}"]`)!;(last.querySelector('details') as HTMLDetailsElement).open=true;last.querySelector<HTMLInputElement>('[data-spell-catalog]')!.focus();updateStatus();}
     const removeSpell=target.closest<HTMLButtonElement>('[data-import-remove-spell]');if(removeSpell){c.spells.splice(Number(removeSpell.dataset.importRemoveSpell),1);renderSpells();updateStatus();body.querySelector<HTMLButtonElement>('[data-import-add-spell]')!.focus({preventScroll:true});}
-    if(target.closest('[data-import-pools]')){
-      const predicted=structuredClone(c);suggestPdfPools(predicted,E);const rows=[];
-      for(let n=1;n<=9;n++)if(c.standardSlots[n]?.total||predicted.standardSlots[n]?.total)rows.push([`${n}º círculo`,c.standardSlots[n]?.total||0,predicted.standardSlots[n]?.total||0]);
-      rows.push(['Pacto · círculo',c.pactMagic.level,predicted.pactMagic.level],['Pacto · total',c.pactMagic.total,predicted.pactMagic.total],['Feitiçaria · máximo',c.sorceryPoints.max,predicted.sorceryPoints.max]);
-      body.querySelector('[data-import-pool-comparison]')!.innerHTML=`<div class="import-notice"><strong>Máximos pelas classes e níveis atuais</strong><p>Compara Conjuração, Magia de Pacto e Feitiçaria pelas regras de 2014. Não escolhe magias nem recupera usos gastos. Se você mudou classes ou níveis, recalcule a comparação.</p><table><thead><tr><th>Reserva</th><th>Na ficha</th><th>Livro</th></tr></thead><tbody>${rows.map(r=>`<tr>${r.map((v,i)=>`<${i?'td':'th'}>${escape(v)}</${i?'td':'th'}>`).join('')}</tr>`).join('')}</tbody></table><button type="button" data-import-apply-pools>Aplicar máximos do livro</button></div>`;
-    }
-    if(target.closest('[data-import-apply-pools]')){try{Object.assign(c,applySuggestedPools(c,E));body.querySelectorAll<HTMLInputElement>('[data-import-field^="standardSlots."],[data-import-field^="pactMagic."],[data-import-field^="sorceryPoints."]').forEach(el=>el.value=String(at(c,el.dataset.importField!)??0));syncImportPoolDisclosures(body,c);error.textContent='';body.querySelector('[data-import-pool-comparison]')!.innerHTML='<p role="status">Máximos aplicados. Espaços usados e pontos atuais foram mantidos.</p>';}catch(err){error.textContent=(err as Error).message;}}
+    if(target.closest('[data-import-apply-pools]')){try{Object.assign(c,applySuggestedPools(c,E));body.querySelectorAll<HTMLInputElement>('[data-import-field^="standardSlots."],[data-import-field^="pactMagic."],[data-import-field^="sorceryPoints."]').forEach(el=>el.value=String(at(c,el.dataset.importField!)??0));syncImportPoolDisclosures(body,c);error.textContent='';syncPoolComparison(body,c,E);}catch(err){error.textContent=(err as Error).message;}}
   });
   render();
   const dialog=document.getElementById('confirmationDialog') as HTMLDialogElement,form=dialog.querySelector('form')!,previousNoValidate=form.noValidate;

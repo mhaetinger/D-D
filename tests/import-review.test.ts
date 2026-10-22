@@ -84,3 +84,8 @@ test('classe removida não continua concedendo escolhas/efeitos pelo histórico 
  const c=warrior();c.classes.push({classId:'bruxo',level:1,hitDie:8});c.ruleState={active:{'guerreiro:secondWind':true,'spell:shield':true}};const before=structuredClone(c);
  assert.deepEqual(E.selections(c,null,'fighting'),['Arquearia']);const next=removeClass(c,0,E);assert.equal(next.classes[0].classId,'bruxo');assert.deepEqual(E.selections(next,null,'fighting'),[]);assert.deepEqual(E.selections(next,null,'raceLanguages'),E.selections(c,null,'raceLanguages'));assert.deepEqual(next.rules.history,c.rules.history);assert.equal(next.ruleState.active['guerreiro:secondWind'],false);assert.equal(next.ruleState.active['spell:shield'],true);assert.deepEqual(c,before);
 });
+
+ test('PDF: Raio Místico com dados na linha é Rajada Mística, círculo zero, conservando texto',()=>{
+ const raw='Raio Mistico, 1d10, dois feixes 36 m',source=pdf({CharacterName:'Conjuradora de teste',ClassLevel:'Ladino 6 / Bruxo 1',Race:'Tiefling','Spells 1014':raw});const before=structuredClone(source),c=pdfToBackup(source,E).characters[0] as any;
+ assert.equal(c.spells[0].bookId,'rajada-mistica');assert.equal(c.spells[0].circle,0);assert.equal(c.spells[0].classId,'bruxo');assert.ok(c.spells[0].notes.includes(raw));assert.deepEqual(source,before);
+ });

@@ -1,6 +1,7 @@
 import { active, level, norm, selections, subclass, type Engine, type Sheet } from './model';
 import { incapacityReason } from './concentration';
 import { automaticSaveFailure, hasCondition } from './conditions';
+import {dragonAncestry} from './draconic-ancestry';
 
 export const DAMAGE_TYPES = [
   ['acid','Ácido'],['bludgeoning','Concussão'],['slashing','Cortante'],['lightning','Elétrico'],
@@ -21,7 +22,7 @@ export interface DamagePacket { source:DamageSource; parts:DamagePart[]; critica
 export const damageTypeName=(type:string)=>DAMAGE_TYPES.find(x=>x[0]===type)?.[1] || '';
 const typeFromText=(text:unknown)=>DAMAGE_TYPES.find(([id,name])=>norm(text)===id || norm(text)===norm(name))?.[0];
 const lastChoice=(c:Sheet,E:Engine,cls:string|null,key:string)=>E.selections(c,cls,key)?.at(-1);
-const dragonType=(choice:unknown)=>typeFromText(String(choice || '').split(/[—–]/).at(-1));
+const dragonType=(choice:unknown)=>dragonAncestry(choice)?.type;
 export const fiendResistanceType=(c:Sheet,E:Engine)=>level(c,'bruxo')>=10 && subclass(c,'bruxo',E)==='corruptor'?typeFromText(lastChoice(c,E,'bruxo','fiendResistance')):undefined;
 export const isDamageAttack=(source:string)=>['weapon','magicWeapon','spellAttack','attack','magicAttack'].includes(source);
 function hunterDefense(c:Sheet,E:Engine,name:string) {

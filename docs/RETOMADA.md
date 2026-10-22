@@ -45,12 +45,20 @@ com o treino já reconhecido pela ficha e textos desconhecidos preservados.
 Moedas são editáveis; personalidade/história começam abertas. `createWeaponFields`
 atende ficha/importação, com dados, ajustes opcionais e leitura validada; a
 proposta permite adicionar/remover ataques. Bônus manual ausente continua não
-informado. Validação alcança rascunhos de outra pessoa do mesmo arquivo.
+informado. Validação alcança rascunhos de outra pessoa do mesmo arquivo. Rótulos,
+legendas e jogador/XP têm hierarquia acima dos valores. A previsão de reservas
+aparece automaticamente, com aplicação explícita que preserva os gastos.
+Draconato e Linhagem Dracônica têm ancestralidades independentes na revisão;
+as dez cores foram conferidas com o livro, sem deduzir pela pele. A consulta
+mostra CD/área/dano do sopro; sua resolução completa continua pendente.
 
 O grimório separa truques/círculos e grupos de classe, mantendo o array salvo.
 Escolher do livro e criar efeito próprio são caminhos explícitos. O editor
 compartilhado conserva preparo contextual e escolha da origem racial com
-habilidade/usos/círculo. A busca local no tema substitui o datalist nativo;
+habilidade/usos/círculo, agora reversível sem recuperar gastos. Grupos têm
+cor, número e título; efeitos sem círculo oferecem uma única lista visível
+para escolher Truque ou 1º–9º círculo. Raio Místico é associado a Rajada Mística,
+conservando a linha do PDF. A busca local no tema substitui o datalist nativo;
 setas/Enter/Esc/toque não confirmam a revisão inteira. Reagrupamento ocorre ao
 navegar entre setores, fora do foco do editor, sem cancelar cliques. Cópias,
 metadados, textos desconhecidos e usos gastos permanecem preservados.
@@ -60,11 +68,12 @@ retomar fica no Perfil. Ajudas por mouse esperam um segundo e se substituem.
 A descrição da magia fica no livrinho, com clique/Enter/toque para fixar consulta
 e acessar o PDF. Essas correções não alteram o dado nem avançam R2–R5.
 
-Última conferência local: **422 testes Node, tipos/build e oito roteiros Chromium**
-(importação guiada, setores, PDF/JSON, edição em linha, armas, cadeado, ajudas e
-aplicativo/offline), incluindo 320px/GG/três temas e capturas desktop/mobile.
-Após a revisão final, repetidos busca/revisão guiada, edição em linha e cadeado.
-A suíte completa passa a **30 roteiros**. Conferir a CI do último commit da
+Última conferência local: **427 testes Node, tipos/build e nove roteiros Chromium**
+(revisão clara, guiada, setores, PDF/JSON, edição em linha, cadeado, passivos,
+dano e consulta de características), incluindo 320px/GG/três temas e capturas desktop/mobile.
+Após a revisão final, repetidos ancestralidades/revisão clara, passivos e dano.
+PDF preenchido real também conferido localmente, sem alterar o original ou
+incluir dados pessoais no repositório. A suíte completa passa a **31 roteiros**. Conferir a CI do último commit da
 PR #19 antes de integrar; verificações anteriores ficam no changelog.
 
 ## Como continuar

@@ -234,8 +234,10 @@ origem. A revisão também oferece antecedente/tendência por catálogo ou texto
 idiomas/armas/ferramentas por opções e moedas editáveis; truques e círculos têm
 grupos por classe, sem misturar sua apresentação ou ordenar o array salvo.
 As opções de treino usam o cálculo já existente; escolher um antecedente não
-refaz os treinos importados. Isso não implementa a
-aplicação automática de vantagem/imunidade nem a CD/área de um sopro; R3–R5
+refaz os treinos importados. As dez ancestralidades de draconato foram cruzadas
+com a tabela de 2014; a revisão preserva escolhas racial/feiticeiro separadas e
+mostra elemento, área, teste, CD e dano do sopro para consulta. Não resolve o
+sopro nem a aplicação automática de outras vantagens/imunidades; R3–R5
 mantêm seus limites e pendências abaixo.
 
 As entregas funcionais de 19 a 21/10 estão resumidas aqui e antecedem a nova
@@ -335,6 +337,11 @@ Floresta/das Rochas, Meio-Elfo, Meio-Orc e Tiefling.
 O dano por tipo já reconhece as fontes de anão/tiefling/draconato. Resistência
 Implacável do meio-orc está integrada à prevenção de queda, e Ataques Selvagens
 à composição de crítico corpo a corpo. Não retomar esses casos como ausentes.
+A revisão permite informar/corrigir a ancestralidade do draconato e a da
+Linhagem Dracônica do feiticeiro, em escolhas independentes. Elementos seguem
+as dez cores válidas do livro; cor de pele e textos arbitrários não concedem
+resistência. A consulta do sopro confere área, DES/CON, CD e dados por nível
+total; gasto, alvos, teste e aplicação de seu dano continuam fora dessa consulta.
 
 Sortudo dos halflings foi integrado às rolagens contextuais no primeiro recorte
 de R2, conforme condições e limites acima; não é o talento homônimo.

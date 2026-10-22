@@ -1,5 +1,5 @@
 import {norm,type Engine,type Sheet} from '../rules/model';
-import {emptyImportedCharacter,findSpell,matchOption,suggestPdfPools} from './character-review';
+import {emptyImportedCharacter,findSpell,matchOption,matchImportedRace,spellAliases,suggestPdfPools} from './character-review';
 import type {Backup} from '../storage/validation';
 import type {CharacterPdf,PdfField} from './pdf-reader';
 
@@ -8,7 +8,6 @@ const integer=(s:unknown)=>/^[-+]?\d+$/.test(String(s).trim())?Number(s):null;
 // Aceita apenas soma/subtração de inteiros escritos; nunca executa fórmulas do PDF.
 const writtenTotal=(s:string)=>/^[+-]?\d+(?:\s*[+-]\s*\d+)*$/.test(s.trim())?s.replace(/\s/g,'').match(/[+-]?\d+/g)!.reduce((n,x)=>n+Number(x),0):undefined;
 const checked=(f?:PdfField)=>!!f && !['','off','no','false','0'].includes(f.value.trim().toLowerCase());
-const spellAliases:Record<string,string>={'nevoa de adagas':'nuvem-de-adagas','invocar familiar':'convocar-familiar','bruxaria hex':'bruxaria'};
 function spellFromLine(value:string,E:Engine) {
   const text=norm(value);
   const entries=Object.values(E.spells) as Sheet[];
@@ -25,7 +24,7 @@ export function pdfToBackup(pdf:CharacterPdf,E:Engine):Backup {
   c.hpMax=integer(value('HPMax','HP Maximum'))??0;c.hpCurrent=integer(value('HPCurrent'))??undefined;c.hpTemp=integer(value('HPTemp'))??0;c.baseAcArmor=writtenTotal(value('AC','ArmorClass'));
   c.acFormula='legacy'; // Preserva o total escrito; não soma um escudo novamente.
   const speed=value('Speed','Deslocamento').match(/\d+(?:[.,]\d+)?/);c.speed=speed?Number(speed[0].replace(',','.')):undefined;
-  c.rules.raceId=matchOption(c.race,E.options.races)||undefined;
+  c.rules.raceId=matchImportedRace(c.race,E)||undefined;
   const header=value('ClassLevel','Class','Classe e nível','Classe'),level=value('Level','Nível');
   const classPieces=header.split(/[|/;,+]/).filter(s=>s.trim());
   for(const piece of classPieces) {

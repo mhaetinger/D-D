@@ -97,11 +97,20 @@ Antecedente e tendência permitem escrita livre ou escolha do livro.
 O grimório separa **Truques** e cada círculo, com agrupamento por classe e
 origem visível. **Adicionar truque / Adicionar magia** permite escolher no livro
 ou criar um efeito próprio; a busca mostra círculo e classes antes da escolha.
+Efeitos sem círculo têm uma única lista visível para escolher **Truque** ou
+**Magia de 1º a 9º círculo**. Faixas de cor, número e título distinguem os grupos;
+magias raciais ficam identificadas pela raça. Uma origem marcada pode ser
+desmarcada clicando novamente, sem recuperar usos gastos ou apagar notas.
 Abra um cartão para corrigir seus campos. Ajustes de fórmula substituem os
 dados por uma adaptação; não são necessários para usar o efeito do livro.
 Moedas também são editáveis antes de importar. Abra **Corrigir ou vincular arma**
 quando precisar mudar um ataque ou usar o catálogo. Um bônus não informado pode ficar
 vazio, inclusive em efeitos que usam resistência; isso não inventa um bônus +0.
+A previsão de reservas aparece automaticamente pelas classes e níveis; aplicar
+os máximos continua sendo uma escolha explícita, sem recuperar os usos gastos.
+Draconatos têm escolha das dez ancestralidades de 2014, com consulta de dano,
+área, teste e CD do sopro. A ancestralidade da Linhagem Dracônica do feiticeiro
+fica em outra escolha. A resolução completa do sopro continua na auditoria.
 As dicas de preparo aparecem no balão ao passar o mouse ou focar o controle
 pelo teclado. Marcar uma checkbox continua apenas alterando sua seleção.
 
