@@ -75,6 +75,12 @@ cadeado fechado. P/G/GG continuam ampliando ou reduzindo essa mesma hierarquia.
 Classes ficam numa faixa compacta; uma subclasse longa pode ser aberta para
 leitura completa. No celular, os dados de identidade usam linhas e **Visual e
 dados** recolhe as preferências para deixar mais espaço à ficha.
+Com o cadeado aberto, raça/espécie, antecedente e tendência oferecem sugestões
+do livro além do texto livre. Trocar raça ou antecedente abre uma prévia dos
+traços e exige conferir os valores mantidos manualmente. Não reconstrói a ficha
+importada; escolhas da nova origem ainda precisam ser registradas. Tendência
+altera somente a identificação. As colunas de características têm divisórias
+verticais e uma linha entre origens/classes da mesma coluna.
 
 Cores, textura, tamanho de fonte e dados são preferências do usuário. No modo
 local ficam neste navegador; na conta entram também na fila de sincronização.
@@ -101,6 +107,10 @@ Efeitos sem círculo têm uma única lista visível para escolher **Truque** ou
 **Magia de 1º a 9º círculo**. Faixas de cor, número e título distinguem os grupos;
 magias raciais ficam identificadas pela raça. Uma origem marcada pode ser
 desmarcada clicando novamente, sem recuperar usos gastos ou apagar notas.
+O cartão mostra a origem escolhida imediatamente. **Vinculada ao catálogo de
+2014** distingue a magia reconhecida de um efeito próprio; só a vinculada recebe
+o livrinho com descrição e página do catálogo. Na busca, **Listas de classe**
+não exclui outras origens: Taumaturgia também informa o traço racial do tiefling.
 Abra um cartão para corrigir seus campos. Ajustes de fórmula substituem os
 dados por uma adaptação; não são necessários para usar o efeito do livro.
 Moedas também são editáveis antes de importar. Abra **Corrigir ou vincular arma**
@@ -178,6 +188,13 @@ Cada personagem tem sua própria linha do tempo, com desfazer/refazer e marcos.
 Voltar um passo afeta somente essa ficha; notas pessoais e as outras fichas são
 preservadas. A linha do tempo também permite restaurar fichas excluídas. O
 histórico coletivo antigo é copiado por personagem sem apagar o original.
+Ao gravar, o histórico de desfazer mantém até 100 estados / 2 MiB por ficha,
+preservando o estado apontado. Um único estado maior é mantido inteiro.
+Checkpoints também participam desse limite. Versões em nuvem têm política
+própria, conferida no diálogo e descrita em [SINCRONIZACAO.md](docs/SINCRONIZACAO.md).
+A retenção do servidor foi ativada no CritCall em 22/10/2026: até 20 versões
+por documento / 30 dias, com teto de 200 versões / 8 MiB por conta. A limpeza
+ocorre ao sincronizar; os documentos atuais ficam preservados.
 
 No perfil local, **Baixar backup** salva suas fichas em JSON. As anotações pessoais
 ficam fora do arquivo por padrão; marque a opção para incluí-las em um backup

@@ -131,6 +131,13 @@ Uma origem marcada pode ser desmarcada; a escolha volta a pendente, mantendo
 contadores gastos e notas. Elfo/gnomo usam INT e tiefling usa CAR em seus traços
 verificados. O sinônimo Raio Místico é associado a Rajada Mística na leitura,
 com círculo do catálogo e a linha original preservada nas notas.
+O cabeçalho de cada cartão mostra a origem escolhida imediatamente, sem mover
+o editor durante a seleção. Distingue vínculo ao catálogo de efeito próprio.
+`rules/spell-reference.ts` oferece o livrinho somente para ID válido do catálogo,
+sem confiar no nome de uma magia personalizada. A consulta reutiliza o popover
+e sua exclusão/espera; dentro da revisão modal, fica na própria janela para não
+herdar a região inerte de trás. A busca identifica listas de classe e traços
+raciais como origens diferentes, incluindo Taumaturgia por Tiefling.
 `catalog-search.ts` substitui o datalist nativo por resultados locais no tema,
 no fluxo do cartão, com círculo e classes. Não há portal fixo sobre outro campo.
 Usa o padrão [combobox da WAI](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/):
@@ -203,6 +210,10 @@ inteira em quadros intermediários. Um container query a partir de 75rem no
 próprio quadro conserva a leitura larga em até duas colunas de níveis, agora
 balanceadas pela altura real. Fonte ampliada também participa dessa decisão.
 Redimensionar não remonta nós nem depende de um breakpoint global da janela.
+As colunas usam `column-rule` e cada origem termina com uma borda discreta,
+separando também dois grupos que caírem na mesma coluna. Listas de ferramentas
+da revisão separam veículos, kits, ofícios, jogos e instrumentos; checkboxes
+mantêm seus nós e têm divisórias de leitura.
 O clássico mantém seu fluxo anterior. `app/feature-consult.ts` conserva as chaves de
 consulta e monta botões separados das ações de uso. Hover usa `RuleTooltips`;
 clique/toque fixa o mesmo texto com origem, escolhas e livro em um popover de
@@ -327,6 +338,17 @@ um passo no histórico. A ficha mantém ID, notas, retrato e escolhas anteriores
 Os controles são reaproveitados entre renders, com cursor, seleção e rascunhos.
 `change` disparado ao retirar um input do DOM durante render não salva o texto
 nem inicia render recursivo. Falha de quota mantém o valor digitado no campo.
+`origin-change.ts` oferece prévia ao trocar raça/espécie ou antecedente, por
+lista ou texto livre. O cadeado controla as listas. Tendência usa as nove opções
+do criador e não altera regras de combate. Trocar origem exige aceite de totais
+manuais: não reconstrói um personagem importado pelo criador. Traços do vínculo
+antigo saem, os do novo entram; escolhas da origem anterior ficam aposentadas
+no evento, fora de `answers`, sem continuar concedendo talentos. Magias raciais
+anteriores ficam identificadas como adaptações, mantendo usos/notas. Totais,
+treinos e inventário permanecem explícitos para conferência; escolhas da nova
+origem ainda precisam ser registradas. Não é uma conversão racial automática.
+O commit confere ficha, conteúdo, espaço e permissão novamente; alteração de
+jogo enquanto a prévia está aberta exige uma nova proposta.
 
 `panels.ts` monta os editores de armas/itens/características/magias no próprio
 bloco e conserva seus nós durante renders. Troca de ficha/espaço os encerra.
@@ -415,6 +437,11 @@ O adaptador da interface conserva localStorage e o formato legado. A fila nova
 usa transações IndexedDB por projeto/usuário, com IDs de operação idempotentes,
 revisões remotas e projeção que aguarda editores. Histórico/checkpoints passam a
 ser persistidos separadamente e entram na fila; seus snapshots não incluem notas.
+`boundedCharacterHistory` limita gravações legíveis a 100 estados / 2 MiB,
+conservando o ponteiro e os vizinhos. Um estado isolado maior é preservado.
+A leitura não trunca dados e o original legado/ilegível continua preservado.
+Limites de versões remotas, recibos e ativação ficam em
+[SINCRONIZACAO.md](SINCRONIZACAO.md#retenção-de-versões).
 
 ## Login, sessão e isolamento por conta
 

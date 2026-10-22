@@ -52,6 +52,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
           const bytes=raw.subarray(start,end); assert.ok(bytes.length<=32768);
           images.set(object,bytes); return reply({Key:'critcall-avatars/'+object,Id:randomUUID()});
         }
+        if(url.pathname.endsWith('/rpc/critcall_version_policy')) return body.p_owner_id===owner ? reply({version:1,per_document:20,days:30,per_account:200,bytes:8388608}) : reply({code:'42501'},403);
         if(url.pathname.endsWith('/rpc/critcall_sync_clock')) return body.p_owner_id===owner ? reply(new Date().toISOString()) : reply({code:'42501'},403);
         if(url.pathname.endsWith('/rpc/critcall_save_document')) {
           assert.equal(body.p_owner_id,owner,'o dono capturado precisa corresponder à sessão');
@@ -198,7 +199,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     const previous=versions.find(v=>v.kind==='character'&&v.value?.coins?.po===123);
     assert.ok(previous,'a versão anterior permanece disponível para recuperação');
     previous.name='<img src=x onerror=window.__versionPwned=1>'+('X'.repeat(300));
-    await a.page.locator('#syncVersions').click();
+    await a.page.locator('#syncVersions').click();await a.page.locator('#syncVersionsPolicy').getByText(/20 versões por documento/).waitFor();
     await a.page.locator(`[data-version-id="${previous.version_id}"]`).waitFor();
     assert.equal(await a.page.evaluate(()=>window.__versionPwned),undefined);
     assert.equal(await a.page.locator('#syncVersionsList img').count(),0);

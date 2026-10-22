@@ -2,6 +2,41 @@
 
 ## Não lançado
 
+### Origens, consulta de magias e retenção de versões — 2026-10-22
+
+- Características no moderno têm linhas entre colunas e entre origens da mesma
+  coluna. Ferramentas da importação separam veículos, kits, ofícios, jogos e
+  instrumentos; as opções têm divisórias sem remontar checkboxes.
+- Cartões de magia mostram a origem escolhida imediatamente e distinguem vínculo
+  ao catálogo de efeito da mesa. Somente ID válido e não personalizado recebe
+  o livrinho com texto/página do catálogo. A consulta usa o popover existente,
+  inclusive dentro da janela modal. A busca identifica **Listas de classe** e
+  traço racial: Taumaturgia informa Clérigo e Tiefling sem tratar um como exclusão
+  do outro. Não é uma certificação de todas as mecânicas de cada magia.
+- Cadeado aberto oferece listas de raça/espécie, antecedente e tendência, além
+  de texto livre. Raça/antecedente abrem prévia e exigem aceite dos totais/treinos
+  manuais. Escolhas antigas ficam aposentadas no evento; magias anteriores viram
+  adaptações identificadas, com usos preservados. Não reconstrói automaticamente
+  atributos/treinos importados nem preenche escolhas da nova origem. Tendência
+  altera somente o texto. Permissão, ficha e conteúdo são revalidados ao aplicar;
+  blur repetido não consome o clique de cancelamento.
+- Histórico de desfazer passa a até 100 estados / 2 MiB por ficha ao gravar,
+  preservando o ponteiro e um estado isolado maior; leitura/legado/ilegíveis
+  continuam preservados. Migração de retenção: 20 versões/documento,
+  30 dias, 200 versões / 8 MiB por conta. Envios normais deixam de versionar o
+  histórico inteiro; conflitos têm candidatas limitadas e recibos privados
+  preservam repetições. Documentos atuais/imagens ficam fora da limpeza.
+  Aplicada ao CritCall após aprovação explícita, versão remota `20261022213804`.
+  O diálogo só anuncia limites confirmados pela RPC. Teste transacional real
+  confirmou repetição idempotente e foi revertido; assinatura agregada dos
+  documentos atuais ficou igual antes/depois, sem conteúdo pessoal nos registros.
+- Verificados 433 testes Node, tipos/build, PostgreSQL 18 descartável e 11
+  roteiros Chromium: origens, revisão clara, guiada, setores, PDF/JSON, edição em
+  linha, cadeado, ajudas, consulta de características, sincronização e aplicativo/
+  offline. Incluídos RLS/duas contas, quantidade/prazo/bytes/recibos, conflitos
+  do histórico, recarga, cancelamento, proposta antiga e 320px/GG/três temas.
+  A suíte passa a 32 roteiros; não foi executada inteira localmente nesta etapa.
+
 ### Blocos e observações da revisão de importação — 2026-10-22
 
 - Observações para conferir ganham faixa de atenção, símbolo, contagem e título

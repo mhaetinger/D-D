@@ -4,6 +4,7 @@ import {helpAttributes} from '../app/help';
 import {parseDiceFormula} from '../rules/dice-formula';
 import {catalogSearch} from '../app/catalog-search';
 import {preparation} from '../rules/spellcasting';
+import {spellCatalogDetail} from '../rules/spell-reference';
 const damageTypes={utilidade:'Utilidade',cura:'Cura',defesa:'Defesa',fogo:'Fogo',frio:'Frio',eletrico:'Elétrico',acido:'Ácido',veneno:'Veneno',necrotico:'Necrótico',radiante:'Radiante',psiquico:'Psíquico',trovejante:'Trovejante',energia:'Energia',cortante:'Cortante',perfurante:'Perfurante',concussao:'Concussão'};
 const defenses={nenhuma:'Sem ataque/resistência',atq_magico:'Ataque contra CA',auto_hit:'Acerto automático',tr_for:'Resistência de Força',tr_des:'Resistência de Destreza',tr_con:'Resistência de Constituição',tr_int:'Resistência de Inteligência',tr_sab:'Resistência de Sabedoria',tr_car:'Resistência de Carisma'};
 
@@ -40,7 +41,7 @@ export function createSpellFields(c:Sheet,existing:Sheet|null,E:Engine,options:{
   const field=(id:string)=>fieldMap.get(id)!;
   if(options.circleMount)options.circleMount.append(field('circle').parentElement!);
   const book=controls.querySelector<HTMLInputElement>('[data-spell-catalog]')!;
-  const search=catalogSearch(book,Object.values(E.spells).map((s:any)=>({name:s.name,detail:(s.level===0?'Truque':s.level+'º círculo')+' · '+s.classes.map((id:string)=>E.data.classes[id]?.name).filter(Boolean).join(', ')})));
+  const search=catalogSearch(book,Object.values(E.spells).map((s:any)=>({name:s.name,detail:spellCatalogDetail(s,E)})));
   const racialGrant=()=>racialEntry(field('editorMode').value==='catalog'?E.spell(book.value):null);
   const sync=()=>{
     race=E.options.races[c.rules?.raceId];

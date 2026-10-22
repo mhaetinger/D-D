@@ -27,9 +27,14 @@ checkpoints antigos sem autor identificável ficam no original. Os ponteiros de
 desfazer/refazer são independentes. Históricos de fichas excluídas permanecem
 disponíveis para restaurá-las, sem recuperar/substituir as outras fichas ou notas.
 Histórico ilegível não é sobrescrito e vira uma cópia privada de recuperação na
-fila. A RPC existente aceita esses IDs de preferência; não há migração SQL nova.
+fila. A RPC aceita esses IDs de preferência.
 Isso separa edições de personagens diferentes; edições simultâneas do mesmo
 histórico continuam sujeitas à resolução de versões/conflitos existente.
+
+Ao gravar um histórico legível, o cliente mantém até **100 estados / 2 MiB**,
+com o ponteiro atual e seus vizinhos. Um único estado maior que esse teto é
+preservado inteiro. A leitura não trunca o histórico e dados ilegíveis continuam
+preservados. Checkpoints participam do limite; não são um arquivo permanente.
 
 localStorage conserva o cache legado. IndexedDB `critcall-sync-v1`, separado por
 projeto/usuário, registra fila e versões em transações entre abas. Respostas
@@ -100,16 +105,63 @@ Cada documento tem revisão crescente, data de edição e recebimento no servido
 O relógio é calibrado no Supabase; datas mais de cinco minutos no futuro são
 recusadas sem apagar a fila. Uma atualização da revisão atual é causal e não
 faz a data retroceder. Se outra edição mudou a revisão, vence a data mais recente;
-**ambas as versões ficam no histórico**, inclusive a candidata que não venceu.
+**ambas as versões ficam no histórico disponível**, inclusive a candidata que não venceu,
+sujeitas à política de retenção instalada no servidor.
 Empates usam o ID da operação. Não há mesclagem campo a campo da mesma ficha.
 
 Exclusões são tombstones. **Versões salvas** permite restaurar após confirmação,
 gerando nova operação e preservando o estado anterior. Restaurar ficha não altera
-notas. Não há expurgo automático: acompanhar a quota do projeto é necessário.
+notas. A política de versões abaixo está ativa no CritCall desde 22/10/2026.
+Acompanhar a quota do projeto continua necessário: o teto de conteúdo das
+versões não inclui documentos atuais, índices, recibos e outras tabelas.
 Cache anterior sem data confiável tem marca de data desconhecida, exibida como
 tal; não se apresenta como edição nova para substituir uma versão remota datada.
 
 ## Banco e ativação
+
+### Retenção de versões
+
+A migração `20261022212048_bounded_sync_versions.sql` foi aplicada ao projeto
+exclusivo CritCall em **22/10/2026**, após aprovação explícita da retenção pelo
+responsável. A versão remota é **`20261022213804`**; não reaplicar para igualar o
+nome local. A sincronização retira versões antigas/excedentes, uma mudança
+irreversível no histórico restaurável. Não foi feita limpeza global das contas.
+
+- Até **20 versões por documento**, com **30 dias** desde o recebimento.
+- Até **200 versões e 8 MiB de conteúdo por conta**, prevalecendo o limite
+  atingido primeiro. Uma versão maior que o teto pode não ficar restaurável.
+- A limpeza ocorre ao salvar nessa conta, sob lock transacional. Uma conta
+  inativa não cresce; versões vencidas saem na próxima sincronização.
+- `critcall_documents`, fichas atuais, notas atuais e retratos ficam fora da
+  limpeza. Versões de histórico e recuperação deixam de ser duplicadas em cada
+  envio normal; o documento atual continua sincronizado. Conflitos conservam
+  as candidatas dentro dos mesmos limites. Conflito grande demais é recusado,
+  mantendo a operação na fila local para revisão.
+- Recibos privados pequenos guardam hash/resultado de até 2.000 operações por
+  conta, por 30 dias. Permitem repetir uma operação após podar seu snapshot sem
+  duplicar estado. A operação do documento atual é conferida mesmo sem recibo;
+  depois da janela, operações antigas seguem a resolução causal de conflitos.
+- A RPC mantém os oito argumentos e o formato da resposta para clientes já
+  publicados. O proprietário continua vindo de `auth.uid()`. A tabela de
+  recibos fica em schema privado, sem grant ao navegador; índices começam pelo
+  dono e a limpeza nunca alcança outra conta.
+
+A política instalada foi consultada pela RPC e conferida com os limites acima.
+Inspecionados grants, RLS dos recibos e `search_path`. Um teste transacional no
+PostgreSQL 17 real, com identidade fictícia sem e-mail e role authenticated,
+confirmou escrita/repetição com revisão única. Todo o teste foi revertido; nenhum
+usuário/documento de teste permaneceu. A quantidade e a assinatura agregada dos
+documentos atuais ficaram iguais antes/depois da migração e do teste, sem expor
+seus conteúdos. Testes de quantidade/prazo/bytes/conflitos rodam também no banco
+descartável. Isso não substitui V2 de dispositivos reais.
+
+O diálogo de versões consulta `critcall_version_policy` e só mostra os limites
+quando confirmados pelo servidor. Uma implantação ainda sem essa RPC informa
+que a retenção limitada não foi confirmada. Backup privado continua sendo o
+caminho para guardar um estado por prazo maior; a restauração não promete
+retenção permanente da versão substituída.
+
+### Migrações já aplicadas
 
 Arquivo único: `supabase/migrations/202610160001_personal_sync.sql`.
 Tabelas `critcall_documents` (estado atual) e `critcall_versions` (versões/conflitos).
@@ -145,7 +197,7 @@ contém dados pessoais ou exclusões e pode ser reaplicado sem apagar registros.
 
 ## Alertas do serviço para revisão
 
-A inspeção de **16/10/2026** do projeto real encontrou a função preexistente
+A inspeção de **16/10/2026**, repetida em **22/10/2026**, do projeto real encontrou a função preexistente
 `public.rls_auto_enable` executável por anon/authenticated. Revisar sua origem,
 necessidade e privilégios antes de alterar; ela não foi criada pela migração
 pessoal. Orientação do [linter de funções expostas](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable).
@@ -157,8 +209,15 @@ configuração de autenticação: [proteção de senhas](https://supabase.com/do
 escrita transacional por RPC. EXECUTE é restrito a authenticated, a função
 confere `auth.uid()` e o dono esperado e fixa `search_path` vazio. Essa decisão
 não dispensa a validação da autoria nem concede escrita direta nas tabelas.
-Nenhum desses alertas tem correção confirmada neste registro. A reinspeção está
-em V4 da [RETOMADA.md](RETOMADA.md); este texto não é uma nova consulta ao serviço.
+Nenhum desses alertas anteriores foi corrigido nesta entrega; a decisão de
+correção continua em V4 da [RETOMADA.md](RETOMADA.md).
+
+Na retenção, o linter informa RLS sem policies em
+`critcall_private.sync_receipts`. É bloqueio intencional: não há USAGE/grants
+ao navegador nem leitura direta, só a RPC autorizada usa recibos. Não criar
+uma policy permissiva para apagar o aviso. [Explicação do linter](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy).
+Os índices recém-criados de retenção também apareceram como ainda sem uso;
+não foram removidos, pois atendem as consultas de limpeza após as sincronizações.
 
 ## Testes
 

@@ -71,13 +71,32 @@ retomar fica no Perfil. Ajudas por mouse esperam um segundo e se substituem.
 A descrição da magia fica no livrinho, com clique/Enter/toque para fixar consulta
 e acessar o PDF. Essas correções não alteram o dado nem avançam R2–R5.
 
-Última conferência local: **427 testes Node, tipos/build e nove roteiros Chromium**
-(revisão clara, guiada, setores, PDF/JSON, edição em linha, cadeado, passivos,
-dano e consulta de características), incluindo 320px/GG/três temas e capturas desktop/mobile.
-Após a revisão final, repetidos ancestralidades/revisão clara, passivos e dano.
-PDF preenchido real também conferido localmente, sem alterar o original ou
-incluir dados pessoais no repositório. A suíte completa passa a **31 roteiros**. Conferir a CI do último commit da
-PR #19 antes de integrar; verificações anteriores ficam no changelog.
+A última etapa acrescenta divisórias nas características/ferramentas, origem
+imediata e livrinho de catálogo nos cartões de magia. Listas de classe não
+excluem traços raciais. O cabeçalho da ficha oferece sugestões do livro somente
+em edição; trocar raça/antecedente tem prévia e aceite dos valores manuais.
+Escolhas antigas deixam de conceder efeitos e ficam aposentadas no evento.
+Isso não reconstrói automaticamente bônus e escolhas de uma nova raça.
+
+Última conferência local: **433 testes Node, tipos/build, PostgreSQL 18 descartável
+e 11 roteiros Chromium**: origens, revisão clara/guiada/setores, PDF/JSON, edição
+em linha, cadeado, ajudas, características, sincronização e aplicativo/offline.
+A suíte completa passa a **32 roteiros**; não foi executada inteira nesta etapa.
+Incluídos 320px/GG/três temas, fonte dos dados e livrinho em modal, nós/rascunhos,
+proposta antiga, recarga e limites de retenção/conflitos em duas contas.
+Após o ajuste visual final, repetidos origens, revisão clara e setores.
+O PDF pessoal foi conferido na etapa anterior, sem alterar o original ou incluir
+dados pessoais no repositório. Conferir a CI do último commit da PR #19 antes
+de integrar; verificações anteriores ficam no changelog.
+
+**Retenção remota ativa:** após aprovação explícita, aplicada ao CritCall a
+migração local `20261022212048_bounded_sync_versions.sql`, versão remota
+`20261022213804`, em 22/10/2026. Não reaplicar para igualar timestamps. A conta
+que sincroniza mantém até 20 versões/documento por 30 dias, 200 versões / 8 MiB
+por conta. Não houve limpeza global; documentos atuais/notas/imagens ficam fora
+da poda. Teste transacional real de escrita/repetição revertido; assinatura
+agregada dos documentos atuais permaneceu igual. O histórico do cliente tem
+100 estados / 2 MiB ao gravar. Detalhes em [SINCRONIZACAO.md](SINCRONIZACAO.md).
 
 ## Como continuar
 
@@ -162,7 +181,7 @@ marcada como concluída nesta revisão de documentos.
 | V1 | Ciclo completo com os PDFs reais de importação solicitados | Importar como cópia, conferir dados/vínculos, salvar/recarregar e evoluir. Leitura/cancelamento e testes sintéticos já feitos não substituem esse ciclo. Arquivos pessoais continuam fora do Git. |
 | V2 | Mesma conta em dispositivos reais e isolamento de outra conta | Conferir fichas, notas, perfil, imagens, offline/reconexão, conflito e restauração, sem pedir credenciais. Contratos em [SINCRONIZACAO.md](SINCRONIZACAO.md). |
 | V3 | SMTP próprio e fluxo real de e-mails | Configurar remetente no serviço e conferir cadastro, confirmação, reenvio e recuperação no site. O sucesso local relatado pelo usuário não certifica todos esses fluxos. [LOGIN.md](LOGIN.md) e [DOMINIO.md](DOMINIO.md). |
-| V4 | Alertas do serviço registrados em 16/10/2026 | Reinspecionar a função `public.rls_auto_enable` e a proteção contra senhas vazadas antes de decidir alterações. Não há evidência de correção; detalhes em [SINCRONIZACAO.md](SINCRONIZACAO.md#alertas-do-serviço-para-revisão). |
+| V4 | Alertas do serviço reinspecionados em 22/10/2026 | Decidir correção da função `public.rls_auto_enable` e da proteção contra senhas vazadas. Alertas anteriores continuam presentes; detalhes em [SINCRONIZACAO.md](SINCRONIZACAO.md#alertas-do-serviço-para-revisão). |
 | V5 | Hospedagem Cloudflare | Conectar administração, criar projeto Pages e configurar credenciais/destino; depois validar domínio e offline. O DNS já usa Cloudflare, mas a hospedagem é GitHub Pages. Seguir [CLOUDFLARE.md](CLOUDFLARE.md). |
 | V6 | Remoção voluntária do cache de uma conta em dispositivo compartilhado | Definir exportação/confirmação e comportamento offline; não apagar dados automaticamente. Limites em [LOGIN.md](LOGIN.md#dados-sessão-e-troca-de-conta). |
 | V7 | Ambientes, acompanhamento e proteção do repositório | Preparar separação teste/produção, acompanhamento de uso/erros/custos e proteção de branches/aprovações. Não são garantias da configuração atual. |

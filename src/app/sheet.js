@@ -25,10 +25,10 @@ import { concentrationControls } from '../rules/concentration-ui';
 import { automaticSaveFailure } from '../rules/conditions';
 import { takeRest } from "../rules/rest";
 import { onSpellCast } from "../rules/resources";
-import { characterSnapshot, historyComparable as characterHistoryComparable, historyKey, HISTORY_PREFIX, isCharacterHistoryKey, migrateCharacterHistories, splitLegacyHistory, validateCharacterHistory } from '../storage/character-history';
+import { characterSnapshot, historyComparable as characterHistoryComparable, historyKey, HISTORY_PREFIX, isCharacterHistoryKey, migrateCharacterHistories, splitLegacyHistory, validateCharacterHistory, boundedCharacterHistory } from '../storage/character-history';
 import { setupDiceDock } from "./dice-dock";
 import { avatarMarkup } from "../media/avatar";
-import {sheetInput,sheetSelect,sheetText,captureSheetFields,restoreSheetFields,requireSheetEdit,requireSheetConfiguration,updateSheetLockUI,poolEditorVisible,beginSheetRender,endSheetRender} from '../sheet-edit/ui';
+import {sheetInput,sheetSelect,sheetText,sheetIdentity,captureSheetFields,restoreSheetFields,requireSheetEdit,requireSheetConfiguration,updateSheetLockUI,poolEditorVisible,beginSheetRender,endSheetRender} from '../sheet-edit/ui';
 import {parkSheetPanels,restoreSheetPanels,clearSheetPanels,mountSheetPanel,closeSheetPanel,canSaveSheetPanel} from '../sheet-edit/panels';
 import {canEditSheet} from '../sheet-edit/access';
 import {canConfigureSheet} from '../sheet-edit/lock';
@@ -611,7 +611,9 @@ function restoreSavedHistory() {
 function persistHistory() {
   if(!getChar() || historyOwnerId!==getChar().id) return;
   if (!historyWritable) { showToast('O histórico anterior está ilegível e foi preservado. Baixe um backup antes de fechar.'); return; }
-  if (!writePreference(historyKey(historyOwnerId), JSON.stringify({ version:2,characterId:historyOwnerId,stack: historyStack, pointer: historyPointer }))) showToast('O histórico não pôde ser salvo. Baixe um backup antes de fechar.');
+  const bounded=boundedCharacterHistory({version:2,characterId:historyOwnerId,stack:historyStack,pointer:historyPointer});
+  if (!writePreference(historyKey(historyOwnerId),JSON.stringify(bounded))) showToast('O histórico não pôde ser salvo. Baixe um backup antes de fechar.');
+  else {historyStack=bounded.stack;historyPointer=bounded.pointer;}
 }
 
 const COIN_RATES_IN_PC = { pc: 1, pp: 10, pe: 50, po: 100, pl: 1000 };
@@ -2480,15 +2482,15 @@ function renderHeader(char, isModern) {
     <div class="sheet-header-facts">
       <div class="sheet-identity-card t-inset">
         <div class="sheet-identity-label t-text-muted">${isModern ? "Espécie" : "Raça"}</div>
-        <div class="sheet-identity-value">${sheetInput(char,'race',char.race,'Raça / espécie','text',{wide:true})}</div>
+        <div class="sheet-identity-value">${sheetIdentity(char,'race','Raça / espécie')}</div>
       </div>
       <div class="sheet-identity-card t-inset">
         <div class="sheet-identity-label t-text-muted">Antecedente</div>
-        <div class="sheet-identity-value">${sheetInput(char,'background',char.background,'Antecedente','text',{wide:true})}</div>
+        <div class="sheet-identity-value">${sheetIdentity(char,'background','Antecedente')}</div>
       </div>
       <div class="sheet-identity-card t-inset">
         <div class="sheet-identity-label t-text-muted">Tendência</div>
-        <div class="sheet-identity-value">${sheetInput(char,'alignment',char.alignment,'Tendência','text',{wide:true})}</div>
+        <div class="sheet-identity-value">${sheetIdentity(char,'alignment','Tendência')}</div>
       </div>
       <div class="sheet-identity-card sheet-level-card t-inset">
         <div>

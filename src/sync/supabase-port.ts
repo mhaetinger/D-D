@@ -51,4 +51,9 @@ export class SupabaseDocuments implements RemotePort {
     if (error) throw error;
     return data;
   }
+  async versionPolicy():Promise<string> {
+    const {data,error}=await this.client.rpc('critcall_version_policy',{p_owner_id:this.owner});
+    if(error||data?.version!==1)return 'A política de retenção limitada ainda não foi confirmada neste servidor.';
+    return `Até ${data.per_document} versões por documento, por ${data.days} dias; até ${data.per_account} versões e ${data.bytes/1048576} MiB por conta. A limpeza ocorre ao sincronizar. O estado atual é preservado. O histórico de desfazer sincroniza sem gerar versões repetidas.`;
+  }
 }

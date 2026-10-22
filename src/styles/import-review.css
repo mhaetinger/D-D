@@ -176,6 +176,10 @@
 .import-language-options details > label { margin-top:.65rem; }
 .import-choice-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,10rem),1fr)); gap:.55rem .85rem; margin:.65rem 0; }
 .import-choice-list .import-check { align-items:start; }
+.import-choice-list > .import-check { padding:.25rem .15rem; border-bottom:1px solid var(--border-main); }
+.import-tool-groups { display:grid; gap:.8rem; margin-top:.65rem; }
+.import-tool-groups > section { border:1px solid var(--border-main); border-radius:.4rem; padding:.6rem; background:var(--bg-inset); }
+.import-tool-groups h4 { border-bottom:1px solid var(--border-main); padding-bottom:.4rem; color:var(--text-accent); }
 .import-choice-list .import-check input { margin-top:.2rem; }
 .import-choice-list small { color:var(--text-muted); }
 .import-proficiency-picker details > fieldset { margin-block:.7rem; }
@@ -188,6 +192,8 @@
 .import-spell-card > header > div { display:flex; flex-wrap:wrap; align-items:center; gap:.35rem .6rem; min-width:0; }
 .import-spell-card .import-spell-kind { margin:0; flex:none; }
 .import-spell-card [data-import-spell-meta] { flex-basis:100%; margin:0; }
+.import-spell-card [data-import-spell-source] { flex-basis:100%; margin:0; }
+.import-spell-origin { border:1px solid var(--text-muted); border-radius:.3rem; padding:.1rem .4rem; font-weight:700; }
 .import-spell-card:has(> details[open]) { border:2px solid var(--text-accent); }
 @media (max-width:600px) { .import-identity-grid > .import-identity-pair { grid-template-columns:1fr; } }
 @media (max-width:600px) { .import-personality,.import-history { grid-template-columns:1fr; } }

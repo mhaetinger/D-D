@@ -11,6 +11,8 @@ import {createProficiencyFields} from './proficiency-fields';
 import {groupImportSpells} from './spell-groups';
 import {ALIGNMENTS} from '../wizard/guidance';
 import {createSpellFields} from '../sheet-edit/spell-fields';
+import {bookConsultButton} from '../app/feature-consult';
+import {importSpellReference} from '../rules/spell-reference';
 import {classRemovalControls,removeClass} from '../sheet-edit/class-removal';
 import {importPoolFields,syncImportPoolDisclosures,syncPoolComparison} from './pool-fields';
 import type {Backup} from '../storage/validation';
@@ -104,15 +106,21 @@ export async function reviewImport(original:Backup,E:Engine,isCurrent:()=>boolea
   function spellTitle(article:HTMLElement,s:Sheet){
     article.querySelector('[data-import-spell-title]')!.textContent=s.name||(s.circle===0?'Novo truque':'Nova magia');
     article.querySelector('[data-import-spell-kind]')!.textContent=s.circle===0?'Truque':Number.isInteger(s.circle)?`${s.circle}º círculo`:'Escolha o grupo';
+    const badge=article.querySelector<HTMLElement>('[data-import-spell-origin]')!,race=E.options.races[char().rules?.raceId];
     const origin=article.querySelector<HTMLElement>('[data-import-spell-meta]')!;
-    origin.textContent=s.extraSource||(!E.data.classes[s.classId]?'⚠ Escolha a origem':'');origin.hidden=!origin.textContent;
+    origin.textContent=s.extraSource===race?.name?'':s.extraSource||'';origin.hidden=!origin.textContent;
+    badge.textContent='Origem: '+(race&&s.extraSource===race.name?race.name+' · raça':E.data.classes[s.classId]?.name||'a confirmar');
+    const ref=importSpellReference(s,E),book=article.querySelector<HTMLElement>('[data-import-spell-book]')!;
+    article.querySelector('[data-import-spell-source]')!.textContent=ref?'Vinculada ao catálogo de 2014':'Efeito da ficha / da mesa';
+    const signature=ref?s.bookId:'';
+    if(book.dataset.reference!==signature){book.dataset.reference=signature;book.innerHTML=ref?bookConsultButton(s.name,{...ref,text:host.RuleTooltips.formatText(ref.text)},'import-spell:'+article.dataset.importSpell):'';host.lucide?.createIcons();}
   }
   function renderSpells(){
     const c=char(),list=body.querySelector<HTMLElement>('[data-import-spells]')!;list.replaceChildren();spellFields=[];
     if(!c.spells.length){list.innerHTML='<p class="import-empty">Nenhuma magia. Use Adicionar magia para escolher no catálogo ou criar uma própria.</p>';return;}
     c.spells.forEach((s:Sheet,i:number)=>{
       const article=document.createElement('article');article.className='spell-card import-spell-card';article.dataset.importSpell=String(i);
-      article.innerHTML=`<header><div><span class="import-spell-kind" data-import-spell-kind></span><h3 data-import-spell-title></h3><p data-import-spell-meta></p></div><button type="button" data-import-remove-spell="${i}" aria-label="Remover ${escape(s.name||'nova magia')}">Remover</button></header><div data-import-circle-choice></div><details ${!s.name?'open':''}><summary>Revisar / editar magia</summary></details>`;
+      article.innerHTML=`<header><div><span class="import-spell-kind" data-import-spell-kind></span><h3 data-import-spell-title></h3><span data-import-spell-book></span><span class="import-spell-origin" data-import-spell-origin></span><p data-import-spell-meta></p><p data-import-spell-source class="import-field-help"></p></div><button type="button" data-import-remove-spell="${i}" aria-label="Remover ${escape(s.name||'nova magia')}">Remover</button></header><div data-import-circle-choice></div><details ${!s.name?'open':''}><summary>Revisar / editar magia</summary></details>`;
       const fields=createSpellFields(c,s,E,{circleMount:article.querySelector('[data-import-circle-choice]')!});spellFields.push(fields);article.querySelector('details')!.append(fields.element);
       fields.element.querySelectorAll<HTMLInputElement>('[data-spell-field]').forEach(el=>{const id=el.dataset.spellField!;if(!['editorMode','castMode'].includes(id))el.dataset.importField=`spells.${i}.${id}`;});
       fields.field('circle').dataset.importField=`spells.${i}.circle`;
