@@ -1,6 +1,15 @@
 # Changelog
 
-## Não lançado
+## 2026-10-22
+
+Entrega solicitada pelo responsável, reunindo R1, os dois primeiros recortes de
+R2 e as melhorias de revisão de fichas/consulta/conta descritas abaixo.
+Integração pela [PR #19](https://github.com/mhaetinger/D-D/pull/19) e publicação
+pela [PR #20](https://github.com/mhaetinger/D-D/pull/20), via `develop` → `main`.
+A CI da entrega exige os 433 testes Node, PostgreSQL descartável, tipos/build,
+auditoria de produção e os 32 roteiros Chromium; o workflow da `main` publica
+somente o `dist/` que verificou. Resultados e limites em
+[RETOMADA.md](docs/RETOMADA.md). As etapas R2–R6 permanecem parciais/pendentes.
 
 ### Personagens como primeira aba — 2026-10-22
 

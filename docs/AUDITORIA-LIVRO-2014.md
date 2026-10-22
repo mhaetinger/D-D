@@ -8,9 +8,9 @@ históricos, no [CHANGELOG.md](../CHANGELOG.md).
 
 **A versão publicada não automatiza integralmente o livro.** Consulta, escolha
 cadastrada e contador de usos não significam efeito aplicado. As matrizes abaixo
-distinguem a produção das implementações seguintes: R1 foi integrada em
-`develop` pela PR #17 e o primeiro recorte de R2, pela PR #18. O talento
-Sortudo está em `feature/talento-sortudo-r2`. Essas entregas ainda não foram publicadas.
+registram os limites das implementações. A entrega de 22/10/2026 reúne R1
+(PR #17), o primeiro recorte de R2 (PR #18) e o talento Sortudo (PR #19),
+com publicação pela PR #20. Estado da publicação em RETOMADA.md.
 
 ## Como ler e atualizar o estado
 
@@ -37,8 +37,8 @@ reescrever a ficha nem automatizar toda decisão da mesa.
 
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
-| R1 — bônus nos cálculos | **Integrada em `develop`; não publicada** | Quatro passivos integrados com elegibilidade e preservação de valores manuais. Tipos variáveis/efeitos posteriores seguem em R5. |
-| R2 — rolagens e gastos condicionais | **Segundo recorte implementado; etapa parcial** | Talento Confiável e Sortudo racial integrados em `develop`; talento Sortudo em revisão. Faltam demais rerrolagens/dados mínimos, -5/+10 e adicionais de talentos/estilos. Integrar escolha/gasto à jogada pertinente, sem duplicar reservas ou aplicar bônus a jogadas inelegíveis. |
+| R1 — bônus nos cálculos | **Implementada; entrega da PR #20** | Quatro passivos integrados com elegibilidade e preservação de valores manuais. Tipos variáveis/efeitos posteriores seguem em R5. |
+| R2 — rolagens e gastos condicionais | **Segundo recorte implementado; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo implementados na entrega da PR #20. Faltam demais rerrolagens/dados mínimos, -5/+10 e adicionais de talentos/estilos. Integrar escolha/gasto à jogada pertinente, sem duplicar reservas ou aplicar bônus a jogadas inelegíveis. |
 | R3 — condições, defesas e características | Planejada; já há cobertura parcial | Completar efeitos das condições, imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
 | R5 — famílias de magias | Planejada; fórmulas auditadas já corrigidas | Revisar metadados e exceções do catálogo por família: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
@@ -221,7 +221,7 @@ adicionais/manobras dos demais talentos/estilos. **R2 não está concluída.**
 
 ## Progresso já entregue
 
-Correções de consulta/interface em revisão na PR #19 (22/10): Ancestral Feérico
+Correções de consulta/interface da PR #19, na entrega de 22/10 (PR #20): Ancestral Feérico
 usa o próprio parágrafo racial e página; o moderno distribui origens/níveis
 conforme a largura do quadro; revisão de importação começa pelos resumos e
 preserva ataque manual sem bônus como não informado. A apresentação foi

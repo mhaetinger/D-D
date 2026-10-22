@@ -6,35 +6,36 @@ projeto sem depender da conversa. Leia também `AGENTS.md`, `README.md`,
 
 ## Onde o trabalho parou
 
-A versão funcional foi publicada em **https://criticall.art/** pelas
-[PRs #14](https://github.com/mhaetinger/D-D/pull/14) e
-[#15](https://github.com/mhaetinger/D-D/pull/15).
+A entrega de **22/10/2026** reúne as melhorias da ficha, revisão da importação,
+conta e histórico, além de R1 e dois recortes de R2. Integração pela
+[PR #19](https://github.com/mhaetinger/D-D/pull/19) e publicação em
+**https://criticall.art/** pela [PR #20](https://github.com/mhaetinger/D-D/pull/20).
+O responsável autorizou a publicação após a conferência. O resultado e o SHA da
+`main` ficam no [workflow de publicação](https://github.com/mhaetinger/D-D/actions/workflows/pipeline.yml?query=branch%3Amain).
 
-| Referência | Estado conferido em 22/10/2026 |
+| Referência | Estado da entrega de 22/10/2026 |
 | --- | --- |
-| Produção `main` | `27b30832bf94cd88805cdd1faced6dc00316ff67` |
-| Integração `develop` | `19e4ceb`, primeiro recorte de R2 integrado pela PR #18 após CI completa aprovada; contém mudanças ainda não publicadas |
-| Revisão offline publicada | `4e263eb66b70d44f` |
-| Verificação/publicação | [Workflow 39638188104](https://github.com/mhaetinger/D-D/actions/runs/39638188104), concluído com sucesso |
-| Trabalho atual | Segundo recorte de R2 e correções de consulta/layout/revisão da importação na [PR #19](https://github.com/mhaetinger/D-D/pull/19); conferir a CI do último commit antes de integrar |
-| Branch da tarefa | `feature/talento-sortudo-r2`, criada do `develop` público após a PR #18 |
-| Implementação R2 atual | `c304e83`, documentada até `ab06e0b`; 417 testes Node, tipos/build, 28 roteiros Chromium e banco na CI aprovados nessa referência. Correções posteriores exigem conferir a CI atual da PR #19 |
-| Correções de conferência | `1ff5a3f`; 419 testes Node, tipos/build, 28 roteiros Chromium locais e [CI da PR](https://github.com/mhaetinger/D-D/actions/runs/39787872702) aprovados, incluindo banco. Verificar a CI do registro documental posterior na PR #19 |
-| Correções adicionais de consulta/magias/recusa | Etapa anterior da PR #19; 420 testes Node, tipos/build, 28 roteiros Chromium completos e repetição dos dois fluxos afetados após a revisão final aprovados localmente. Conferir a CI do último commit antes de integrar |
-| R1 integrada | `8bcab7dfcaa5750e512264a8ef43b8ebffcb6748`; [PR #17](https://github.com/mhaetinger/D-D/pull/17) e CI completa aprovadas, testes/limites na auditoria |
-| R2 inicial integrada | `7dc30eb`; 404 testes Node, tipos/build e 27 roteiros Chromium locais/CI aprovados; [PR #18](https://github.com/mhaetinger/D-D/pull/18) integrada em `19e4ceb` |
+| Produção `main` | Entrega da PR #20; conferir SHA e resultado no workflow acima |
+| Integração `develop` | Entrega da PR #19, com R1 e os dois recortes implementados de R2 |
+| Revisão offline do artefato preparado | `8c517c3c837af0c0`; conferir `offline-manifest.json` no site após a publicação |
+| Conferência da entrega | 433 testes Node, tipos/build e quatro roteiros Chromium do ajuste de abas aprovados localmente; CI exige também banco descartável, auditoria e os 32 roteiros completos |
+| Próxima tarefa | Continuar os gastos/rerrolagens restantes de R2, conforme a auditoria; não repetir a implementação de Sortudo |
+| Branch encerrada por esta entrega | `feature/talento-sortudo-r2`; criar a próxima a partir de `develop` atualizado |
+| R1 | PR #17, com testes/limites na auditoria |
+| Primeiro recorte de R2 | PR #18, com Talento Confiável e Sortudo racial |
+| Segundo recorte de R2 e interface | PR #19, com talento Sortudo e correções descritas abaixo |
 
 A organização documental e **R1 — bônus ausentes nos cálculos** foram integradas
 em `develop`, junto do primeiro recorte de **R2 — rolagens e gastos condicionais**
 (Talento Confiável nas perícias e Sortudo racial nos d20 contextuais).
-O responsável autorizou continuar pelo **talento Sortudo**, com uma reserva de
-três pontos e escolha do d20 nos controles existentes. Escopo e limites estão na
+O segundo recorte implementou o **talento Sortudo**, com uma reserva de três
+pontos e escolha do d20 nos controles existentes. Escopo e limites estão na
 [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md#roteiro-de-implementação).
 Os próximos recortes de R2 cobrem as demais rerrolagens/dados mínimos,
 -5/+10 e adicionais de talentos/estilos. As matrizes e os critérios ficam naquele arquivo. Não
 marcar uma mecânica como concluída por ter descrição, escolha ou contador.
 
-A PR #19 reúne também as correções de interface em revisão. O moderno distribui
+A PR #19 reúne também as correções de interface desta entrega. O moderno distribui
 origens/níveis pela largura e fonte sem remontar seus controles. A consulta usa
 os parágrafos dos traços raciais e as características dos 13 antecedentes,
 incluindo Ancestral Feérico, Versatilidade em Perícia e Pesquisador.
@@ -84,16 +85,16 @@ em edição; trocar raça/antecedente tem prévia e aceite dos valores manuais.
 Escolhas antigas deixam de conceder efeitos e ficam aposentadas no evento.
 Isso não reconstrói automaticamente bônus e escolhas de uma nova raça.
 
-Última conferência local: **433 testes Node, tipos/build, PostgreSQL 18 descartável
+Conferência local anterior ao ajuste das abas: **433 testes Node, tipos/build, PostgreSQL 18 descartável
 e 11 roteiros Chromium**: origens, revisão clara/guiada/setores, PDF/JSON, edição
 em linha, cadeado, ajudas, características, sincronização e aplicativo/offline.
-A suíte completa passa a **32 roteiros**; não foi executada inteira nesta etapa.
+A suíte completa tem **32 roteiros** e é exigida na CI desta entrega.
 Incluídos 320px/GG/três temas, fonte dos dados e livrinho em modal, nós/rascunhos,
 proposta antiga, recarga e limites de retenção/conflitos em duas contas.
 Após o ajuste visual final, repetidos origens, revisão clara e setores.
 O PDF pessoal foi conferido na etapa anterior, sem alterar o original ou incluir
 dados pessoais no repositório. Conferir a CI do último commit da PR #19 antes
-de integrar; verificações anteriores ficam no changelog.
+de publicar; verificações anteriores ficam no changelog.
 
 **Retenção remota ativa:** após aprovação explícita, aplicada ao CritCall a
 migração local `20261022212048_bounded_sync_versions.sql`, versão remota
@@ -120,9 +121,9 @@ build; não precisa copiar `.env.local`. A porta 5173 pertence a outro aplicativ
 na máquina original.
 
 Em um clone existente, confira `git status`, preserve trabalho pendente e faça
-`git fetch origin`. Para continuar esta entrega ainda não integrada,
-use `feature/talento-sortudo-r2`. Para uma tarefa nova, parta do
-`develop` público atualizado e crie `feature/*` ou `fix/*`. Entregue por PR para
+`git fetch origin`. Esta entrega encerra
+`feature/talento-sortudo-r2`. Para a próxima tarefa, parta do `develop` público
+atualizado e crie `feature/*` ou `fix/*`. Entregue por PR para
 `develop`; após revisão e aprovação, PR para `main`. Não fazer push direto à
 `main`, enviar tags extras ou mesclar o histórico privado do protótipo.
 
@@ -131,9 +132,9 @@ Texto para iniciar outra conversa:
 > Continue o CritCall. Leia AGENTS.md, docs/RETOMADA.md, README.md,
 > CHANGELOG.md e docs/ARQUITETURA.md. Confira a branch e o estado do Git.
 > O roteiro atual de regras está em docs/AUDITORIA-LIVRO-2014.md. Confira
-> primeiro a PR #19 do talento Sortudo em feature/talento-sortudo-r2 e suas
-> verificações; depois continue os gastos/rerrolagens restantes de R2. Não
-> confundir Sortudo racial com o talento.
+> as PRs #19/#20 e o resultado da publicação. Crie uma branch de develop
+> atualizado e continue os gastos/rerrolagens restantes de R2. Não repetir
+> Sortudo nem confundir o traço racial com o talento.
 
 ## Mapa dos documentos
 
@@ -158,12 +159,12 @@ regra, registre no changelog o que foi feito e testado e atualize este arquivo
 somente quando mudar a próxima etapa, a publicação ou uma pendência externa.
 Não criar outro plano com uma cópia dessas listas.
 
-## Evidências da última versão funcional
+## Evidências da entrega anterior — 21/10/2026
 
 - 385 testes Node, tipos/build e 25 roteiros Chromium aprovados. O workflow da
   `main` também aprovou PostgreSQL descartável/RLS/Storage e a auditoria das
   dependências de produção. São verificações da entrega publicada anterior;
-  a entrega R1 tem registro próprio na auditoria. Nenhuma das duas certifica
+  as entregas R1/R2 têm registros próprios na auditoria. Nenhuma das duas certifica
   todas as regras do livro.
 - Após a publicação, atualização real com cache HTTP nativo, duas abas e rascunho
   preservado; F5 comum recebeu a versão nova. Conferidos ícones das resistências,
