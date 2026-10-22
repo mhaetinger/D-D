@@ -59,8 +59,9 @@ locais são preservados; o perfil informa falhas e permite retomar a cópia.
 recarregar, entrar novamente ou editar as fichas sem conta. **Retomar fichas sem
 conta**, no Perfil, permite decidir de novo. A escolha não apaga os originais.
 
-A janela **Perfil e personagens** abre em Perfil, com nome, imagem e acesso à
-conta. A aba Personagens oferece Lista ou Cartões, com os mesmos retratos e
+A janela **Perfil e personagens** abre em Personagens, a primeira aba. Perfil
+fica como segunda aba, com nome, imagem e acesso à conta. Personagens oferece
+Lista ou Cartões, com os mesmos retratos e
 ações de abrir/excluir ficha. A visualização é lembrada neste navegador. Backup,
 importação e revisão como cópia aparecem somente em Personagens; o estado do
 armazenamento e a sincronização continuam acessíveis nas duas abas.

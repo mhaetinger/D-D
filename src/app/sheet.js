@@ -1318,9 +1318,9 @@ function triggerSheetRoll(formula, label, inspirationEligible = false, context =
 // =========================================================================
 // 6. CONTA DE USUÁRIO & CRIADOR DE NOVO PERSONAGEM
 // =========================================================================
-function openAuthAccountModal() {
+function openAuthAccountModal(tab = 'characters') {
   renderAccountCharactersList();
-  selectAccountTab('profile');
+  selectAccountTab(tab);
   document.getElementById("authAccountModal").classList.remove("hidden");
   if (window.lucide) window.lucide.createIcons();
 }

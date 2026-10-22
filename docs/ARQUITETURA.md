@@ -254,9 +254,11 @@ de status com contraste e símbolo, sem depender apenas de cor.
 
 ## Perfil e coleção de personagens
 
-`app/account-panel.ts` alterna as abas Perfil/Personagens sem remontar os
-formulários. Cada abertura começa em Perfil, inclusive retornos de acesso à
-conta; campos e rodapé mantêm seus próprios nós. Backup, importação, revisão como
+`app/account-panel.ts` alterna as abas Personagens/Perfil sem remontar os
+formulários. Abrir pelo nome da conta começa em Personagens, a primeira aba;
+retornos de recuperação/avisos da conta abrem explicitamente Perfil, a segunda.
+Home/End seguem essa ordem; campos e rodapé mantêm seus próprios nós.
+Backup, importação, revisão como
 cópia e a opção de incluir notas usam `data-account-only="characters"`, visível
 somente na aba Personagens. Estado do armazenamento, sincronização e recuperação
 de dados ilegíveis permanecem acessíveis nas duas abas. Abas usam navegação por

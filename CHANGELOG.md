@@ -2,6 +2,16 @@
 
 ## Não lançado
 
+### Personagens como primeira aba — 2026-10-22
+
+- Clicar no nome da conta abre Personagens, agora a primeira aba. Perfil fica
+  em segundo, mantendo seus campos e ações. Home/End seguem a nova ordem;
+  retornos de recuperação e avisos da conta continuam abrindo Perfil.
+- Verificados 433 testes Node, tipos/build e os quatro roteiros Chromium
+  pertinentes: abas da conta, autenticação, sincronização e cópia sem conta.
+  Incluídos reabertura, teclado, preservação de campos/retratos, 320px/GG/três
+  temas, offline e retornos de senha sob `/D-D/` e na raiz.
+
 ### Origens, consulta de magias e retenção de versões — 2026-10-22
 
 - Características no moderno têm linhas entre colunas e entre origens da mesma

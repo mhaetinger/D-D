@@ -77,15 +77,15 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
       await page.goto(server.url,{waitUntil:'networkidle'});
       await page.waitForFunction(()=>typeof getChar==='function');
       async function login(key='a') {
-        await page.evaluate(()=>openAuthAccountModal());
+        await page.evaluate(()=>openAuthAccountModal('profile'));
         await page.locator('#accountEmail').fill(`${key}@example.test`); await page.locator('#accountPassword').fill('Senha de teste 123!');
         await page.locator('#accountSubmit').click();
         await page.waitForFunction(()=>document.querySelector('#accountSignedIn').hidden===false);
         assert.equal(await page.locator('#accessScreen').isVisible(),false);
-        await page.evaluate(()=>openAuthAccountModal());
+        await page.evaluate(()=>openAuthAccountModal('profile'));
       }
       async function sync() {
-        await page.evaluate(()=>openAuthAccountModal()); await page.locator('#syncNow').click();
+        await page.evaluate(()=>openAuthAccountModal('profile')); await page.locator('#syncNow').click();
         await page.waitForFunction(()=>document.querySelector('#syncStatus').textContent.startsWith('Salvo no Supabase')||document.querySelector('#syncStatus').textContent.startsWith('Sincronizado.'),{},{timeout:15000});
       }
       return {context,page,login,sync,releaseImages,downloads:()=>downloads};
@@ -95,7 +95,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     await a.sync();
     await a.page.reload({waitUntil:'networkidle'});
     assert.equal(await a.page.locator('#currentUserBadge').textContent(),'Nome salvo automaticamente');
-    await a.page.evaluate(()=>openAuthAccountModal());
+    await a.page.evaluate(()=>openAuthAccountModal('profile'));
     // O perfil fica no cache local mesmo se o IndexedDB recusar a fila. A
     // tentativa seguinte precisa enviá-lo antes de projetar a cópia da nuvem.
     await a.page.evaluate(()=>{
@@ -139,7 +139,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     await uploadPhoto(a.page,`[data-avatar-edit="${id}"]`);
     await a.sync();
     assert.equal(images.size,2,'um arquivo do perfil e um da ficha');
-    await a.page.evaluate(()=>openAuthAccountModal());
+    await a.page.evaluate(()=>openAuthAccountModal('profile'));
     const previousImage=await a.page.locator('[data-avatar-profile] img').first().getAttribute('src');
     await a.page.locator('[data-avatar-edit=""]').click();
     await a.page.locator('#avatarFile').setInputFiles({name:'ativo.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg onload="alert(1)"/>')});
@@ -159,7 +159,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     await b.page.waitForFunction(()=>!!document.querySelector('[data-avatar-profile] img'));
     await b.page.evaluate(()=>closeAuthAccountModal());
     await b.page.waitForFunction(()=>!!document.querySelector('#headerSection .portrait img'));
-    await b.page.evaluate(()=>openAuthAccountModal());
+    await b.page.evaluate(()=>openAuthAccountModal('profile'));
     const nobody=await computer(); await nobody.login('b'); await nobody.sync();
     assert.equal(await nobody.page.locator('[data-avatar-profile] img').count(),0,'conta B não herda imagem da conta A');
     assert.equal(await nobody.page.evaluate(()=>characters.length),0);
@@ -226,7 +226,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     // Alterar o retrato de uma cópia não sobrescreve o arquivo da ficha original.
     const source=await a.page.evaluate(()=>JSON.parse(JSON.stringify(getChar())));
     const copied={format:'critcall.character-backup',version:1,exportedAt:new Date().toISOString(),characters:[source]};
-    await a.page.evaluate(()=>openAuthAccountModal());
+    await a.page.evaluate(()=>openAuthAccountModal('profile'));
     await a.page.locator('#backupFile').setInputFiles({name:'copia.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(copied))});
     await confirmImportReview(a.page);
     await a.page.waitForFunction(()=>characters.length===2);

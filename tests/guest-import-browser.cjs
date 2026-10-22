@@ -82,15 +82,15 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
       await page.goto(server.url,{waitUntil:'networkidle'});
       await page.waitForFunction(()=>typeof getChar==='function');
       async function login(key='a') {
-        await page.evaluate(()=>openAuthAccountModal());
+        await page.evaluate(()=>openAuthAccountModal('profile'));
         await page.locator('#accountEmail').fill(`${key}@example.test`); await page.locator('#accountPassword').fill('Senha de teste 123!');
         await page.locator('#accountSubmit').click();
         await page.waitForFunction(()=>document.querySelector('#accountSignedIn').hidden===false);
         assert.equal(await page.locator('#accessScreen').isVisible(),false);
-        await page.evaluate(()=>openAuthAccountModal());
+        await page.evaluate(()=>openAuthAccountModal('profile'));
       }
       async function sync() {
-        await page.evaluate(()=>openAuthAccountModal()); await page.locator('#syncNow').click();
+        await page.evaluate(()=>openAuthAccountModal('profile')); await page.locator('#syncNow').click();
         await page.waitForFunction(()=>document.querySelector('#syncStatus').textContent.startsWith('Salvo no Supabase')||document.querySelector('#syncStatus').textContent.startsWith('Sincronizado.'),{},{timeout:15000});
       }
       return {context,page,login,sync,releaseImages,downloads:()=>downloads};
@@ -103,7 +103,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     },guest);
     await a.page.reload({waitUntil:'networkidle'});
     await a.page.locator('#accessContinueLocal').click();
-    await a.page.evaluate(()=>openAuthAccountModal());
+    await a.page.evaluate(()=>openAuthAccountModal('profile'));
     const image=Buffer.from(await a.page.evaluate(()=>{const c=document.createElement('canvas');c.width=c.height=256;c.getContext('2d').fillRect(0,0,256,256);return c.toDataURL('image/png').split(',')[1];}),'base64');
     for (const selector of ['[data-avatar-edit=""]',`[data-avatar-edit="${guest.id}"]`]) {
       if(selector.includes(guest.id)) await a.page.evaluate(()=>closeAuthAccountModal());
@@ -164,12 +164,12 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
       await c.page.reload({waitUntil:'networkidle'});await c.page.waitForFunction(()=>document.querySelector('#guestImportStatus').textContent.includes('optou por manter'));
       assert.equal(await c.page.locator('#confirmationDialog').isVisible(),false);assert.equal(await c.page.locator('#toast').isVisible(),false,'não repete a recusa como toast');
     }
-    await c.page.evaluate(()=>openAuthAccountModal());await c.page.getByRole('button',{name:'Retomar fichas sem conta',exact:true}).click();
+    await c.page.evaluate(()=>openAuthAccountModal('profile'));await c.page.getByRole('button',{name:'Retomar fichas sem conta',exact:true}).click();
     await c.page.locator('#confirmationDialog').waitFor({state:'visible'});await c.page.locator('#confirmationDialog button[value="cancel"]').click();
     await c.page.waitForFunction(()=>document.querySelector('#guestImportStatus').textContent.includes('continuam neste navegador'));
     const preserved=await c.page.evaluate(()=>({sheets:localStorage.getItem('critcall_characters_v1'),notes:localStorage.getItem('dnd_player_private_notes_v1')}));
     assert.notEqual(preserved.sheets,localBytes);assert.match(preserved.notes,/Nota depois da recusa/);
-    await c.page.evaluate(()=>openAuthAccountModal());await c.page.locator('#accountSignOut').click();await c.page.waitForFunction(()=>!document.querySelector('#accessScreen').hidden);await c.login();
+    await c.page.evaluate(()=>openAuthAccountModal('profile'));await c.page.locator('#accountSignOut').click();await c.page.waitForFunction(()=>!document.querySelector('#accessScreen').hidden);await c.login();
     await c.page.waitForFunction(()=>document.querySelector('#guestImportStatus').textContent.includes('optou por manter'));assert.equal(await c.page.locator('#confirmationDialog').isVisible(),false);
     assert.deepEqual(await c.page.evaluate(()=>({sheets:localStorage.getItem('critcall_characters_v1'),notes:localStorage.getItem('dnd_player_private_notes_v1')})),preserved);
     await c.sync(); assert.equal(await c.page.evaluate(()=>characters.length),2,'cancelar mantém só fichas existentes');
@@ -204,7 +204,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     assert.equal(await e.page.evaluate(()=>JSON.parse(localStorage.getItem('critcall_characters_v1')).characters.some(character=>character.name==='Kael')),true);
     // Outra conta no mesmo navegador ainda decide por si; o botão genérico
     // também volta a se chamar Cancelar na próxima confirmação.
-    await c.page.evaluate(()=>openAuthAccountModal());await c.page.locator('#accountSignOut').click();await c.page.waitForFunction(()=>!document.querySelector('#accessScreen').hidden);await c.login('b');
+    await c.page.evaluate(()=>openAuthAccountModal('profile'));await c.page.locator('#accountSignOut').click();await c.page.waitForFunction(()=>!document.querySelector('#accessScreen').hidden);await c.login('b');
     await c.page.locator('#confirmationDialog').waitFor({state:'visible'});assert.equal(await c.page.locator('#confirmationDialog button[value="cancel"]').innerText(),'Não quero');await c.page.locator('#confirmationDialog button[value="cancel"]').click();
     await c.page.waitForFunction(()=>document.querySelector('#guestImportStatus').textContent.includes('continuam neste navegador'));
     await c.page.evaluate(()=>{window.genericConfirmation=confirmDestructiveAction('Ação de teste','Confirmar?','Confirmar');});

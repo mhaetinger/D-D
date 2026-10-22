@@ -39,6 +39,12 @@ origens/níveis pela largura e fonte sem remontar seus controles. A consulta usa
 os parágrafos dos traços raciais e as características dos 13 antecedentes,
 incluindo Ancestral Feérico, Versatilidade em Perícia e Pesquisador.
 
+Abrir a conta pelo nome começa em **Personagens**, a primeira aba. **Perfil**
+fica em segundo; avisos/retornos de senha continuam abrindo o perfil. A troca
+passou por 433 testes Node, tipos/build e pelos roteiros Chromium de abas,
+autenticação, sincronização e cópia sem conta, incluindo mobile/teclado/offline.
+O responsável autorizou publicar a entrega acumulada após conferir a CI.
+
 A revisão de PDF destaca observações e distingue identificação/classes, com
 relevo até Tendência e ancestralidades em quadros separados. Antecedente/tendência
 permitem catálogo ou escrita livre. Idiomas têm um único quadro, separado de
