@@ -19,10 +19,14 @@
   resistência. Backup, importação, edição e recarga preservam essa ausência;
   não vira +0 nem oferece um d20 de ataque. Dano continua disponível e vínculo
   explícito ao catálogo calcula o bônus. Textos inválidos continuam recusados.
-- Verificados 419 testes Node e tipos/build. Regressões de navegador incluem
+- Verificados 419 testes Node, tipos/build e os 28 roteiros Chromium locais;
+  [CI da PR aprovada em `1ff5a3f`](https://github.com/mhaetinger/D-D/actions/runs/39787872702),
+  incluindo banco descartável/RLS/Storage e auditoria de produção. Regressões incluem
   larguras intermediárias, três temas/M/GG, consulta por mouse/toque, campos
   recolhidos, ausência de bônus, catálogo, cancelamento, foco/nós e recarga.
-  Conferir os resultados completos na PR #19 antes de integrar/publicar.
+  Conferidos 62 links/âncoras e as matrizes da auditoria. As 958 referências
+  anteriores foram preservadas; somente dois parágrafos foram acrescentados
+  pelo extrator. Conferir a CI do último commit na PR #19 antes de integrar/publicar.
 
 ### Talento Sortudo e escolha contextual de d20 — 2026-10-22
 
