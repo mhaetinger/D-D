@@ -111,7 +111,7 @@ const { serve } = require('./serve.cjs');
     await w.locator('[data-answer="fighting"]').click();
     const pickerOption = page.locator('#cw-picker-options button[data-rule-tooltip]').first();
     await pickerOption.hover();
-    await page.waitForTimeout(300);
+    await page.locator('#ruleTooltip').waitFor({state:'visible'});
     assert.equal(await page.locator('#ruleTooltip').isVisible(), true);
     assert.equal(await page.locator('#ruleTooltip').evaluate(el => getComputedStyle(el).pointerEvents), 'none');
     await pickerOption.click();

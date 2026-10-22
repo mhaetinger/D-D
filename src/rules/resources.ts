@@ -2,6 +2,7 @@ import { ability, active, level, norm, selections, state, subclass, type Engine,
 import { deathStatus, endRage, requireConscious } from './health';
 import { endConcentration } from './concentration';
 import { relentlessDC } from './survival';
+import { hasFeat } from './passives';
 export interface Resource { id:string; classId:string; name:string; max:number; recovery:'short'|'long'|'none'; kind:'counter'|'pool'|'toggle'|'note'|'portent'; note:string; cost?:[string,number]; action?:string }
 
 /** Cada definição usa nível da própria classe, nunca nível total. Sem ficha-modelo. */
@@ -161,6 +162,7 @@ export function resourcesFor(c: Sheet, E: Engine): Resource[] {
   if (wizard>=6 && sub('mago')==='encantamento') add('mago','instinctive','Encanto Instintivo',1,'none','Reação: escolha atacante e outra criatura ao alcance; após sucesso dele, não pode usar nesse atacante até descanso longo.','toggle');
   if (wizard>=10 && sub('mago')==='transmutacao') add('mago','shapechanger','Metamorfo',1,'short','Conjure Metamorfose em si mesmo sem espaço, virando besta ND 1 ou menor.');
   if (wizard>=14 && sub('mago')==='transmutacao') add('mago','masterTransmuter','Mestre Transmutador',1,'none','Consuma a pedra e escolha a transformação; exige ação e tocar o alvo. Recriar a pedra exige 8 horas.','toggle');
+  if(hasFeat(c,E,'Sortudo'))add('feat','lucky','Sortudo',3,'long','3 pontos por descanso longo. Gaste 1 antes de resolver um ataque, teste de habilidade ou resistência: role um d20 adicional e escolha a face, mesmo com vantagem/desvantagem. Pode afetar um ataque contra você; pontos de criaturas diferentes se cancelam, sem dado adicional. O Sortudo racial não gasta esta reserva.','counter',{action:'lucky'});
   for(const r of list){const value=c.rules?.resourceMaxOverrides?.[r.id];if(Number.isInteger(value)&&value>=0&&value<=100&&!r.cost)r.max=value;}
   return list;
 }
@@ -189,7 +191,9 @@ export function spend(c: Sheet, r: Resource, amount=1) {
 }
 /** Corrigir um clique deve devolver o mesmo uso na magia e no painel. */
 export function refund(c:Sheet,r:Resource) {
-  const value = Math.max(0,used(c,r)-1);
+  const recorded=c.ruleState?.used?.[r.id];
+  if(r.id==='feat:lucky' && recorded!==undefined && (!Number.isInteger(recorded) || recorded<0))throw new Error('Reserva de Sortudo ilegível preservada. Confira o registro antes de corrigi-lo.');
+  const value = Math.max(0,(r.id==='feat:lucky'?recorded ?? 0:used(c,r))-1);
   state(c).used[r.id] = value;
   for (const spell of arcanumSpells(c,r.id)) spell.usesUsed = value;
   if (r.id==='feiticeiro:tides') c.tidesOfChaosAvailable = true;

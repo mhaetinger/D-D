@@ -55,7 +55,7 @@ test("os dois arquivos reais do catálogo são PDFs e nenhuma ficha entra na bib
 
 test("magias e escolhas têm descrições reais para consulta, sem alterar seus identificadores", () => {
   assert.equal(spells.length, 361);
-  assert.equal(references.length, 958);
+  assert.equal(references.length, 1073); // 958 cabeçalhos preservados e 115 parágrafos raciais.
   for (const item of [...spells, ...references]) {
     assert.doesNotMatch(item.text, /Descrição completa não incluída/);
     assert.ok(Number.isInteger(item.pdfPage) && item.pdfPage >= 1 && item.pdfPage <= 314);

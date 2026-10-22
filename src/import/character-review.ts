@@ -3,6 +3,7 @@ import { catalogueWeapon } from '../rules/combat';
 import { preparation } from '../rules/spellcasting';
 import { validateCharacters, type Backup } from '../storage/validation';
 import {parseDiceFormula} from '../rules/dice-formula';
+import {dragonAncestry,dragonFromRaceName,setDragonChoice} from '../rules/draconic-ancestry';
 
 const compact=(s:unknown)=>norm(s).replace(/ /g,'');
 export function matchOption(value:unknown,options:Record<string,Sheet>):string {
@@ -10,7 +11,8 @@ export function matchOption(value:unknown,options:Record<string,Sheet>):string {
   const matches=Object.entries(options).filter(([id,o])=>compact(id)===key || compact(o.name)===key);
   return matches.length===1?matches[0][0]:'';
 }
-const spellAliases:Record<string,string>={'nevoa de adagas':'nuvem-de-adagas','invocar familiar':'convocar-familiar','bruxaria hex':'bruxaria'};
+export const spellAliases:Record<string,string>={'nevoa de adagas':'nuvem-de-adagas','invocar familiar':'convocar-familiar','bruxaria hex':'bruxaria','raio mistico':'rajada-mistica'};
+export const matchImportedRace=(value:unknown,E:Engine)=>matchOption(value,E.options.races)||(dragonFromRaceName(value)?'draconato':'');
 export function findSpell(value:unknown,E:Engine):Sheet|null {
   return E.spell(String(value || '')) || E.spell(spellAliases[norm(value)]) || null;
 }
@@ -20,8 +22,12 @@ export function proposeImport(backup:Backup,E:Engine):Backup {
   const copy=structuredClone(backup);
   for(const c of copy.characters as Sheet[]) {
     c.rules ||= {history:[],legacy:true};c.rules.history ||= [];
-    const race=matchOption(c.rules.raceId,E.options.races)||(c.rules.manualMode?'':matchOption(c.race,E.options.races));
+    const race=matchOption(c.rules.raceId,E.options.races)||(c.rules.manualMode?'':matchImportedRace(c.race,E));
     if(race)c.rules.raceId=race;
+    const dragon=dragonFromRaceName(c.race);
+    if(race==='draconato'&&dragon&&!c.rules.manualMode&&!E.selections(c,null,'raceDragon').length)setDragonChoice(c,'raceDragon',dragon.choice);
+    const background=matchOption(c.rules.backgroundId,E.options.backgrounds)||(c.rules.manualMode?'':matchOption(c.background,E.options.backgrounds));
+    if(background)c.rules.backgroundId=background;
     for(const cls of c.classes) {
       const options=E.data.classes[cls.classId]?.subclasses || {};
       const id=matchOption(cls.subclassId,options)||matchOption(cls.subclass,options);
@@ -106,6 +112,8 @@ export function importNotices(c:Sheet,E:Engine):ImportNotice[] {
   if(c.rules?.pdfImport||c.rules?.importReview?.source==='pdf')notices.push({sector:'equipment',title:'Equipamentos e características em texto',detail:'Nem todos os itens, talentos e escolhas de classe são convertidos em dados da ficha. Confira e cadastre os que faltarem nos blocos correspondentes: texto sozinho não calcula peso nem aplica efeitos. O texto extraído fica nas anotações pessoais, se você optar por incluí-las.'});
   if(c.rules?.pdfImport?.conflicts?.length)notices.push({sector:'identity',title:'Campos diferentes no PDF',detail:'Alguns campos repetidos têm valores diferentes. Confira os valores exibidos; as versões originais ficam no texto extraído, nas anotações pessoais, se incluídas.'});
   if(!E.options.races[c.rules?.raceId])notices.push({sector:'identity',title:'Raça mantida manualmente',detail:'O nome será preservado. Efeitos raciais dependem de um vínculo com o catálogo ou de ajustes feitos na ficha.'});
+  if(c.rules?.raceId==='draconato'&&!dragonAncestry(E.selections(c,null,'raceDragon').at(-1)))notices.push({sector:'identity',title:'Draconato · escolha a ancestralidade',detail:'A cor do ancestral define o tipo de dano, a área e o teste do sopro, além da resistência racial. Escolha na seção de identidade; a cor da pele sozinha não determina essa escolha.'});
+  if(c.classes.some((x:Sheet)=>x.classId==='feiticeiro'&&(x.subclassId||E.inferSubclass(x))==='draconica')&&!dragonAncestry(E.selections(c,'feiticeiro','dragon').at(-1)))notices.push({sector:'identity',title:'Feiticeiro · ancestralidade da linhagem',detail:'Escolha o ancestral da Linhagem Dracônica para conferir o elemento de Afinidade Elemental. Essa escolha é própria da subclasse, mesmo se o personagem também for draconato.'});
   for(const cls of c.classes){const meta=E.data.classes[cls.classId];if(meta&&cls.level>=meta.subLevel&&!meta.subclasses?.[cls.subclassId])notices.push({sector:'identity',title:meta.name+' · subclasse por conferir',detail:'Você pode escolher uma subclasse acima ou manter manual. Sem esse vínculo, os recursos específicos da subclasse não serão acrescentados automaticamente.'});}
   const manual=c.weapons.filter((w:Sheet)=>w.calculationMode==='manual'||!catalogueWeapon(w,E));
   if(manual.length)notices.push({sector:'equipment',title:'Ataques com valores fixos',detail:manual.map((w:Sheet)=>w.name).join(', ')+': os valores reconhecidos do arquivo foram preservados. Não acompanham mudanças de atributos ou proficiência. Armas podem ser vinculadas ao catálogo; ataques especiais, como sopros, precisam ser conferidos pela regra de sua origem.'});

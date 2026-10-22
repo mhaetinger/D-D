@@ -2,9 +2,26 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {proposeImport,validateImport,importWarnings,suggestPdfPools} from '../src/import/character-review';
 import {pdfToBackup} from '../src/import/pdf-character';
+import {toggleRecord} from '../src/import/proficiency-fields';
 const E=require('../public/rules/character-engine'),{warrior}=require('./fixture.cjs');
 const backup=(c:any)=>({format:'critcall.character-backup' as const,version:1 as const,exportedAt:'',characters:[c]});
 const pdf=(values:Record<string,string>)=>({pages:[{width:612,height:792,text:''}],fields:Object.entries(values).map(([name,value],i)=>({name,value,page:1,x:0,y:i*20,width:100,height:12,checkbox:false}))});
+
+test('opções de idiomas preservam texto desconhecido e não duplicam o mesmo idioma',()=>{
+ const raw='Idioma Comum e Dracônico e Infernal, Língua da mesa';
+ assert.equal(toggleRecord(raw,'Comum',true),raw);
+ const changed=toggleRecord(toggleRecord(raw,'Élfico',true),'Dracônico',false);
+ assert.equal(changed,'Idioma Comum, Infernal, Língua da mesa, Élfico');
+ assert.equal(toggleRecord('Dracônico antigo, Dracônico','Dracônico',false),'Dracônico antigo');
+ assert.equal(toggleRecord('Arma da mesa; simples','Armas simples',true),'Arma da mesa; simples');
+});
+test('antecedente só é vinculado por correspondência inequívoca e sem mudar treinos',()=>{
+ const c=warrior();c.background='Sábio';delete c.rules.backgroundId;
+ const before=structuredClone(c),p=proposeImport(backup(c),E).characters[0] as any;
+ assert.equal(p.rules.backgroundId,'sabio');assert.deepEqual(p.skillsProf,c.skillsProf);assert.deepEqual(p.proficiencies,c.proficiencies);assert.deepEqual(c,before);
+ c.background='Sábio da mesa';assert.equal((proposeImport(backup(c),E).characters[0] as any).rules.backgroundId,undefined);
+ c.background='Sábio';c.rules.manualMode=true;assert.equal((proposeImport(backup(c),E).characters[0] as any).rules.backgroundId,undefined);
+});
 
 test('proposta corrige somente vínculos inequívocos e conserva dados/nota/original',()=>{
  const c=warrior();c.race='Meio-Orc';c.rules={history:[],legacy:true};c.classes[0].level=3;c.classes[0].subclassId='mestre-batalha';c.classes[0].subclass='Mestre de Batalha';c.lore.backstory='Texto pessoal original';c.spells=[E.toSheetSpell(E.spell('Raio de Fogo'),'guerreiro',{bookId:'legado-inexistente',castingAbility:'int',extraSource:'Talento'})];
@@ -67,3 +84,8 @@ test('classe removida não continua concedendo escolhas/efeitos pelo histórico 
  const c=warrior();c.classes.push({classId:'bruxo',level:1,hitDie:8});c.ruleState={active:{'guerreiro:secondWind':true,'spell:shield':true}};const before=structuredClone(c);
  assert.deepEqual(E.selections(c,null,'fighting'),['Arquearia']);const next=removeClass(c,0,E);assert.equal(next.classes[0].classId,'bruxo');assert.deepEqual(E.selections(next,null,'fighting'),[]);assert.deepEqual(E.selections(next,null,'raceLanguages'),E.selections(c,null,'raceLanguages'));assert.deepEqual(next.rules.history,c.rules.history);assert.equal(next.ruleState.active['guerreiro:secondWind'],false);assert.equal(next.ruleState.active['spell:shield'],true);assert.deepEqual(c,before);
 });
+
+ test('PDF: Raio Místico com dados na linha é Rajada Mística, círculo zero, conservando texto',()=>{
+ const raw='Raio Mistico, 1d10, dois feixes 36 m',source=pdf({CharacterName:'Conjuradora de teste',ClassLevel:'Ladino 6 / Bruxo 1',Race:'Tiefling','Spells 1014':raw});const before=structuredClone(source),c=pdfToBackup(source,E).characters[0] as any;
+ assert.equal(c.spells[0].bookId,'rajada-mistica');assert.equal(c.spells[0].circle,0);assert.equal(c.spells[0].classId,'bruxo');assert.ok(c.spells[0].notes.includes(raw));assert.deepEqual(source,before);
+ });

@@ -8,6 +8,8 @@ import {canSaveSheetPanel} from './panels';
 import {classRemovalControls} from './class-removal';
 import {mountSheetPanel,closeSheetPanel} from './panels';
 import {armorProficiencies} from '../rules/spellcasting';
+import {ALIGNMENTS} from '../wizard/guidance';
+import {originChangeControls,type OriginField} from './origin-change';
 
 const host=globalThis as any;
 let rendering=0;
@@ -41,6 +43,10 @@ export function sheetInput(c:Sheet,path:string,value:unknown,label:string,type='
 }
 export function sheetSelect(c:Sheet,path:string,value:unknown,label:string,values:Record<string,string>):string {
   return readout(c,path,values[String(value)]||'—',label)+`<select ${attributes(c,path,label)} data-sheet-saved="${escape(value??'')}" class="sheet-field sheet-select">${Object.entries(values).map(([id,name])=>`<option value="${escape(id)}" ${id===value?'selected':''}>${escape(name)}</option>`).join('')}</select>`;
+}
+export function sheetIdentity(c:Sheet,path:'race'|'background'|'alignment',label:string):string {
+  const values=path==='alignment'?Object.keys(ALIGNMENTS):Object.values(path==='race'?host.CharacterEngine.options.races:host.CharacterEngine.options.backgrounds).map((x:any)=>x.name);
+  return sheetInput(c,path,c[path],label,'text',{wide:true})+`<select class="sheet-field sheet-origin-catalog" data-sheet-origin="${path}" aria-label="Escolher ${escape(label)} no livro" ${canConfigureSheet(c)?'':'hidden disabled'}><option value="">Escolher no livro…</option>${values.map((name:string)=>`<option value="${escape(name)}">${escape(name)}</option>`).join('')}</select>${c.rules?.originReview?.[path]?'<small class="sheet-origin-note">Origem com ajustes manuais conferidos</small>':''}`;
 }
 export function sheetText(c:Sheet,path:string,value:unknown,label:string):string {
   return readout(c,path,value||'—',label,true)+`<textarea ${attributes(c,path,label)} class="sheet-field sheet-narrative" rows="${path==='lore.backstory'?5:2}" data-sheet-saved="${escape(value??'')}" placeholder="${escape(label)}">${escape(value??'')}</textarea>`;
@@ -82,6 +88,23 @@ export function restoreSheetFields(saved:ReturnType<typeof captureSheetFields>):
 }
 
 export function setupSheetEditing():void {
+  let pendingOrigin:{character:Sheet;path:OriginField;text:string;before:string;node:HTMLElement}|undefined;
+  function reviewOrigin(c:Sheet,path:OriginField,text:string){
+    const store=sheetStore,before=JSON.stringify(c);
+    // Um blur pode repetir change depois da proposta já aberta. Remontá-la
+    // entre pointerdown e click consumiria o botão Cancelar/Aplicar.
+    if(pendingOrigin?.character===c&&pendingOrigin.path===path&&pendingOrigin.text===text&&pendingOrigin.before===before&&pendingOrigin.node.isConnected)return;
+    const close=()=>{pendingOrigin=undefined;closeSheetPanel('origin-change');const input=document.querySelector<HTMLInputElement>(`[data-sheet-field="${path}"]`);if(input)input.value=input.dataset.sheetSaved||'';};
+    const panel=originChangeControls(c,path,text,host.CharacterEngine,next=>{
+      if(c!==host.getChar()||sheetStore!==store||JSON.stringify(c)!==before)throw new Error('A ficha mudou. Feche esta revisão e confira a troca novamente.');
+      if(!canConfigureSheet(c))throw new Error('Abra o cadeado para aplicar esta troca.');
+      const input=document.querySelector<HTMLInputElement>(`[data-sheet-field="${path}"]`),draft=input&&{value:input.value,saved:input.dataset.sheetSaved};
+      if(input){input.value=c[path];input.dataset.sheetSaved=c[path];}
+      try{commitSheetEdit(c,next,'Conferiu troca de '+(path==='race'?'raça / espécie':'antecedente'));}
+      catch(e){if(input&&draft){input.value=draft.value;input.dataset.sheetSaved=draft.saved;}throw e;}
+      pendingOrigin=undefined;closeSheetPanel('origin-change');
+    },close);pendingOrigin={character:c,path,text,before,node:panel};mountSheetPanel('origin-change',panel,'#headerSection');panel.scrollIntoView({block:'nearest'});
+  }
   document.getElementById('hbSaveBtn')!.addEventListener('click',event=>{if(!canSaveSheetPanel('homebrew')){event.preventDefault();event.stopImmediatePropagation();host.showToast('A ficha ou a permissão de edição mudou. Nenhuma alteração foi aplicada.');}},true);
   host.requireSheetEdit=requireSheetEdit;
   host.requireSheetConfiguration=requireSheetConfiguration;
@@ -105,6 +128,7 @@ export function setupSheetEditing():void {
     // Remover um input focado do DOM também dispara change no navegador. Uma
     // atualização visual não confirma esse rascunho nem inicia outro render.
     if(rendering)return;
+    if(el?.hasAttribute('data-sheet-origin')){if(!requireSheetConfiguration()||!el.value)return;const c=host.getChar(),path=el.dataset.sheetOrigin!;try{if(path==='alignment')commitSheetEdit(c,editSheetField(c,path,el.value,host.CharacterEngine),'Ajustou tendência');else reviewOrigin(c,path as OriginField,el.value);}catch(e){host.showToast((e as Error).message);}el.value='';return;}
     if(el instanceof HTMLElement&&el.closest('.rule-context,.rule-inline')&&el.getAttributeNames().some(name=>name.startsWith('data-rule-'))&&!canEditSheet(host.getChar())){event.stopImmediatePropagation();requireSheetEdit();host.renderAll();return;}
     if(el instanceof HTMLElement&&el.matches('[data-rule-ac],[data-rule-defense],[data-rule-companion="name"],[data-rule-companion="max"]')&&!canConfigureSheet(host.getChar())){event.stopImmediatePropagation();requireSheetConfiguration();host.renderAll();return;}
     if(el?.hasAttribute('data-sheet-armor')){if(!requireSheetConfiguration()){el.checked=!el.checked;return;}const c=host.getChar(),next=structuredClone(c),id=el.dataset.sheetArmor!;if(!['leve','media','pesada','escudo'].includes(id))return;next.armorProficiencies=armorProficiencies(c,host.CharacterEngine).filter(x=>x!==id);if(el.checked)next.armorProficiencies.push(id);try{commitSheetEdit(c,next,'Ajustou proficiências de armadura');}catch(e){host.showToast((e as Error).message);}return;}
@@ -114,6 +138,7 @@ export function setupSheetEditing():void {
     event.stopImmediatePropagation();const c=host.getChar();
     if(!c||c.id!==el.dataset.sheetOwner||currentWorkspaceKey()!==el.dataset.sheetScope)return;
     if(el.value===el.dataset.sheetSaved)return;
+    if(['race','background'].includes(el.dataset.sheetField)){try{reviewOrigin(c,el.dataset.sheetField as OriginField,el.value);}catch(e){host.showToast((e as Error).message);}return;}
     try {const next=editSheetField(c,el.dataset.sheetField,el.value,host.CharacterEngine);el.removeAttribute('aria-invalid');el.setCustomValidity('');const saved=el.dataset.sheetSaved;el.dataset.sheetSaved=el.value;try{commitSheetEdit(c,next,`Ajustou ${el.getAttribute('aria-label')} na ficha`);}catch(e){el.dataset.sheetSaved=saved;throw e;}}
     catch(e){el.setAttribute('aria-invalid','true');el.setCustomValidity((e as Error).message);host.showToast((e as Error).message);}
   },true);

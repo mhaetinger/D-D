@@ -11,6 +11,18 @@
 [data-sheet-field="name"] { font-family:"Cinzel",serif; font-size:1.1rem; font-weight:700; }
 .rule-inline .sheet-number { width:4.5ch; }
 .sheet-select { max-width:min(14rem,100%); }
+.sheet-origin-catalog { display:block; width:100%; margin-top:.35rem; font-size:var(--sheet-secondary); }
+.sheet-origin-note { display:block; margin-top:.3rem; font-size:var(--sheet-secondary); color:var(--text-muted); }
+.origin-change { font-size:var(--sheet-body,1rem); line-height:1.5; }
+.origin-change h3,.origin-change h4 { font-weight:700; color:var(--text-accent); }
+.origin-change ul { list-style:disc; padding-left:1.2rem; }
+.origin-change li,.origin-manual-review p { margin-top:.5rem; }
+.origin-manual-review { margin-top:.8rem; border-top:1px solid var(--border-main); padding-top:.65rem; }
+.origin-manual-review label { display:flex; align-items:start; gap:.5rem; margin-top:.7rem; }
+.origin-manual-review input { flex:none; margin-top:.35rem; }
+.origin-actions { display:flex; justify-content:flex-end; gap:.5rem; margin-top:.8rem; }
+.origin-actions button { border:1px solid var(--border-main); border-radius:.35rem; padding:.4rem .7rem; background:var(--bg-inset); }
+.origin-actions button:disabled { opacity:.5; }
 .sheet-narrative { display:block; width:100%; resize:vertical; line-height:1.4; }
 .sheet-class-chip { max-width:100%; padding:.2rem .35rem; border-radius:.35rem; font-size:.7rem; }
 .sheet-class-chip .sheet-select { max-width:min(11rem,50vw); }
@@ -44,3 +56,36 @@ div:has(> .sheet-skill-value) > div:first-child { min-width:0; overflow-wrap:any
 @media print { #sheetEditLock { display:none; } }
 [onclick="openLevelUpModal()"]:disabled { opacity:.55; }
 .spell-preparation label[title],.import-review .import-check[title] { cursor:help; }
+/* Ficha e importação compartilham a mesma hierarquia: cadastro, origem,
+ * disponibilidade e ajustes opcionais. A distinção não depende só de cor. */
+.spell-fields { display:grid; gap:.8rem; min-width:0; }
+.import-review .spell-fields .spell-field-group { margin:0; padding:.65rem .8rem .8rem; border:1px solid var(--border-main); border-left:3px solid var(--text-accent); background:var(--bg-inset); border-radius:.45rem; }
+.spell-fields .spell-field-group > legend { padding:0 .35rem; color:var(--text-accent); font-weight:700; }
+.spell-fields .import-grid { margin:.2rem 0; grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr)); }
+.spell-fields .spell-field-hint { margin:.35rem 0 0; font-size:.9375rem; line-height:1.45; }
+.spell-fields .spell-preparation { display:grid; gap:.5rem; }
+.spell-fields .spell-preparation .spell-field-hint { margin:0; }
+.import-review .spell-fields > details { margin:0; padding:.65rem .8rem; background:var(--bg-card); }
+.spell-fields .import-grid { grid-template-columns:repeat(2,minmax(0,1fr)); align-items:end; }
+.spell-fields label { display:flex; flex-direction:column; gap:.3rem; min-width:0; }
+.spell-fields label > span { line-height:1.4; }
+.spell-fields input:not([type=checkbox]),.spell-fields select { min-height:2.5rem; }
+.spell-fields .spell-component-checks { display:flex; flex-wrap:wrap; gap:.7rem 1rem; margin-top:.7rem; }
+.spell-fields .spell-component-checks .import-check { display:flex; flex-direction:row; align-items:start; }
+.spell-fields .spell-component-checks input { margin-top:.2rem; flex:none; }
+.spell-fields .spell-components { margin-top:.8rem; }
+.catalog-results { max-height:13rem; overflow:auto; overscroll-behavior:contain; margin-top:.3rem; border:2px solid var(--text-accent); border-radius:.4rem; background:var(--bg-card); color:var(--text-main); }
+.catalog-results [role=option] { display:flex; flex-direction:column; gap:.2rem; padding:.5rem .65rem; border-bottom:1px solid var(--border-main); cursor:pointer; overflow-wrap:anywhere; }
+.catalog-results [role=option]:is(:hover,[aria-selected=true]) { background:var(--bg-inset); outline:2px solid var(--text-accent); outline-offset:-2px; }
+.catalog-results span { font-size:.875rem; color:var(--text-muted); }
+.catalog-results p { padding:.6rem; }
+.spell-fields .import-grid:has(> [data-spell-catalog-label]) { align-items:start; }
+@media (max-width:600px) { .spell-fields .import-grid { grid-template-columns:1fr; } }
+.spell-fields details[open] > summary { padding-bottom:.45rem; border-bottom:1px solid var(--border-main); }
+.spell-fields .spell-origin-choices { display:flex; flex-wrap:wrap; gap:.5rem; margin:.65rem 0; }
+.spell-origin-choices button[aria-pressed=true] { border:2px solid var(--text-main); background:var(--text-accent); color:var(--btn-primary-text,#fff); font-weight:700; }
+.import-review .spell-fields [data-spell-origin-details] { padding:0; border:0; margin:0; }
+.import-review .spell-fields [data-spell-origin-details][open] { padding-top:.4rem; }
+.import-review .import-spell-card > details { padding:0; border:0; border-top:1px solid var(--border-main); border-radius:0; }
+.import-review .import-spell-card > details > summary { padding:.65rem 0; margin:0; }
+.import-review .import-spell-card > details[open] > summary { margin-bottom:.3rem; }

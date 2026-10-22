@@ -55,9 +55,13 @@ ou entrar, uma conta vazia recebe cópias das fichas, notas e imagens locais;
 se já tiver fichas, pergunta se deseja acrescentar novas. A identidade precisa
 estar confirmada e a coleção remota precisa ter sido consultada. Os originais
 locais são preservados; o perfil informa falhas e permite retomar a cópia.
+**Não quero** lembra a recusa para aquela conta neste navegador, inclusive após
+recarregar, entrar novamente ou editar as fichas sem conta. **Retomar fichas sem
+conta**, no Perfil, permite decidir de novo. A escolha não apaga os originais.
 
-A janela **Perfil e personagens** abre em Perfil, com nome, imagem e acesso à
-conta. A aba Personagens oferece Lista ou Cartões, com os mesmos retratos e
+A janela **Perfil e personagens** abre em Personagens, a primeira aba. Perfil
+fica como segunda aba, com nome, imagem e acesso à conta. Personagens oferece
+Lista ou Cartões, com os mesmos retratos e
 ações de abrir/excluir ficha. A visualização é lembrada neste navegador. Backup,
 importação e revisão como cópia aparecem somente em Personagens; o estado do
 armazenamento e a sincronização continuam acessíveis nas duas abas.
@@ -72,6 +76,12 @@ cadeado fechado. P/G/GG continuam ampliando ou reduzindo essa mesma hierarquia.
 Classes ficam numa faixa compacta; uma subclasse longa pode ser aberta para
 leitura completa. No celular, os dados de identidade usam linhas e **Visual e
 dados** recolhe as preferências para deixar mais espaço à ficha.
+Com o cadeado aberto, raça/espécie, antecedente e tendência oferecem sugestões
+do livro além do texto livre. Trocar raça ou antecedente abre uma prévia dos
+traços e exige conferir os valores mantidos manualmente. Não reconstrói a ficha
+importada; escolhas da nova origem ainda precisam ser registradas. Tendência
+altera somente a identificação. As colunas de características têm divisórias
+verticais e uma linha entre origens/classes da mesma coluna.
 
 Cores, textura, tamanho de fonte e dados são preferências do usuário. No modo
 local ficam neste navegador; na conta entram também na fila de sincronização.
@@ -86,6 +96,32 @@ Esc. Os botões de ativar/gastar continuam separados da consulta. No preparo
 de magias, **Voltar à ficha** permite sair sem aplicar; escolhas pendentes pedem
 confirmação antes do descarte. O lembrete do descanso só é retirado ao aplicar.
 Avisos de limite ou validação aparecem dentro da janela que estiver em uso.
+Na revisão da importação, proficiências e ataques mostram primeiro os registros
+lidos. Idiomas têm opções para marcar; armas indicam **Pela ficha** quando o
+treino já vem das classes, raça e escolhas. Ferramentas e registros livres ficam
+na edição opcional, preservando textos que o catálogo não reconheceu.
+Antecedente e tendência permitem escrita livre ou escolha do livro.
+O grimório separa **Truques** e cada círculo, com agrupamento por classe e
+origem visível. **Adicionar truque / Adicionar magia** permite escolher no livro
+ou criar um efeito próprio; a busca mostra círculo e classes antes da escolha.
+Efeitos sem círculo têm uma única lista visível para escolher **Truque** ou
+**Magia de 1º a 9º círculo**. Faixas de cor, número e título distinguem os grupos;
+magias raciais ficam identificadas pela raça. Uma origem marcada pode ser
+desmarcada clicando novamente, sem recuperar usos gastos ou apagar notas.
+O cartão mostra a origem escolhida imediatamente. **Vinculada ao catálogo de
+2014** distingue a magia reconhecida de um efeito próprio; só a vinculada recebe
+o livrinho com descrição e página do catálogo. Na busca, **Listas de classe**
+não exclui outras origens: Taumaturgia também informa o traço racial do tiefling.
+Abra um cartão para corrigir seus campos. Ajustes de fórmula substituem os
+dados por uma adaptação; não são necessários para usar o efeito do livro.
+Moedas também são editáveis antes de importar. Abra **Corrigir ou vincular arma**
+quando precisar mudar um ataque ou usar o catálogo. Um bônus não informado pode ficar
+vazio, inclusive em efeitos que usam resistência; isso não inventa um bônus +0.
+A previsão de reservas aparece automaticamente pelas classes e níveis; aplicar
+os máximos continua sendo uma escolha explícita, sem recuperar os usos gastos.
+Draconatos têm escolha das dez ancestralidades de 2014, com consulta de dano,
+área, teste e CD do sopro. A ancestralidade da Linhagem Dracônica do feiticeiro
+fica em outra escolha. A resolução completa do sopro continua na auditoria.
 As dicas de preparo aparecem no balão ao passar o mouse ou focar o controle
 pelo teclado. Marcar uma checkbox continua apenas alterando sua seleção.
 
@@ -107,6 +143,16 @@ modo selecionado: **normal** rola um d20; **vantagem**, dois e usa o maior;
 bônus ou outros dados do pool. A tecla **R** e o botão **Rolar d20** na bandeja
 fazem a mesma rolagem. Não gasta inspiração preparada nem altera o pool ou o
 modo escolhido. As setas movem o ícone; OFF continua ocultando os dados.
+
+Quem tem o **talento Sortudo** encontra seus três pontos junto à característica.
+Nas jogadas automáticas da ficha, use **Sortudo (talento)** para lançar um d20
+adicional e escolher a face antes de resolver a jogada. O modo original continua
+valendo. Concentração, morte e Fúria Implacável permitem decidir após ver o d20;
+um teste interrompido pode ser retomado com os mesmos dados durante a sessão.
+O ponto é gasto ao lançar o adicional. **Usar na mesa** registra o gasto físico;
+**Ataque contra mim** permite escolher o d20 de um ataque recebido, com bônus e
+acerto resolvidos na mesa. Descanso longo recupera os pontos. O Sortudo racial
+do halfling aparece separado e não usa essa reserva.
 
 O modo selecionado na bandeja também aparece ao redor do dado recolhido:
 **vantagem** tem névoa suave e **↑**; **desvantagem**, pequenas chamas e **↓**.
@@ -143,6 +189,13 @@ Cada personagem tem sua própria linha do tempo, com desfazer/refazer e marcos.
 Voltar um passo afeta somente essa ficha; notas pessoais e as outras fichas são
 preservadas. A linha do tempo também permite restaurar fichas excluídas. O
 histórico coletivo antigo é copiado por personagem sem apagar o original.
+Ao gravar, o histórico de desfazer mantém até 100 estados / 2 MiB por ficha,
+preservando o estado apontado. Um único estado maior é mantido inteiro.
+Checkpoints também participam desse limite. Versões em nuvem têm política
+própria, conferida no diálogo e descrita em [SINCRONIZACAO.md](docs/SINCRONIZACAO.md).
+A retenção do servidor foi ativada no CritCall em 22/10/2026: até 20 versões
+por documento / 30 dias, com teto de 200 versões / 8 MiB por conta. A limpeza
+ocorre ao sincronizar; os documentos atuais ficam preservados.
 
 No perfil local, **Baixar backup** salva suas fichas em JSON. As anotações pessoais
 ficam fora do arquivo por padrão; marque a opção para incluí-las em um backup
@@ -161,12 +214,32 @@ Antes de salvar, **Revisar importação** separa Identidade e classes, Atributos
 combate, Proficiências, Grimório e Inventário e história. Os setores mantêm seus
 rascunhos; as observações explicam cada consequência no setor correspondente.
 A revisão usa texto/campos de 16px em M e títulos distintos, acompanhando P/M/G/GG.
+Observações para conferir têm faixa de destaque, símbolo e contagem.
+Identificação tem relevo discreto e ícone de pergaminho, reunindo do nome até
+Tendência. Ancestralidades e classes ficam em quadros separados, com o nível
+total nas classes. Testes de resistência ficam abaixo dos atributos, em
+Atributos e combate. Idiomas conhecidos têm seu próprio quadro, sem resumo
+duplicado, separado de armas, ferramentas e armaduras. Textos fora do catálogo
+continuam visíveis e editáveis. As dicas de proficiência, especialização e total
+manual explicam o cálculo ao passar o mouse ou focar pelo teclado.
+Personalidade, história e aparência ficam abertas para conferir e editar;
+itens, quantidades, moedas e tesouros aparecem no setor de inventário.
+Armas usam o mesmo editor da ficha: nome, ataque, montador de dados, modificador,
+tipo, propriedades e descrição. Para calcular pelo catálogo, escolha Automático
+e a arma correspondente. Adicionar/remover atua somente na cópia em revisão.
 Reservas zeradas começam recolhidas; Conjuração, Pacto e Feitiçaria podem ser
 abertas separadamente para conferir ou corrigir. Reservas preenchidas ou com campos
 inválidos começam abertas; a confirmação revela qualquer campo obrigatório recolhido.
-Magias usam o mesmo editor da ficha, com adicionar/remover, catálogo ou criação
-personalizada. **Comparar máximos com o livro** mostra os valores atuais e os
-calculados antes de aplicar; não recupera espaços gastos nem pontos atuais.
+Magias usam o mesmo editor da ficha, com blocos de **Magia**, **Origem** e
+**Disponibilidade**; fórmula, usos e notas ficam em detalhes separados.
+Truques não pedem preparo; magias conhecidas também dispensam a seleção diária.
+**Sempre preparada** fica nos ajustes opcionais, para características/adaptações.
+Se a magia puder vir da raça ou da classe, escolha a origem indicada: a opção
+racial preenche habilidade e usos do traço, sem escolher por você ao abrir.
+Catálogo e criação personalizada continuam disponíveis.
+A previsão automática pelas classes mostra os valores preenchidos e os
+calculados antes de aplicar. Máximos, espaços gastos e pontos restantes têm
+rótulos e explicações próprios; aplicar não recupera espaços nem pontos atuais.
 Vínculos inequívocos
 são propostos pelo catálogo; ambiguidades exigem escolha. A origem da magia
 fica separada do recurso usado para lançá-la. Raça ou subclasse personalizada
@@ -478,6 +551,13 @@ origem da magia, vantagem/desvantagem e inspiração preparada. Repetir ataques
 dos raios/feixes não gasta outro espaço. O ataque não conjura: **Conjurar/Truque**
 continua registrando o lançamento e seu gasto, mesmo se o ataque errar. Magias
 de resistência, acerto automático e utilidade não recebem esse botão.
+
+Para consultar a descrição, pare o mouse por cerca de um segundo no **livrinho**
+da magia. As demais ajudas usam o mesmo atraso; trocar de alvo substitui o balão
+e sair cancela sua abertura. O cartão inteiro não dispara a descrição.
+Clique, Enter ou toque no livro fixa a consulta com o link do PDF; feche pelo ×,
+Esc ou fora do balão. O foco por teclado continua abrindo a ajuda sem espera.
+
 **Só Pool** desativa conjurações, rituais e rolagens dos cartões de magia, antes
 de gastar espaços/usos/feitiçaria, trocar concentração ou gravar no histórico.
 **OFF** conserva o registro explícito de conjuração com dados físicos.

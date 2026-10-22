@@ -153,6 +153,14 @@ test("arquivos malformados, versões desconhecidas e propriedades reservadas sã
   badWeapon.weapons[0].bonus = '<img src=x onerror="alert(1)">';
   assert.throws(() => validateCharacters([badWeapon]), /arma/);
 });
+test('ataque manual sem bônus é preservado vazio, sem inventar +0 ou aceitar texto inválido',()=>{
+  const char=create('guerreiro','campeao');char.weapons[0].bonus='';char.weapons[0].calculationMode='manual';
+  assert.doesNotThrow(()=>validateCharacters([char]));
+  const result=parseBackup(JSON.stringify({format:'critcall.character-backup',version:1,characters:[char]}));
+  assert.equal((result.characters[0].weapons as any[])[0].bonus,'');
+  char.weapons[0].calculationMode='auto';assert.throws(()=>validateCharacters([char]),/arma/);
+  char.weapons[0].calculationMode='manual';char.weapons[0].bonus='desconhecido';assert.throws(()=>validateCharacters([char]),/arma/);
+});
 test("o salvamento aceita as 41 subclasses em todos os níveis de 1 a 20", () => {
   for (const [id, cls] of Object.entries(E.data.classes) as [string, { subclasses: Record<string, unknown> }][]) {
     for (const sid of Object.keys(cls.subclasses)) {

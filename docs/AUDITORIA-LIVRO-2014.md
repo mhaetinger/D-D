@@ -1,16 +1,16 @@
 # Regras de 2014: cobertura e roteiro
 
-Auditoria inicial em **19/10/2026**, implementações até **21/10/2026** e estado
-consolidado em **21/10/2026**. Este é o registro único de progresso das mecânicas.
+Auditoria inicial em **19/10/2026**, implementações até **22/10/2026** e estado
+consolidado em **22/10/2026**. Este é o registro único de progresso das mecânicas.
 Para branch, publicação e validações externas, consulte [RETOMADA.md](RETOMADA.md).
 Contratos técnicos ficam em [ARQUITETURA.md](ARQUITETURA.md); entregas/testes
 históricos, no [CHANGELOG.md](../CHANGELOG.md).
 
 **A versão publicada não automatiza integralmente o livro.** Consulta, escolha
 cadastrada e contador de usos não significam efeito aplicado. As matrizes abaixo
-distinguem a produção das implementações seguintes: R1 foi integrada em
-`develop` pela PR #17; o primeiro recorte de R2 está em
-`feature/rolagens-condicionais-r2`. Essas entregas ainda não foram publicadas.
+registram os limites das implementações. A entrega de 22/10/2026 reúne R1
+(PR #17), o primeiro recorte de R2 (PR #18) e o talento Sortudo (PR #19),
+com publicação pela PR #20. Estado da publicação em RETOMADA.md.
 
 ## Como ler e atualizar o estado
 
@@ -37,8 +37,8 @@ reescrever a ficha nem automatizar toda decisão da mesa.
 
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
-| R1 — bônus nos cálculos | **Integrada em `develop`; não publicada** | Quatro passivos integrados com elegibilidade e preservação de valores manuais. Tipos variáveis/efeitos posteriores seguem em R5. |
-| R2 — rolagens e gastos condicionais | **Primeiro recorte implementado; etapa parcial** | Talento Confiável em perícias e Sortudo racial nos d20 contextuais. Faltam o talento Sortudo, demais rerrolagens/dados mínimos, -5/+10 e adicionais de talentos/estilos. Integrar escolha/gasto à jogada pertinente, sem duplicar reservas ou aplicar bônus a jogadas inelegíveis. |
+| R1 — bônus nos cálculos | **Implementada; entrega da PR #20** | Quatro passivos integrados com elegibilidade e preservação de valores manuais. Tipos variáveis/efeitos posteriores seguem em R5. |
+| R2 — rolagens e gastos condicionais | **Segundo recorte implementado; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo implementados na entrega da PR #20. Faltam demais rerrolagens/dados mínimos, -5/+10 e adicionais de talentos/estilos. Integrar escolha/gasto à jogada pertinente, sem duplicar reservas ou aplicar bônus a jogadas inelegíveis. |
 | R3 — condições, defesas e características | Planejada; já há cobertura parcial | Completar efeitos das condições, imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
 | R5 — famílias de magias | Planejada; fórmulas auditadas já corrigidas | Revisar metadados e exceções do catálogo por família: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
@@ -112,10 +112,10 @@ execuções locais acima; não significa publicação ou cobertura integral do l
 
 ### Primeiro recorte de R2 — 21/10/2026
 
-Implementação `ba4a182`, em revisão na
-[PR #18](https://github.com/mhaetinger/D-D/pull/18) para `develop`.
-As verificações locais abaixo estão concluídas; conferir o resultado da CI
-antes de integrar. Não há publicação deste recorte.
+Implementação `ba4a182`, ajustada até `7dc30eb` e integrada em `develop`
+`19e4ceb` pela [PR #18](https://github.com/mhaetinger/D-D/pull/18), após
+autorização e [CI completa aprovada](https://github.com/mhaetinger/D-D/actions/runs/39687594114).
+Não há publicação deste recorte.
 
 Fonte: Livro do Jogador local, páginas físicas **27** (Sortudo racial), **90**
 (Talento Confiável) e **174** (um único dado rerrolado com vantagem/desvantagem).
@@ -146,12 +146,9 @@ Talento Confiável. Não usar a revisão de 2024 para essa combinação.
   Dado rápido e pool livre não inferem regras de uma jogada. O desenho, auras e
   gestos do dado permanecem nos módulos existentes.
 
-O **talento Sortudo** não foi implementado neste recorte: seus três pontos,
-escolha do d20 e ataques contra o personagem são outra regra. Também continuam
-pendentes Atacante Bestial, Combate com Armas Grandes, Adepto Elemental,
-Atirador Aguçado/Mestre de Armas Grandes (-5/+10) e adicionais/manobras dos
-demais talentos/estilos. Este recorte **não conclui R2**. Resultado/acerto e o
-momento de usar a opção antes de resolver a jogada continuam a cargo da mesa.
+O primeiro recorte não incluiu o **talento Sortudo**, descrito no segundo
+recorte abaixo. A etapa R2 continua parcial. Resultado/acerto e o momento de
+usar a opção antes de resolver a jogada continuam a cargo da mesa.
 
 Regressões: `tests/dice-roll.test.ts` e `tests/conditional-rolls-browser.cjs`.
 Verificações finais: **404 testes Node**, tipos/build e os **27 roteiros
@@ -163,7 +160,85 @@ consequências, dois layouts, três temas, 320px/GG, toque e recarga offline sob
 locais válidos e auditoria de produção sem vulnerabilidades. Sem SQL/RLS/RPC;
 banco não repetido localmente, permanecendo exigido na CI.
 
+### Segundo recorte de R2: talento Sortudo — 22/10/2026
+
+Implementação `c304e83`, em revisão na
+[PR #19](https://github.com/mhaetinger/D-D/pull/19) para `develop`.
+Conferir a CI completa antes de integrar; sem publicação deste recorte.
+
+Fonte: Livro do Jogador local, página física **171**, e
+[Sage Advice v2.4/2020, página 8](https://media.wizards.com/2019/dnd/downloads/SA-Compendium.pdf#page=8).
+Na regra de 2014, o talento permite escolher qualquer um dos d20, inclusive
+o que seria descartado pela desvantagem; o modo original continua valendo.
+Não usa os pontos por proficiência nem os efeitos da versão de 2024.
+
+- [x] **Reserva única:** `feat:lucky`, três pontos por descanso longo,
+  independente de classe/nível e do traço racial homônimo. Usa o histórico,
+  salvamento e controles de recurso existentes, junto à escolha do talento.
+  Descanso curto não recupera. Máximos adaptados explicitamente permanecem
+  editáveis; registros ilegíveis não viram pontos novos nem são apagados.
+- [x] **Jogadas próprias:** ataque, perícia, atributo, iniciativa e resistência
+  em Auto Ficha oferecem o uso após o lançamento inicial. Confirmar gasta um
+  ponto e lança apenas um d20 adicional. Permite escolher inclusive a face
+  original; não duplica bônus, outros dados, inspiração ou custo. Crítico
+  preparado da arma e mínimo do ladino acompanham a face escolhida.
+- [x] **Concentração, morte e Fúria Implacável:** escolha antes de rolar,
+  decisão após ver o d20 ou resolução sem o talento. Duração/fila/PV/dano não
+  são aplicados antes da decisão. Cancelar após a rolagem mantém o teste
+  pendente na sessão; retomá-lo usa os mesmos dados e não cobra novamente.
+  Inspiração preparada é consumida no lançamento inicial, mesmo se a escolha
+  for interrompida. Mudanças na ficha invalidam a aplicação antiga.
+- [x] **Ataque contra o personagem e mesa:** controle junto ao talento para
+  informar a face já escolhida do atacante e escolher entre ela e seu d20
+  adicional virtual/físico. Usa os bônus do atacante na mesa; não calcula
+  acerto, não lança a sua arma e não aplica dano/PV automaticamente. OFF
+  mantém o registro físico; **Usar na mesa** registra somente o ponto.
+- [x] **Interações e apresentação:** uso declarado por outra criatura cancela
+  os dados adicionais, preservando o gasto. Sortudo racial pode repetir um 1
+  do conjunto, inclusive do dado adicional, uma única vez. Botões das faces
+  conservam nós, foco e posição ao selecionar. Cor, texto, símbolo/contorno e
+  `aria-pressed` distinguem a escolha; desenho/auras/gestos do dado continuam
+  nos módulos anteriores. D20 rápido, pool livre e dano não gastam por inferência.
+
+O controle cobre uma aplicação do talento por jogada. O anúncio dos usos de
+outras criaturas e o momento anterior à resolução continuam na mesa; não há
+servidor de turnos/alvos. As faces pendentes são transitórias desta página:
+recarregar ou trocar de instalação não restaura o conjunto de d20; o gasto já
+salvo permanece na ficha. Isso não é restauração de uma rolagem por backup.
+
+Regressões: `tests/lucky.test.ts` e `tests/lucky-browser.cjs`. Conferidos
+**417 testes Node**, tipos/build e os **28 roteiros Chromium** locais, incluindo
+decisão tardia, custo/cancelamento/retomada, modificações concorrentes,
+vantagem/desvantagem, críticos, inspiração, racial/mínimo, dados físicos/OFF,
+dois layouts/três temas/320px/GG/toque e pontos/notas offline sob `/D-D/`.
+Conferidos 62 links/âncoras locais e auditoria de produção sem vulnerabilidades.
+CI completa e banco descartável são exigidos antes da integração. Banco não
+repetido localmente; não houve SQL/RLS/RPC nem validação entre dispositivos reais.
+
+Continuam pendentes em R2: Atacante Bestial, Combate com Armas Grandes,
+Adepto Elemental, Atirador Aguçado/Mestre de Armas Grandes (-5/+10) e
+adicionais/manobras dos demais talentos/estilos. **R2 não está concluída.**
+
 ## Progresso já entregue
+
+Correções de consulta/interface da PR #19, na entrega de 22/10 (PR #20): Ancestral Feérico
+usa o próprio parágrafo racial e página; o moderno distribui origens/níveis
+conforme a largura do quadro; revisão de importação começa pelos resumos e
+preserva ataque manual sem bônus como não informado. A apresentação foi
+reorganizada com identificação/classes distintas, dicas de treino/reservas,
+narrativa aberta e editor de armas compartilhado com a ficha. Essas mudanças
+facilitam conferir a cópia. As ajudas passam a se substituir com atraso de um
+segundo por mouse; a descrição da magia fica no livrinho, com consulta por
+clique/teclado/toque. Nenhuma dessas correções completa um efeito de classe ou
+origem. A revisão também oferece antecedente/tendência por catálogo ou texto,
+idiomas/armas/ferramentas por opções e moedas editáveis; truques e círculos têm
+grupos por classe, sem misturar sua apresentação ou ordenar o array salvo.
+As opções de treino usam o cálculo já existente; escolher um antecedente não
+refaz os treinos importados. As dez ancestralidades de draconato foram cruzadas
+com a tabela de 2014; a revisão preserva escolhas racial/feiticeiro separadas e
+mostra elemento, área, teste, CD e dano do sopro para consulta. Não resolve o
+sopro nem a aplicação automática de outras vantagens/imunidades; R3–R5
+mantêm seus limites e pendências abaixo.
 
 As entregas funcionais de 19 a 21/10 estão resumidas aqui e antecedem a nova
 sequência R1–R6. Seus contratos completos estão na arquitetura. Os casos
@@ -177,7 +252,7 @@ corrigidos não devem voltar à lista de ausências.
 | Dano por tipo | Uma ocorrência com tipos/origem, prévia, proteção externa, imunidade/redução/resistência/vulnerabilidade; fontes raciais, Fúria e outras fontes explicitamente verificadas | Não abrange todas as fontes; formas usam o modo já resolvido; ajustes da mesa não viram bônus permanentes |
 | Defesas e prevenção de queda | Maestria em Armadura Pesada, Esquiva Sobrenatural, Evasão, Resistência Implacável e Fúria Implacável/CD crescente | Proteção contra a Morte, outras reações/reduções e morte sem dano; reação/visibilidade/contexto são confirmados pela mesa |
 | Críticos e adicionais de arma | Crítico, Ataque Furtivo, Colossos, Destruição com gasto único de Conjuração/Pacto, Aprimorada, Crítico Brutal e Ataques Selvagens; modos físico/virtual e histórico | Outros adicionais, rerrolagens e ataques da forma; alvo/acerto, uso no turno e limite de ataques permanecem manuais |
-| Importação e evolução | Revisão por setores de PDF preenchível/JSON/ficha atual; cópias, vínculos propostos, preparação/origem, valores escritos preservados e avisos de campos manuais | Não reconstrói integralmente talentos/equipamento/características em prosa; OCR/PDF achatado ausentes; ciclo com PDFs reais segue em V1 da retomada |
+| Importação e evolução | Revisão por setores de PDF preenchível/JSON/ficha atual; cópias, vínculos propostos, preparação/origem, valores escritos preservados e avisos de campos manuais; consulta de magia por ID do catálogo e prévia ao trocar raça/antecedente | Troca de origem mantém totais/treinos manuais mediante aceite e aposenta escolhas antigas; não reconstrói automaticamente bônus/escolhas raciais. Não reconstrói integralmente talentos/equipamento/características em prosa; OCR/PDF achatado ausentes; ciclo com PDFs reais segue em V1 da retomada |
 
 Armadura/escudo sem proficiência já impedem conjuração/ritual com motivo, mas
 outras desvantagens ainda não estão integralmente integradas. Carga já inclui
@@ -262,6 +337,11 @@ Floresta/das Rochas, Meio-Elfo, Meio-Orc e Tiefling.
 O dano por tipo já reconhece as fontes de anão/tiefling/draconato. Resistência
 Implacável do meio-orc está integrada à prevenção de queda, e Ataques Selvagens
 à composição de crítico corpo a corpo. Não retomar esses casos como ausentes.
+A revisão permite informar/corrigir a ancestralidade do draconato e a da
+Linhagem Dracônica do feiticeiro, em escolhas independentes. Elementos seguem
+as dez cores válidas do livro; cor de pele e textos arbitrários não concedem
+resistência. A consulta do sopro confere área, DES/CON, CD e dados por nível
+total; gasto, alvos, teste e aplicação de seu dano continuam fora dessa consulta.
 
 Sortudo dos halflings foi integrado às rolagens contextuais no primeiro recorte
 de R2, conforme condições e limites acima; não é o talento homônimo.
@@ -331,7 +411,7 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 | Robusto | +2 PV por nível, inclusive retroativo | PV e ajustes manuais devem ser preservados ao evoluir |
 | Sentinela | Registro | Oportunidade, reação e deslocamento do alvo |
 | Sorrateiro | Registro | Ocultação/luz e revelação por ataque falho |
-| Sortudo | Registro | Três pontos e escolha do dado no contexto da jogada |
+| Sortudo | Reserva única de três pontos/descanso longo, escolha contextual do d20, ataques recebidos e dado físico; segundo recorte de R2 em revisão | Acerto, momento anterior à resolução e anúncio dos usos de outras criaturas são informados pela mesa; escolhas de dados são transitórias |
 | Resistente | +1 CON; mínimo de cura ao gastar Dados de Vida | Efeitos cobertos nos cenários testados de descanso |
 | Proteção Leve | +1 FOR/DES e proficiência leve | Conjuração já respeita proficiência; outras penalidades de armadura seguem parciais |
 | Proteção Moderada | +1 FOR/DES, média e escudo | Mesma revisão de elegibilidade/penalidades |

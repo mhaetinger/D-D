@@ -15,8 +15,18 @@
 .feature-level-title::before,.feature-level-title::after { content:''; flex:1; min-width:.5rem; height:1px; background:var(--border-main); }
 .feature-level .feature-entry + .feature-entry { margin-top:.3rem; }
 .feature-origin { font-size:var(--sheet-secondary); margin:.3rem 0; }
-.feature-levels { display:grid; grid-template-columns:minmax(0,1fr); gap:.65rem 1.5rem; }
-@media(min-width:1024px) { .feature-list-wide .feature-levels { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+.feature-list-grouped.feature-list-wide { display:block; columns:19rem; column-gap:1.5rem; column-rule:1px solid var(--border-main); }
+.feature-list-wide > .feature-group,.feature-list-wide > details { break-inside:avoid; margin-bottom:.8rem; }
+.feature-list-wide > .feature-group { margin-top:0; padding-top:0; border-top:0; border-bottom:1px solid var(--border-main); padding-bottom:.7rem; }
+[data-sheet-features] { container-type:inline-size; }
+/* Quadros muito largos mantêm o fluxo por níveis, balanceado pela altura real.
+ * A largura do quadro (e da fonte), não um breakpoint da janela, decide isso. */
+@container (min-width:75rem) {
+  .feature-list-grouped.feature-list-wide { columns:auto; }
+  .feature-list-wide .feature-levels { columns:2 24rem; column-gap:1.5rem; column-rule:1px solid var(--border-main); }
+  .feature-list-wide .feature-level { break-inside:avoid; }
+  .feature-list-wide > .feature-group + .feature-group { margin-top:.3rem; padding-top:.65rem; border-top:1px solid var(--border-main); }
+}
 .rule-controls { display:flex; flex-wrap:wrap; align-items:center; gap:.4rem; }
 .rule-context button, .rule-context input, .rule-context select, .rule-inline button, .rule-inline input, .rule-inline select { border:1px solid var(--border-main); border-radius:.3rem; padding:.3rem .45rem; background:var(--bg-inset); color:var(--text-main); max-width:100%; }
 .rule-context input[type=number], .rule-inline input[type=number] { width:5rem; }

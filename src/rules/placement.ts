@@ -30,6 +30,12 @@ export function resourcesAt(c:Sheet,E:Engine,place:string) {
 export function featureResourceBindings(c:Sheet,E:Engine) {
   const gains:Sheet[] = [...E.features(c)], bindings = new Map<number,Resource[]>();
   for (const r of resourcesAt(c,E,'features')) {
+    if(r.id==='feat:lucky') {
+      // O traço racial homônimo não tem classId; não pendurar pontos nele.
+      let index=gains.findIndex(g=>g.classId && norm(g.name)==='sortudo');
+      if(index<0) {index=gains.length;gains.push({name:'Sortudo',source:'Talentos',reference:E.reference('Sortudo',null,null,'feat')});}
+      bindings.set(index,[...(bindings.get(index) || []),r]);continue;
+    }
     const arcanum=r.id.startsWith('bruxo:arcanum');
     const name = arcanum?`Arcana Mística (${r.id.slice(-1)}º círculo)`:r.id==='shared:channel' && r.classId==='paladino'?'Juramento Sagrado':featureNames[r.id] || (r.id.startsWith('monge:shadow-')?'Artes Sombrias':r.id.startsWith('monge:discipline-')?'Discípulo dos Elementos':r.name);
     let index = gains.findIndex(g=>g.classId===r.classId && (arcanum?norm(g.name)===norm(name):featureKey(g.name)===featureKey(name)));

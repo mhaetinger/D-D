@@ -1,34 +1,109 @@
 # Retomada do CritCall
 
-Estado atualizado em **21/10/2026**. Este é o ponto de entrada para continuar o
+Estado atualizado em **22/10/2026**. Este é o ponto de entrada para continuar o
 projeto sem depender da conversa. Leia também `AGENTS.md`, `README.md`,
 `CHANGELOG.md` e [ARQUITETURA.md](ARQUITETURA.md) antes de alterar.
 
 ## Onde o trabalho parou
 
-A versão funcional foi publicada em **https://criticall.art/** pelas
-[PRs #14](https://github.com/mhaetinger/D-D/pull/14) e
-[#15](https://github.com/mhaetinger/D-D/pull/15).
+A entrega de **22/10/2026** reúne as melhorias da ficha, revisão da importação,
+conta e histórico, além de R1 e dois recortes de R2. Integração pela
+[PR #19](https://github.com/mhaetinger/D-D/pull/19) e publicação em
+**https://criticall.art/** pela [PR #20](https://github.com/mhaetinger/D-D/pull/20).
+O responsável autorizou a publicação após a conferência. O resultado e o SHA da
+`main` ficam no [workflow de publicação](https://github.com/mhaetinger/D-D/actions/workflows/pipeline.yml?query=branch%3Amain).
 
-| Referência | Estado conferido em 21/10/2026 |
+| Referência | Estado da entrega de 22/10/2026 |
 | --- | --- |
-| Produção `main` | `27b30832bf94cd88805cdd1faced6dc00316ff67` |
-| Integração `develop` | `445939d`, R1 integrada pela PR #17; contém mudanças funcionais ainda não publicadas |
-| Revisão offline publicada | `4e263eb66b70d44f` |
-| Verificação/publicação | [Workflow 39638188104](https://github.com/mhaetinger/D-D/actions/runs/39638188104), concluído com sucesso |
-| Trabalho atual | Primeiro recorte de R2 verificado localmente e em revisão na [PR #18](https://github.com/mhaetinger/D-D/pull/18); conferir CI antes de integrar |
-| Branch da tarefa | `feature/rolagens-condicionais-r2`, criada de `develop` público após a PR #17 |
-| R1 integrada | `8bcab7dfcaa5750e512264a8ef43b8ebffcb6748`; [PR #17](https://github.com/mhaetinger/D-D/pull/17) e CI completa aprovadas, testes/limites na auditoria |
-| Implementação R2 inicial verificada | `ba4a182`; 404 testes Node, tipos/build e 27 roteiros Chromium locais aprovados; CI/integração da PR #18 a conferir |
+| Produção `main` | Entrega da PR #20; conferir SHA e resultado no workflow acima |
+| Integração `develop` | Entrega da PR #19, com R1 e os dois recortes implementados de R2 |
+| Revisão offline do artefato preparado | `8c517c3c837af0c0`; conferir `offline-manifest.json` no site após a publicação |
+| Conferência da entrega | 433 testes Node, tipos/build e quatro roteiros Chromium do ajuste de abas aprovados localmente; CI exige também banco descartável, auditoria e os 32 roteiros completos |
+| Próxima tarefa | Continuar os gastos/rerrolagens restantes de R2, conforme a auditoria; não repetir a implementação de Sortudo |
+| Branch encerrada por esta entrega | `feature/talento-sortudo-r2`; criar a próxima a partir de `develop` atualizado |
+| R1 | PR #17, com testes/limites na auditoria |
+| Primeiro recorte de R2 | PR #18, com Talento Confiável e Sortudo racial |
+| Segundo recorte de R2 e interface | PR #19, com talento Sortudo e correções descritas abaixo |
 
 A organização documental e **R1 — bônus ausentes nos cálculos** foram integradas
-em `develop`. O responsável autorizou continuar a sequência. O primeiro recorte
-de **R2 — rolagens e gastos condicionais** implementa Talento Confiável nas
-perícias e Sortudo racial nos d20 contextuais, com limites registrados na
+em `develop`, junto do primeiro recorte de **R2 — rolagens e gastos condicionais**
+(Talento Confiável nas perícias e Sortudo racial nos d20 contextuais).
+O segundo recorte implementou o **talento Sortudo**, com uma reserva de três
+pontos e escolha do d20 nos controles existentes. Escopo e limites estão na
 [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md#roteiro-de-implementação).
-O próximo recorte inclui o talento Sortudo (distinto da raça) e os demais
-gastos/rerrolagens de R2. As matrizes e os critérios ficam naquele arquivo. Não
+Os próximos recortes de R2 cobrem as demais rerrolagens/dados mínimos,
+-5/+10 e adicionais de talentos/estilos. As matrizes e os critérios ficam naquele arquivo. Não
 marcar uma mecânica como concluída por ter descrição, escolha ou contador.
+
+A PR #19 reúne também as correções de interface desta entrega. O moderno distribui
+origens/níveis pela largura e fonte sem remontar seus controles. A consulta usa
+os parágrafos dos traços raciais e as características dos 13 antecedentes,
+incluindo Ancestral Feérico, Versatilidade em Perícia e Pesquisador.
+
+Abrir a conta pelo nome começa em **Personagens**, a primeira aba. **Perfil**
+fica em segundo; avisos/retornos de senha continuam abrindo o perfil. A troca
+passou por 433 testes Node, tipos/build e pelos roteiros Chromium de abas,
+autenticação, sincronização e cópia sem conta, incluindo mobile/teclado/offline.
+O responsável autorizou publicar a entrega acumulada após conferir a CI.
+
+A revisão de PDF destaca observações e distingue identificação/classes, com
+relevo até Tendência e ancestralidades em quadros separados. Antecedente/tendência
+permitem catálogo ou escrita livre. Idiomas têm um único quadro, separado de
+armas/ferramentas/armaduras, com opções para marcar, treino já reconhecido pela
+ficha e textos desconhecidos preservados. Testes de resistência ficam após os
+atributos, em Combate; suas marcações continuam editáveis e persistentes.
+Moedas são editáveis; personalidade/história começam abertas. `createWeaponFields`
+atende ficha/importação, com dados, ajustes opcionais e leitura validada; a
+proposta permite adicionar/remover ataques. Bônus manual ausente continua não
+informado. Validação alcança rascunhos de outra pessoa do mesmo arquivo. Rótulos,
+legendas e jogador/XP têm hierarquia acima dos valores. A previsão de reservas
+aparece automaticamente, com aplicação explícita que preserva os gastos.
+Draconato e Linhagem Dracônica têm ancestralidades independentes na revisão;
+as dez cores foram conferidas com o livro, sem deduzir pela pele. A consulta
+mostra CD/área/dano do sopro; sua resolução completa continua pendente.
+
+O grimório separa truques/círculos e grupos de classe, mantendo o array salvo.
+Escolher do livro e criar efeito próprio são caminhos explícitos. O editor
+compartilhado conserva preparo contextual e escolha da origem racial com
+habilidade/usos/círculo, agora reversível sem recuperar gastos. Grupos têm
+cor, número e título; efeitos sem círculo oferecem uma única lista visível
+para escolher Truque ou 1º–9º círculo. Raio Místico é associado a Rajada Mística,
+conservando a linha do PDF. A busca local no tema substitui o datalist nativo;
+setas/Enter/Esc/toque não confirmam a revisão inteira. Reagrupamento ocorre ao
+navegar entre setores, fora do foco do editor, sem cancelar cliques. Cópias,
+metadados, textos desconhecidos e usos gastos permanecem preservados.
+
+A recusa **Não quero** de copiar fichas sem conta é lembrada por conta/navegador;
+retomar fica no Perfil. Ajudas por mouse esperam um segundo e se substituem.
+A descrição da magia fica no livrinho, com clique/Enter/toque para fixar consulta
+e acessar o PDF. Essas correções não alteram o dado nem avançam R2–R5.
+
+A última etapa acrescenta divisórias nas características/ferramentas, origem
+imediata e livrinho de catálogo nos cartões de magia. Listas de classe não
+excluem traços raciais. O cabeçalho da ficha oferece sugestões do livro somente
+em edição; trocar raça/antecedente tem prévia e aceite dos valores manuais.
+Escolhas antigas deixam de conceder efeitos e ficam aposentadas no evento.
+Isso não reconstrói automaticamente bônus e escolhas de uma nova raça.
+
+Conferência local anterior ao ajuste das abas: **433 testes Node, tipos/build, PostgreSQL 18 descartável
+e 11 roteiros Chromium**: origens, revisão clara/guiada/setores, PDF/JSON, edição
+em linha, cadeado, ajudas, características, sincronização e aplicativo/offline.
+A suíte completa tem **32 roteiros** e é exigida na CI desta entrega.
+Incluídos 320px/GG/três temas, fonte dos dados e livrinho em modal, nós/rascunhos,
+proposta antiga, recarga e limites de retenção/conflitos em duas contas.
+Após o ajuste visual final, repetidos origens, revisão clara e setores.
+O PDF pessoal foi conferido na etapa anterior, sem alterar o original ou incluir
+dados pessoais no repositório. Conferir a CI do último commit da PR #19 antes
+de publicar; verificações anteriores ficam no changelog.
+
+**Retenção remota ativa:** após aprovação explícita, aplicada ao CritCall a
+migração local `20261022212048_bounded_sync_versions.sql`, versão remota
+`20261022213804`, em 22/10/2026. Não reaplicar para igualar timestamps. A conta
+que sincroniza mantém até 20 versões/documento por 30 dias, 200 versões / 8 MiB
+por conta. Não houve limpeza global; documentos atuais/notas/imagens ficam fora
+da poda. Teste transacional real de escrita/repetição revertido; assinatura
+agregada dos documentos atuais permaneceu igual. O histórico do cliente tem
+100 estados / 2 MiB ao gravar. Detalhes em [SINCRONIZACAO.md](SINCRONIZACAO.md).
 
 ## Como continuar
 
@@ -46,9 +121,9 @@ build; não precisa copiar `.env.local`. A porta 5173 pertence a outro aplicativ
 na máquina original.
 
 Em um clone existente, confira `git status`, preserve trabalho pendente e faça
-`git fetch origin`. Para continuar esta entrega ainda não integrada,
-use `feature/rolagens-condicionais-r2`. Para uma tarefa nova, parta do
-`develop` público atualizado e crie `feature/*` ou `fix/*`. Entregue por PR para
+`git fetch origin`. Esta entrega encerra
+`feature/talento-sortudo-r2`. Para a próxima tarefa, parta do `develop` público
+atualizado e crie `feature/*` ou `fix/*`. Entregue por PR para
 `develop`; após revisão e aprovação, PR para `main`. Não fazer push direto à
 `main`, enviar tags extras ou mesclar o histórico privado do protótipo.
 
@@ -57,8 +132,9 @@ Texto para iniciar outra conversa:
 > Continue o CritCall. Leia AGENTS.md, docs/RETOMADA.md, README.md,
 > CHANGELOG.md e docs/ARQUITETURA.md. Confira a branch e o estado do Git.
 > O roteiro atual de regras está em docs/AUDITORIA-LIVRO-2014.md. Confira
-> primeiro a PR #18 da entrega inicial de R2 e suas verificações; depois continue os
-> gastos/rerrolagens restantes de R2. Não confundir Sortudo racial com o talento.
+> as PRs #19/#20 e o resultado da publicação. Crie uma branch de develop
+> atualizado e continue os gastos/rerrolagens restantes de R2. Não repetir
+> Sortudo nem confundir o traço racial com o talento.
 
 ## Mapa dos documentos
 
@@ -83,12 +159,12 @@ regra, registre no changelog o que foi feito e testado e atualize este arquivo
 somente quando mudar a próxima etapa, a publicação ou uma pendência externa.
 Não criar outro plano com uma cópia dessas listas.
 
-## Evidências da última versão funcional
+## Evidências da entrega anterior — 21/10/2026
 
 - 385 testes Node, tipos/build e 25 roteiros Chromium aprovados. O workflow da
   `main` também aprovou PostgreSQL descartável/RLS/Storage e a auditoria das
   dependências de produção. São verificações da entrega publicada anterior;
-  a entrega R1 tem registro próprio na auditoria. Nenhuma das duas certifica
+  as entregas R1/R2 têm registros próprios na auditoria. Nenhuma das duas certifica
   todas as regras do livro.
 - Após a publicação, atualização real com cache HTTP nativo, duas abas e rascunho
   preservado; F5 comum recebeu a versão nova. Conferidos ícones das resistências,
@@ -112,7 +188,7 @@ marcada como concluída nesta revisão de documentos.
 | V1 | Ciclo completo com os PDFs reais de importação solicitados | Importar como cópia, conferir dados/vínculos, salvar/recarregar e evoluir. Leitura/cancelamento e testes sintéticos já feitos não substituem esse ciclo. Arquivos pessoais continuam fora do Git. |
 | V2 | Mesma conta em dispositivos reais e isolamento de outra conta | Conferir fichas, notas, perfil, imagens, offline/reconexão, conflito e restauração, sem pedir credenciais. Contratos em [SINCRONIZACAO.md](SINCRONIZACAO.md). |
 | V3 | SMTP próprio e fluxo real de e-mails | Configurar remetente no serviço e conferir cadastro, confirmação, reenvio e recuperação no site. O sucesso local relatado pelo usuário não certifica todos esses fluxos. [LOGIN.md](LOGIN.md) e [DOMINIO.md](DOMINIO.md). |
-| V4 | Alertas do serviço registrados em 16/10/2026 | Reinspecionar a função `public.rls_auto_enable` e a proteção contra senhas vazadas antes de decidir alterações. Não há evidência de correção; detalhes em [SINCRONIZACAO.md](SINCRONIZACAO.md#alertas-do-serviço-para-revisão). |
+| V4 | Alertas do serviço reinspecionados em 22/10/2026 | Decidir correção da função `public.rls_auto_enable` e da proteção contra senhas vazadas. Alertas anteriores continuam presentes; detalhes em [SINCRONIZACAO.md](SINCRONIZACAO.md#alertas-do-serviço-para-revisão). |
 | V5 | Hospedagem Cloudflare | Conectar administração, criar projeto Pages e configurar credenciais/destino; depois validar domínio e offline. O DNS já usa Cloudflare, mas a hospedagem é GitHub Pages. Seguir [CLOUDFLARE.md](CLOUDFLARE.md). |
 | V6 | Remoção voluntária do cache de uma conta em dispositivo compartilhado | Definir exportação/confirmação e comportamento offline; não apagar dados automaticamente. Limites em [LOGIN.md](LOGIN.md#dados-sessão-e-troca-de-conta). |
 | V7 | Ambientes, acompanhamento e proteção do repositório | Preparar separação teste/produção, acompanhamento de uso/erros/custos e proteção de branches/aprovações. Não são garantias da configuração atual. |

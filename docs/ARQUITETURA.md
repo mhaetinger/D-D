@@ -63,15 +63,104 @@ reescrever sua origem. Não infere sub-raça/juramento/preparo ausentes; confere
 origem especial/habilidade, usos, preparo e recursos. `review-ui.ts` reutiliza
 confirmação, foco e rolagem existentes, sem recriar linhas ao mudar opções.
 Cinco setores mantêm os controles montados; navegação compacta em telas pequenas.
+`review-presentation.ts` concentra identificação/narrativa e as explicações de
+treino. Identidade tem um quadro com relevo discreto, do nome até Tendência;
+ancestralidades ficam fora dele, antes das classes com ícone, linhas e nível
+total. Observações têm faixa de atenção, símbolo, contagem e título sublinhado,
+sem depender só da cor. Testes de resistência ficam logo após os atributos,
+em Combate. Personalidade, história e aparência usam textareas
+visíveis; inventário tem resumo, moedas têm campos numéricos e tesouros permanecem editáveis. Ícones
+são decorativos do catálogo local Lucide, sem assets remotos.
+Antecedente tem nome livre e vínculo opcional ao catálogo, como raça. Tendência
+compartilha as nove sugestões do criador e permite texto próprio. Vínculo de
+antecedente só é proposto por correspondência exata, fora do modo manual;
+escolher um não reescreve os treinos ou a narrativa importados.
+`ancestry-fields.ts` permite conferir as escolhas `raceDragon` e `dragon`
+separadamente. `draconic-ancestry.ts` cruza as dez opções com a tabela da p. 34
+impressa (PDF 33): elemento, linha/cone, DES/CON, CD por CON/proficiência e
+2d6/3d6/4d6/5d6 por nível total. A consulta não resolve o sopro como ataque.
+Confere também com a tabela do [SRD 5.1, p. 5](https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf#page=5).
+Só o nome explícito da raça com uma cor pode propor ancestralidade, sem trocar
+uma escolha prévia nem deduzir pela pele. Alterações confirmadas na proposta
+mudam apenas a chave pertinente do histórico, preservando os demais dados.
+Ausência/valor desconhecido gera observação; não inventa resistência.
+O dano por tipo exige uma das dez escolhas válidas, com origem racial e
+Afinidade Elemental independentes; a segunda conserva seu custo/ativação.
+Armas, ferramentas e ataques começam com resumos dos valores lidos.
+`proficiency-fields.ts` oferece checkboxes de idiomas, armas e ferramentas.
+Idiomas conhecidos têm quadro próprio, separado de armas/ferramentas/armaduras.
+Os idiomas reconhecidos aparecem nas marcações, sem outro resumo repetido;
+somente textos fora do catálogo ganham uma linha de registros preservados.
+Sua edição livre fica no próprio quadro de idiomas, em um único input.
+`isProficient` marca e protege armas já concedidas pelas regras existentes.
+Grupos manuais cobrem suas armas sem fingir que uma exceção individual os remove.
+Idiomas raciais só são acrescentados por ação explícita. Opções não concedem
+novos treinos pelas regras; o registro livre conserva dados fora do catálogo.
+`toggleRecord` reconhece opções inteiras, sem remover nomes parecidos ou textos
+desconhecidos. Registros livres e correção/vínculo de ataques ficam em `details`,
+com os campos sempre montados. Resumos usam `textContent` e atualizam durante
+a edição. Armas montam `createWeaponFields`, também usado pela ficha, com
+adicionar/remover na proposta. Cada instância tem IDs próprios; a ponte da ficha
+conserva IDs `hb*`. A validação revela setor e detalhes antes de focar o campo,
+inclusive em outro personagem editado no mesmo arquivo.
+Bônus vazio em um ataque manual representa ausência de informação, não +0:
+o armazenamento preserva a string vazia e a ficha oferece somente o dano até
+haver bônus informado/calculado. Isso não infere que todo ataque sem bônus seja
+um efeito de resistência, nem resolve o sopro pela consulta de ancestralidade. Vincular explicitamente
+ao catálogo com modo Automático ativa o cálculo; editar/cancelar mantém os contratos anteriores.
 A validação revela o setor e os detalhes antes de focar o primeiro campo inválido.
+`spell-groups.ts` distribui os cartões de importação por círculo e classe sem
+ordenar o array salvo. Truques têm seção própria; cartões existentes começam
+recolhidos, com círculo/origem visíveis e avisos preservados. Adicionar truque
+começa em 0; adicionar magia começa em 1. Trocar círculo/origem atualiza o cartão
+e o reagrupamento ocorre ao navegar entre setores, fora do foco do editor.
+Não mover ancestrais no `focusout`: isso pode retirar o alvo entre o pressionar
+e soltar do mouse e cancelar o clique. Nós/rascunhos são mantidos nas escolhas.
+O editor compartilhado distingue escolher do livro de criar um efeito próprio;
+fórmula e lançamentos especiais continuam opcionais. Campos numéricos e selects
+alinham pela base; checkboxes de componentes ficam em faixa própria.
+O círculo usa um único select (Truque ou 1º–9º círculo). Na importação,
+`circleMount` move o mesmo controle ao cabeçalho do cartão, visível com a edição
+recolhida. O mapa de campos preserva sua referência e a leitura numérica, sem
+inputs espelhados; seu change passa pelo editor antes de atualizar a proposta.
+Vazio continua indefinido: não aparece como círculo 0 na ajuda ou na validação.
+Grupos têm faixa de cor, número e título, cartões em colunas quando couber e
+editor aberto na largura inteira. Origens raciais têm grupo próprio, separado
+de Conjuração/Pacto; a classificação visual não muda o círculo de lançamento.
+Uma origem marcada pode ser desmarcada; a escolha volta a pendente, mantendo
+contadores gastos e notas. Elfo/gnomo usam INT e tiefling usa CAR em seus traços
+verificados. O sinônimo Raio Místico é associado a Rajada Mística na leitura,
+com círculo do catálogo e a linha original preservada nas notas.
+O cabeçalho de cada cartão mostra a origem escolhida imediatamente, sem mover
+o editor durante a seleção. Distingue vínculo ao catálogo de efeito próprio.
+`rules/spell-reference.ts` oferece o livrinho somente para ID válido do catálogo,
+sem confiar no nome de uma magia personalizada. A consulta reutiliza o popover
+e sua exclusão/espera; dentro da revisão modal, fica na própria janela para não
+herdar a região inerte de trás. A busca identifica listas de classe e traços
+raciais como origens diferentes, incluindo Taumaturgia por Tiefling.
+`catalog-search.ts` substitui o datalist nativo por resultados locais no tema,
+no fluxo do cartão, com círculo e classes. Não há portal fixo sobre outro campo.
+Usa o padrão [combobox da WAI](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/):
+setas destacam, Enter escolhe, Esc fecha sem descartar texto ou fechar a revisão;
+seleção por toque é explícita. Mantém foco no input, `aria-activedescendant`,
+lista rolável contida e textos como dados, sem HTML do arquivo.
 `pool-fields.ts` monta os campos de reservas e sincroniza apenas os resumos e
 aberturas. Todos permanecem no formulário. Quantidades exatamente zeradas e
 válidas começam recolhidas por reserva; o círculo de Pacto também deve ser válido.
 Dados ausentes/inconsistentes não são tratados como zero. Durante a edição não
 recolhe o grupo do usuário; novas reservas após comparação abrem sem recriar nós.
 O recolhimento considera os valores, não a classe, para preservar adaptações.
+`syncPoolComparison` compara automaticamente uma cópia ao mudar classes, níveis,
+subclasses ou reservas. Assinatura evita remontar a previsão sem mudança; o
+formulário original permanece montado. Guerreiro/ladino de nível 3+ precisam da
+subclasse para a previsão de Conjuração. Máximos e Pacto são apresentados com
+classes/níveis e valores atuais; aplicar é explícito, sem recuperar gastos.
+Rótulos distinguem máximos, espaços gastos e pontos restantes, com um exemplo
+de espaços disponíveis e explicações próprias para Conjuração/Pacto/Feitiçaria.
 A tipografia da revisão fica restrita ao diálogo em `import-review.css`, com
-16px de leitura/campos em M, rótulos de 15px e títulos Cinzel; a escala usa rem.
+16px de valores em M, rótulos de 17px, jogador/XP em 18px e legendas/títulos
+maiores, preservando a escala em rem. Checkboxes mantêm texto de leitura;
+as margens de quadros internos se reduzem no celular para acomodar G/GG.
 O aceite de preparo adaptado tem margem própria após a lista, mesmo vazia.
 `app/help.ts` monta os atributos do balão compartilhado: preparo e adaptação
 dispensam `title` nativo e botões extras. `RuleTooltips` também reconhece foco
@@ -116,19 +205,40 @@ classe/origem e nível, preservando os índices que vinculam controles aos ganho
 Não consolida dados nem altera história, escolhas ou recursos. Classe e nível
 aparecem uma vez por grupo; a origem completa de subclasse/escolha fica dentro
 da descrição. Fontes de raça/antecedente e anotações manuais continuam separadas.
-Na ficha larga, as colunas dividem níveis inteiros, em fluxo nativo, sem separar
-uma habilidade de seus controles. `app/feature-consult.ts` conserva as chaves de
+No moderno, colunas CSS de largura mínima em rem mantêm cada origem/classe
+inteira em quadros intermediários. Um container query a partir de 75rem no
+próprio quadro conserva a leitura larga em até duas colunas de níveis, agora
+balanceadas pela altura real. Fonte ampliada também participa dessa decisão.
+Redimensionar não remonta nós nem depende de um breakpoint global da janela.
+As colunas usam `column-rule` e cada origem termina com uma borda discreta,
+separando também dois grupos que caírem na mesma coluna. Listas de ferramentas
+da revisão separam veículos, kits, ofícios, jogos e instrumentos; checkboxes
+mantêm seus nós e têm divisórias de leitura.
+O clássico mantém seu fluxo anterior. `app/feature-consult.ts` conserva as chaves de
 consulta e monta botões separados das ações de uso. Hover usa `RuleTooltips`;
 clique/toque fixa o mesmo texto com origem, escolhas e livro em um popover de
 consulta. Reutiliza o estilo e a rolagem dos balões. ×, Esc e clique fora fecham;
 trocar ficha/aba/conta encerra a consulta antiga. O texto é inserido com
 `textContent`, e o link do livro usa somente página numérica validada.
+O extrator gera também parágrafos raciais em negrito, delimitados pelos demais
+traços/cabeçalhos. `reference(...,'race')` limita a busca à família racial,
+incluindo aliases de rótulos e os traços do humano variante. Antecedentes usam
+`reference(...,'background')` com o prefixo `caracteristica-` do PDF; Membro de
+Guilda corresponde a Associados da Guilda. Isso evita consultas narrativas ou
+vazias. Os 958 cabeçalhos anteriores continuam no catálogo de consulta.
 `feature-level-title` centraliza o nível entre linhas decorativas em `::before`
 e `::after`, sem acrescentar nós nem aumentar a fonte ou o espaço dos grupos.
 Os nomes dos recursos dentro de cada característica usam a escala de apoio,
 peso 600 e itálico em `.feature-entry > .rule-inline > strong`. Isso distingue
 subcontroles como Canalizar Divindade dos títulos, preservando botões, usos,
 balões e os vínculos existentes.
+
+`scripts/extract-phb.py` também extrai os parágrafos em linha de Ancestral
+Feérico nas páginas físicas 22 e 38. Os cabeçalhos em maiúsculas não os
+identificavam; no meio-elfo, o quadro lateral interrompe o bloco dos traços e
+o fallback acabava na introdução narrativa. Referências específicas preservam
+o texto do livro e a página de cada raça, sem alterar o catálogo manualmente.
+É correção de consulta, sem nova aplicação automática de vantagem/condição.
 
 ## Avisos durante uma edição
 
@@ -144,9 +254,11 @@ de status com contraste e símbolo, sem depender apenas de cor.
 
 ## Perfil e coleção de personagens
 
-`app/account-panel.ts` alterna as abas Perfil/Personagens sem remontar os
-formulários. Cada abertura começa em Perfil, inclusive retornos de acesso à
-conta; campos e rodapé mantêm seus próprios nós. Backup, importação, revisão como
+`app/account-panel.ts` alterna as abas Personagens/Perfil sem remontar os
+formulários. Abrir pelo nome da conta começa em Personagens, a primeira aba;
+retornos de recuperação/avisos da conta abrem explicitamente Perfil, a segunda.
+Home/End seguem essa ordem; campos e rodapé mantêm seus próprios nós.
+Backup, importação, revisão como
 cópia e a opção de incluir notas usam `data-account-only="characters"`, visível
 somente na aba Personagens. Estado do armazenamento, sincronização e recuperação
 de dados ilegíveis permanecem acessíveis nas duas abas. Abas usam navegação por
@@ -183,7 +295,12 @@ As notas não são truncadas nem alteradas; os medidores invisíveis do botão d
 dano continuam reservando espaço para normal/crítico, sem mudar nós ou foco.
 
 O editor de arma permanece no bloco da ficha. `sheet-edit/weapon-fields.ts`
-estrutura os campos de cálculo e conserva os IDs usados pela ponte anterior.
+fornece `createWeaponFields` para ficha/importação: campos, montagem de dados,
+prévia, alternância de cálculo e leitura validada. Não acessa estado global nem
+persiste. A ficha confirma a permissão antes de aplicar; a importação altera
+somente a proposta. Metadados anteriores e ausência de ataque são preservados.
+Montagem mantém a escrita da fórmula até haver edição, limita a 100 dados e
+conserva os nós dos botões. A ponte anterior delega à instância com IDs `hb*`.
 Proficiência, habilidade e ajustes ficam em `details`, sem desmontar controles
 ou limpar valores ao recolher. `styles/weapon-editor.css` aplica controles do
 tema e grades pela largura disponível do cartão, inclusive em colunas estreitas
@@ -223,11 +340,30 @@ um passo no histórico. A ficha mantém ID, notas, retrato e escolhas anteriores
 Os controles são reaproveitados entre renders, com cursor, seleção e rascunhos.
 `change` disparado ao retirar um input do DOM durante render não salva o texto
 nem inicia render recursivo. Falha de quota mantém o valor digitado no campo.
+`origin-change.ts` oferece prévia ao trocar raça/espécie ou antecedente, por
+lista ou texto livre. O cadeado controla as listas. Tendência usa as nove opções
+do criador e não altera regras de combate. Trocar origem exige aceite de totais
+manuais: não reconstrói um personagem importado pelo criador. Traços do vínculo
+antigo saem, os do novo entram; escolhas da origem anterior ficam aposentadas
+no evento, fora de `answers`, sem continuar concedendo talentos. Magias raciais
+anteriores ficam identificadas como adaptações, mantendo usos/notas. Totais,
+treinos e inventário permanecem explícitos para conferência; escolhas da nova
+origem ainda precisam ser registradas. Não é uma conversão racial automática.
+O commit confere ficha, conteúdo, espaço e permissão novamente; alteração de
+jogo enquanto a prévia está aberta exige uma nova proposta.
 
 `panels.ts` monta os editores de armas/itens/características/magias no próprio
 bloco e conserva seus nós durante renders. Troca de ficha/espaço os encerra.
 `spell-fields.ts` fornece os mesmos campos/leitura ao cartão da ficha e à revisão
 de importação, sem acessar armazenamento/global nem criar forms aninhados.
+Os grupos Magia, Origem e Disponibilidade têm rótulos, bordas e contraste do tema.
+Preparo é contextual: truques, usos da origem e classes de magias conhecidas
+exibem seu estado, sem checkboxes diários. Ocultar não apaga valores importados.
+Sempre preparada fica nos ajustes, aberta quando já registrada. Sugestões de
+origem racial só se aplicam após clique explícito e usam os traços disponíveis
+da raça/nível; classe/raça e efeitos do catálogo permanecem conferíveis. Troca de
+raça/classes atualiza sugestões sem remontar campos. Notas seguem na própria
+magia; anotações pessoais continuam fora desse editor.
 `spell-editor.ts` valida a proposta antes de salvar, com origem/habilidade/gasto
 separados. IDs `custom_*` impedem religar uma magia própria pelo nome ao catálogo.
 Ataque/CD aceitam ajustes explícitos de −100 a 100; fórmulas usam o parser comum.
@@ -303,6 +439,11 @@ O adaptador da interface conserva localStorage e o formato legado. A fila nova
 usa transações IndexedDB por projeto/usuário, com IDs de operação idempotentes,
 revisões remotas e projeção que aguarda editores. Histórico/checkpoints passam a
 ser persistidos separadamente e entram na fila; seus snapshots não incluem notas.
+`boundedCharacterHistory` limita gravações legíveis a 100 estados / 2 MiB,
+conservando o ponteiro e os vizinhos. Um estado isolado maior é preservado.
+A leitura não trunca dados e o original legado/ilegível continua preservado.
+Limites de versões remotas, recibos e ativação ficam em
+[SINCRONIZACAO.md](SINCRONIZACAO.md#retenção-de-versões).
 
 ## Login, sessão e isolamento por conta
 
@@ -333,6 +474,13 @@ seleciona sua cópia local offline. Esse cache não é criptografado nem represe
 autorização remota. Trocas limpam histórico/interface e cancelam confirmações
 pendentes; editores abertos exigem decisão antes do fechamento. Rascunhos com
 falha de quota são preservados por espaço em memória, sem gravar na conta nova.
+Na cópia do espaço sem conta, `critcall_guest_import_declined_v1` guarda a recusa
+no armazenamento isolado da conta/navegador, fora dos documentos sincronizados.
+É conferida dentro da trava antes de ler/copiar a origem ou abrir confirmação.
+Recarga, novo login e mudanças do conteúdo local não repetem a pergunta nem o
+toast. Somente Retomar fichas sem conta remove essa preferência e permite nova
+decisão. Identidade válida é rechecada após a confirmação; falha de escrita não
+é anunciada como preferência salva. Nenhum original/cache é removido.
 
 A branch implementa sincronização pessoal: fichas, notas privadas separadas,
 perfil, preferências, histórico/checkpoints e recuperação. A migração define
@@ -901,6 +1049,21 @@ para aparecer acima de diálogos. Mantém API, posição, teclado e eventos exis
 sem receber foco ou interceptar cliques; fechar um diálogo também fecha o balão.
 A margem/inset nativos são neutralizados no CSS compartilhado dos balões.
 
+`hoverDelay` centraliza a espera de 1.000 ms por mouse. Trocar alvo, clicar,
+sair, Esc ou remover o controle cancela a abertura pendente; o callback confere
+também se o alvo ainda está sob o ponteiro. Toque não agenda hover. Foco de
+teclado e consultas explícitas continuam imediatos.
+`claim(owner)` publica `critcall-tooltip-request`: ajuda, leitor legado e
+consulta fixada fecham/cancelam os demais antes de abrir, sem disputa de z-index.
+O livrinho de cada magia usa `bookConsultButton` com os mesmos `RuleTooltips`
+e popover de `feature-consult.ts`. O cartão não tem eventos de descrição.
+Texto reúne os metadados, efeito atual e notas; magias próprias mantêm sua
+descrição/fórmula e não recebem link de catálogo por coincidência do nome.
+Clique/Enter/toque fixa a consulta e permite abrir o PDF por página. A rotina
+antiga de livro/equipamento participa da exclusão e do atraso, preservando sua
+API. Ações de ataque/conjuração, gastos e SVG/gestos do dado permanecem nos
+módulos anteriores.
+
 Armas manuais não recebem adicionais inferidos: crítico duplica os dados da
 fórmula escolhida explicitamente. O botão de dano comum mantém seu contrato.
 Forma Selvagem, alvos/CA, condições para Furtivo/Colossos, turnos, munição,
@@ -976,3 +1139,43 @@ válidos. Dado físico registra a face final; OFF não lança, e cancelar não a
 o teste. Desenho, gestos e aparência do dado continuam nos módulos anteriores.
 Regressões puras e Chromium ficam em `tests/dice-roll.test.ts` e
 `tests/conditional-rolls-browser.cjs`; a auditoria delimita o restante de R2.
+
+## Talento Sortudo em R2 — 22/10/2026
+
+`resourcesFor` define `feat:lucky` como contador de três pontos/descanso longo.
+`lucky.ts` valida a escolha estruturada e a reserva antes de gastar, inclusive
+a 0 PV. Sortudo racial não concede pontos. Máximos configurados permanecem
+adaptáveis; um registro ilegível é preservado e bloqueia gasto/correção. O
+vínculo em `placement.ts` usa a escolha com classe, evitando o traço homônimo;
+se faltar a entrada, insere a referência em Talentos. Há um único contador.
+
+`addLuckyDie`/`chooseLuckyDie` mantêm as faces, demais dados, modificador e modo
+originais. O adicional não escolhe automaticamente o melhor resultado. A seleção
+pode usar qualquer d20, conforme a exceção de 2014, e reaplica o mínimo de
+Talento Confiável à face escolhida. Cancelamento por outra criatura é registrado
+sem dado adicional. A repetição racial pode substituir um único 1 do conjunto;
+não concede cadeia de rerrolagens nem pontos ao talento.
+
+`lucky-ui.ts` reúne custo, escolha em diálogo e uso físico/ataque recebido.
+`recordStepAndSave` conserva seus dois argumentos anteriores e aceita um
+terceiro `redraw=false` para um custo já pago durante uma escolha: persiste
+ficha/histórico e atualiza a barra sem remontar o formulário do dano. Saldo e
+botões são atualizados nos próprios nós. Ao escolher uma face na bandeja, o
+grupo de botões também é reutilizado, com `aria-pressed`, contorno e símbolo;
+isso não lança outro dado nem altera a aparência/gestos do d20 flutuante.
+
+`resolveRuleD20` é a ponte assíncrona para os testes com consequências. A ponte
+síncrona `rollRuleDie` continua válida. O diálogo oferece decisão depois do d20,
+gasto antecipado ou resolução sem o talento. Inspiração é consumida no lançamento
+inicial e o ponto de Sortudo, antes do adicional. O `WeakMap` de escolhas pendentes
+usa identidade, chave do teste e snapshot após o custo; cancelar mantém os dados
+na sessão, e retomar não repete RNG/custo. PV, dano e fila de concentração só mudam
+após a confirmação da face. Mudança da ficha invalida a aplicação antiga.
+
+Faces pendentes não integram o documento nem o backup: recarga/troca de
+instalação perde o conjunto transitório, preservando custos já salvos. Ataques
+recebidos usam a face já escolhida pelo atacante e o d20 adicional informado,
+sem usar bônus/arma/racial/inspiração do defensor nem aplicar acerto/dano.
+Declaração de uso por outra criatura e o momento anterior ao resultado continuam
+na mesa. Não há novo estado de turno, alvo ou serviço remoto. Regressões em
+`tests/lucky.test.ts` e `tests/lucky-browser.cjs`; escopo restante na auditoria.

@@ -554,10 +554,10 @@
       <div class="flex justify-between gap-3"><h2 class="font-rpg font-bold">Perfil e personagens</h2><button onclick="closeAuthAccountModal()" aria-label="Fechar perfil">×</button></div>
       <p class="window-notice" data-window-notice role="status" aria-live="polite" aria-atomic="true" hidden></p>
       <div class="account-tabs" role="tablist" aria-label="Perfil e personagens">
-        <button type="button" id="accountTabProfile" role="tab" data-account-tab="profile" aria-controls="accountPanelProfile" aria-selected="true">Perfil</button>
-        <button type="button" id="accountTabCharacters" role="tab" data-account-tab="characters" aria-controls="accountPanelCharacters" aria-selected="false" tabindex="-1">Personagens</button>
+        <button type="button" id="accountTabCharacters" role="tab" data-account-tab="characters" aria-controls="accountPanelCharacters" aria-selected="true">Personagens</button>
+        <button type="button" id="accountTabProfile" role="tab" data-account-tab="profile" aria-controls="accountPanelProfile" aria-selected="false" tabindex="-1">Perfil</button>
       </div>
-      <section id="accountPanelProfile" data-account-panel="profile" role="tabpanel" aria-labelledby="accountTabProfile" class="space-y-3">
+      <section id="accountPanelProfile" data-account-panel="profile" role="tabpanel" aria-labelledby="accountTabProfile" class="space-y-3" hidden>
       <p id="workspaceDescription" class="text-sm">Suas fichas e anotações ficam neste navegador. Use um backup para levá-las a outro dispositivo.</p>
       <div id="accountAccessSlot">
       <section id="accountAccess" class="space-y-3 border-b t-border pb-3" aria-label="Acesso à conta" hidden>
@@ -595,7 +595,7 @@
       <label for="accPlayerName">Nome do jogador</label><input id="accPlayerName" value="Jogador" class="t-inset w-full p-2 rounded">
       <button onclick="saveAccountProfile()" class="t-btn-primary px-3 py-2 rounded">Salvar nome local</button>
       </section>
-      <section id="accountPanelCharacters" data-account-panel="characters" role="tabpanel" aria-labelledby="accountTabCharacters" class="space-y-3" hidden>
+      <section id="accountPanelCharacters" data-account-panel="characters" role="tabpanel" aria-labelledby="accountTabCharacters" class="space-y-3">
         <div class="account-character-view" role="group" aria-label="Exibição dos personagens">
           <button type="button" data-account-view="list" aria-pressed="true" aria-label="Lista">Lista</button>
           <button type="button" data-account-view="cards" aria-pressed="false" aria-label="Cartões">Cartões</button>
@@ -609,7 +609,7 @@
         <p id="offlineStatus" class="text-xs t-text-muted" role="status"></p>
         <p id="storageIssue" class="text-sm font-bold t-text-accent" role="alert" hidden></p>
         <button id="downloadRecovery" type="button" class="t-inset px-3 py-2 rounded text-xs" hidden>Baixar dados para recuperação</button>
-        <div data-account-only="characters" class="space-y-2" hidden>
+        <div data-account-only="characters" class="space-y-2">
         <div class="grid grid-cols-2 gap-2">
           <button id="exportBackup" type="button" class="t-inset px-3 py-2 rounded font-bold text-xs">Baixar backup</button>
           <button id="importBackup" type="button" class="t-inset px-3 py-2 rounded font-bold text-xs">Importar ficha · PDF / JSON</button>
@@ -632,6 +632,7 @@
     <dialog id="syncVersionsDialog" class="t-card-accent rounded-lg p-4 w-[min(32rem,92vw)] max-h-[85dvh] overflow-y-auto" data-scroll-window>
       <div class="flex justify-between gap-3"><h2 class="font-rpg font-bold">Versões salvas na nuvem</h2><button id="syncVersionsClose" type="button" aria-label="Fechar versões">×</button></div>
       <p id="syncVersionsStatus" class="text-xs my-3" role="status">Carregando…</p>
+      <p id="syncVersionsPolicy" class="text-sm my-3"></p>
       <div id="syncVersionsList" class="space-y-2"></div>
       <button id="syncVersionsMore" type="button" class="underline text-xs mt-3" hidden>Carregar mais versões</button>
     </dialog>
