@@ -1,6 +1,6 @@
 # Retomada do CritCall
 
-Estado atualizado em **21/10/2026**. Este é o ponto de entrada para continuar o
+Estado atualizado em **22/10/2026**. Este é o ponto de entrada para continuar o
 projeto sem depender da conversa. Leia também `AGENTS.md`, `README.md`,
 `CHANGELOG.md` e [ARQUITETURA.md](ARQUITETURA.md) antes de alterar.
 
@@ -10,24 +10,25 @@ A versão funcional foi publicada em **https://criticall.art/** pelas
 [PRs #14](https://github.com/mhaetinger/D-D/pull/14) e
 [#15](https://github.com/mhaetinger/D-D/pull/15).
 
-| Referência | Estado conferido em 21/10/2026 |
+| Referência | Estado conferido em 22/10/2026 |
 | --- | --- |
 | Produção `main` | `27b30832bf94cd88805cdd1faced6dc00316ff67` |
-| Integração `develop` | `445939d`, R1 integrada pela PR #17; contém mudanças funcionais ainda não publicadas |
+| Integração `develop` | `19e4ceb`, primeiro recorte de R2 integrado pela PR #18 após CI completa aprovada; contém mudanças ainda não publicadas |
 | Revisão offline publicada | `4e263eb66b70d44f` |
 | Verificação/publicação | [Workflow 39638188104](https://github.com/mhaetinger/D-D/actions/runs/39638188104), concluído com sucesso |
-| Trabalho atual | Primeiro recorte de R2 verificado localmente e em revisão na [PR #18](https://github.com/mhaetinger/D-D/pull/18); conferir CI antes de integrar |
-| Branch da tarefa | `feature/rolagens-condicionais-r2`, criada de `develop` público após a PR #17 |
+| Trabalho atual | Segundo recorte de R2: talento Sortudo de três pontos, distinto do racial; verificar a entrega antes de integrar |
+| Branch da tarefa | `feature/talento-sortudo-r2`, criada do `develop` público após a PR #18 |
 | R1 integrada | `8bcab7dfcaa5750e512264a8ef43b8ebffcb6748`; [PR #17](https://github.com/mhaetinger/D-D/pull/17) e CI completa aprovadas, testes/limites na auditoria |
-| Implementação R2 inicial verificada | `ba4a182`; 404 testes Node, tipos/build e 27 roteiros Chromium locais aprovados; CI/integração da PR #18 a conferir |
+| R2 inicial integrada | `7dc30eb`; 404 testes Node, tipos/build e 27 roteiros Chromium locais/CI aprovados; [PR #18](https://github.com/mhaetinger/D-D/pull/18) integrada em `19e4ceb` |
 
 A organização documental e **R1 — bônus ausentes nos cálculos** foram integradas
-em `develop`. O responsável autorizou continuar a sequência. O primeiro recorte
-de **R2 — rolagens e gastos condicionais** implementa Talento Confiável nas
-perícias e Sortudo racial nos d20 contextuais, com limites registrados na
+em `develop`, junto do primeiro recorte de **R2 — rolagens e gastos condicionais**
+(Talento Confiável nas perícias e Sortudo racial nos d20 contextuais).
+O responsável autorizou continuar pelo **talento Sortudo**, com uma reserva de
+três pontos e escolha do d20 nos controles existentes. Escopo e limites estão na
 [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md#roteiro-de-implementação).
-O próximo recorte inclui o talento Sortudo (distinto da raça) e os demais
-gastos/rerrolagens de R2. As matrizes e os critérios ficam naquele arquivo. Não
+Os próximos recortes de R2 cobrem as demais rerrolagens/dados mínimos,
+-5/+10 e adicionais de talentos/estilos. As matrizes e os critérios ficam naquele arquivo. Não
 marcar uma mecânica como concluída por ter descrição, escolha ou contador.
 
 ## Como continuar
@@ -47,7 +48,7 @@ na máquina original.
 
 Em um clone existente, confira `git status`, preserve trabalho pendente e faça
 `git fetch origin`. Para continuar esta entrega ainda não integrada,
-use `feature/rolagens-condicionais-r2`. Para uma tarefa nova, parta do
+use `feature/talento-sortudo-r2`. Para uma tarefa nova, parta do
 `develop` público atualizado e crie `feature/*` ou `fix/*`. Entregue por PR para
 `develop`; após revisão e aprovação, PR para `main`. Não fazer push direto à
 `main`, enviar tags extras ou mesclar o histórico privado do protótipo.
@@ -57,8 +58,9 @@ Texto para iniciar outra conversa:
 > Continue o CritCall. Leia AGENTS.md, docs/RETOMADA.md, README.md,
 > CHANGELOG.md e docs/ARQUITETURA.md. Confira a branch e o estado do Git.
 > O roteiro atual de regras está em docs/AUDITORIA-LIVRO-2014.md. Confira
-> primeiro a PR #18 da entrega inicial de R2 e suas verificações; depois continue os
-> gastos/rerrolagens restantes de R2. Não confundir Sortudo racial com o talento.
+> primeiro a entrega do talento Sortudo em feature/talento-sortudo-r2 e suas
+> verificações/PR; depois continue os gastos/rerrolagens restantes de R2. Não
+> confundir Sortudo racial com o talento.
 
 ## Mapa dos documentos
 

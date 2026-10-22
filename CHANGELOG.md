@@ -2,6 +2,34 @@
 
 ## Não lançado
 
+### Talento Sortudo e escolha contextual de d20 — 2026-10-22
+
+- O talento passa a ter uma reserva única de três pontos por descanso longo,
+  junto à escolha existente. Independe do Sortudo racial e do nível total;
+  preserva máximos adaptados e bloqueia gastos/correções sobre registros ilegíveis.
+- Jogadas da ficha permitem gastar um ponto para lançar somente um d20
+  adicional e escolher qualquer face, inclusive uma descartada pela desvantagem.
+  O modo original continua; bônus, inspiração e custos não se repetem. Crítico
+  preparado, Talento Confiável e repetição racial acompanham a face escolhida.
+- Concentração, morte e Fúria Implacável permitem decisão depois do d20 ou
+  gasto antecipado. Aplicação de PV/dano/fila aguarda a escolha. Cancelar depois
+  de rolar mantém o teste na sessão, com o gasto já feito; retomar usa os mesmos
+  dados, sem novo lançamento/cobrança. Alterações na ficha invalidam o resultado.
+- Controle para ataque recebido usa a face informada do atacante e o adicional
+  virtual/físico; bônus/acerto/dano continuam na mesa. OFF permite o registro
+  físico, e usos de criaturas diferentes se cancelam sem dados adicionais.
+- Custo é salvo antes de mostrar o adicional sem remontar o formulário de dano;
+  histórico/saldo atualizam pelos controles existentes. Escolhas preservam nós,
+  foco e posição. Desenho, auras e gestos do dado mantêm seus módulos.
+- PR #18 integrada em `develop` `19e4ceb`, após autorização e CI completa
+  aprovada: 404 testes, tipos/build, 27 roteiros Chromium e banco descartável.
+  Produção continua em `27b3083`; R2 segue parcial na auditoria.
+- Conferidos 417 testes Node, tipos/build e o roteiro Chromium dedicado,
+  incluindo decisão tardia, cancelamento/retomada, concorrência, recebido/físico/
+  OFF/Só Pool, mínimo/racial/inspiração, layouts/temas/320px/GG/toque e offline
+  com pontos/notas preservados. Suíte completa de navegador e banco exigidos na
+  CI antes da integração. Sem alteração de SQL/RLS/RPC.
+
 ### Talento Confiável e Sortudo racial nas rolagens — 2026-10-21
 
 - Início de R2: ladino 11 trata d20 baixo como 10 nas perícias proficientes da

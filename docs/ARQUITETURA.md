@@ -976,3 +976,43 @@ válidos. Dado físico registra a face final; OFF não lança, e cancelar não a
 o teste. Desenho, gestos e aparência do dado continuam nos módulos anteriores.
 Regressões puras e Chromium ficam em `tests/dice-roll.test.ts` e
 `tests/conditional-rolls-browser.cjs`; a auditoria delimita o restante de R2.
+
+## Talento Sortudo em R2 — 22/10/2026
+
+`resourcesFor` define `feat:lucky` como contador de três pontos/descanso longo.
+`lucky.ts` valida a escolha estruturada e a reserva antes de gastar, inclusive
+a 0 PV. Sortudo racial não concede pontos. Máximos configurados permanecem
+adaptáveis; um registro ilegível é preservado e bloqueia gasto/correção. O
+vínculo em `placement.ts` usa a escolha com classe, evitando o traço homônimo;
+se faltar a entrada, insere a referência em Talentos. Há um único contador.
+
+`addLuckyDie`/`chooseLuckyDie` mantêm as faces, demais dados, modificador e modo
+originais. O adicional não escolhe automaticamente o melhor resultado. A seleção
+pode usar qualquer d20, conforme a exceção de 2014, e reaplica o mínimo de
+Talento Confiável à face escolhida. Cancelamento por outra criatura é registrado
+sem dado adicional. A repetição racial pode substituir um único 1 do conjunto;
+não concede cadeia de rerrolagens nem pontos ao talento.
+
+`lucky-ui.ts` reúne custo, escolha em diálogo e uso físico/ataque recebido.
+`recordStepAndSave` conserva seus dois argumentos anteriores e aceita um
+terceiro `redraw=false` para um custo já pago durante uma escolha: persiste
+ficha/histórico e atualiza a barra sem remontar o formulário do dano. Saldo e
+botões são atualizados nos próprios nós. Ao escolher uma face na bandeja, o
+grupo de botões também é reutilizado, com `aria-pressed`, contorno e símbolo;
+isso não lança outro dado nem altera a aparência/gestos do d20 flutuante.
+
+`resolveRuleD20` é a ponte assíncrona para os testes com consequências. A ponte
+síncrona `rollRuleDie` continua válida. O diálogo oferece decisão depois do d20,
+gasto antecipado ou resolução sem o talento. Inspiração é consumida no lançamento
+inicial e o ponto de Sortudo, antes do adicional. O `WeakMap` de escolhas pendentes
+usa identidade, chave do teste e snapshot após o custo; cancelar mantém os dados
+na sessão, e retomar não repete RNG/custo. PV, dano e fila de concentração só mudam
+após a confirmação da face. Mudança da ficha invalida a aplicação antiga.
+
+Faces pendentes não integram o documento nem o backup: recarga/troca de
+instalação perde o conjunto transitório, preservando custos já salvos. Ataques
+recebidos usam a face já escolhida pelo atacante e o d20 adicional informado,
+sem usar bônus/arma/racial/inspiração do defensor nem aplicar acerto/dano.
+Declaração de uso por outra criatura e o momento anterior ao resultado continuam
+na mesa. Não há novo estado de turno, alvo ou serviço remoto. Regressões em
+`tests/lucky.test.ts` e `tests/lucky-browser.cjs`; escopo restante na auditoria.

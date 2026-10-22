@@ -108,6 +108,16 @@ bônus ou outros dados do pool. A tecla **R** e o botão **Rolar d20** na bandej
 fazem a mesma rolagem. Não gasta inspiração preparada nem altera o pool ou o
 modo escolhido. As setas movem o ícone; OFF continua ocultando os dados.
 
+Quem tem o **talento Sortudo** encontra seus três pontos junto à característica.
+Nas jogadas automáticas da ficha, use **Sortudo (talento)** para lançar um d20
+adicional e escolher a face antes de resolver a jogada. O modo original continua
+valendo. Concentração, morte e Fúria Implacável permitem decidir após ver o d20;
+um teste interrompido pode ser retomado com os mesmos dados durante a sessão.
+O ponto é gasto ao lançar o adicional. **Usar na mesa** registra o gasto físico;
+**Ataque contra mim** permite escolher o d20 de um ataque recebido, com bônus e
+acerto resolvidos na mesa. Descanso longo recupera os pontos. O Sortudo racial
+do halfling aparece separado e não usa essa reserva.
+
 O modo selecionado na bandeja também aparece ao redor do dado recolhido:
 **vantagem** tem névoa suave e **↑**; **desvantagem**, pequenas chamas e **↓**.
 **Normal** conserva o desenho original. Os efeitos respeitam movimento reduzido

@@ -16,7 +16,9 @@ import { consumeInspiration, deathStatus, healHitPoints, inspirationRollMode } f
 import { damageDescription, deathControls, hitDiceControls, inspirationControls } from '../rules/health-ui';
 import { offerSurvivalForDamage } from '../rules/damage-ui';
 import { parseDiceFormula } from '../rules/dice-formula';
-import { evaluateDicePool, sheetD20Rules, canRerollHalfling, rerollHalfling } from '../rules/dice-roll';
+import { evaluateDicePool, sheetD20Rules, canRerollHalfling, rerollHalfling, addLuckyDie, chooseLuckyDie, luckyFaces } from '../rules/dice-roll';
+import { luckRemaining } from '../rules/lucky';
+import { askToUseLucky, chooseLuckyFace, payLuckyPoint } from '../rules/lucky-ui';
 import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponDamageLabel } from '../rules/weapon-damage-ui';
 import { applyCastConcentration, concentration, concentrationBlock, incapacityReason, needsConcentrationConfirmation, spellConcentration, validateConcentrationStart } from '../rules/concentration';
 import { concentrationControls } from '../rules/concentration-ui';
@@ -532,7 +534,8 @@ let currentFontScale = parseInt(
 let diceMode = readPreference("dnd_dice_mode") || "auto";
 let currentRollMode = "normal"; // 'normal' | 'adv' | 'dis'
 let diceRollSequence = 0; // Impede uma animação antiga de sobrescrever o último lançamento.
-let pendingHalflingRoll = null;
+let pendingD20Roll = null;
+const pendingResolvedD20 = new WeakMap();
 // Migra somente a preferência visual antiga; fichas e resultados não mudam.
 let diceTrayDimensions = readDiceTrayDimensions();
 let diceTrayMinimized = true;
@@ -766,6 +769,7 @@ function getCurrentLoadKg(char) {
 function recordStepAndSave(
   actionDescription,
   isManualCheckpoint = false,
+  redraw = true,
 ) {
   if(historyOwnerId!==(getChar()?.id || null)) restoreSavedHistory();
   if(!getChar()) { saveStateQuiet();return; }
@@ -786,7 +790,16 @@ function recordStepAndSave(
   historyPointer = historyStack.length - 1;
   if (!sheetStore.write(characters)) showToast(sheetStore.issue?.message || "Não foi possível salvar. Baixe um backup antes de fechar.");
   persistHistory();
-  renderAll();
+  // Um custo já pago durante a escolha de um dado precisa sobreviver a
+  // cancelamento/reload sem desmontar o formulário que receberá o resultado.
+  if(redraw)renderAll();else refreshHistoryControls();
+}
+
+function refreshHistoryControls() {
+  document.getElementById('btnUndo').disabled=historyPointer<=0;
+  document.getElementById('btnRedo').disabled=historyPointer>=historyStack.length-1;
+  document.getElementById('historyCountBadge').textContent=`${historyPointer}/${Math.max(0,historyStack.length-1)}`;
+  renderHistoryDrawerList();
 }
 
 function saveStateQuiet() {
@@ -908,6 +921,7 @@ function restoreDeletedCharacter(index) {
 // 5. MOTOR DOS 3 MODOS DE DADOS & POOL COMBINADO (1d20 + 1d4 + Bônus)
 // =========================================================================
 function setDiceMode(mode) {
+  if(mode!==diceMode)clearPendingD20();
   diceMode = mode;
   writePreference("dnd_dice_mode", mode);
   renderAll();
@@ -1098,6 +1112,56 @@ function rollRuleDie(sides,label,mode='normal',context=null,repeatOne=false) {
   if(repeatOne && canRerollHalfling(result))result=rerollHalfling(result);
   presentDiceResult(result,label);return result.total;
 }
+async function resolveRuleD20(label,mode,context,options={}) {
+  const c=getChar(),previous=pendingResolvedD20.get(c);
+  const resumable=previous && previous.key===options.key && previous.snapshot===JSON.stringify(c);
+  if(previous && !resumable)pendingResolvedD20.delete(c);
+  if(!options.lucky && !options.askLucky && !resumable)return window.rollRuleDie(20,label,mode,context,!!options.repeatOne);
+  if(diceMode==='off')throw new Error('Dados virtuais desativados: registre o resultado físico.');
+  let result,snapshot;
+  if(resumable) {result=previous.result;snapshot=previous.snapshot;}
+  else {
+    if(options.lucky)payLuckyPoint(c,CharacterEngine,label,!!options.inspired);
+    else if(options.inspired && consumeInspiration(c))recordStepAndSave('Usou inspiração no d20 · '+label,true,false);
+    snapshot=JSON.stringify(c);
+    result=evaluateDicePool({20:1},0,mode,sheetD20Rules(c,context,CharacterEngine));
+    if(options.repeatOne && canRerollHalfling(result))result=rerollHalfling(result);
+    if(options.lucky) {
+      result=addLuckyDie(result,options.opposed?null:evaluateDicePool({20:1},0,'normal').total);
+      if(options.repeatOne && canRerollHalfling(result))result=rerollHalfling(result);
+    }
+    pendingResolvedD20.set(c,{key:options.key,snapshot,result,label});
+  }
+  if(resumable && options.repeatOne && canRerollHalfling(result)) {
+    result=rerollHalfling(result);pendingResolvedD20.set(c,{key:options.key,snapshot,result,label});
+  }
+  presentDiceResult(result,label);
+  if(!result.luck) {
+    const decision=await askToUseLucky(result,label);
+    if(!decision) {showToast('Teste pendente: retome para usar o mesmo d20. Nenhum ponto de Sortudo foi gasto.');return null;}
+    if(getChar()!==c || JSON.stringify(c)!==snapshot) {pendingResolvedD20.delete(c);throw new Error('A ficha mudou; o teste antigo não foi aplicado.');}
+    if(decision.use) {
+      payLuckyPoint(c,CharacterEngine,label);
+      snapshot=JSON.stringify(c);
+      result=addLuckyDie(result,decision.opposed?null:evaluateDicePool({20:1},0,'normal').total);
+      if(options.repeatOne && canRerollHalfling(result))result=rerollHalfling(result);
+      pendingResolvedD20.set(c,{key:options.key,snapshot,result,label});
+      presentDiceResult(result,label);
+    }
+  }
+  const chosen=await chooseLuckyFace(result,label);
+  if(!chosen) {showToast('Escolha de Sortudo pendente: retome este teste para usar os mesmos dados. O ponto já foi gasto.');return null;}
+  if(getChar()!==c || JSON.stringify(c)!==snapshot) {
+    pendingResolvedD20.delete(c);throw new Error('A ficha mudou. O teste antigo não foi aplicado; o ponto lançado continua gasto.');
+  }
+  pendingResolvedD20.delete(c);
+  presentDiceResult(chosen,label,null,false);
+  return chosen.d20Natural;
+}
+function pendingRuleD20Label() {
+  const c=getChar(),pending=c && pendingResolvedD20.get(c);
+  return pending && pending.snapshot===JSON.stringify(c)?pending.label:'';
+}
 // Dano contextual usa a bandeja/animação, preservando o pool manual e sem
 // aplicar vantagem de d20 ou gastar inspiração em uma jogada de dano.
 function rollWeaponFormula(formula,label) {
@@ -1111,18 +1175,16 @@ function rollQuickD20() {
   // Só o d20 usa o modo escolhido; pool, bônus e inspiração ficam preservados.
   presentDiceResult(evaluateDicePool({20: 1}, 0, currentRollMode), "d20 rápido");
 }
-function presentDiceResult(result, customLabel, rerollContext = null) {
+function presentDiceResult(result, customLabel, rerollContext = null, animate = true) {
   const cube = document.getElementById("dice3dCube");
   const resultBox = document.getElementById("dice3dResultText");
   const rollSequence = ++diceRollSequence;
-  pendingHalflingRoll = rerollContext && canRerollHalfling(result)?{
-    ...rerollContext,result,label:customLabel,sequence:rollSequence,
+  pendingD20Roll = rerollContext && (canRerollHalfling(result) || luckyFaces(result).length || result.rules.luckyFeat && !result.luck && luckRemaining(rerollContext.c,CharacterEngine)>0)?{
+    c:rerollContext.c,context:rerollContext.context,result,label:customLabel,sequence:rollSequence,busy:false,
     workspace:currentWorkspaceKey(),snapshot:JSON.stringify(rerollContext.c),
   }:null;
-  cube.classList.add("dice-3d-rolling");
-  document.getElementById("diceDock").classList.add("dice-dock-rolling");
-
-  setTimeout(() => {
+  if(animate)document.querySelector('[data-dice-context-actions]')?.remove();
+  const display=() => {
     if (rollSequence !== diceRollSequence) return;
     cube.classList.remove("dice-3d-rolling");
     document.getElementById("diceDock").classList.remove("dice-dock-rolling");
@@ -1137,6 +1199,7 @@ function presentDiceResult(result, customLabel, rerollContext = null) {
     const isCrit = result.d20Natural === 20;
     const isFumble = result.d20Natural === 1 && !result.rules?.reliableTalent;
     const modeLabel = { normal: "Normal", adv: "Vantagem", dis: "Desvantagem" }[result.appliedMode];
+    const pending=pendingD20Roll?.sequence===rollSequence?pendingD20Roll:null,faces=luckyFaces(result);
 
     resultBox.innerHTML = `
     ${customLabel ? `<div class="font-bold text-xs t-text-main">${escapeHTML(customLabel)}</div>` : ""}
@@ -1147,26 +1210,79 @@ function presentDiceResult(result, customLabel, rerollContext = null) {
       ${isFumble ? '<span class="ml-1 px-1.5 py-0.5 rounded bg-rose-900 text-white text-[10px]">1 NATURAL!</span>' : ""}
     </div>
     <div class="text-[11px] t-text-muted leading-tight">${result.breakdown.join(" + ")}</div>
-    ${pendingHalflingRoll?.sequence===rollSequence?'<button type="button" class="dice-context-action t-btn-primary px-2 py-1 rounded" data-dice-halfling-luck onclick="rerollHalflingD20()">Sortudo racial · repetir um 1</button>':''}
   `;
-  }, 380);
+    const stage=resultBox.parentElement,previous=stage.querySelector('[data-dice-context-actions]');
+    stage.classList.toggle('dice-result-with-actions',!!pending);
+    if(!pending)previous?.remove();
+    else {
+      const selected=i=>!!result.luck && !result.luck.canceled && result.luck.selected===i;
+      const faceLabel=(face,i)=>`${face}${i===faces.length-1?' +':''}${selected(i)?' ✓':''}`;
+      if(!animate && faces.length && previous?.dataset.faces===faces.join(',')) {
+        for(const button of previous.querySelectorAll('[data-dice-lucky-choice]')) {
+          const i=Number(button.dataset.diceLuckyChoice);button.setAttribute('aria-pressed',String(selected(i)));button.textContent=faceLabel(faces[i],i);
+        }
+      }else {
+        previous?.remove();
+        const actions=document.createElement('div');actions.dataset.diceContextActions='';actions.dataset.faces=faces.join(',');
+        actions.innerHTML=`
+      ${canRerollHalfling(result)?'<button type="button" class="dice-context-action t-btn-primary px-2 py-1 rounded" data-dice-halfling-luck onclick="rerollHalflingD20()">Sortudo racial · repetir um 1</button>':''}
+      ${result.rules.luckyFeat && !result.luck && luckRemaining(pending.c,CharacterEngine)>0?`<button type="button" class="dice-context-action t-btn-primary px-2 py-1 rounded" data-dice-lucky-feat onclick="useLuckyD20()">Sortudo (talento) · usar 1 ponto (${luckRemaining(pending.c,CharacterEngine)} disponíveis)</button>`:''}
+      ${faces.length?`<div class="dice-context-choices" role="group" aria-label="Escolher d20 de Sortudo"><span>Sortudo · escolha o d20</span>${faces.map((face,i)=>`<button type="button" data-dice-lucky-choice="${i}" onclick="chooseLuckyD20(${i})" aria-pressed="${selected(i)}" ${i===faces.length-1?'title="D20 adicional de Sortudo"':''} aria-label="${i===faces.length-1?'D20 adicional de Sortudo':'D20 inicial'} ${i+1}, usar face ${face}">${faceLabel(face,i)}</button>`).join('')}</div>`:''}`;
+        stage.append(actions);
+      }
+    }
+  };
+  if(animate) {
+    cube.classList.add('dice-3d-rolling');document.getElementById('diceDock').classList.add('dice-dock-rolling');
+    setTimeout(display,380);
+  }else display();
 }
 
-function rerollHalflingD20() {
-  const pending=pendingHalflingRoll;
-  if(!pending)return;
+function clearPendingD20() {
+  pendingD20Roll=null;
+  const actions=document.querySelector('[data-dice-context-actions]');
+  actions?.parentElement.classList.remove('dice-result-with-actions');actions?.remove();
+}
+function validPendingD20(pending=pendingD20Roll,allowBusy=false) {
+  if(!pending || pending!==pendingD20Roll || pending.busy && !allowBusy)return null;
   if(diceMode!=='auto' || pending.sequence!==diceRollSequence || currentWorkspaceKey()!==pending.workspace || getChar()!==pending.c || JSON.stringify(pending.c)!==pending.snapshot) {
-    pendingHalflingRoll=null;
-    document.querySelector('[data-dice-halfling-luck]')?.remove();
-    showToast('A ficha ou a jogada mudou. Sortudo não foi aplicado ao resultado antigo.');return;
+    clearPendingD20();showToast('A ficha ou a jogada mudou. Sortudo não foi aplicado ao resultado antigo.');return null;
   }
-  pendingHalflingRoll=null; // Um duplo clique nunca repete a nova face.
-  const result=rerollHalfling(pending.result),weapon=pending.context.weapon;
+  return pending;
+}
+function updateContextCritical(pending,result) {
+  const weapon=pending.context.weapon;
   if(weapon) {
     const index=pending.c.weapons.indexOf(weapon),stats=CharacterEngine.weaponStats(pending.c,weapon);
     if(index>=0 && stats)setWeaponCriticalPrepared(pending.c,index,CharacterEngine,result.d20Natural>=(stats.critical || 20));
   }
-  presentDiceResult(result,pending.label);
+}
+function rerollHalflingD20() {
+  const pending=validPendingD20();if(!pending)return;
+  pendingD20Roll=null; // Um duplo clique nunca repete a nova face.
+  const result=rerollHalfling(pending.result);
+  updateContextCritical(pending,result);presentDiceResult(result,pending.label,pending);
+}
+async function useLuckyD20() {
+  const pending=validPendingD20();if(!pending || pending.result.luck)return;
+  pending.busy=true;
+  try {
+    const controls=document.createElement('div');controls.className='rule-context rule-dialog-fields';
+    controls.innerHTML='<label class="rule-check"><input type="checkbox" data-lucky-opposed><span>Outra criatura também usou Sortudo nesta jogada</span></label>';
+    if(!await confirmDestructiveAction('Usar Sortudo?','Gasta 1 ponto para lançar um d20 adicional e escolher a face antes de resolver a jogada. O modo original continua valendo. Pontos de criaturas diferentes se cancelam sem dado adicional.','Gastar 1 ponto',controls))return;
+    if(!validPendingD20(pending,true))return;
+    payLuckyPoint(pending.c,CharacterEngine,pending.label);
+    const result=addLuckyDie(pending.result,controls.querySelector('[data-lucky-opposed]').checked?null:evaluateDicePool({20:1},0,'normal').total);
+    presentDiceResult(result,pending.label,pending);
+    if(result.luck.canceled)showToast('Sortudos cancelados: ponto gasto, sem d20 adicional.');
+  }catch(error){showToast(error.message || 'Não foi possível usar Sortudo.');}
+  finally{pending.busy=false;}
+}
+function chooseLuckyD20(index) {
+  const pending=validPendingD20();if(!pending)return;
+  const result=chooseLuckyDie(pending.result,index);
+  updateContextCritical(pending,result);presentDiceResult(result,pending.label,pending,false);
+  document.querySelector(`[data-dice-lucky-choice="${index}"]`)?.focus({preventScroll:true});
 }
 
 // Disparo automático vindo da ficha (só executa se diceMode === 'auto'!)
@@ -1234,6 +1350,7 @@ function activateAccountWorkspace(identity) {
   document.getElementById('hbModalBody').replaceChildren();
   document.getElementById('historyDrawer').classList.add('translate-x-full');
   diceRollSequence++;
+  clearPendingD20();
   document.getElementById('dice3dCube').classList.remove('dice-3d-rolling');
   document.getElementById('diceDock').classList.remove('dice-dock-rolling');
   clearDicePool();
@@ -2190,12 +2307,7 @@ function renderAll() {
     writePreference(ACTIVE_CHARACTER_KEY, char.id);
   }
 
-  document.getElementById("btnUndo").disabled = historyPointer <= 0;
-  document.getElementById("btnRedo").disabled =
-    historyPointer >= historyStack.length - 1;
-  document.getElementById("historyCountBadge").textContent =
-    `${historyPointer}/${Math.max(0,historyStack.length - 1)}`;
-  renderHistoryDrawerList();
+  refreshHistoryControls();
 
   ["pergaminho_claro", "pergaminho_escuro", "obsidiana"].forEach((th) => {
     const btn = document.getElementById(`themeBtn-${th}`);
@@ -2844,8 +2956,7 @@ function setTab(tab) {
 }
 function switchCharacter(idx) {
   hideBookTooltip();
-  pendingHalflingRoll=null;
-  document.querySelector('[data-dice-halfling-luck]')?.remove();
+  clearPendingD20();
   activeCharIndex = parseInt(idx, 10);
   restoreSavedHistory();
   renderAll();
@@ -3228,6 +3339,9 @@ Object.assign(window, {
   confirmDestructiveAction,
   ruleDiceSettings,
   rollRuleDie,
+  resolveRuleD20,
+  pendingRuleD20Label,
+  presentRuleDiceResult:presentDiceResult,
   rollWeaponFormula,
   parseDiceFormula,
   getChar,
@@ -3271,6 +3385,8 @@ Object.assign(window, {
   evaluateDicePool,
   rollCurrentPool,
   rerollHalflingD20,
+  useLuckyD20,
+  chooseLuckyD20,
   rollQuickD20,
   triggerSheetRoll,
   openAuthAccountModal,
