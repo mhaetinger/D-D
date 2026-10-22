@@ -511,6 +511,13 @@ origem da magia, vantagem/desvantagem e inspiração preparada. Repetir ataques
 dos raios/feixes não gasta outro espaço. O ataque não conjura: **Conjurar/Truque**
 continua registrando o lançamento e seu gasto, mesmo se o ataque errar. Magias
 de resistência, acerto automático e utilidade não recebem esse botão.
+
+Para consultar a descrição, pare o mouse por cerca de um segundo no **livrinho**
+da magia. As demais ajudas usam o mesmo atraso; trocar de alvo substitui o balão
+e sair cancela sua abertura. O cartão inteiro não dispara a descrição.
+Clique, Enter ou toque no livro fixa a consulta com o link do PDF; feche pelo ×,
+Esc ou fora do balão. O foco por teclado continua abrindo a ajuda sem espera.
+
 **Só Pool** desativa conjurações, rituais e rolagens dos cartões de magia, antes
 de gastar espaços/usos/feitiçaria, trocar concentração ou gravar no histórico.
 **OFF** conserva o registro explícito de conjuração com dados físicos.

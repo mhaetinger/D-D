@@ -57,6 +57,16 @@ pertinentes aprovados, com capturas desktop/mobile, cópias/cancelamento/metadad
 validação entre pessoas e três temas/320px/GG. Integração segue pela PR #19, após
 conferir a CI atual; não altera a cobertura de mecânicas das matrizes.
 
+As ajudas por mouse agora esperam um segundo e se substituem entre consulta,
+ataque e equipamento. A descrição da magia fica no livrinho, com clique/Enter/
+toque para fixar a consulta e acessar o PDF. Cancelamento de hover e Esc impedem
+reabertura atrasada. Última conferência local: 420 testes Node, tipos/build e
+nove roteiros Chromium pertinentes aprovados (ajudas, características, regras,
+ataque com magia, criação, biblioteca, setores, cadeado e dano de armas), com
+capturas desktop/mobile e 320px/GG/três temas/dois layouts. A suíte completa
+passa de 28 a 29 roteiros; conferir a CI do último commit da PR #19 antes de
+integrar. Essa correção de interface não avança R2–R5 nem altera o dado.
+
 ## Como continuar
 
 Em um clone novo, com Node.js 22.12+:

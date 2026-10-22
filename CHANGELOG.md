@@ -2,6 +2,24 @@
 
 ## Não lançado
 
+### Ajudas coordenadas e descrição no livrinho — 2026-10-22
+
+- A descrição da magia aparece somente no livrinho. As ajudas por mouse esperam
+  cerca de um segundo; trocar de alvo ou sair cancela a abertura pendente.
+  Livro, ataque, equipamento e consulta fixada compartilham exclusão, evitando
+  balões simultâneos e reaparecimento atrasado da ajuda anterior.
+- Clique, Enter ou toque no livro fixa a consulta existente, com acesso à página
+  do PDF. Teclado continua sem espera; Esc, × e toque fora fecham a consulta.
+  Metadados, efeito atual e notas são preservados; magias próprias usam seu texto
+  e fórmula, sem receber referência de livro por coincidência do nome.
+- Verificados 420 testes Node, tipos/build e nove roteiros Chromium: ajudas,
+  características, regras, ataque com magia, criação, biblioteca, revisão por
+  setores, cadeado e dano de armas. Incluídos atraso/cancelamento/Esc, exclusão
+  entre leitores, toque/Enter/link, notas como texto, rolagem contida e
+  320px/GG/três temas/dois layouts. Capturas desktop/mobile conferidas.
+  A suíte de navegador passa a ter 29 roteiros. Sem mudança nas mecânicas,
+  animação do dado ou SQL/RLS/RPC; conferir a CI atual da PR #19 antes de integrar.
+
 ### Hierarquia da revisão de PDF e editor de armas compartilhado — 2026-10-22
 
 - Identificação com ícone de pergaminho e nome em destaque, separada das linhas

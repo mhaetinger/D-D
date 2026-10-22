@@ -958,6 +958,21 @@ para aparecer acima de diálogos. Mantém API, posição, teclado e eventos exis
 sem receber foco ou interceptar cliques; fechar um diálogo também fecha o balão.
 A margem/inset nativos são neutralizados no CSS compartilhado dos balões.
 
+`hoverDelay` centraliza a espera de 1.000 ms por mouse. Trocar alvo, clicar,
+sair, Esc ou remover o controle cancela a abertura pendente; o callback confere
+também se o alvo ainda está sob o ponteiro. Toque não agenda hover. Foco de
+teclado e consultas explícitas continuam imediatos.
+`claim(owner)` publica `critcall-tooltip-request`: ajuda, leitor legado e
+consulta fixada fecham/cancelam os demais antes de abrir, sem disputa de z-index.
+O livrinho de cada magia usa `bookConsultButton` com os mesmos `RuleTooltips`
+e popover de `feature-consult.ts`. O cartão não tem eventos de descrição.
+Texto reúne os metadados, efeito atual e notas; magias próprias mantêm sua
+descrição/fórmula e não recebem link de catálogo por coincidência do nome.
+Clique/Enter/toque fixa a consulta e permite abrir o PDF por página. A rotina
+antiga de livro/equipamento participa da exclusão e do atraso, preservando sua
+API. Ações de ataque/conjuração, gastos e SVG/gestos do dado permanecem nos
+módulos anteriores.
+
 Armas manuais não recebem adicionais inferidos: crítico duplica os dados da
 fórmula escolhida explicitamente. O botão de dano comum mantém seu contrato.
 Forma Selvagem, alvos/CA, condições para Furtivo/Colossos, turnos, munição,

@@ -227,7 +227,10 @@ conforme a largura do quadro; revisão de importação começa pelos resumos e
 preserva ataque manual sem bônus como não informado. A apresentação foi
 reorganizada com identificação/classes distintas, dicas de treino/reservas,
 narrativa aberta e editor de armas compartilhado com a ficha. Essas mudanças
-facilitam conferir a cópia; não completam um efeito de classe ou origem. Isso não implementa a
+facilitam conferir a cópia. As ajudas passam a se substituir com atraso de um
+segundo por mouse; a descrição da magia fica no livrinho, com consulta por
+clique/teclado/toque. Nenhuma dessas correções completa um efeito de classe ou
+origem. Isso não implementa a
 aplicação automática de vantagem/imunidade nem a CD/área de um sopro; R3–R5
 mantêm seus limites e pendências abaixo.
 

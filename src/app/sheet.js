@@ -33,7 +33,7 @@ import {parkSheetPanels,restoreSheetPanels,clearSheetPanels,mountSheetPanel,clos
 import {canEditSheet} from '../sheet-edit/access';
 import {canConfigureSheet} from '../sheet-edit/lock';
 import {createWeaponFields} from '../sheet-edit/weapon-fields';
-import {featureConsultButton} from './feature-consult';
+import {featureConsultButton,bookConsultButton} from './feature-consult';
 import {updateDiceDockAppearance} from './dice-dock-appearance';
 
 // =========================================================================
@@ -549,6 +549,7 @@ let expandedSingleSpells = {};
 let selectedCastLevelBySpell = {};
 let twinnedActiveBySpell = { "Mísseis Mágicos": true };
 let homebrewInitialState = "";
+let bookTooltipTimer;
 let weaponEditor = null; // Instância compartilhada com a revisão da importação.
 const COIN_LABELS = { pc: "Cobre", pp: "Prata", pe: "Electro", po: "Ouro", pl: "Platina" };
 const LORE_LABELS = { traits: "Personalidade", ideals: "Ideais", bonds: "Ligações", flaws: "Defeitos", backstory: "História do personagem", appearance: "Aparência", allies: "Aliados", treasure: "Tesouros narrativos" };
@@ -1638,12 +1639,12 @@ function renderExpandedSpellCard(char, sp, globalSpellIdx) {
     TARGET_TYPES_META[meta.targetType] || TARGET_TYPES_META.mira;
   const defMeta = getSpellDefenseMeta(char, sp);
   return `
-  <div class="spell-card" data-spell-card="${globalSpellIdx}" onmouseenter="showSpellTooltipByIndex(event, ${globalSpellIdx})" onmousemove="positionTooltip(event)" onmouseleave="hideBookTooltip()">
+  <div class="spell-card" data-spell-card="${globalSpellIdx}">
           <div class="flex flex-wrap items-center gap-2">
             <span class="font-rpg font-bold text-sm t-text-main">${escapeHTML(sp.name)}</span>
             <span class="px-2 py-0.5 rounded text-[10px] font-extrabold ${clsMeta.badgeColor}">${clsMeta.name.toUpperCase()}</span>
             <button onclick="openHomebrewModal('spell', ${globalSpellIdx})" class="t-text-main" aria-label="Editar ${escapeHTML(sp.name)}"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
-            ${Number.isInteger(sp.pdfPage) ? `<a href="book.html#page=${sp.pdfPage}" target="_blank" rel="noopener" aria-label="Consultar ${escapeHTML(sp.name)} no livro"><i data-lucide="book-open" class="w-3.5 h-3.5"></i></a>` : ''}
+            ${bookConsultButton(sp.name,spellConsultReference(char,sp,globalSpellIdx),'spell:'+globalSpellIdx)}
             ${sp.extraSource ? `<span class="text-[11px] t-text-muted">${escapeHTML(sp.extraSource)}</span>` : ''}
             ${sp.circle>0?`<span class="text-[11px] font-bold">${preparationLabel}</span>`:''}
           </div>
@@ -2716,6 +2717,7 @@ function setWeaponHands(index,value) {
 }
 
 function showEquipmentTooltip(event, type, index) {
+  queueBookTooltip(event,()=>{
   const stored = (type === "weapon" ? getChar().weapons : getChar().inventoryItems)[index];
   const item = type === "weapon" ? CharacterEngine.weaponStats(getChar(), stored) : stored;
   if (!item) return;
@@ -2737,10 +2739,10 @@ function showEquipmentTooltip(event, type, index) {
   container.append(heading, details, description);
   document.getElementById("bookTooltip").classList.remove("hidden");
   positionTooltip(event);
+  });
 }
 
-function showSpellTooltip(event, spellName, classId, baseCircle, index) {
-  const char = getChar();
+function spellTooltipDetails(char, spellName, classId, baseCircle, index) {
   const clsMeta =
     RULES_DB.classes[classId] || RULES_DB.classes.feiticeiro;
   const spellIndex = index ?? char.spells.findIndex((spell) => spell.name === spellName);
@@ -2772,6 +2774,35 @@ function showSpellTooltip(event, spellName, classId, baseCircle, index) {
   const defense = spell ? getSpellDefenseMeta(char, spell) : null;
   const spellStats = getSpellcastingStats(char, classId, spell);
 
+  return {clsMeta,spell,bookEntry,scaledEffect,defense,spellStats};
+}
+function spellConsultReference(char,spell,index) {
+  if(spell.customSpell)return {text:[
+    'Magia personalizada · adaptação da mesa',
+    `Tempo de conjuração: ${spell.time||'Conferir descrição'}\nAlcance: ${spell.range||'Conferir descrição'}`,
+    'Duração: '+(spell.duration||(spell.conc?'Concentração · conferir duração':'Conferir descrição')),
+    'Componentes: '+([spell.v?'V':'',spell.s?'S':'',spell.m?'M':''].filter(Boolean).join(', ')||'Não informados'),
+    spell.customRoll?'Fórmula informada: '+spell.customRoll:'',
+    spell.notes||'Sem descrição. Abra o lápis para registrar os efeitos combinados na mesa.',
+  ].filter(Boolean).join('\n\n')};
+  const {bookEntry,scaledEffect,defense}=spellTooltipDetails(char,spell.name,spell.classId,spell.circle,index);
+  const entry=CharacterEngine.spell(spell.bookId||spell.name);
+  const text=[
+    bookEntry.school+(defense?' · '+defense.label:''),
+    `Tempo de conjuração: ${spell.time||'Conferir descrição'}
+Alcance: ${spell.range||'Conferir descrição'}`,
+    `Duração: ${bookEntry.duration}
+Componentes: ${bookEntry.materialDesc}`,
+    scaledEffect?'Efeito atual: '+scaledEffect:'',
+    RuleTooltips.formatText(spell.bookId||BOOK_SPELLS_DB[spell.name]?bookEntry.bookDesc:spell.notes||bookEntry.bookDesc),
+    BOOK_SPELLS_DB[spell.name]&&spell.notes?'Notas da ficha: '+getSpellNotes(char,spell):'',
+    bookEntry.upcastRule?'Escalonamento / Metamágica: '+bookEntry.upcastRule:'',
+  ].filter(Boolean).join('\n\n');
+  return {text,page:entry?.page,pdfPage:Number.isInteger(spell.pdfPage)?spell.pdfPage:entry?.pdfPage};
+}
+function showSpellTooltip(event, spellName, classId, baseCircle, index) {
+  queueBookTooltip(event,()=>{
+  const char=getChar(),{clsMeta,spell,bookEntry,scaledEffect,defense,spellStats}=spellTooltipDetails(char,spellName,classId,baseCircle,index);
   const tooltipEl = document.getElementById("bookTooltip");
   document.getElementById("bookTooltipContent").innerHTML = `
   <div class="border-b t-border pb-2">
@@ -2792,6 +2823,7 @@ function showSpellTooltip(event, spellName, classId, baseCircle, index) {
 `;
   tooltipEl.classList.remove("hidden");
   positionTooltip(event);
+  });
 }
 
 function positionTooltip(event, tooltipId = "bookTooltip") {
@@ -2811,9 +2843,20 @@ function positionTooltip(event, tooltipId = "bookTooltip") {
   tooltipEl.style.left = `${Math.max(12, left)}px`;
   tooltipEl.style.top = `${Math.max(12, top)}px`;
 }
+function queueBookTooltip(event,render) {
+  clearTimeout(bookTooltipTimer);
+  if(event.type==='focus'&&!event.currentTarget?.matches(':focus-visible'))return;
+  hideBookTooltip();RuleTooltips.claim('bookTooltip');
+  const char=getChar(),target=event.currentTarget;
+  const show=()=>{if(char!==getChar()||target&&!target.isConnected)return;render();};
+  if(['mouseenter','pointerenter'].includes(event.type))bookTooltipTimer=setTimeout(show,RuleTooltips.hoverDelay);
+  else show();
+}
 function hideBookTooltip() {
+  clearTimeout(bookTooltipTimer);
   document.getElementById("bookTooltip").classList.add("hidden");
 }
+window.addEventListener('critcall-tooltip-request',event=>{if(event.detail?.owner!=='bookTooltip')hideBookTooltip();});
 
 function showToast(msg) {
   // Um sucesso de combate/cadastro não pode esconder a falha de gravação anterior.

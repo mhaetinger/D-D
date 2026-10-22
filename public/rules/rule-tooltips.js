@@ -22,6 +22,13 @@
     followsMouse = false,
     dismissedTarget = null,
     lastPointerDownAt = 0;
+  const hoverDelay = 1000;
+  // Os leitores antigos e a consulta fixada participam da mesma exclusão.
+  // Reivindicar o balão já cancela aberturas pendentes dos outros sistemas.
+  function claim(owner) {
+    if (typeof document !== 'undefined')
+      root.dispatchEvent(new CustomEvent('critcall-tooltip-request', { detail: { owner } }));
+  }
   function formatText(value) {
     // Quebras de coluna do PDF não são parágrafos. Preserva parágrafos,
     // listas e rótulos de regras, deixando o navegador ajustar a largura.
@@ -95,7 +102,7 @@
   }
   function show(target, mouse = false) {
     clearTimeout(timer);
-    if (target === dismissedTarget) return;
+    if (target === dismissedTarget || target.matches('[data-feature-consult][aria-expanded="true"]')) return;
     let info;
     try {
       info = JSON.parse(target.dataset.ruleTooltip);
@@ -109,6 +116,7 @@
       return;
     }
     hide();
+    claim('ruleTooltip');
     ensureBox();
     active = target;
     followsMouse = mouse;
@@ -164,7 +172,7 @@
     );
   }
   function hover(target, event) {
-    if (target === dismissedTarget) return;
+    if (target === dismissedTarget || target.matches('[data-feature-consult][aria-expanded="true"]')) return;
     pointer = { clientX: event.clientX, clientY: event.clientY };
     if (target === active) {
       clearTimeout(timer);
@@ -179,15 +187,24 @@
     // Cancelar o balão anterior antes de agendar o novo evita que seu atraso
     // de fechamento também cancele a abertura do próximo rótulo.
     hide();
+    claim('ruleTooltip');
     pending = target;
-    hoverTimer = setTimeout(() => show(target, true), 250);
+    hoverTimer = setTimeout(() => {
+      if (!target.isConnected || !target.contains(document.elementFromPoint(pointer.clientX, pointer.clientY))) return hide();
+      show(target, true);
+    }, hoverDelay);
   }
   if (typeof document !== "undefined") {
+    root.addEventListener('critcall-tooltip-request', event => {
+      if (event.detail?.owner !== 'ruleTooltip') hide();
+    });
     document.addEventListener("pointerover", (event) => {
+      if (event.pointerType === 'touch') return;
       const target = event.target.closest("[data-rule-tooltip]");
       if (target && target !== dismissedTarget) hover(target, event);
     });
     document.addEventListener("pointermove", (event) => {
+      if (event.pointerType === 'touch') return;
       const target = event.target.closest("[data-rule-tooltip]");
       if (target && target !== dismissedTarget) hover(target, event);
     });
@@ -278,7 +295,10 @@
     document.addEventListener(
       "keydown",
       (event) => {
-        if (!active || box.hidden) return;
+        if (!active || box.hidden) {
+          if (event.key === 'Escape') hide();
+          return;
+        }
         if (event.key === "Escape") {
           hide();
           event.preventDefault();
@@ -309,7 +329,7 @@
       if (event.target instanceof HTMLDialogElement) hide();
     }, true);
   }
-  const api = { attributes, hide, show, formatText };
+  const api = { attributes, hide, show, formatText, claim, hoverDelay };
   root.RuleTooltips = api;
   if (typeof module !== "undefined" && module.exports) module.exports = api;
 })(globalThis);
