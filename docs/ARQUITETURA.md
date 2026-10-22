@@ -945,3 +945,34 @@ integral do catálogo continuam sujeitos aos limites de R5 na auditoria.
 
 Testes: `tests/passives.test.ts` e `tests/passives-browser.cjs`, integrado a
 `npm run test:browser`. Estado de entrega na auditoria e na retomada.
+
+## Rolagens contextuais de R2 — 21/10/2026
+
+`rules/dice-roll.ts` extrai a avaliação do pool para um módulo puro, preservando
+ordem/soma dos dados, escolha do primeiro d20 e o contrato público
+`total`/`d20Natural`/`breakdown`/`appliedMode`. Guarda também faces, modificador e
+regras da jogada para recompor uma repetição sem lançar os demais dados.
+`d20Natural` conserva a face escolhida; Talento Confiável aplica o mínimo 10 ao
+valor usado no teste, antes de somar o restante, sem inventar um natural 20.
+
+`sheetD20Rules` recebe contexto explícito de ataque, resistência ou teste.
+Somente uma perícia conhecida com proficiência e ladino 11 recebe o mínimo;
+bônus personalizado não prova proficiência. Sortudo racial exige ID canônico
+de halfling, independente do talento homônimo. Pools livres e d20 rápido não
+recebem contexto, e fórmulas com vários d20 não inferem qual é a jogada.
+
+O resultado de uma jogada automática oferece a repetição racial opcional.
+Ela muda um único 1, uma vez, aceita a nova face e conserva o modo original,
+mesmo se a bandeja mudar de modo depois. Um registro transitório guarda
+sequência, identidade/espaço e snapshot da ficha; alteração ou outra jogada
+invalida a opção. Não há nova reserva ou gravação de histórico para esta
+característica sem gasto. A inspiração já foi consumida na jogada inicial e o
+crítico preparado da arma acompanha a nova face.
+
+Concentração, morte e Fúria Implacável aplicam consequências imediatamente:
+o diálogo existente permite optar pela repetição antes do lançamento virtual.
+`rollRuleDie` aceita contexto e intenção opcionais; argumentos antigos continuam
+válidos. Dado físico registra a face final; OFF não lança, e cancelar não aplica
+o teste. Desenho, gestos e aparência do dado continuam nos módulos anteriores.
+Regressões puras e Chromium ficam em `tests/dice-roll.test.ts` e
+`tests/conditional-rolls-browser.cjs`; a auditoria delimita o restante de R2.

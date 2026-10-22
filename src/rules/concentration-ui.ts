@@ -50,7 +50,7 @@ export function setupConcentrationUI(E:Engine,save:(description:string)=>void) {
       if(host.getChar()!==c || concentration(c)?.id!==current.id)return;
       const d=details(),virtual=controls.querySelector<HTMLSelectElement>('[data-health-source]')!.value==='virtual',face=Number(controls.querySelector<HTMLInputElement>('[data-health-face]')!.value),dc=check?.dc ?? Number(controls.querySelector<HTMLInputElement>('[data-concentration-dc]')!.value);
       resolveConcentration(structuredClone(c),current.id,check?.id || null,virtual?10:face,d.bonus,dc);
-      const natural=virtual?host.rollRuleDie(20,'Concentração · '+current.name,d.mode):face;
+      const natural=virtual?host.rollRuleDie(20,'Concentração · '+current.name,d.mode,{type:'save'},!!controls.querySelector<HTMLInputElement>('[data-health-luck]')?.checked):face;
       const result=resolveConcentration(c,current.id,check?.id || null,natural,d.bonus,dc),inspired=consumeInspiration(c);
       save(`Concentração · ${result.name}: d20 ${natural}, CON ${d.bonus}, total ${result.total}/CD ${result.dc} · ${result.success?'manteve':'encerrou'}${inspired?' · usou inspiração':''}`);
       host.showToast(`${result.success?'Manteve':'Encerrou'} concentração · ${result.total}/CD ${result.dc}.`);

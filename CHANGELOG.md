@@ -2,6 +2,33 @@
 
 ## Não lançado
 
+### Talento Confiável e Sortudo racial nas rolagens — 2026-10-21
+
+- Início de R2: ladino 11 trata d20 baixo como 10 nas perícias proficientes da
+  ficha, depois de escolher vantagem/desvantagem e antes dos bônus. Conservados
+  ajustes totais, inclusive zero; ataques, resistências e meia proficiência não
+  recebem o mínimo. Ferramentas sem ação própria continuam na mesa.
+- Halflings podem repetir um 1 no resultado de uma jogada automática. Muda só um
+  dado, uma vez, mantém o modo e os outros dados, aceita a nova face e atualiza
+  o crítico da arma. Não consome inspiração novamente nem afeta o d20 rápido/
+  pool livre. Troca de ficha/espaço, edição ou outra rolagem invalida a opção.
+- Concentração, morte e Fúria Implacável permitem confirmar a intenção de usar
+  Sortudo antes do dado virtual e da aplicação do resultado. Físico registra a
+  face final; cancelar e OFF preservam o contrato anterior.
+- Rolador extraído para `src/rules/dice-roll.ts`, mantendo os campos de resultado
+  existentes. Sem alterações no SVG, auras, física/gestos, dados salvos ou SQL.
+  O talento Sortudo de três pontos e os demais gastos/rerrolagens continuam em
+  R2; a auditoria e a retomada registram o recorte, sem concluir a etapa.
+- R1 integrada em `develop` pela PR #17 (`445939d`), após autorização e CI
+  completa aprovada: 395 testes Node, build/tipos, 26 roteiros Chromium, banco
+  descartável e auditoria de dependências. Produção permanece em `27b3083`.
+- Verificação desta entrega: 404 testes Node, tipos/build e 27 roteiros Chromium
+  completos aprovados no mesmo artefato, incluindo crítico, inspiração,
+  concentração/morte/Fúria Implacável, cancelamento/estado obsoleto,
+  físico/OFF/Só Pool, layouts/temas/320px/GG/toque e offline/notas.
+  Capturas conferidas, 62 links locais válidos e zero vulnerabilidades de
+  produção. Sem SQL/RLS/RPC; banco não repetido localmente.
+
 ### Bônus passivos de CA, perícias, pacto e linhagem — 2026-10-21
 
 - Ambidestro soma +1 à CA calculada após confirmar duas armas empunhadas nos

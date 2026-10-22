@@ -4,6 +4,7 @@ import { arcaneWardPoints, previewTypedDamage, typedDamageSummary } from './dama
 import { previewSurvival, survivalOptions, type SurvivalChoice } from './survival';
 import { consumeInspiration, deathSaveBonus, deathStatus, hitDiceRemaining, hitPointMaximum, inspirationRollMode, resolveDeathSave, returnToLife, songOfRestDie, spendHitDie, stabilize, validateHitDie } from './health';
 import { ability, active, escape, state, type Engine, type Sheet } from './model';
+import { hasHalflingLuck } from './dice-roll';
 
 const tip=(name:string,text:string)=>`tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name,text}))}"`;
 const action=(id:string,label:string,disabled=false,attrs='')=>`<button type="button" data-health-action="${id}" ${disabled?'disabled':''} ${attrs}>${label}</button>`;
@@ -28,8 +29,8 @@ export function damageDescription(c:Sheet,result:Sheet,amount:number,critical=fa
 /** O diálogo só decide a origem da rolagem. Mutação e gasto acontecem depois
  * da confirmação, revalidando a ficha e todos os resultados. */
 export function dieSourceControls(sides:number) {
-  const host=window as any;
-  return `<label>Dados <select data-health-source><option value="physical">Registrar dado físico</option><option value="virtual" ${host.ruleDiceSettings().enabled?'':'disabled'}>Rolar dado virtual</option></select></label><label data-health-face-label>Face do d${sides} <input type="number" min="1" max="${sides}" step="1" data-health-face></label>`;
+  const host=window as any,luck=sides===20 && hasHalflingLuck(host.getChar());
+  return `<label>Dados <select data-health-source><option value="physical">Registrar dado físico</option><option value="virtual" ${host.ruleDiceSettings().enabled?'':'disabled'}>Rolar dado virtual</option></select></label><label data-health-face-label>Face ${luck?'final ':''}do d${sides}${luck?' (após Sortudo, se usado)':''} <input type="number" min="1" max="${sides}" step="1" data-health-face></label>${luck?'<label class="rule-check" data-health-luck-label><input type="checkbox" data-health-luck><span>Sortudo racial · repetir um 1, uma única vez, no dado virtual</span></label>':''}`;
 }
 export function chooseDieSource(controls:HTMLElement) {
   const host=window as any,source=controls.querySelector<HTMLSelectElement>('[data-health-source]')!;
@@ -37,6 +38,8 @@ export function chooseDieSource(controls:HTMLElement) {
   const update=()=>{
     const virtual=source.value==='virtual',face=controls.querySelector<HTMLInputElement>('[data-health-face]')!;
     controls.querySelector<HTMLElement>('[data-health-face-label]')!.hidden=virtual;face.disabled=virtual;face.required=!virtual;
+    const luck=controls.querySelector<HTMLInputElement>('[data-health-luck]');
+    if(luck) {luck.disabled=!virtual;controls.querySelector<HTMLElement>('[data-health-luck-label]')!.hidden=!virtual;}
   };
   source.addEventListener('change',update);update();
 }
@@ -64,7 +67,7 @@ async function chooseDamageSurvival(c:Sheet,received:number,form:HTMLElement,E:E
   const d=details(),virtual=controls.querySelector<HTMLSelectElement>('[data-health-source]')!.value==='virtual';
   const choice:SurvivalChoice={kind:'rage',natural:virtual?1:Number(controls.querySelector<HTMLInputElement>('[data-health-face]')!.value),extraBonus:Number(controls.querySelector<HTMLInputElement>('[data-survival-extra]')!.value),fallbackEndurance:!!controls.querySelector<HTMLInputElement>('[data-survival-fallback]')?.checked};
   previewSurvival(c,received,choice); // Valida antes de rolar ou gastar qualquer coisa.
-  if(virtual)choice.natural=host.rollRuleDie(20,'Fúria Implacável',d.mode);
+  if(virtual)choice.natural=host.rollRuleDie(20,'Fúria Implacável',d.mode,{type:'save'},!!controls.querySelector<HTMLInputElement>('[data-health-luck]')?.checked);
   return {choice,description:previewSurvival(c,received,choice)!.description,inspired:d.inspired};
 }
 export function setupHealthUI(E:Engine,save:(description:string)=>void) {
@@ -147,7 +150,7 @@ export function setupHealthUI(E:Engine,save:(description:string)=>void) {
         const virtual=controls.querySelector<HTMLSelectElement>('[data-health-source]')!.value==='virtual',bonus=Number(controls.querySelector<HTMLInputElement>('[data-health-bonus]')!.value),face=Number(controls.querySelector<HTMLInputElement>('[data-health-face]')!.value);
         resolveDeathSave(structuredClone(c),virtual?10:face,bonus);
         const mode=inspirationRollMode(c,controls.querySelector<HTMLSelectElement>('[data-health-mode]')!.value as 'normal'|'adv'|'dis');
-        const natural=virtual?host.rollRuleDie(20,'Teste contra a morte',mode):face;
+        const natural=virtual?host.rollRuleDie(20,'Teste contra a morte',mode,{type:'save'},!!controls.querySelector<HTMLInputElement>('[data-health-luck]')?.checked):face;
         const result=resolveDeathSave(c,natural,bonus),inspired=consumeInspiration(c);
         save(`Teste contra a morte: d20 ${natural}, total ${result.total} · ${result.outcome}${inspired?' · usou inspiração':''}`);host.showToast(result.outcome);return;
       }

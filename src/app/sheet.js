@@ -16,6 +16,7 @@ import { consumeInspiration, deathStatus, healHitPoints, inspirationRollMode } f
 import { damageDescription, deathControls, hitDiceControls, inspirationControls } from '../rules/health-ui';
 import { offerSurvivalForDamage } from '../rules/damage-ui';
 import { parseDiceFormula } from '../rules/dice-formula';
+import { evaluateDicePool, sheetD20Rules, canRerollHalfling, rerollHalfling } from '../rules/dice-roll';
 import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponDamageLabel } from '../rules/weapon-damage-ui';
 import { applyCastConcentration, concentration, concentrationBlock, incapacityReason, needsConcentrationConfirmation, spellConcentration, validateConcentrationStart } from '../rules/concentration';
 import { concentrationControls } from '../rules/concentration-ui';
@@ -531,6 +532,7 @@ let currentFontScale = parseInt(
 let diceMode = readPreference("dnd_dice_mode") || "auto";
 let currentRollMode = "normal"; // 'normal' | 'adv' | 'dis'
 let diceRollSequence = 0; // Impede uma animação antiga de sobrescrever o último lançamento.
+let pendingHalflingRoll = null;
 // Migra somente a preferência visual antiga; fichas e resultados não mudam.
 let diceTrayDimensions = readDiceTrayDimensions();
 let diceTrayMinimized = true;
@@ -1057,45 +1059,7 @@ function updatePoolDisplay() {
   }
 }
 
-// Livro do Jogador, cap. 7: o teste usa o maior/menor de dois d20.
-// O primeiro d20 representa o teste; bônus como Bênção e dados extras rolam uma vez.
-function evaluateDicePool(counts, modifier, mode) {
-  const entries = Object.entries(counts).filter(([_, count]) => count > 0);
-  entries.sort(([a], [b]) => Number(b) - Number(a));
-  let total = 0;
-  let d20Natural = null;
-  const breakdown = [];
-  const appliedMode = counts[20] > 0 && ["adv", "dis"].includes(mode) ? mode : "normal";
-  const rollDie = sides => Math.floor(Math.random() * sides) + 1;
-  entries.forEach(([sidesStr, count]) => {
-    const sides = Number(sidesStr);
-    if (sides === 20 && appliedMode !== "normal") {
-      const first = rollDie(20), second = rollDie(20);
-      d20Natural = appliedMode === "adv" ? Math.max(first, second) : Math.min(first, second);
-      total += d20Natural;
-      breakdown.push(`d20 [${first}, ${second}] → ${appliedMode === "adv" ? "maior" : "menor"}: ${d20Natural}`);
-      for (let i = 1; i < count; i++) {
-        const extra = rollDie(20);
-        total += extra;
-        breakdown.push(`d20 extra [${extra}]`);
-      }
-    } else {
-      const rolls = [];
-      for (let i = 0; i < count; i++) {
-        const value = rollDie(sides);
-        rolls.push(value);
-        total += value;
-        if (sides === 20 && d20Natural === null) d20Natural = value;
-      }
-      breakdown.push(`${count}d${sides}[${rolls.join("+")}]`);
-    }
-  });
-  total += modifier;
-  if (modifier !== 0) breakdown.push(modifier > 0 ? `+${modifier}` : `${modifier}`);
-  return { total, d20Natural, breakdown, appliedMode };
-}
-
-function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligible = true, minimumZero = false) {
+function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligible = true, minimumZero = false, context = null) {
   const cube = document.getElementById("dice3dCube");
   const resultBox = document.getElementById("dice3dResultText");
   if (!cube || !resultBox) return;
@@ -1116,18 +1080,22 @@ function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligib
   // animação só vale para o próximo lançamento, nunca para o que já foi feito.
   const c=getChar(),inspired=inspirationEligible && !!c && dicePoolCounts[20]===1 && c.heroicInspiration && c.ruleState?.inspirationReady;
   const mode=inspired?inspirationRollMode(c,currentRollMode):currentRollMode;
-  const result = evaluateDicePool(dicePoolCounts, modVal, mode);
+  const result = evaluateDicePool(dicePoolCounts, modVal, mode,c?sheetD20Rules(c,context,CharacterEngine):{});
   if(minimumZero)result.total=Math.max(0,result.total);
   if(inspired && consumeInspiration(c)) saveRuleStep('Usou inspiração no d20 · '+(customLabel || 'pool'));
-  presentDiceResult(result, customLabel);
+  presentDiceResult(result, customLabel,context?{c,context}:null);
+  if(canRerollHalfling(result) && diceTrayMinimized)showToast('Sortudo racial disponível: abra o dado para repetir um 1.');
   return result;
 }
 // Ações com resultado aplicado aos PV usam o mesmo motor/animação, sem alterar
 // o pool manual. OFF sempre exige registrar a face do dado físico.
 function ruleDiceSettings() { return {enabled:diceMode!=='off',automatic:diceMode==='auto',mode:currentRollMode}; }
-function rollRuleDie(sides,label,mode='normal') {
+function rollRuleDie(sides,label,mode='normal',context=null,repeatOne=false) {
   if(diceMode==='off') throw new Error('Dados virtuais desativados: registre o resultado do dado físico.');
-  const result=evaluateDicePool({[sides]:1},0,mode);
+  let result=evaluateDicePool({[sides]:1},0,mode,sheetD20Rules(getChar(),context,CharacterEngine));
+  // Estes testes aplicam o resultado imediatamente aos PV/concentração. A
+  // escolha é confirmada no diálogo antes da rolagem, nunca após a mutação.
+  if(repeatOne && canRerollHalfling(result))result=rerollHalfling(result);
   presentDiceResult(result,label);return result.total;
 }
 // Dano contextual usa a bandeja/animação, preservando o pool manual e sem
@@ -1143,18 +1111,23 @@ function rollQuickD20() {
   // Só o d20 usa o modo escolhido; pool, bônus e inspiração ficam preservados.
   presentDiceResult(evaluateDicePool({20: 1}, 0, currentRollMode), "d20 rápido");
 }
-function presentDiceResult(result, customLabel) {
+function presentDiceResult(result, customLabel, rerollContext = null) {
   const cube = document.getElementById("dice3dCube");
   const resultBox = document.getElementById("dice3dResultText");
   const rollSequence = ++diceRollSequence;
+  pendingHalflingRoll = rerollContext && canRerollHalfling(result)?{
+    ...rerollContext,result,label:customLabel,sequence:rollSequence,
+    workspace:currentWorkspaceKey(),snapshot:JSON.stringify(rerollContext.c),
+  }:null;
   cube.classList.add("dice-3d-rolling");
   document.getElementById("diceDock").classList.add("dice-dock-rolling");
 
   setTimeout(() => {
     if (rollSequence !== diceRollSequence) return;
     cube.classList.remove("dice-3d-rolling");
-    cube.textContent = result.total;
     document.getElementById("diceDock").classList.remove("dice-dock-rolling");
+    if(rerollContext && getChar()!==rerollContext.c)return;
+    cube.textContent = result.total;
     diceDock?.result(result.total);
     const trayTotal = document.getElementById("diceTrayTotal");
     if (trayTotal) {
@@ -1162,7 +1135,7 @@ function presentDiceResult(result, customLabel) {
       trayTotal.title = `${customLabel ? `${customLabel} · ` : ""}Último total: ${result.total}`;
     }
     const isCrit = result.d20Natural === 20;
-    const isFumble = result.d20Natural === 1;
+    const isFumble = result.d20Natural === 1 && !result.rules?.reliableTalent;
     const modeLabel = { normal: "Normal", adv: "Vantagem", dis: "Desvantagem" }[result.appliedMode];
 
     resultBox.innerHTML = `
@@ -1174,8 +1147,26 @@ function presentDiceResult(result, customLabel) {
       ${isFumble ? '<span class="ml-1 px-1.5 py-0.5 rounded bg-rose-900 text-white text-[10px]">1 NATURAL!</span>' : ""}
     </div>
     <div class="text-[11px] t-text-muted leading-tight">${result.breakdown.join(" + ")}</div>
+    ${pendingHalflingRoll?.sequence===rollSequence?'<button type="button" class="dice-context-action t-btn-primary px-2 py-1 rounded" data-dice-halfling-luck onclick="rerollHalflingD20()">Sortudo racial · repetir um 1</button>':''}
   `;
   }, 380);
+}
+
+function rerollHalflingD20() {
+  const pending=pendingHalflingRoll;
+  if(!pending)return;
+  if(diceMode!=='auto' || pending.sequence!==diceRollSequence || currentWorkspaceKey()!==pending.workspace || getChar()!==pending.c || JSON.stringify(pending.c)!==pending.snapshot) {
+    pendingHalflingRoll=null;
+    document.querySelector('[data-dice-halfling-luck]')?.remove();
+    showToast('A ficha ou a jogada mudou. Sortudo não foi aplicado ao resultado antigo.');return;
+  }
+  pendingHalflingRoll=null; // Um duplo clique nunca repete a nova face.
+  const result=rerollHalfling(pending.result),weapon=pending.context.weapon;
+  if(weapon) {
+    const index=pending.c.weapons.indexOf(weapon),stats=CharacterEngine.weaponStats(pending.c,weapon);
+    if(index>=0 && stats)setWeaponCriticalPrepared(pending.c,index,CharacterEngine,result.d20Natural>=(stats.critical || 20));
+  }
+  presentDiceResult(result,pending.label);
 }
 
 // Disparo automático vindo da ficha (só executa se diceMode === 'auto'!)
@@ -1201,7 +1192,7 @@ function triggerSheetRoll(formula, label, inspirationEligible = false, context =
   const modEl = document.getElementById("dicePoolModInput");
   if (modEl) modEl.value = parsed.modifier;
   updatePoolDisplay();
-  return rollCurrentPool(label, true, inspirationEligible,context?.type==='damage');
+  return rollCurrentPool(label, true, inspirationEligible,context?.type==='damage',context);
 }
 
 // =========================================================================
@@ -1746,7 +1737,7 @@ function renderSpellsToolbar(char) {
 // 8. ABA 1 & ABA 3
 // =========================================================================
 function renderSkillAdjustment(char,sk,val,label) {
-  return `<div class="sheet-skill-value">${sheetInput(char,`customSkillBonuses.${sk.id}`,char.customSkillBonuses?.[sk.id]??'',`Bônus total de ${label}`,'number',{min:-1000,max:1000,placeholder:fmtMod(val)})}<button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Perícia: ${label}', true)" aria-label="Rolar ${label}" class="t-text-accent"><i data-lucide="dices" class="w-3 h-3" aria-hidden="true"></i></button><button type="button" data-sheet-expertise="${sk.id}" aria-pressed="${char.expertise?.includes(sk.id)}" title="Especialização: proficiência dobrada" aria-label="Especialização em ${label}" ${canConfigureSheet(char)?'':'disabled'}>${char.expertise?.includes(sk.id)?'×2':'×1'}</button></div>`;
+  return `<div class="sheet-skill-value">${sheetInput(char,`customSkillBonuses.${sk.id}`,char.customSkillBonuses?.[sk.id]??'',`Bônus total de ${label}`,'number',{min:-1000,max:1000,placeholder:fmtMod(val)})}<button onclick="triggerSheetRoll('1d20${fmtMod(val)}', 'Perícia: ${label}', true, {type:'check',skill:'${sk.id}'})" aria-label="Rolar ${label}" class="t-text-accent"><i data-lucide="dices" class="w-3 h-3" aria-hidden="true"></i></button><button type="button" data-sheet-expertise="${sk.id}" aria-pressed="${char.expertise?.includes(sk.id)}" title="Especialização: proficiência dobrada" aria-label="Especialização em ${label}" ${canConfigureSheet(char)?'':'disabled'}>${char.expertise?.includes(sk.id)?'×2':'×1'}</button></div>`;
 }
 function renderPassiveSkill(char,sk) {
   if(!['percepcao','investigacao'].includes(sk.id))return '';
@@ -1763,7 +1754,7 @@ function renderMainClassic2014(char) {
       return `
     <div class="sheet-ability-card t-card-accent p-2.5 text-center flex flex-col items-center justify-center">
       <span class="text-[10px] font-bold uppercase tracking-wider t-text-muted">${meta.name}</span>
-      <button onclick="triggerSheetRoll('1d20${fmtMod(mod)}', 'Teste de ${meta.name}', true)" class="text-2xl font-extrabold t-text-main my-0.5 hover:scale-110 transition">
+      <button onclick="triggerSheetRoll('1d20${fmtMod(mod)}', 'Teste de ${meta.name}', true, {type:'check'})" class="text-2xl font-extrabold t-text-main my-0.5 hover:scale-110 transition">
         ${fmtMod(mod)}
       </button>
       <div class="flex items-center gap-1 t-inset px-2 py-0.5 rounded-full text-xs">
@@ -1860,7 +1851,7 @@ function renderMainModern2024(char) {
             <button onclick="changeAbility('${key}', 1)" class="px-1.5 t-inset rounded font-bold">+</button>
           </div>
         </div>
-        <button onclick="triggerSheetRoll('1d20${fmtMod(mod)}', 'Teste de ${meta.name}', true)" class="t-inset rounded-lg px-3 py-1 text-center hover:scale-105 transition">
+        <button onclick="triggerSheetRoll('1d20${fmtMod(mod)}', 'Teste de ${meta.name}', true, {type:'check'})" class="t-inset rounded-lg px-3 py-1 text-center hover:scale-105 transition">
           <span class="text-[9px] uppercase t-text-muted block">Mod</span>
           <span class="text-xl font-extrabold t-text-accent">${fmtMod(mod)}</span>
         </button>
@@ -1943,7 +1934,7 @@ function renderCombatBlock(char) {
               ${char.mageArmorActive ? `Arcana: CA ${getMageArmorAC(char)}` : "Ativar Arcana"}
             </button>` : ''}
           </div>
-          <button onclick="triggerSheetRoll('1d20${fmtMod(dexMod)}', 'Iniciativa', true)" class="combat-stat t-inset p-2 rounded-lg hover:scale-105 transition">
+          <button onclick="triggerSheetRoll('1d20${fmtMod(dexMod)}', 'Iniciativa', true, {type:'check'})" class="combat-stat t-inset p-2 rounded-lg hover:scale-105 transition">
             <span class="text-[10px] uppercase t-text-muted block">Iniciativa</span>
             <span class="combat-stat-value">${fmtMod(dexMod)}</span>
           </button>
@@ -2679,7 +2670,7 @@ function rollWeapon(index, kind) {
     showToast("Fórmula inválida. Corrija o ataque antes de rolar.");
     return;
   }
-  const result=triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}`,kind==='attack',kind==='attack'?{type:'attack'}:null);
+  const result=triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}`,kind==='attack',kind==='attack'?{type:'attack',weapon:entry}:null);
   // Usa o resultado resolvido neste clique, nunca o texto da animação ou o
   // total com bônus. Só ataques reais em Auto Ficha atualizam esta preparação.
   if(kind==='attack' && result && c===getChar() && c.weapons[index]===entry)
@@ -2853,6 +2844,8 @@ function setTab(tab) {
 }
 function switchCharacter(idx) {
   hideBookTooltip();
+  pendingHalflingRoll=null;
+  document.querySelector('[data-dice-halfling-luck]')?.remove();
   activeCharIndex = parseInt(idx, 10);
   restoreSavedHistory();
   renderAll();
@@ -3277,6 +3270,7 @@ Object.assign(window, {
   updatePoolDisplay,
   evaluateDicePool,
   rollCurrentPool,
+  rerollHalflingD20,
   rollQuickD20,
   triggerSheetRoll,
   openAuthAccountModal,

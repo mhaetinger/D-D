@@ -13,19 +13,21 @@ A versão funcional foi publicada em **https://criticall.art/** pelas
 | Referência | Estado conferido em 21/10/2026 |
 | --- | --- |
 | Produção `main` | `27b30832bf94cd88805cdd1faced6dc00316ff67` |
-| Integração `develop` | `61d8ded`, documentação integrada pela PR #16; código funcional igual à produção |
+| Integração `develop` | `445939d`, R1 integrada pela PR #17; contém mudanças funcionais ainda não publicadas |
 | Revisão offline publicada | `4e263eb66b70d44f` |
 | Verificação/publicação | [Workflow 39638188104](https://github.com/mhaetinger/D-D/actions/runs/39638188104), concluído com sucesso |
-| Trabalho seguinte | R1 implementada e verificada, em revisão; próxima implementação R2 |
-| Branch da tarefa | `feature/bonus-passivos-r1`, criada de `develop` público após a PR #16 |
-| Implementação R1 verificada | `8bcab7dfcaa5750e512264a8ef43b8ebffcb6748`; testes e limites na auditoria |
+| Trabalho atual | Primeiro recorte de R2 verificado localmente e em revisão na [PR #18](https://github.com/mhaetinger/D-D/pull/18); conferir CI antes de integrar |
+| Branch da tarefa | `feature/rolagens-condicionais-r2`, criada de `develop` público após a PR #17 |
+| R1 integrada | `8bcab7dfcaa5750e512264a8ef43b8ebffcb6748`; [PR #17](https://github.com/mhaetinger/D-D/pull/17) e CI completa aprovadas, testes/limites na auditoria |
+| Implementação R2 inicial verificada | `ba4a182`; 404 testes Node, tipos/build e 27 roteiros Chromium locais aprovados; CI/integração da PR #18 a conferir |
 
-A organização documental anterior foi integrada em `develop`. O responsável
-autorizou continuar a sequência; **R1 — bônus ausentes nos cálculos** está
-implementada e verificada no recorte descrito, com limites registrados na
+A organização documental e **R1 — bônus ausentes nos cálculos** foram integradas
+em `develop`. O responsável autorizou continuar a sequência. O primeiro recorte
+de **R2 — rolagens e gastos condicionais** implementa Talento Confiável nas
+perícias e Sortudo racial nos d20 contextuais, com limites registrados na
 [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md#roteiro-de-implementação).
-A próxima implementação é **R2 — rolagens e gastos condicionais**. As matrizes
-e os critérios de conclusão ficam naquele arquivo. Não
+O próximo recorte inclui o talento Sortudo (distinto da raça) e os demais
+gastos/rerrolagens de R2. As matrizes e os critérios ficam naquele arquivo. Não
 marcar uma mecânica como concluída por ter descrição, escolha ou contador.
 
 ## Como continuar
@@ -45,7 +47,7 @@ na máquina original.
 
 Em um clone existente, confira `git status`, preserve trabalho pendente e faça
 `git fetch origin`. Para continuar esta entrega ainda não integrada,
-use `feature/bonus-passivos-r1`. Para uma tarefa nova, parta do
+use `feature/rolagens-condicionais-r2`. Para uma tarefa nova, parta do
 `develop` público atualizado e crie `feature/*` ou `fix/*`. Entregue por PR para
 `develop`; após revisão e aprovação, PR para `main`. Não fazer push direto à
 `main`, enviar tags extras ou mesclar o histórico privado do protótipo.
@@ -55,7 +57,8 @@ Texto para iniciar outra conversa:
 > Continue o CritCall. Leia AGENTS.md, docs/RETOMADA.md, README.md,
 > CHANGELOG.md e docs/ARQUITETURA.md. Confira a branch e o estado do Git.
 > O roteiro atual de regras está em docs/AUDITORIA-LIVRO-2014.md. Confira
-> primeiro a entrega R1 e suas verificações/PR; a próxima implementação é R2.
+> primeiro a PR #18 da entrega inicial de R2 e suas verificações; depois continue os
+> gastos/rerrolagens restantes de R2. Não confundir Sortudo racial com o talento.
 
 ## Mapa dos documentos
 
