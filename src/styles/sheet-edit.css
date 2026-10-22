@@ -44,3 +44,21 @@ div:has(> .sheet-skill-value) > div:first-child { min-width:0; overflow-wrap:any
 @media print { #sheetEditLock { display:none; } }
 [onclick="openLevelUpModal()"]:disabled { opacity:.55; }
 .spell-preparation label[title],.import-review .import-check[title] { cursor:help; }
+/* Ficha e importação compartilham a mesma hierarquia: cadastro, origem,
+ * disponibilidade e ajustes opcionais. A distinção não depende só de cor. */
+.spell-fields { display:grid; gap:.8rem; min-width:0; }
+.import-review .spell-fields .spell-field-group { margin:0; padding:.65rem .8rem .8rem; border:1px solid var(--border-main); border-left:3px solid var(--text-accent); background:var(--bg-inset); border-radius:.45rem; }
+.spell-fields .spell-field-group > legend { padding:0 .35rem; color:var(--text-accent); font-weight:700; }
+.spell-fields .import-grid { margin:.2rem 0; grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr)); }
+.spell-fields .spell-field-hint { margin:.35rem 0 0; font-size:.9375rem; line-height:1.45; }
+.spell-fields .spell-preparation { display:grid; gap:.5rem; }
+.spell-fields .spell-preparation .spell-field-hint { margin:0; }
+.import-review .spell-fields > details { margin:0; padding:.65rem .8rem; background:var(--bg-card); }
+.spell-fields details[open] > summary { padding-bottom:.45rem; border-bottom:1px solid var(--border-main); }
+.spell-fields .spell-origin-choices { display:flex; flex-wrap:wrap; gap:.5rem; margin:.65rem 0; }
+.spell-origin-choices button[aria-pressed=true] { border:2px solid var(--text-main); background:var(--text-accent); color:var(--btn-primary-text,#fff); font-weight:700; }
+.import-review .spell-fields [data-spell-origin-details] { padding:0; border:0; margin:0; }
+.import-review .spell-fields [data-spell-origin-details][open] { padding-top:.4rem; }
+.import-review .import-spell-card > details { padding:0; border:0; border-top:1px solid var(--border-main); border-radius:0; }
+.import-review .import-spell-card > details > summary { padding:.65rem 0; margin:0; }
+.import-review .import-spell-card > details[open] > summary { margin-bottom:.3rem; }

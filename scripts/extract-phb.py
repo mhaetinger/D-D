@@ -87,6 +87,7 @@ for segment in segments:
 # Seções locais para consulta das características, sem depender de serviços externos.
 # O número do rodapé é o impresso; pdfPage é sempre o índice correto para #page=.
 references=[]
+race_parts=[]
 active=None
 for page in range(16,172):
     footer=crop(page,0,780,600,61)
@@ -95,7 +96,9 @@ for page in range(16,172):
     for x in [33,304]:
         # A última linha do corpo chega a y=795. Cortar em 780 removia finais
         # de regras (ex.: Ataque de Precisão e Passo Evasivo). O rodapé fica fora.
-        lines=crop(page,x,45,263,753).splitlines()
+        part=crop(page,x,45,263,753)
+        if page<=43: race_parts.append((page,printed,part))
+        lines=part.splitlines()
         for line in lines:
             title=line.strip()
             if len(title)>=3 and re.match(r'^[A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇ0-9 ,:–’º°()/+\-]+$',title) and len(title)<90:
@@ -108,16 +111,33 @@ for page in range(16,172):
                 references.append(active)
             elif active is not None: active['lines'].append(line)
 for ref in references: ref['text']='\n'.join(ref.pop('lines')).strip()
-# Estes traços são títulos em negrito dentro de parágrafos, não cabeçalhos em
-# maiúsculas. No meio-elfo, um quadro lateral interrompe o cabeçalho da raça;
-# consultar o bloco inteiro devolvia a introdução narrativa em vez da regra.
-for page,printed,next_trait in [(22,23,'Transe'),(38,39,'Versatilidade em Perícia')]:
-    text='\n'.join(crop(page,x,45,263,753) for x in [33,304])
-    match=re.search(r'Ancestral Feérico\.\s*(.*?)(?=\n\s*'+next_trait+r'\.)',text,re.S)
-    assert match, ('Ancestral Feérico não encontrado',page)
-    body=re.sub(r'\s+',' ',match.group(1)).strip()
-    assert len(body)<350, ('Parágrafo racial misturado',page)
-    references.append({'name':'Ancestral Feérico','id':'ancestral-feerico','pdfPage':page,'page':printed,'text':body})
+# Traços raciais em negrito são parágrafos, não cabeçalhos em maiúsculas.
+# Captura todos os nomes usados pelas raças e seus rótulos básicos, inclusive
+# continuações entre colunas. Um quadro lateral não vira o texto de outro traço.
+races=json.loads(subprocess.check_output(['node','-e',
+    "process.stdout.write(JSON.stringify(require(process.argv[1]).races))",
+    str(ROOT/'public'/'rules'/'phb2014-options.js')],text=True))
+names={key(re.sub(r'\s*\([^)]*\)','',name)):re.sub(r'\s*\([^)]*\)','',name)
+       for race in races.values() for name in race['traits']}
+for label in ['Aumento no Valor de Habilidade','Idade','Tendência','Tamanho',
+              'Deslocamento','Idiomas','Sub-raça','Sub-raças','Perícia','Ilusionista Nato']:
+    names[key(label)]=label
+joined=''; parts=[]
+for page,printed,text in race_parts:
+    parts.append((len(joined),len(joined)+len(text),page,printed))
+    joined+=text+'\n'
+labels='|'.join('\\s+'.join(re.escape(word) for word in name.split()) for name in sorted(names.values(),key=len,reverse=True))
+paragraphs=list(re.finditer(r'(?im)^[ \t]*('+labels+r')[.:]\s*',joined))
+headings=list(re.finditer(r'(?m)^[ \t]*[A-ZÁÀÂÃÉÊÍÓÔÕÚÇ][A-ZÁÀÂÃÉÊÍÓÔÕÚÇ0-9 ,:–’º°()/+\-]{2,88}[ \t]*$',joined))
+boundaries=sorted({m.start() for m in paragraphs+headings})
+for match in paragraphs:
+    end=next((n for n in boundaries if n>match.start()),len(joined))
+    body=re.sub(r'\s+',' ',joined[match.end():end]).strip()
+    if not body: continue
+    page,printed=next((page,printed) for start,stop,page,printed in parts if start<=match.start()<stop)
+    label=names[key(re.sub(r'\s+',' ',match.group(1)))]; ident=key(label)
+    assert len(body)<8000, ('Parágrafo racial misturado',label,page)
+    references.append({'name':label,'id':ident,'pdfPage':page,'page':printed,'text':body,'kind':'race'})
 refout=ROOT/'public'/'rules'/'phb2014-references.js'
 refout.write_text('// Gerado do PDF local. Referências de consulta, não regras executáveis.\n(function(root){const data='+json.dumps(references,ensure_ascii=False,separators=(',',':'))+';if(typeof module!=="undefined")module.exports=data;else root.PHB_REFERENCES=data;})(globalThis);\n')
 

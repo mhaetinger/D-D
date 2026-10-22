@@ -154,7 +154,24 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     await c.page.evaluate(c=>localStorage.setItem('critcall_characters_v1',JSON.stringify({schemaVersion:1,characters:[c]})),guest);
     await c.page.reload({waitUntil:'networkidle'});await c.login();
     await c.page.locator('#confirmationDialog').waitFor({state:'visible'});
+    assert.equal(await c.page.locator('#confirmationDialog button[value="cancel"]').innerText(),'Não quero');
     await c.page.locator('#confirmationDialog button[value="cancel"]').click();
+    await c.page.waitForFunction(()=>document.querySelector('#guestImportStatus').textContent.includes('continuam neste navegador'));
+    // A recusa vale para a conta/navegador, mesmo com novo conteúdo local.
+    const localBytes=await c.page.evaluate(()=>localStorage.getItem('critcall_characters_v1'));
+    for(let reload=0;reload<2;reload++){
+      await c.page.evaluate(()=>{const data=JSON.parse(localStorage.getItem('critcall_characters_v1'));data.characters[0].name+=' editada';localStorage.setItem('critcall_characters_v1',JSON.stringify(data));localStorage.setItem('dnd_player_private_notes_v1',JSON.stringify({[data.characters[0].id]:'Nota depois da recusa'}));});
+      await c.page.reload({waitUntil:'networkidle'});await c.page.waitForFunction(()=>document.querySelector('#guestImportStatus').textContent.includes('optou por manter'));
+      assert.equal(await c.page.locator('#confirmationDialog').isVisible(),false);assert.equal(await c.page.locator('#toast').isVisible(),false,'não repete a recusa como toast');
+    }
+    await c.page.evaluate(()=>openAuthAccountModal());await c.page.getByRole('button',{name:'Retomar fichas sem conta',exact:true}).click();
+    await c.page.locator('#confirmationDialog').waitFor({state:'visible'});await c.page.locator('#confirmationDialog button[value="cancel"]').click();
+    await c.page.waitForFunction(()=>document.querySelector('#guestImportStatus').textContent.includes('continuam neste navegador'));
+    const preserved=await c.page.evaluate(()=>({sheets:localStorage.getItem('critcall_characters_v1'),notes:localStorage.getItem('dnd_player_private_notes_v1')}));
+    assert.notEqual(preserved.sheets,localBytes);assert.match(preserved.notes,/Nota depois da recusa/);
+    await c.page.evaluate(()=>openAuthAccountModal());await c.page.locator('#accountSignOut').click();await c.page.waitForFunction(()=>!document.querySelector('#accessScreen').hidden);await c.login();
+    await c.page.waitForFunction(()=>document.querySelector('#guestImportStatus').textContent.includes('optou por manter'));assert.equal(await c.page.locator('#confirmationDialog').isVisible(),false);
+    assert.deepEqual(await c.page.evaluate(()=>({sheets:localStorage.getItem('critcall_characters_v1'),notes:localStorage.getItem('dnd_player_private_notes_v1')})),preserved);
     await c.sync(); assert.equal(await c.page.evaluate(()=>characters.length),2,'cancelar mantém só fichas existentes');
     assert.equal(await c.page.evaluate(()=>JSON.parse(localStorage.getItem('critcall_characters_v1')).characters[0].id),guest.id);
     // Uma falha de quota no destino não modifica a origem nem duplica a tentativa seguinte.
@@ -185,6 +202,20 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     assert.equal(await e.page.evaluate(()=>characters.filter(character=>character.name==='Kael').length),1);
     assert.equal(await e.page.evaluate(()=>characters.some(character=>character.name==='Outra ficha local')),false);
     assert.equal(await e.page.evaluate(()=>JSON.parse(localStorage.getItem('critcall_characters_v1')).characters.some(character=>character.name==='Kael')),true);
+    // Outra conta no mesmo navegador ainda decide por si; o botão genérico
+    // também volta a se chamar Cancelar na próxima confirmação.
+    await c.page.evaluate(()=>openAuthAccountModal());await c.page.locator('#accountSignOut').click();await c.page.waitForFunction(()=>!document.querySelector('#accessScreen').hidden);await c.login('b');
+    await c.page.locator('#confirmationDialog').waitFor({state:'visible'});assert.equal(await c.page.locator('#confirmationDialog button[value="cancel"]').innerText(),'Não quero');await c.page.locator('#confirmationDialog button[value="cancel"]').click();
+    await c.page.waitForFunction(()=>document.querySelector('#guestImportStatus').textContent.includes('continuam neste navegador'));
+    await c.page.evaluate(()=>{window.genericConfirmation=confirmDestructiveAction('Ação de teste','Confirmar?','Confirmar');});
+    await c.page.locator('#confirmationDialog').waitFor({state:'visible'});assert.equal(await c.page.locator('#confirmationDialog button[value="cancel"]').innerText(),'Cancelar');await c.page.locator('#confirmationDialog button[value="cancel"]').click();
+    // Uma confirmação que abre durante o hash adia a cópia; não representa
+    // uma recusa e não pode registrar Não quero em nome do usuário.
+    const f=await computer();await f.page.evaluate(c=>localStorage.setItem('critcall_characters_v1',JSON.stringify({schemaVersion:1,characters:[c]})),guest);await f.page.reload({waitUntil:'networkidle'});
+    await f.page.evaluate(()=>{const digest=crypto.subtle.digest.bind(crypto.subtle);crypto.subtle.digest=async(...args)=>{const result=await digest(...args);if(!window.guestDigestHeld){window.guestDigestHeld=true;await new Promise(resolve=>window.releaseGuestDigest=resolve);}return result;};});
+    await f.login();await f.page.waitForFunction(()=>window.guestDigestHeld);await f.page.evaluate(()=>{window.busyGuestConfirmation=confirmDestructiveAction('Outra confirmação','Ação de teste','Confirmar');window.releaseGuestDigest();});
+    await f.page.waitForFunction(()=>document.querySelector('#guestImportStatus').textContent.includes('edição aberta'));assert.equal(await f.page.evaluate(()=>Object.keys(localStorage).some(k=>k.endsWith('critcall_guest_import_declined_v1'))),false);
+    await f.page.locator('#confirmationDialog button[value="cancel"]').click();await f.page.getByRole('button',{name:'Retomar fichas sem conta',exact:true}).click();await f.page.locator('#confirmationDialog').waitFor({state:'visible'});assert.match(await f.page.locator('#confirmationMessage').innerText(),/já tem fichas/);await f.page.locator('#confirmationDialog button[value="cancel"]').click();
     assert.deepEqual(errors,[]);
     console.log('PASS continuidade: cadastro com confirmação PKCE/cópia/nota/rascunho/imagens, origem preservada, conta existente pergunta e acrescenta, seleção do Kael, cancelamento preserva, recarga e falha de quota sem duplicação.');
   } finally {if(browser)await browser.close();if(server)await server.close();fs.rmSync(directory,{recursive:true,force:true});}

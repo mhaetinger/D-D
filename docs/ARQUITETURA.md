@@ -136,6 +136,12 @@ clique/toque fixa o mesmo texto com origem, escolhas e livro em um popover de
 consulta. Reutiliza o estilo e a rolagem dos balões. ×, Esc e clique fora fecham;
 trocar ficha/aba/conta encerra a consulta antiga. O texto é inserido com
 `textContent`, e o link do livro usa somente página numérica validada.
+O extrator gera também parágrafos raciais em negrito, delimitados pelos demais
+traços/cabeçalhos. `reference(...,'race')` limita a busca à família racial,
+incluindo aliases de rótulos e os traços do humano variante. Antecedentes usam
+`reference(...,'background')` com o prefixo `caracteristica-` do PDF; Membro de
+Guilda corresponde a Associados da Guilda. Isso evita consultas narrativas ou
+vazias. Os 958 cabeçalhos anteriores continuam no catálogo de consulta.
 `feature-level-title` centraliza o nível entre linhas decorativas em `::before`
 e `::after`, sem acrescentar nós nem aumentar a fonte ou o espaço dos grupos.
 Os nomes dos recursos dentro de cada característica usam a escala de apoio,
@@ -248,6 +254,14 @@ nem inicia render recursivo. Falha de quota mantém o valor digitado no campo.
 bloco e conserva seus nós durante renders. Troca de ficha/espaço os encerra.
 `spell-fields.ts` fornece os mesmos campos/leitura ao cartão da ficha e à revisão
 de importação, sem acessar armazenamento/global nem criar forms aninhados.
+Os grupos Magia, Origem e Disponibilidade têm rótulos, bordas e contraste do tema.
+Preparo é contextual: truques, usos da origem e classes de magias conhecidas
+exibem seu estado, sem checkboxes diários. Ocultar não apaga valores importados.
+Sempre preparada fica nos ajustes, aberta quando já registrada. Sugestões de
+origem racial só se aplicam após clique explícito e usam os traços disponíveis
+da raça/nível; classe/raça e efeitos do catálogo permanecem conferíveis. Troca de
+raça/classes atualiza sugestões sem remontar campos. Notas seguem na própria
+magia; anotações pessoais continuam fora desse editor.
 `spell-editor.ts` valida a proposta antes de salvar, com origem/habilidade/gasto
 separados. IDs `custom_*` impedem religar uma magia própria pelo nome ao catálogo.
 Ataque/CD aceitam ajustes explícitos de −100 a 100; fórmulas usam o parser comum.
@@ -353,6 +367,13 @@ seleciona sua cópia local offline. Esse cache não é criptografado nem represe
 autorização remota. Trocas limpam histórico/interface e cancelam confirmações
 pendentes; editores abertos exigem decisão antes do fechamento. Rascunhos com
 falha de quota são preservados por espaço em memória, sem gravar na conta nova.
+Na cópia do espaço sem conta, `critcall_guest_import_declined_v1` guarda a recusa
+no armazenamento isolado da conta/navegador, fora dos documentos sincronizados.
+É conferida dentro da trava antes de ler/copiar a origem ou abrir confirmação.
+Recarga, novo login e mudanças do conteúdo local não repetem a pergunta nem o
+toast. Somente Retomar fichas sem conta remove essa preferência e permite nova
+decisão. Identidade válida é rechecada após a confirmação; falha de escrita não
+é anunciada como preferência salva. Nenhum original/cache é removido.
 
 A branch implementa sincronização pessoal: fichas, notas privadas separadas,
 perfil, preferências, histórico/checkpoints e recuperação. A migração define

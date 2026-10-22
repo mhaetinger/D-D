@@ -623,12 +623,13 @@ function escapeHTML(value) {
   })[char]);
 }
 
-function confirmDestructiveAction(title, message, label = "Excluir", extra = null) {
+function confirmDestructiveAction(title, message, label = "Excluir", extra = null, options = {}) {
   const dialog = document.getElementById("confirmationDialog");
   if (dialog.open) return Promise.resolve(false);
   document.getElementById("confirmationTitle").textContent = title;
   document.getElementById("confirmationMessage").textContent = message;
   document.getElementById("confirmationAccept").textContent = label;
+  dialog.querySelector('button[value="cancel"]').textContent = options.cancelLabel || 'Cancelar';
   const extraHost = document.getElementById("confirmationExtra");
   extraHost.replaceChildren();
   extraHost.hidden = !extra;

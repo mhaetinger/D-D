@@ -63,12 +63,18 @@ identidade validada correspondente pode receber as cópias. Uma consulta remota
 precisa confirmar se já há fichas: conta vazia recebe automaticamente; com
 várias fichas locais, a entrada permite selecionar quais serão copiadas e
 pré-seleciona uma ficha chamada Kael quando ela existe; conta existente exige
-escolher “Salvar como novas”. Cancelar mantém apenas a origem.
+escolher “Salvar como novas”. **Não quero** mantém a origem e registra a recusa
+para aquela conta/navegador. Não volta a perguntar em recargas, novos logins ou
+edições das fichas sem conta. **Retomar fichas sem conta**, no Perfil, remove a
+recusa e oferece a decisão novamente. Outra conta tem sua própria escolha.
 
 `src/auth/guest-import.ts` usa uma trava Web Locks por destino, impressão SHA-256
 do conteúdo e recibos com IDs preparados antes das escritas. Recargas e
 repetições usam os mesmos IDs. Fichas, notas e retratos são copiados, sem exclusão
-dos originais. Cada retrato recebe outro arquivo para não alterar uma cópia
+dos originais. A recusa usa `critcall_guest_import_declined_v1` no armazenamento
+isolado local, sem RPC ou documento remoto. Fichas novas/alteradas não anulam
+essa preferência; somente a retomada explícita no perfil.
+Cada retrato recebe outro arquivo para não alterar uma cópia
 anterior. Preferências/perfil só preenchem espaços ainda vazios. A fila de
 sincronização existente confirma o envio; concluir a cópia local não anuncia
 salvamento remoto. Erros de leitura, quota, imagens ausentes ou edição aberta

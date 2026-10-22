@@ -20,6 +20,7 @@ A versão funcional foi publicada em **https://criticall.art/** pelas
 | Branch da tarefa | `feature/talento-sortudo-r2`, criada do `develop` público após a PR #18 |
 | Implementação R2 atual | `c304e83`, documentada até `ab06e0b`; 417 testes Node, tipos/build, 28 roteiros Chromium e banco na CI aprovados nessa referência. Correções posteriores exigem conferir a CI atual da PR #19 |
 | Correções de conferência | `1ff5a3f`; 419 testes Node, tipos/build, 28 roteiros Chromium locais e [CI da PR](https://github.com/mhaetinger/D-D/actions/runs/39787872702) aprovados, incluindo banco. Verificar a CI do registro documental posterior na PR #19 |
+| Correções adicionais de consulta/magias/recusa | Entrega atual da PR #19; 420 testes Node, tipos/build, 28 roteiros Chromium completos e repetição dos dois fluxos afetados após a revisão final aprovados localmente. Conferir a CI do último commit antes de integrar |
 | R1 integrada | `8bcab7dfcaa5750e512264a8ef43b8ebffcb6748`; [PR #17](https://github.com/mhaetinger/D-D/pull/17) e CI completa aprovadas, testes/limites na auditoria |
 | R2 inicial integrada | `7dc30eb`; 404 testes Node, tipos/build e 27 roteiros Chromium locais/CI aprovados; [PR #18](https://github.com/mhaetinger/D-D/pull/18) integrada em `19e4ceb` |
 
@@ -38,6 +39,14 @@ correção da consulta de Ancestral Feérico e clareza nos campos de proficiênc
 e ataque da revisão da importação. Os resumos passam a preceder a edição
 opcional; ataque manual sem bônus permanece não informado, sem inventar +0.
 São correções da entrega em revisão, sem avançar a cobertura automática de R3.
+
+A consulta foi ampliada para os parágrafos de todos os traços raciais e as
+características dos 13 antecedentes, incluindo Versatilidade em Perícia e
+Pesquisador. O editor compartilhado de magias separa cadastro, origem e
+disponibilidade, esconde preparo sem sentido para truques/magias conhecidas e
+oferece escolha explícita da origem racial. A recusa **Não quero** para copiar
+fichas sem conta é lembrada por conta/navegador; retomar fica no Perfil. Essas
+correções também pertencem à PR #19; não mudam as pendências de regras da auditoria.
 
 ## Como continuar
 

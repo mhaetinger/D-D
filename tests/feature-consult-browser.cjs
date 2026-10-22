@@ -46,6 +46,11 @@ const {chromium}=require('playwright'),{serve}=require('./serve.cjs'),{warrior}=
   await features.screenshot({path:'/tmp/critcall-features-modern-1055.png',style:'.app-topbar {visibility:hidden !important;}'});
   await ancestry.hover();await tip.waitFor({state:'visible'});const ancestryText=await tip.locator('p').innerText();assert.match(ancestryText,/vantagem/);assert.doesNotMatch(ancestryText,/FLINT|Tanis|embaixadores/);
   await ancestry.tap();await pop.waitFor({state:'visible'});assert.equal(await pop.locator('p').innerText(),ancestryText);assert.match(await pop.locator('a').getAttribute('href'),/page=38$/);await pop.getByRole('button',{name:'Fechar consulta'}).click();
+  for(const [name,pattern,bookPage] of [['Versatilidade em Perícia',/proficiência em duas perícias/,38],['Pesquisador',/biblioteca/,140]]){
+   const trigger=page.getByRole('button',{name:'Consultar '+name,exact:true});
+   await trigger.hover();await tip.waitFor({state:'visible'});const content=await tip.locator('p').innerText();assert.match(content,pattern);assert.doesNotMatch(content,/FLINT|embaixadores/);
+   await trigger.tap();await pop.waitFor({state:'visible'});assert.equal(await pop.locator('p').innerText(),content);assert.ok((await pop.locator('a').getAttribute('href')).endsWith('page='+bookPage));await pop.getByRole('button',{name:'Fechar consulta'}).click();
+  }
   assert.deepEqual(errors,[]);
   console.log('PASS consulta: hover e toque com mesmo texto/livro, sem expandir a ficha ou ativar recurso, teclado/Esc/toque fora, rolagem contida, nós/dados preservados e atributos alinhados em 390/430px/GG/três temas.');
  }finally{await browser.close();await server.close();}

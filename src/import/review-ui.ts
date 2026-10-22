@@ -80,14 +80,14 @@ export async function reviewImport(original:Backup,E:Engine,isCurrent:()=>boolea
   }
   function spellTitle(article:HTMLElement,s:Sheet){
     article.querySelector('[data-import-spell-title]')!.textContent=s.name||'Nova magia';
-    article.querySelector('[data-import-spell-meta]')!.textContent=`${s.circle===0?'Truque':`${s.circle??'?'}º círculo`} · ${E.data.classes[s.classId]?.name||'⚠ Escolha a origem'}${s.extraSource?' · Origem especial':''}`;
+    article.querySelector('[data-import-spell-meta]')!.textContent=`${s.circle===0?'Truque':`${s.circle??'?'}º círculo`} · ${s.extraSource||E.data.classes[s.classId]?.name||'⚠ Escolha a origem'}`;
   }
   function renderSpells(){
     const c=char(),list=body.querySelector('[data-import-spells]')!;list.replaceChildren();spellFields=[];
     if(!c.spells.length){list.innerHTML='<p class="import-empty">Nenhuma magia. Use Adicionar magia para escolher no catálogo ou criar uma própria.</p>';return;}
     c.spells.forEach((s:Sheet,i:number)=>{
       const article=document.createElement('article');article.className='spell-card import-spell-card';article.dataset.importSpell=String(i);
-      article.innerHTML=`<header><div><h3 data-import-spell-title></h3><p data-import-spell-meta></p></div><button type="button" data-import-remove-spell="${i}" aria-label="Remover ${escape(s.name||'nova magia')}">Remover</button></header>${s.importOriginNeedsConfirmation?'<p class="import-notice">⚠ Também pode vir da raça. Confirme a origem e a habilidade; usos raciais precisam de sua característica indicada.</p>':''}<details ${!s.classId||!s.name?'open':''}><summary>Revisar / editar magia</summary></details>`;
+      article.innerHTML=`<header><div><h3 data-import-spell-title></h3><p data-import-spell-meta></p></div><button type="button" data-import-remove-spell="${i}" aria-label="Remover ${escape(s.name||'nova magia')}">Remover</button></header><details ${!s.classId||!s.name?'open':''}><summary>Revisar / editar magia</summary></details>`;
       const fields=createSpellFields(c,s,E);spellFields.push(fields);article.querySelector('details')!.append(fields.element);
       fields.element.querySelectorAll<HTMLInputElement>('[data-spell-field]').forEach(el=>{const id=el.dataset.spellField!;if(!['editorMode','castMode'].includes(id))el.dataset.importField=`spells.${i}.${id}`;});
       fields.field('classId').dataset.importOrigin=String(i);fields.field('classId').required=true;
@@ -124,7 +124,7 @@ export async function reviewImport(original:Backup,E:Engine,isCurrent:()=>boolea
     }
     for(const [key,list] of [['importSkill','skillsProf'],['importExpertise','expertise']])if(el.dataset[key]){const id=el.dataset[key];c[list]=c[list].filter((x:string)=>x!==id);if((el as unknown as HTMLInputElement).checked)c[list].push(id);if(key==='importSkill'&&!(el as unknown as HTMLInputElement).checked){c.expertise=c.expertise.filter((x:string)=>x!==id);body.querySelector<HTMLInputElement>(`[data-import-expertise="${id}"]`)!.checked=false;}if(key==='importExpertise'&&(el as unknown as HTMLInputElement).checked&&!c.skillsProf.includes(id)){c.skillsProf.push(id);body.querySelector<HTMLInputElement>(`[data-import-skill="${id}"]`)!.checked=true;}}
     if(el.hasAttribute('data-import-armor')){const list=armorProficiencies(c,E),id=el.dataset.importArmor!;c.armorProficiencies=list.filter((x:string)=>x!==id);if((el as unknown as HTMLInputElement).checked)c.armorProficiencies.push(id);}
-    if(el.hasAttribute('data-import-race')){c._importManualRace=el.value==='manual';if(c._importManualRace)delete c.rules.raceId;else{c.rules.raceId=el.value;c.race=E.options.races[el.value]?.name||c.race;body.querySelector<HTMLInputElement>('[data-import-field="race"]')!.value=c.race;}}
+    if(el.hasAttribute('data-import-race')){c._importManualRace=el.value==='manual';if(c._importManualRace)delete c.rules.raceId;else{c.rules.raceId=el.value;c.race=E.options.races[el.value]?.name||c.race;body.querySelector<HTMLInputElement>('[data-import-field="race"]')!.value=c.race;}refreshClasses();}
     if(el.hasAttribute('data-import-subclass')){const cls=c.classes[Number(el.dataset.importSubclass)];cls._importManualSub=el.value==='manual';cls.subclassId=cls._importManualSub?'':el.value;if(!cls._importManualSub)cls.subclass=E.data.classes[cls.classId]?.subclasses[el.value]?.name||cls.subclass;}
     if(el.hasAttribute('data-import-weapon')){const w=c.weapons[Number(el.dataset.importWeapon)];w.calculationMode=el.value?'auto':'manual';if(el.value)w.ruleWeapon=el.value;}
     error.textContent='';updateStatus();updatePreviews();

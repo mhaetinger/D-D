@@ -2,6 +2,35 @@
 
 ## Não lançado
 
+### Consulta racial/antecedentes, revisão de magias e recusa lembrada — 2026-10-22
+
+- A consulta usa os parágrafos dos traços raciais, sem cair na narrativa da raça
+  ou em um traço da página vizinha. Versatilidade em Perícia passa a mostrar suas
+  duas perícias; Ancestral Feérico conserva o texto próprio. O extrator gerou 115
+  parágrafos e preservou os 958 cabeçalhos anteriores. Há aliases para humano
+  variante e Ilusionista Natural; Engenhoqueiro mantém suas opções completas.
+- Corrigida a busca das características dos 13 antecedentes pelo prefixo do
+  catálogo, incluindo Pesquisador e o nome de Associados da Guilda no livro.
+- Magias têm os mesmos grupos Magia, Origem e Disponibilidade na ficha e na
+  importação. Fórmula, usos e notas ficam separados em detalhes opcionais.
+  Truques não pedem preparo; classes de magias conhecidas dispensam a seleção
+  diária. Sempre preparada fica nos ajustes. Ocultar controles preserva valores.
+  Na ambiguidade racial, a escolha explícita preenche habilidade, característica
+  e usos do traço disponível naquele nível; mostra recuperação/círculo de origem.
+  Trocar raça/classes atualiza sugestões sem remontar os campos.
+- **Não quero** lembra a recusa de copiar as fichas sem conta por conta/navegador.
+  Recargas, novos logins e mudanças nas fichas locais não repetem a pergunta ou
+  toast. Retomar fichas sem conta permite decidir de novo pelo Perfil; os
+  originais, notas, retratos e rascunhos permanecem preservados. Sem SQL/RLS/RPC.
+- Verificados 420 testes Node, tipos/build e os 28 roteiros Chromium completos.
+  Após a revisão final, repetidos os fluxos de importação de magias e cópia sem
+  conta, incluindo usos gastos preservados ao confirmar novamente a origem e
+  outra confirmação aberta durante o hash sem registrar uma recusa indevida.
+  Incluídos consulta por mouse/toque, recarga/login/conta B/retomada explícita,
+  preparo contextual, cancelamento, nós/foco e 320px/GG/três temas. Inspecionadas
+  capturas desktop e celular; 62 links/âncoras válidos e matrizes preservadas.
+  Conferir a CI do commit atual da PR #19 antes de integrar/publicar.
+
 ### Conferência da importação e características no moderno — 2026-10-22
 
 - O moderno distribui origens/classes inteiras em colunas conforme a largura

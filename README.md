@@ -55,6 +55,9 @@ ou entrar, uma conta vazia recebe cópias das fichas, notas e imagens locais;
 se já tiver fichas, pergunta se deseja acrescentar novas. A identidade precisa
 estar confirmada e a coleção remota precisa ter sido consultada. Os originais
 locais são preservados; o perfil informa falhas e permite retomar a cópia.
+**Não quero** lembra a recusa para aquela conta neste navegador, inclusive após
+recarregar, entrar novamente ou editar as fichas sem conta. **Retomar fichas sem
+conta**, no Perfil, permite decidir de novo. A escolha não apaga os originais.
 
 A janela **Perfil e personagens** abre em Perfil, com nome, imagem e acesso à
 conta. A aba Personagens oferece Lista ou Cartões, com os mesmos retratos e
@@ -179,8 +182,14 @@ A revisão usa texto/campos de 16px em M e títulos distintos, acompanhando P/M/
 Reservas zeradas começam recolhidas; Conjuração, Pacto e Feitiçaria podem ser
 abertas separadamente para conferir ou corrigir. Reservas preenchidas ou com campos
 inválidos começam abertas; a confirmação revela qualquer campo obrigatório recolhido.
-Magias usam o mesmo editor da ficha, com adicionar/remover, catálogo ou criação
-personalizada. **Comparar máximos com o livro** mostra os valores atuais e os
+Magias usam o mesmo editor da ficha, com blocos de **Magia**, **Origem** e
+**Disponibilidade**; fórmula, usos e notas ficam em detalhes separados.
+Truques não pedem preparo; magias conhecidas também dispensam a seleção diária.
+**Sempre preparada** fica nos ajustes opcionais, para características/adaptações.
+Se a magia puder vir da raça ou da classe, escolha a origem indicada: a opção
+racial preenche habilidade e usos do traço, sem escolher por você ao abrir.
+Catálogo e criação personalizada continuam disponíveis.
+**Comparar máximos com o livro** mostra os valores atuais e os
 calculados antes de aplicar; não recupera espaços gastos nem pontos atuais.
 Vínculos inequívocos
 são propostos pelo catálogo; ambiguidades exigem escolha. A origem da magia
