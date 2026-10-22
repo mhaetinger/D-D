@@ -86,6 +86,11 @@ Esc. Os botões de ativar/gastar continuam separados da consulta. No preparo
 de magias, **Voltar à ficha** permite sair sem aplicar; escolhas pendentes pedem
 confirmação antes do descarte. O lembrete do descanso só é retirado ao aplicar.
 Avisos de limite ou validação aparecem dentro da janela que estiver em uso.
+Na revisão da importação, proficiências e ataques mostram primeiro os registros
+lidos. Abra **Corrigir** quando precisar mudar um valor ou vincular uma arma ao
+catálogo. Armas/ferramentas são registros opcionais; a proficiência de armas já
+considera classe, raça e escolhas. Um bônus de ataque não informado pode ficar
+vazio, inclusive em efeitos que usam resistência; isso não inventa um bônus +0.
 As dicas de preparo aparecem no balão ao passar o mouse ou focar o controle
 pelo teclado. Marcar uma checkbox continua apenas alterando sua seleção.
 

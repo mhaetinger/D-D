@@ -16,9 +16,9 @@ A versão funcional foi publicada em **https://criticall.art/** pelas
 | Integração `develop` | `19e4ceb`, primeiro recorte de R2 integrado pela PR #18 após CI completa aprovada; contém mudanças ainda não publicadas |
 | Revisão offline publicada | `4e263eb66b70d44f` |
 | Verificação/publicação | [Workflow 39638188104](https://github.com/mhaetinger/D-D/actions/runs/39638188104), concluído com sucesso |
-| Trabalho atual | Segundo recorte de R2: talento Sortudo de três pontos, distinto do racial, em revisão na [PR #19](https://github.com/mhaetinger/D-D/pull/19); conferir a CI antes de integrar |
+| Trabalho atual | Segundo recorte de R2 e correções de consulta/layout/revisão da importação na [PR #19](https://github.com/mhaetinger/D-D/pull/19); conferir a CI do último commit antes de integrar |
 | Branch da tarefa | `feature/talento-sortudo-r2`, criada do `develop` público após a PR #18 |
-| Implementação R2 atual | `c304e83`; 417 testes Node, tipos/build e 28 roteiros Chromium locais aprovados; CI/integração da PR #19 a conferir |
+| Implementação R2 atual | `c304e83`, documentada até `ab06e0b`; 417 testes Node, tipos/build, 28 roteiros Chromium e banco na CI aprovados nessa referência. Correções posteriores exigem conferir a CI atual da PR #19 |
 | R1 integrada | `8bcab7dfcaa5750e512264a8ef43b8ebffcb6748`; [PR #17](https://github.com/mhaetinger/D-D/pull/17) e CI completa aprovadas, testes/limites na auditoria |
 | R2 inicial integrada | `7dc30eb`; 404 testes Node, tipos/build e 27 roteiros Chromium locais/CI aprovados; [PR #18](https://github.com/mhaetinger/D-D/pull/18) integrada em `19e4ceb` |
 
@@ -31,6 +31,12 @@ três pontos e escolha do d20 nos controles existentes. Escopo e limites estão 
 Os próximos recortes de R2 cobrem as demais rerrolagens/dados mínimos,
 -5/+10 e adicionais de talentos/estilos. As matrizes e os critérios ficam naquele arquivo. Não
 marcar uma mecânica como concluída por ter descrição, escolha ou contador.
+
+O responsável pediu também ajuste do moderno em larguras intermediárias,
+correção da consulta de Ancestral Feérico e clareza nos campos de proficiência
+e ataque da revisão da importação. Os resumos passam a preceder a edição
+opcional; ataque manual sem bônus permanece não informado, sem inventar +0.
+São correções da entrega em revisão, sem avançar a cobertura automática de R3.
 
 ## Como continuar
 

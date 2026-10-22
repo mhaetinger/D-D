@@ -108,6 +108,16 @@ for page in range(16,172):
                 references.append(active)
             elif active is not None: active['lines'].append(line)
 for ref in references: ref['text']='\n'.join(ref.pop('lines')).strip()
+# Estes traços são títulos em negrito dentro de parágrafos, não cabeçalhos em
+# maiúsculas. No meio-elfo, um quadro lateral interrompe o cabeçalho da raça;
+# consultar o bloco inteiro devolvia a introdução narrativa em vez da regra.
+for page,printed,next_trait in [(22,23,'Transe'),(38,39,'Versatilidade em Perícia')]:
+    text='\n'.join(crop(page,x,45,263,753) for x in [33,304])
+    match=re.search(r'Ancestral Feérico\.\s*(.*?)(?=\n\s*'+next_trait+r'\.)',text,re.S)
+    assert match, ('Ancestral Feérico não encontrado',page)
+    body=re.sub(r'\s+',' ',match.group(1)).strip()
+    assert len(body)<350, ('Parágrafo racial misturado',page)
+    references.append({'name':'Ancestral Feérico','id':'ancestral-feerico','pdfPage':page,'page':printed,'text':body})
 refout=ROOT/'public'/'rules'/'phb2014-references.js'
 refout.write_text('// Gerado do PDF local. Referências de consulta, não regras executáveis.\n(function(root){const data='+json.dumps(references,ensure_ascii=False,separators=(',',':'))+';if(typeof module!=="undefined")module.exports=data;else root.PHB_REFERENCES=data;})(globalThis);\n')
 

@@ -221,6 +221,13 @@ adicionais/manobras dos demais talentos/estilos. **R2 não está concluída.**
 
 ## Progresso já entregue
 
+Correções de consulta/interface em revisão na PR #19 (22/10): Ancestral Feérico
+usa o próprio parágrafo racial e página; o moderno distribui origens/níveis
+conforme a largura do quadro; revisão de importação começa pelos resumos e
+preserva ataque manual sem bônus como não informado. Isso não implementa a
+aplicação automática de vantagem/imunidade nem a CD/área de um sopro; R3–R5
+mantêm seus limites e pendências abaixo.
+
 As entregas funcionais de 19 a 21/10 estão resumidas aqui e antecedem a nova
 sequência R1–R6. Seus contratos completos estão na arquitetura. Os casos
 corrigidos não devem voltar à lista de ausências.

@@ -49,6 +49,12 @@
 .spell-preparation { display:flex; gap:1rem; flex-wrap:wrap; align-items:center; margin:.6rem 0; }
 .import-preparation-adaptation { margin-top:1rem; }
 .import-entry { padding:.65rem; border:1px solid var(--border-main); border-radius:.5rem; }
+.import-proficiency-summary dt { font-weight:700; }
+.import-proficiency-summary dd { margin-top:.25rem; overflow-wrap:anywhere; }
+.import-weapon output { display:block; margin:.4rem 0 .65rem; overflow-wrap:anywhere; }
+.import-weapon > details { margin-bottom:0; }
+.import-weapon details > label { margin-top:.65rem; }
+.import-field-help { color:var(--text-muted); font-size:.875rem; line-height:1.5; }
 .import-entry strong,.import-spell-card h3 { overflow-wrap:anywhere; }
 .import-spell-card { padding:.8rem; margin-bottom:.8rem; border:1px solid var(--border-main); border-radius:.65rem; background:var(--bg-card); }
 .import-spell-card > header { display:flex; justify-content:space-between; gap:.7rem; align-items:start; }

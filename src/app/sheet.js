@@ -2132,9 +2132,9 @@ function renderAttacksBlock(char) {
                 <p class="weapon-description t-text-muted">${escapeHTML(w.notes)}${w.critical?`${w.notes?' · ':''}Crítico ${w.critical===20?'20':`${w.critical}–20`}`:''}</p>
 
               <div class="weapon-rolls">
-                <button onclick="rollWeapon(${idx}, 'attack')" class="px-2 py-1 badge-feiticeiro rounded font-bold">
+                ${w.bonus===''?'<span class="t-text-muted">Ataque não informado</span>':`<button onclick="rollWeapon(${idx}, 'attack')" class="px-2 py-1 badge-feiticeiro rounded font-bold">
                   Atq ${escapeHTML(w.bonus)}
-                </button>
+                </button>`}
                 <button onclick="rollWeapon(${idx}, 'damage')" data-weapon-damage-label="${idx}" class="weapon-damage-button px-2.5 py-1 t-btn-primary rounded font-extrabold shadow-sm">
                   <span aria-hidden="true" class="weapon-damage-sizer">${validDamage?escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine,false)):''}</span>
                   <span aria-hidden="true" class="weapon-damage-sizer">${validDamage?escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine,true)):''}</span>
@@ -2158,21 +2158,18 @@ function renderAttacksBlock(char) {
 }
 
 function renderFeaturesCollapsible(char, wide = false) {
-  // Cada classe aparece uma vez. Na ficha larga, a divisão acontece entre
-  // níveis inteiros, conservando a leitura por coluna e os controles do ganho.
+  // Cada origem fica inteira. CSS distribui as colunas pela largura disponível,
+  // sem dividir níveis pela quantidade de itens nem remontar nós ao redimensionar.
   const isCollapsed = !!collapsedPanels.features_box;
-  const columns = items => wide && items.length>1
-    ? `<div class="feature-levels">${[items.slice(0,Math.ceil(items.length/2)),items.slice(Math.ceil(items.length/2))].map(column=>`<div class="feature-column">${column.join('')}</div>`).join('')}</div>`
-    : items.join('');
   const entries = featureGroups(char,CharacterEngine).map(group => {
     const levels=group.levels.map(level=>{
       const items=level.entries.map(({gain:g,index,controls})=>{
         const disclosure=`feature:${g.classId || g.source}:${g.level}:${index}`;
         return `<section class="feature-entry">${featureConsultButton(g,disclosure,group.label,controls[0]?.note)}${renderResourceControls(char,CharacterEngine,controls,controls.length>1 || g.name==='Juramento Sagrado')}</section>`;
       });
-      return `<section class="feature-level" data-feature-level="${level.level}">${group.classId?`<h5 class="feature-level-title">Nível ${level.level}</h5>`:''}${group.classId?items.join(''):columns(items)}</section>`;
+      return `<section class="feature-level" data-feature-level="${level.level}">${group.classId?`<h5 class="feature-level-title">Nível ${level.level}</h5>`:''}${items.join('')}</section>`;
     });
-    return `<section class="feature-group" data-feature-group="${escapeHTML(group.key)}"><h4 class="feature-group-title t-text-accent">${escapeHTML(group.label)}</h4>${columns(levels)}</section>`;
+    return `<section class="feature-group" data-feature-group="${escapeHTML(group.key)}"><h4 class="feature-group-title t-text-accent">${escapeHTML(group.label)}</h4>${wide?`<div class="feature-levels">${levels.join('')}</div>`:levels.join('')}</section>`;
   });
   if (char.features?.length) entries.push(`<details><summary class="cursor-pointer font-bold">Anotações e adaptações já presentes nesta ficha</summary><ul class="list-disc pl-4 space-y-2 mt-2">${char.features.map((text,i) => `<li data-sheet-feature-row="${i}"><span>${escapeHTML(readableText(text))}</span> <button type="button" class="underline" onclick="openHomebrewModal('feature',${i})">Editar</button></li>`).join('')}</ul></details>`);
   const multiclass = CharacterEngine.multiclassNotes(char);
@@ -2634,7 +2631,7 @@ function openHomebrewModal(type, index = null) {
     body.innerHTML = `
       <div><label for="hbWepName" class="block font-bold mb-1">Nome</label><input id="hbWepName" maxlength="120" value="${e(weapon.name)}" class="w-full t-inset p-2 rounded-lg" /></div>
       <div class="weapon-editor-grid">
-        <div><label for="hbWepBonus" class="block font-bold mb-1">Bônus de ataque</label><input id="hbWepBonus" value="${e(weapon.bonus)}" placeholder="+6" class="w-full t-inset p-2 rounded-lg" /></div>
+        <div><label for="hbWepBonus" class="block font-bold mb-1">Bônus de ataque (se houver)</label><input id="hbWepBonus" value="${e(weapon.bonus)}" placeholder="Ex.: +6; vazio se não informado" class="w-full t-inset p-2 rounded-lg" /></div>
         <div><label for="hbWepDamageMod" class="block font-bold mb-1">Modificador de dano</label><input id="hbWepDamageMod" type="number" min="-10000" max="10000" step="1" required oninput="renderWeaponDamageBuilder(true)" class="w-full t-inset p-2 rounded-lg" /></div>
       </div>
       <fieldset class="space-y-2 min-w-0"><legend class="font-bold mb-1">Dados de dano</legend>
@@ -2654,7 +2651,7 @@ function openHomebrewModal(type, index = null) {
     options.after(calculationHint);
     const updateCalculationMode = () => {
       const automatic = document.getElementById('hbWepMode').value==='auto';
-      calculationHint.textContent = automatic ? 'Ataque e dano calculados pela ficha.' : 'Totais manuais: informe o bônus de ataque e monte o dano.';
+      calculationHint.textContent = automatic ? 'Ataque e dano calculados pela ficha.' : 'Totais manuais: monte o dano e informe o bônus de ataque, se houver. Um efeito com resistência pode não fazer jogada de ataque.';
       for (const id of ['hbWepBonus','hbWepDamageMod']) document.getElementById(id).disabled = automatic;
       for (const button of body.querySelectorAll('[id^="hbDamageDie"]')) button.disabled = automatic;
     };
@@ -2664,11 +2661,11 @@ function openHomebrewModal(type, index = null) {
       const bonus = document.getElementById("hbWepBonus").value.trim();
       const damage = parseDiceFormula(document.getElementById("hbWepDmg").value);
       if (!name) return showHomebrewError("hbWepName", "Informe o nome do ataque.");
-      if (!/^[+-]?\d+$/.test(bonus) || !Number.isSafeInteger(Number(bonus)) || Math.abs(Number(bonus)) > 1000) return showHomebrewError("hbWepBonus", "Use um bônus inteiro, por exemplo +6 ou -1 (entre -1000 e +1000).");
+      if (bonus!=='' && (!/^[+-]?\d+$/.test(bonus) || !Number.isSafeInteger(Number(bonus)) || Math.abs(Number(bonus)) > 1000)) return showHomebrewError("hbWepBonus", "Use um bônus inteiro, por exemplo +6 ou -1 (entre -1000 e +1000), ou deixe vazio se não houver.");
       if (!damage) return showHomebrewError("hbWepDamageMod", "Selecione os dados e informe um modificador inteiro entre -10000 e +10000. Use 0 para não adicionar um modificador.");
       // Só altera a ficha depois de validar todos os campos. Edições mantêm
       // propriedades anteriores, inclusive metadados que o formulário não edita.
-      const updated = { ...weapon, ruleWeapon: bonus === weapon.bonus && damage.formula === weapon.damage ? weapon.ruleWeapon : undefined, name, bonus: fmtMod(Number(bonus)), damage: damage.formula,
+      const updated = { ...weapon, ruleWeapon: bonus === weapon.bonus && damage.formula === weapon.damage ? weapon.ruleWeapon : undefined, name, bonus: bonus===''?'':fmtMod(Number(bonus)), damage: damage.formula,
         dmgTypeLabel: document.getElementById("hbWepType").value.trim(),
         notes: document.getElementById("hbWepNotes").value.trim(),
         description: document.getElementById("hbWepDescription").value.trim() };
@@ -2677,6 +2674,11 @@ function openHomebrewModal(type, index = null) {
       Object.assign(updated,{calculationMode:document.getElementById('hbWepMode').value,ruleWeapon:document.getElementById('hbWepCatalog').value || undefined,
         proficient:document.getElementById('hbWepProf').value==='auto'?undefined:document.getElementById('hbWepProf').value==='yes',magicBonus:Number(document.getElementById('hbWepMagic').value),abilityOverride:document.getElementById('hbWepAbility').value,attackMode:document.getElementById('hbWepAttackMode').value,
         attackAdjustment:Number(document.getElementById('hbWepAttackAdjust').value),damageAdjustment:Number(document.getElementById('hbWepDamageAdjust').value),duelingEligible:document.getElementById('hbWepDuel').checked,offHand:document.getElementById('hbWepOffhand').checked});
+      if(updated.calculationMode==='auto' && updated.bonus==='') {
+        const computed=CharacterEngine.weaponStats(char,updated);
+        if(computed.calculationMode==='manual')return showHomebrewError('hbWepCatalog','Escolha uma arma do catálogo ou mantenha o cálculo manual.');
+        updated.bonus=computed.bonus;
+      }
       const pactField=document.getElementById('hbWepPact');
       if(pactField) {
         updated.pactWeapon=pactField.checked;
@@ -2773,6 +2775,7 @@ function rollWeapon(index, kind) {
   const weapon = CharacterEngine.weaponStats(c, entry);
   if (!weapon) return;
   const bonus = String(weapon.bonus).trim();
+  if(kind==='attack' && bonus==='')return showToast('Ataque não informado. Confira o bônus da origem; efeitos com resistência são resolvidos na mesa.');
   if (kind === "attack" && !/^[+-]?\d+$/.test(bonus)) {
     showToast("Bônus de ataque inválido. Corrija o cadastro.");
     return;

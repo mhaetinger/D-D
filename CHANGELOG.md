@@ -2,6 +2,28 @@
 
 ## Não lançado
 
+### Conferência da importação e características no moderno — 2026-10-22
+
+- O moderno distribui origens/classes inteiras em colunas conforme a largura
+  disponível. Em quadros muito largos, os níveis mantêm duas colunas, agora
+  balanceadas pela altura real. Redimensionar preserva nós, controles e dados;
+  a fonte ampliada participa do ajuste, sem alterar o clássico.
+- Corrigida a consulta de Ancestral Feérico: o extrator passa a gerar as duas
+  referências de parágrafo, com páginas próprias de elfo e meio-elfo. A consulta
+  do meio-elfo abria sua introdução narrativa. Nenhuma nova automação de condição.
+- Proficiências/idiomas e ataques importados mostram os registros antes dos
+  campos. Correções e vínculo ao catálogo ficam recolhidos, com instruções sobre
+  quando usar. Valores, rascunhos e os mesmos nós permanecem montados; validação
+  revela o setor/detalhes quando necessário.
+- Ataque manual sem bônus pode continuar vazio, inclusive em sopros/efeitos de
+  resistência. Backup, importação, edição e recarga preservam essa ausência;
+  não vira +0 nem oferece um d20 de ataque. Dano continua disponível e vínculo
+  explícito ao catálogo calcula o bônus. Textos inválidos continuam recusados.
+- Verificados 419 testes Node e tipos/build. Regressões de navegador incluem
+  larguras intermediárias, três temas/M/GG, consulta por mouse/toque, campos
+  recolhidos, ausência de bônus, catálogo, cancelamento, foco/nós e recarga.
+  Conferir os resultados completos na PR #19 antes de integrar/publicar.
+
 ### Talento Sortudo e escolha contextual de d20 — 2026-10-22
 
 - O talento passa a ter uma reserva única de três pontos por descanso longo,

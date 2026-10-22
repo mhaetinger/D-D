@@ -3,6 +3,15 @@ const assert = require("node:assert/strict");
 const E = require("../public/rules/character-engine");
 const { setup, choose, create } = require("./character-choices.cjs");
 
+test('Ancestral Feérico consulta o parágrafo racial e a página correta, sem a narrativa do meio-elfo',()=>{
+  for(const [race,page] of [['altoElfo',22],['elfoFloresta',22],['drow',22],['meioElfo',38]]) {
+    const ref=E.reference('Ancestral Feérico',null,race,'race');
+    assert.equal(ref.id,'ancestral-feerico');assert.equal(ref.pdfPage,page);
+    assert.match(ref.text,/vantagem/);assert.match(ref.text,/resistência/);assert.match(ref.text,/dormir/);
+    assert.ok(ref.text.length<250);assert.doesNotMatch(ref.text,/FLINT|embaixadores|Transe|Versatilidade/);
+  }
+});
+
 test("o livro local contém 12 classes, 41 subclasses e 361 magias com descrição e página", () => {
   assert.equal(Object.keys(E.data.classes).length, 12);
   assert.equal(

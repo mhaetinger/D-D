@@ -63,6 +63,15 @@ reescrever sua origem. Não infere sub-raça/juramento/preparo ausentes; confere
 origem especial/habilidade, usos, preparo e recursos. `review-ui.ts` reutiliza
 confirmação, foco e rolagem existentes, sem recriar linhas ao mudar opções.
 Cinco setores mantêm os controles montados; navegação compacta em telas pequenas.
+Proficiências e ataques começam com resumos dos valores lidos. Registros de
+armas/ferramentas/idiomas e correção/vínculo de cada ataque ficam em `details`,
+com os campos sempre montados. Resumos usam `textContent` e atualizam durante
+a edição. Validação revela setor e detalhes antes de focar um campo inválido.
+Bônus vazio em um ataque manual representa ausência de informação, não +0:
+o armazenamento preserva a string vazia e a ficha oferece somente o dano até
+haver bônus informado/calculado. Isso não infere que todo ataque sem bônus seja
+um efeito de resistência, nem calcula a CD de um sopro. Vincular explicitamente
+ao catálogo ativa o cálculo; editar/cancelar mantém os contratos anteriores.
 A validação revela o setor e os detalhes antes de focar o primeiro campo inválido.
 `pool-fields.ts` monta os campos de reservas e sincroniza apenas os resumos e
 aberturas. Todos permanecem no formulário. Quantidades exatamente zeradas e
@@ -116,8 +125,12 @@ classe/origem e nível, preservando os índices que vinculam controles aos ganho
 Não consolida dados nem altera história, escolhas ou recursos. Classe e nível
 aparecem uma vez por grupo; a origem completa de subclasse/escolha fica dentro
 da descrição. Fontes de raça/antecedente e anotações manuais continuam separadas.
-Na ficha larga, as colunas dividem níveis inteiros, em fluxo nativo, sem separar
-uma habilidade de seus controles. `app/feature-consult.ts` conserva as chaves de
+No moderno, colunas CSS de largura mínima em rem mantêm cada origem/classe
+inteira em quadros intermediários. Um container query a partir de 75rem no
+próprio quadro conserva a leitura larga em até duas colunas de níveis, agora
+balanceadas pela altura real. Fonte ampliada também participa dessa decisão.
+Redimensionar não remonta nós nem depende de um breakpoint global da janela.
+O clássico mantém seu fluxo anterior. `app/feature-consult.ts` conserva as chaves de
 consulta e monta botões separados das ações de uso. Hover usa `RuleTooltips`;
 clique/toque fixa o mesmo texto com origem, escolhas e livro em um popover de
 consulta. Reutiliza o estilo e a rolagem dos balões. ×, Esc e clique fora fecham;
@@ -129,6 +142,13 @@ Os nomes dos recursos dentro de cada característica usam a escala de apoio,
 peso 600 e itálico em `.feature-entry > .rule-inline > strong`. Isso distingue
 subcontroles como Canalizar Divindade dos títulos, preservando botões, usos,
 balões e os vínculos existentes.
+
+`scripts/extract-phb.py` também extrai os parágrafos em linha de Ancestral
+Feérico nas páginas físicas 22 e 38. Os cabeçalhos em maiúsculas não os
+identificavam; no meio-elfo, o quadro lateral interrompe o bloco dos traços e
+o fallback acabava na introdução narrativa. Referências específicas preservam
+o texto do livro e a página de cada raça, sem alterar o catálogo manualmente.
+É correção de consulta, sem nova aplicação automática de vantagem/condição.
 
 ## Avisos durante uma edição
 
