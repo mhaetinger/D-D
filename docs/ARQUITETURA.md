@@ -64,9 +64,11 @@ origem especial/habilidade, usos, preparo e recursos. `review-ui.ts` reutiliza
 confirmação, foco e rolagem existentes, sem recriar linhas ao mudar opções.
 Cinco setores mantêm os controles montados; navegação compacta em telas pequenas.
 `review-presentation.ts` concentra identificação/narrativa e as explicações de
-treino. Identidade usa nome em destaque sem caixa externa; classes têm ícone,
-linhas e nível total. Resistências formam uma faixa compacta; registros e
-armaduras dividem o espaço. Personalidade, história e aparência usam textareas
+treino. Identidade tem um quadro com relevo discreto, do nome até Tendência;
+ancestralidades ficam fora dele, antes das classes com ícone, linhas e nível
+total. Observações têm faixa de atenção, símbolo, contagem e título sublinhado,
+sem depender só da cor. Testes de resistência ficam logo após os atributos,
+em Combate. Personalidade, história e aparência usam textareas
 visíveis; inventário tem resumo, moedas têm campos numéricos e tesouros permanecem editáveis. Ícones
 são decorativos do catálogo local Lucide, sem assets remotos.
 Antecedente tem nome livre e vínculo opcional ao catálogo, como raça. Tendência
@@ -84,8 +86,12 @@ mudam apenas a chave pertinente do histórico, preservando os demais dados.
 Ausência/valor desconhecido gera observação; não inventa resistência.
 O dano por tipo exige uma das dez escolhas válidas, com origem racial e
 Afinidade Elemental independentes; a segunda conserva seu custo/ativação.
-Proficiências e ataques começam com resumos dos valores lidos.
-`proficiency-fields.ts` oferece checkboxes de idiomas, armas e ferramentas;
+Armas, ferramentas e ataques começam com resumos dos valores lidos.
+`proficiency-fields.ts` oferece checkboxes de idiomas, armas e ferramentas.
+Idiomas conhecidos têm quadro próprio, separado de armas/ferramentas/armaduras.
+Os idiomas reconhecidos aparecem nas marcações, sem outro resumo repetido;
+somente textos fora do catálogo ganham uma linha de registros preservados.
+Sua edição livre fica no próprio quadro de idiomas, em um único input.
 `isProficient` marca e protege armas já concedidas pelas regras existentes.
 Grupos manuais cobrem suas armas sem fingir que uma exceção individual os remove.
 Idiomas raciais só são acrescentados por ação explícita. Opções não concedem
@@ -142,6 +148,8 @@ subclasses ou reservas. Assinatura evita remontar a previsão sem mudança; o
 formulário original permanece montado. Guerreiro/ladino de nível 3+ precisam da
 subclasse para a previsão de Conjuração. Máximos e Pacto são apresentados com
 classes/níveis e valores atuais; aplicar é explícito, sem recuperar gastos.
+Rótulos distinguem máximos, espaços gastos e pontos restantes, com um exemplo
+de espaços disponíveis e explicações próprias para Conjuração/Pacto/Feitiçaria.
 A tipografia da revisão fica restrita ao diálogo em `import-review.css`, com
 16px de valores em M, rótulos de 17px, jogador/XP em 18px e legendas/títulos
 maiores, preservando a escala em rem. Checkboxes mantêm texto de leitura;

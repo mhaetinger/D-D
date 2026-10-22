@@ -196,9 +196,13 @@ Antes de salvar, **Revisar importação** separa Identidade e classes, Atributos
 combate, Proficiências, Grimório e Inventário e história. Os setores mantêm seus
 rascunhos; as observações explicam cada consequência no setor correspondente.
 A revisão usa texto/campos de 16px em M e títulos distintos, acompanhando P/M/G/GG.
-Identificação tem nome em destaque e ícone de pergaminho; classes ficam em
-linhas próprias, com o nível total. Resistências, registros e armaduras usam
-uma disposição compacta. As dicas de proficiência, especialização e total
+Observações para conferir têm faixa de destaque, símbolo e contagem.
+Identificação tem relevo discreto e ícone de pergaminho, reunindo do nome até
+Tendência. Ancestralidades e classes ficam em quadros separados, com o nível
+total nas classes. Testes de resistência ficam abaixo dos atributos, em
+Atributos e combate. Idiomas conhecidos têm seu próprio quadro, sem resumo
+duplicado, separado de armas, ferramentas e armaduras. Textos fora do catálogo
+continuam visíveis e editáveis. As dicas de proficiência, especialização e total
 manual explicam o cálculo ao passar o mouse ou focar pelo teclado.
 Personalidade, história e aparência ficam abertas para conferir e editar;
 itens, quantidades, moedas e tesouros aparecem no setor de inventário.
@@ -215,8 +219,9 @@ Truques não pedem preparo; magias conhecidas também dispensam a seleção diá
 Se a magia puder vir da raça ou da classe, escolha a origem indicada: a opção
 racial preenche habilidade e usos do traço, sem escolher por você ao abrir.
 Catálogo e criação personalizada continuam disponíveis.
-**Conferir máximos pelas classes** explica quando comparar e mostra os valores atuais e os
-calculados antes de aplicar; não recupera espaços gastos nem pontos atuais.
+A previsão automática pelas classes mostra os valores preenchidos e os
+calculados antes de aplicar. Máximos, espaços gastos e pontos restantes têm
+rótulos e explicações próprios; aplicar não recupera espaços nem pontos atuais.
 Vínculos inequívocos
 são propostos pelo catálogo; ambiguidades exigem escolha. A origem da magia
 fica separada do recurso usado para lançá-la. Raça ou subclasse personalizada

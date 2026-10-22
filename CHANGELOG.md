@@ -2,6 +2,29 @@
 
 ## Não lançado
 
+### Blocos e observações da revisão de importação — 2026-10-22
+
+- Observações para conferir ganham faixa de atenção, símbolo, contagem e título
+  sublinhado. Vermelho no tema claro e tom claro nos escuros preservam leitura;
+  o destaque também depende de forma e texto.
+- Quem é o personagem passa a um quadro com relevo discreto até Tendência.
+  Ancestralidades ficam fora dele, antes das classes, em seus próprios quadros.
+- Idiomas conhecidos têm um único bloco, separado de armas/ferramentas/armaduras.
+  Nomes reconhecidos aparecem nas marcações; textos fora do catálogo continuam
+  visíveis e editáveis no próprio bloco. Retirado o resumo duplicado de idiomas.
+- Testes de resistência passam para Atributos e combate, logo após os atributos,
+  mantendo as seis marcações, os nós durante a navegação e os dados ao salvar.
+  Vida/defesa e divisão do grimório permanecem como estavam.
+- Reservas distinguem máximo, espaços gastos e pontos restantes, com exemplo
+  de usos disponíveis e explicações por recurso. Previsão e aplicação explícita
+  continuam preservando os gastos.
+- Verificados 427 testes Node, tipos/build e cinco roteiros Chromium: revisão
+  clara, guiada, setores, PDF/JSON e biblioteca. Incluídos preservação dos nós,
+  idiomas livres, salvamento/recarga das resistências e 320px/GG/três temas.
+  Capturas desktop/mobile conferidas; após o ajuste final de ícones, repetida
+  a revisão clara. Sem alteração de regras, dados existentes ou SQL/RLS/RPC.
+  Conferir a CI do último commit da PR #19 antes de integrar.
+
 ### Ancestralidades de 2014 e revisão com hierarquia — 2026-10-22
 
 - Conferidas as dez cores de draconato com o livro: elemento, linha/cone,

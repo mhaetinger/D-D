@@ -39,9 +39,12 @@ origens/níveis pela largura e fonte sem remontar seus controles. A consulta usa
 os parágrafos dos traços raciais e as características dos 13 antecedentes,
 incluindo Ancestral Feérico, Versatilidade em Perícia e Pesquisador.
 
-A revisão de PDF distingue identificação/classes e oferece antecedente/tendência
-por catálogo ou escrita livre. Idiomas/armas/ferramentas têm opções para marcar,
-com o treino já reconhecido pela ficha e textos desconhecidos preservados.
+A revisão de PDF destaca observações e distingue identificação/classes, com
+relevo até Tendência e ancestralidades em quadros separados. Antecedente/tendência
+permitem catálogo ou escrita livre. Idiomas têm um único quadro, separado de
+armas/ferramentas/armaduras, com opções para marcar, treino já reconhecido pela
+ficha e textos desconhecidos preservados. Testes de resistência ficam após os
+atributos, em Combate; suas marcações continuam editáveis e persistentes.
 Moedas são editáveis; personalidade/história começam abertas. `createWeaponFields`
 atende ficha/importação, com dados, ajustes opcionais e leitura validada; a
 proposta permite adicionar/remover ataques. Bônus manual ausente continua não

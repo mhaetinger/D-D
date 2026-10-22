@@ -1,5 +1,7 @@
 import {escape,norm,type Engine,type Sheet} from '../rules/model';
 import {isProficient} from '../rules/combat';
+import {armorProficiencies} from '../rules/spellcasting';
+import {reviewCard} from './review-presentation';
 
 const parts=(value:string)=>value.split(/[,;\n]|\s+e\s+/i).map(s=>s.trim()).filter(Boolean);
 const key=(value:string)=>norm(value).replace(/^idiomas? /,'').replace(/^armas? /,'');
@@ -14,17 +16,21 @@ export function toggleRecord(value:string,name:string,checked:boolean):string {
 export function createProficiencyFields(c:Sheet,E:Engine) {
   const element=document.createElement('div');element.className='import-proficiency-picker';
   const checks=(id:string,names:string[])=>names.map(name=>`<label class="import-check"><input type="checkbox" data-import-record="${id}" value="${escape(name)}"><span>${escape(name)}<small data-record-source></small></span></label>`).join('');
-  element.innerHTML=`<fieldset class="import-language-options"><legend>Idiomas que o personagem conhece</legend><p data-import-language-origin class="import-field-help"></p><button type="button" data-import-race-languages>Acrescentar idiomas da raça</button><div class="import-choice-list">${checks('languages',E.data.languages)}</div></fieldset>
-    <details data-import-proficiency-edit><summary>Escolher armas e ferramentas / editar texto livre</summary>
+  // Idiomas têm um único quadro. Só o texto fora do catálogo ganha um resumo;
+  // os nomes reconhecidos já estão nas marcações, sem repetir a mesma lista.
+  element.innerHTML=reviewCard('Idiomas conhecidos',`<div class="import-language-options"><p data-import-language-origin class="import-field-help"></p><button type="button" data-import-race-languages>Acrescentar idiomas da raça</button><div class="import-choice-list">${checks('languages',E.data.languages)}</div><p data-import-language-extra class="import-field-help" hidden></p><details><summary>Outro idioma / corrigir texto do arquivo</summary><label>Registro de idiomas<input data-import-field="proficiencies.languages" value="${escape(c.proficiencies.languages)}"></label></details></div>`,'languages','import-language-section')+
+    reviewCard('Armas, ferramentas e armaduras',`<dl class="import-grid import-proficiency-summary">${Object.entries({weapons:'Armas',tools:'Ferramentas'}).map(([id,name])=>`<div><dt>${name}</dt><dd data-import-proficiency="${id}"></dd></div>`).join('')}</dl><details data-import-proficiency-edit><summary>Escolher armas e ferramentas / editar texto livre</summary>
       <fieldset><legend>Armas</legend><p class="import-field-help">Marcadas com “Pela ficha” já vêm das classes, raça e escolhas registradas. Marque outras somente se o personagem tiver essa proficiência.</p><div class="import-choice-list">${checks('weapons',['Armas simples','Armas marciais'])}</div>${Object.entries({simpleMelee:'Simples · corpo a corpo',simpleRanged:'Simples · à distância',martialMelee:'Marciais · corpo a corpo',martialRanged:'Marciais · à distância'}).map(([kind,label])=>`<details><summary>${label}</summary><div class="import-choice-list">${checks('weapons',E.progression.weapons.filter((w:Sheet)=>w.kind===kind).map((w:Sheet)=>w.name))}</div></details>`).join('')}</fieldset>
       <details><summary>Ferramentas, jogos e instrumentos</summary><div class="import-choice-list">${checks('tools',E.data.tools)}</div></details>
-      <div class="import-grid">${Object.entries({weapons:'Outras armas / texto do arquivo',tools:'Outras ferramentas / texto do arquivo',languages:'Outros idiomas / texto do arquivo'}).map(([id,label])=>`<label>${label}<input data-import-field="proficiencies.${id}" value="${escape(c.proficiencies[id])}"></label>`).join('')}</div>
-      <p class="import-field-help">O texto do arquivo é mantido. As listas ajudam a completar o registro; não concedem treino ou idiomas novos pelas regras.</p>
-    </details>`;
+      <div class="import-grid">${Object.entries({weapons:'Outras armas / texto do arquivo',tools:'Outras ferramentas / texto do arquivo'}).map(([id,label])=>`<label>${label}<input data-import-field="proficiencies.${id}" value="${escape(c.proficiencies[id])}"></label>`).join('')}</div>
+      <p class="import-field-help">O texto do arquivo é mantido. As listas ajudam a completar o registro; não concedem treino novo pelas regras.</p>
+    </details><fieldset><legend>Armaduras</legend><div class="import-saves">${Object.entries({leve:'Leves',media:'Médias',pesada:'Pesadas',escudo:'Escudos'}).map(([id,name])=>`<label class="import-check"><input type="checkbox" data-import-armor="${id}" ${armorProficiencies(c,E).includes(id)?'checked':''}>${name}</label>`).join('')}</div><button type="button" data-import-armor-auto>Usar proficiências da classe e escolhas</button></fieldset>`,'swords','import-proficiency-section');
   const raw=(id:string)=>element.querySelector<HTMLInputElement>(`[data-import-field="proficiencies.${id}"]`)!;
   function sync(){
     const base={...c,proficiencies:{...c.proficiencies,weapons:''}},race=E.options.races[c.rules?.raceId],bg=E.options.backgrounds[c.rules?.backgroundId];
     element.querySelector('[data-import-language-origin]')!.textContent=[race?`${race.name}: ${(race.languages||[]).join(', ')}${race.extraLanguages?'; escolha mais '+race.extraLanguages:''}.`:'Confirme a raça para ver seus idiomas.',bg?.languages?`${bg.name}: ${bg.languages} idioma(s) à escolha.`:''].filter(Boolean).join(' ');
+    const extra=element.querySelector<HTMLElement>('[data-import-language-extra]')!,unknown=parts(c.proficiencies.languages).filter(p=>!E.data.languages.some((name:string)=>key(p)===key(name)));
+    extra.hidden=!unknown.length;extra.textContent=unknown.length?'Outros registros do arquivo: '+unknown.join(', '):'';
     element.querySelector<HTMLButtonElement>('[data-import-race-languages]')!.disabled=!race?.languages?.length;
     for(const el of element.querySelectorAll<HTMLInputElement>('[data-import-record]')){
       const id=el.dataset.importRecord!,w=id==='weapons'?E.progression.weapons.find((w:Sheet)=>w.name===el.value):null;

@@ -3,7 +3,8 @@
 #confirmationDialog.import-review-open form > * { margin-top:0; }
 #confirmationDialog.import-review-open #confirmationExtra { flex:1; min-height:0; overflow:auto; overscroll-behavior:contain; }
 .import-review .import-mobile-sector { display:none; }
-.import-review { display:flex; flex-direction:column; gap:.75rem; }
+.import-review { --import-notice-accent:#8b1e1e; display:flex; flex-direction:column; gap:.75rem; }
+[data-theme="pergaminho_escuro"] .import-review,[data-theme="obsidiana"] .import-review { --import-notice-accent:#ffb4ad; }
 .import-nav { position:sticky; top:0; z-index:2; display:flex; flex-wrap:wrap; gap:.3rem; padding:.35rem; background:var(--bg-card); border-bottom:2px solid var(--border-main); }
 .import-nav button { flex:1 1 9rem; font-size:.8rem; text-align:left; }
 .import-nav [aria-current=step] { background:var(--text-accent); color:var(--btn-primary-text,#fff); font-weight:700; border:2px solid var(--text-main); text-decoration:underline; text-underline-offset:.2em; }
@@ -63,8 +64,10 @@
 .import-spell-card header button { font-size:.8rem; flex:none; }
 .import-spell-card > details { margin-top:.65rem; margin-bottom:0; }
 .import-spell-card .spell-fields > h4 { display:none; }
-.import-review .import-notices { margin-bottom:.8rem; }
-.import-notice { border-left:3px solid var(--text-accent); background:var(--bg-inset); padding:.6rem .75rem; border-radius:.25rem; margin-bottom:.65rem; font-size:.85rem; }
+.import-review .import-notices { margin-bottom:1rem; padding:.7rem .8rem; border-left:4px solid var(--import-notice-accent); background:color-mix(in srgb,var(--import-notice-accent) 9%,var(--bg-card)); }
+.import-notices > summary { color:var(--import-notice-accent); text-decoration:underline; text-underline-offset:.2em; }
+.import-notice { border-left:2px solid var(--border-main); background:var(--bg-card); padding:.6rem .75rem; border-radius:.25rem; margin-bottom:.65rem; font-size:.85rem; }
+.import-notice:last-child { margin-bottom:0; }
 .import-notice p { margin-top:.3rem; }
 .import-review table { width:100%; margin:.6rem 0; font-size:.85rem; }
 .import-review th { text-align:left; }
@@ -129,10 +132,9 @@
  * de cores para o jogador reconhecer onde está. Combate mantém sua grade. */
 .import-card > h3 { display:flex; align-items:center; gap:.55rem; }
 .import-card > h3 svg { width:1.2rem; height:1.2rem; flex:none; }
-.import-review .import-identity { border:0; border-bottom:1px solid var(--border-main); border-radius:0; background:transparent; overflow:visible; padding-bottom:.5rem; }
-.import-review .import-identity > h3 { background:transparent; border:0; padding:.3rem 0; margin-bottom:.4rem; }
+.import-review .import-identity { border-top:3px solid var(--text-accent); box-shadow:var(--shadow-card); padding-bottom:.2rem; }
 .import-identity > h3 svg { width:2.6rem; height:2.6rem; padding:.55rem; border:1px solid var(--border-main); border-radius:.6rem; background:var(--bg-inset); }
-.import-review .import-identity > .import-grid { margin:.6rem 0; }
+.import-review .import-identity > .import-grid { margin:.8rem; }
 .import-identity-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr)); }
 .import-character-name { grid-column:1/-1; }
 #confirmationDialog.import-review-open .import-character-name input { font-family:"Cinzel",serif; font-size:1.3rem; font-weight:700; color:var(--text-accent); background:transparent; border:0; border-bottom:2px solid var(--border-main); border-radius:0; padding:.35rem .1rem; }
@@ -140,15 +142,10 @@
 .import-class-section > h3 { background:transparent; }
 .import-class-section .import-class-row:last-child { border-bottom:0; }
 .import-class-section [data-import-total-level] { font-weight:600; }
-.import-training-overview { display:block; }
-.import-training-overview .import-resistance-section { display:grid; grid-template-columns:minmax(11rem,.9fr) minmax(0,3fr); align-items:center; }
-.import-resistance-section > h3 { background:transparent; border:0; }
 .import-resistance-section .import-saves { grid-template-columns:repeat(auto-fit,minmax(min(100%,8rem),1fr)); }
-.import-training-overview .import-proficiency-section { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); align-items:start; }
-.import-proficiency-section > h3 { grid-column:1/-1; }
-.import-proficiency-section > fieldset .import-saves { grid-template-columns:repeat(2,minmax(0,1fr)); }
-.import-training-overview .import-proficiency-summary { grid-template-columns:repeat(auto-fit,minmax(min(100%,9rem),1fr)); }
-.import-training-overview .import-proficiency-summary > div { border-left:2px solid var(--border-main); padding-left:.6rem; }
+.import-proficiency-section > fieldset .import-saves { grid-template-columns:repeat(auto-fit,minmax(min(100%,8rem),1fr)); }
+.import-proficiency-summary { grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr)); }
+.import-proficiency-summary > div { border-left:2px solid var(--border-main); padding-left:.6rem; }
 .import-review .import-narrative { border:0; border-radius:0; overflow:visible; background:transparent; }
 .import-review .import-narrative > h3 { padding:.6rem 0; background:transparent; }
 .import-review .import-narrative > .import-grid { margin:.8rem 0 1rem; }
@@ -173,10 +170,10 @@
 .import-identity-pair legend { color:var(--text-accent); }
 .import-identity-pair > p { grid-column:1/-1; }
 .import-coin-fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,7rem),1fr)); gap:.65rem; }
-.import-proficiency-section > .import-proficiency-records { grid-column:1/-1; }
-.import-proficiency-section > fieldset { grid-column:1/-1; }
-.import-review .import-language-options { background:var(--bg-inset); margin-block:.8rem; }
+.import-review .import-language-section { border-left:4px solid var(--text-accent); }
 .import-language-options > button { margin:.5rem 0; }
+.import-language-options > details { margin-top:.8rem; }
+.import-language-options details > label { margin-top:.65rem; }
 .import-choice-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,10rem),1fr)); gap:.55rem .85rem; margin:.65rem 0; }
 .import-choice-list .import-check { align-items:start; }
 .import-choice-list .import-check input { margin-top:.2rem; }
@@ -192,8 +189,6 @@
 .import-spell-card .import-spell-kind { margin:0; flex:none; }
 .import-spell-card [data-import-spell-meta] { flex-basis:100%; margin:0; }
 .import-spell-card:has(> details[open]) { border:2px solid var(--text-accent); }
-@media (max-width:700px) { .import-training-overview :is(.import-resistance-section,.import-proficiency-section) { grid-template-columns:1fr; }
-.import-resistance-section > h3 { border-bottom:1px solid var(--border-main); } }
 @media (max-width:600px) { .import-identity-grid > .import-identity-pair { grid-template-columns:1fr; } }
 @media (max-width:600px) { .import-personality,.import-history { grid-template-columns:1fr; } }
 /* Hierarquia da revisão: setor > quadro/subtítulo > rótulo > valor > apoio.
@@ -210,8 +205,8 @@
 #confirmationDialog.import-review-open .import-skill-row > label { font-size:0; }
 #confirmationDialog.import-review-open :is(.import-player-field,.import-xp-field) > label { font-size:1.125rem; font-weight:700; }
 .import-identity-grid { grid-template-columns:minmax(0,1.6fr) minmax(7rem,.65fr); }
-.import-ancestry-fields { display:grid; gap:.8rem; }
-.import-ancestry-fields > fieldset { background:var(--bg-inset); }
+.import-ancestry-fields { display:grid; gap:.8rem; margin-bottom:1rem; }
+.import-review .import-ancestry-fields > fieldset { background:var(--bg-inset); border-left:3px solid var(--text-accent); padding:.8rem; }
 .import-ancestry-fields p { margin-top:.65rem; line-height:1.5; }
 .import-pool-forecast { border-left:3px solid var(--text-accent); padding-left:.8rem; }
 .import-pool-forecast h4 { font-weight:700; margin-bottom:.4rem; }
