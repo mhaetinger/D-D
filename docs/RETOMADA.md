@@ -20,7 +20,7 @@ A versão funcional foi publicada em **https://criticall.art/** pelas
 | Branch da tarefa | `feature/talento-sortudo-r2`, criada do `develop` público após a PR #18 |
 | Implementação R2 atual | `c304e83`, documentada até `ab06e0b`; 417 testes Node, tipos/build, 28 roteiros Chromium e banco na CI aprovados nessa referência. Correções posteriores exigem conferir a CI atual da PR #19 |
 | Correções de conferência | `1ff5a3f`; 419 testes Node, tipos/build, 28 roteiros Chromium locais e [CI da PR](https://github.com/mhaetinger/D-D/actions/runs/39787872702) aprovados, incluindo banco. Verificar a CI do registro documental posterior na PR #19 |
-| Correções adicionais de consulta/magias/recusa | Entrega atual da PR #19; 420 testes Node, tipos/build, 28 roteiros Chromium completos e repetição dos dois fluxos afetados após a revisão final aprovados localmente. Conferir a CI do último commit antes de integrar |
+| Correções adicionais de consulta/magias/recusa | Etapa anterior da PR #19; 420 testes Node, tipos/build, 28 roteiros Chromium completos e repetição dos dois fluxos afetados após a revisão final aprovados localmente. Conferir a CI do último commit antes de integrar |
 | R1 integrada | `8bcab7dfcaa5750e512264a8ef43b8ebffcb6748`; [PR #17](https://github.com/mhaetinger/D-D/pull/17) e CI completa aprovadas, testes/limites na auditoria |
 | R2 inicial integrada | `7dc30eb`; 404 testes Node, tipos/build e 27 roteiros Chromium locais/CI aprovados; [PR #18](https://github.com/mhaetinger/D-D/pull/18) integrada em `19e4ceb` |
 
@@ -34,38 +34,38 @@ Os próximos recortes de R2 cobrem as demais rerrolagens/dados mínimos,
 -5/+10 e adicionais de talentos/estilos. As matrizes e os critérios ficam naquele arquivo. Não
 marcar uma mecânica como concluída por ter descrição, escolha ou contador.
 
-O responsável pediu também ajuste do moderno em larguras intermediárias,
-correção da consulta de Ancestral Feérico e clareza nos campos de proficiência
-e ataque da revisão da importação. Os resumos passam a preceder a edição
-opcional; ataque manual sem bônus permanece não informado, sem inventar +0.
-São correções da entrega em revisão, sem avançar a cobertura automática de R3.
+A PR #19 reúne também as correções de interface em revisão. O moderno distribui
+origens/níveis pela largura e fonte sem remontar seus controles. A consulta usa
+os parágrafos dos traços raciais e as características dos 13 antecedentes,
+incluindo Ancestral Feérico, Versatilidade em Perícia e Pesquisador.
 
-A consulta foi ampliada para os parágrafos de todos os traços raciais e as
-características dos 13 antecedentes, incluindo Versatilidade em Perícia e
-Pesquisador. O editor compartilhado de magias separa cadastro, origem e
-disponibilidade, esconde preparo sem sentido para truques/magias conhecidas e
-oferece escolha explícita da origem racial. A recusa **Não quero** para copiar
-fichas sem conta é lembrada por conta/navegador; retomar fica no Perfil. Essas
-correções também pertencem à PR #19; não mudam as pendências de regras da auditoria.
+A revisão de PDF distingue identificação/classes e oferece antecedente/tendência
+por catálogo ou escrita livre. Idiomas/armas/ferramentas têm opções para marcar,
+com o treino já reconhecido pela ficha e textos desconhecidos preservados.
+Moedas são editáveis; personalidade/história começam abertas. `createWeaponFields`
+atende ficha/importação, com dados, ajustes opcionais e leitura validada; a
+proposta permite adicionar/remover ataques. Bônus manual ausente continua não
+informado. Validação alcança rascunhos de outra pessoa do mesmo arquivo.
 
-A revisão de PDF foi reorganizada para a primeira conferência: identificação e
-classes têm formatos distintos, treino/reservas têm ajuda e personalidade/história
-começam abertas. `createWeaponFields` agora atende ficha e importação, incluindo
-montagem de dados e leitura validada; a proposta permite adicionar/remover ataques.
-Última conferência local: 420 testes Node, tipos/build e oito roteiros Chromium
-pertinentes aprovados, com capturas desktop/mobile, cópias/cancelamento/metadados,
-validação entre pessoas e três temas/320px/GG. Integração segue pela PR #19, após
-conferir a CI atual; não altera a cobertura de mecânicas das matrizes.
+O grimório separa truques/círculos e grupos de classe, mantendo o array salvo.
+Escolher do livro e criar efeito próprio são caminhos explícitos. O editor
+compartilhado conserva preparo contextual e escolha da origem racial com
+habilidade/usos/círculo. A busca local no tema substitui o datalist nativo;
+setas/Enter/Esc/toque não confirmam a revisão inteira. Reagrupamento ocorre ao
+navegar entre setores, fora do foco do editor, sem cancelar cliques. Cópias,
+metadados, textos desconhecidos e usos gastos permanecem preservados.
 
-As ajudas por mouse agora esperam um segundo e se substituem entre consulta,
-ataque e equipamento. A descrição da magia fica no livrinho, com clique/Enter/
-toque para fixar a consulta e acessar o PDF. Cancelamento de hover e Esc impedem
-reabertura atrasada. Última conferência local: 420 testes Node, tipos/build e
-nove roteiros Chromium pertinentes aprovados (ajudas, características, regras,
-ataque com magia, criação, biblioteca, setores, cadeado e dano de armas), com
-capturas desktop/mobile e 320px/GG/três temas/dois layouts. A suíte completa
-passa de 28 a 29 roteiros; conferir a CI do último commit da PR #19 antes de
-integrar. Essa correção de interface não avança R2–R5 nem altera o dado.
+A recusa **Não quero** de copiar fichas sem conta é lembrada por conta/navegador;
+retomar fica no Perfil. Ajudas por mouse esperam um segundo e se substituem.
+A descrição da magia fica no livrinho, com clique/Enter/toque para fixar consulta
+e acessar o PDF. Essas correções não alteram o dado nem avançam R2–R5.
+
+Última conferência local: **422 testes Node, tipos/build e oito roteiros Chromium**
+(importação guiada, setores, PDF/JSON, edição em linha, armas, cadeado, ajudas e
+aplicativo/offline), incluindo 320px/GG/três temas e capturas desktop/mobile.
+Após a revisão final, repetidos busca/revisão guiada, edição em linha e cadeado.
+A suíte completa passa a **30 roteiros**. Conferir a CI do último commit da
+PR #19 antes de integrar; verificações anteriores ficam no changelog.
 
 ## Como continuar
 

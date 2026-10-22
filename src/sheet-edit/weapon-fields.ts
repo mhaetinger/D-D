@@ -8,14 +8,15 @@ import {helpAttributes} from '../app/help';
 export function weaponCalculationFields(original:Sheet,ruleWeapon:string|undefined,E:Engine,c?:Sheet):HTMLElement {
   const section=document.createElement('section');section.className='weapon-editor-calculation';
   const automatic=!!ruleWeapon&&original.calculationMode!=='manual';
-  const field=(label:string,control:string)=>`<label class="weapon-editor-field"><span>${label}</span>${control}</label>`;
+  const explanations:Record<string,string>={'Proficiência':'Treino com esta arma: soma o bônus de proficiência ao ataque. Detectar pela ficha considera classes, raça e escolhas; não é o bônus total de ataque.','Bônus mágico':'Bônus da própria arma mágica, como +1. O modo automático soma ao ataque e ao dano. Não copie aqui o bônus total escrito no ataque.','Habilidade':'Força ou Destreza usada no ataque e no dano. Automática segue o tipo e as propriedades da arma.','Modo de ataque':'Arremessar usa as regras de arremesso da arma. Normal mantém o uso habitual.','Ajuste de ataque':'Bônus adicional combinado na mesa. Não repita atributo, proficiência ou bônus mágico já incluídos.','Ajuste de dano':'Bônus adicional no dano. Não repita os modificadores que o cálculo automático já soma.'};
+  const field=(label:string,control:string)=>`<label class="weapon-editor-field" ${helpAttributes(label,explanations[label]||'')}><span>${label}</span>${control}</label>`;
   const select=(id:string,values:[string,string][],value:string)=>`<select id="${id}">${values.map(([key,label])=>`<option value="${escape(key)}" ${key===value?'selected':''}>${escape(label)}</option>`).join('')}</select>`;
   const number=(id:string,value:unknown,min:number,max:number)=>`<input id="${id}" type="number" min="${min}" max="${max}" step="1" value="${Number(value || 0)}">`;
   section.innerHTML=`<div class="weapon-editor-grid">
-    ${field('Cálculo',select('hbWepMode',[['auto','Automático'],['manual','Valores manuais']],automatic?'auto':'manual'))}
+    ${field('Cálculo de ataque e dano',select('hbWepMode',[['auto','Calcular pela ficha'],['manual','Manter valores informados']],automatic?'auto':'manual'))}
     ${field('Arma do catálogo',select('hbWepCatalog',[['','Personalizada'],...E.progression.weapons.map((w:Sheet)=>[w.name,w.name] as [string,string])],ruleWeapon||''))}
   </div>
-  <details class="weapon-editor-adjustments"><summary ${helpAttributes('Ajustes do cálculo','Confira proficiência com a arma, habilidade, bônus mágico e ajustes. Eles afetam o cálculo automático; valores manuais continuam como você informou.')}>Ajustes do cálculo</summary>
+  <details class="weapon-editor-adjustments"><summary ${helpAttributes('Ajustes do cálculo','Confira proficiência com a arma, habilidade, bônus mágico e ajustes. Eles afetam o cálculo automático; valores manuais continuam como você informou.')}>Ajustes do cálculo</summary><p class="weapon-editor-hint">Opções avançadas do modo automático. Só altere se uma característica ou adaptação mudar o cálculo. No modo manual, use os totais escritos abaixo.</p>
     <div class="weapon-editor-grid">
       ${field('Proficiência',select('hbWepProf',[['auto','Detectar pela ficha'],['yes','Proficiente · manual'],['no','Não proficiente · manual']],typeof original.proficient!=='boolean'?'auto':original.proficient?'yes':'no'))}
       ${field('Bônus mágico',number('hbWepMagic',original.magicBonus,-10,10))}

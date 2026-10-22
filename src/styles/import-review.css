@@ -169,6 +169,30 @@
 .import-review .import-weapon > details { border:0; border-top:1px solid var(--border-main); border-radius:0; padding:.6rem 0 0; }
 .import-weapon .weapon-fields { padding:.3rem 0; }
 .import-weapons-section .import-actions p { flex:1 1 22rem; }
+.import-identity-grid > .import-identity-pair { grid-column:1/-1; display:grid; grid-template-columns:1fr 1fr; gap:.65rem .9rem; margin:0; border:0; border-top:1px solid var(--border-main); border-radius:0; padding:.55rem 0 0; }
+.import-identity-pair legend { color:var(--text-accent); }
+.import-identity-pair > p { grid-column:1/-1; }
+.import-coin-fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,7rem),1fr)); gap:.65rem; }
+.import-proficiency-section > .import-proficiency-records { grid-column:1/-1; }
+.import-proficiency-section > fieldset { grid-column:1/-1; }
+.import-review .import-language-options { background:var(--bg-inset); margin-block:.8rem; }
+.import-language-options > button { margin:.5rem 0; }
+.import-choice-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,10rem),1fr)); gap:.55rem .85rem; margin:.65rem 0; }
+.import-choice-list .import-check { align-items:start; }
+.import-choice-list .import-check input { margin-top:.2rem; }
+.import-choice-list small { color:var(--text-muted); }
+.import-proficiency-picker details > fieldset { margin-block:.7rem; }
+.import-spell-add-actions { display:flex; gap:.5rem; flex-wrap:wrap; }
+.import-review .import-spell-circle { margin:1.25rem 0; border-top:2px solid var(--text-accent); }
+.import-spell-circle > h3 { display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:.65rem .75rem; background:var(--bg-inset); font:700 1.1rem/1.4 "Cinzel",serif; color:var(--text-accent); border-bottom:1px solid var(--border-main); margin-bottom:.7rem; }
+.import-spell-circle > h3 small { font:700 .9rem/1.4 var(--font-body); border:1px solid var(--border-main); border-radius:.4rem; padding:.1rem .45rem; }
+.import-spell-class > h4 { margin:.6rem .1rem; font-weight:700; }
+.import-spell-kind { display:inline-block; border:1px solid var(--text-accent); border-radius:.3rem; padding:.1rem .4rem; margin-bottom:.3rem; font-size:.875rem; font-weight:700; }
+.import-spell-card > header > div { display:flex; flex-wrap:wrap; align-items:center; gap:.35rem .6rem; min-width:0; }
+.import-spell-card .import-spell-kind { margin:0; flex:none; }
+.import-spell-card [data-import-spell-meta] { flex-basis:100%; margin:0; }
+.import-spell-card:has(> details[open]) { border:2px solid var(--text-accent); }
 @media (max-width:700px) { .import-training-overview :is(.import-resistance-section,.import-proficiency-section) { grid-template-columns:1fr; }
 .import-resistance-section > h3 { border-bottom:1px solid var(--border-main); } }
+@media (max-width:600px) { .import-identity-grid > .import-identity-pair { grid-template-columns:1fr; } }
 @media (max-width:600px) { .import-personality,.import-history { grid-template-columns:1fr; } }

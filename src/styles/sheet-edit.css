@@ -54,6 +54,21 @@ div:has(> .sheet-skill-value) > div:first-child { min-width:0; overflow-wrap:any
 .spell-fields .spell-preparation { display:grid; gap:.5rem; }
 .spell-fields .spell-preparation .spell-field-hint { margin:0; }
 .import-review .spell-fields > details { margin:0; padding:.65rem .8rem; background:var(--bg-card); }
+.spell-fields .import-grid { grid-template-columns:repeat(2,minmax(0,1fr)); align-items:end; }
+.spell-fields label { display:flex; flex-direction:column; gap:.3rem; min-width:0; }
+.spell-fields label > span { line-height:1.4; }
+.spell-fields input:not([type=checkbox]),.spell-fields select { min-height:2.5rem; }
+.spell-fields .spell-component-checks { display:flex; flex-wrap:wrap; gap:.7rem 1rem; margin-top:.7rem; }
+.spell-fields .spell-component-checks .import-check { display:flex; flex-direction:row; align-items:start; }
+.spell-fields .spell-component-checks input { margin-top:.2rem; flex:none; }
+.spell-fields .spell-components { margin-top:.8rem; }
+.catalog-results { max-height:13rem; overflow:auto; overscroll-behavior:contain; margin-top:.3rem; border:2px solid var(--text-accent); border-radius:.4rem; background:var(--bg-card); color:var(--text-main); }
+.catalog-results [role=option] { display:flex; flex-direction:column; gap:.2rem; padding:.5rem .65rem; border-bottom:1px solid var(--border-main); cursor:pointer; overflow-wrap:anywhere; }
+.catalog-results [role=option]:is(:hover,[aria-selected=true]) { background:var(--bg-inset); outline:2px solid var(--text-accent); outline-offset:-2px; }
+.catalog-results span { font-size:.875rem; color:var(--text-muted); }
+.catalog-results p { padding:.6rem; }
+.spell-fields .import-grid:has(> [data-spell-catalog-label]) { align-items:start; }
+@media (max-width:600px) { .spell-fields .import-grid { grid-template-columns:1fr; } }
 .spell-fields details[open] > summary { padding-bottom:.45rem; border-bottom:1px solid var(--border-main); }
 .spell-fields .spell-origin-choices { display:flex; flex-wrap:wrap; gap:.5rem; margin:.65rem 0; }
 .spell-origin-choices button[aria-pressed=true] { border:2px solid var(--text-main); background:var(--text-accent); color:var(--btn-primary-text,#fff); font-weight:700; }

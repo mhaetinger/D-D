@@ -67,10 +67,20 @@ Cinco setores mantêm os controles montados; navegação compacta em telas peque
 treino. Identidade usa nome em destaque sem caixa externa; classes têm ícone,
 linhas e nível total. Resistências formam uma faixa compacta; registros e
 armaduras dividem o espaço. Personalidade, história e aparência usam textareas
-visíveis; inventário/moedas têm resumo e tesouros permanecem editáveis. Ícones
+visíveis; inventário tem resumo, moedas têm campos numéricos e tesouros permanecem editáveis. Ícones
 são decorativos do catálogo local Lucide, sem assets remotos.
-Proficiências e ataques começam com resumos dos valores lidos. Registros de
-armas/ferramentas/idiomas e correção/vínculo de cada ataque ficam em `details`,
+Antecedente tem nome livre e vínculo opcional ao catálogo, como raça. Tendência
+compartilha as nove sugestões do criador e permite texto próprio. Vínculo de
+antecedente só é proposto por correspondência exata, fora do modo manual;
+escolher um não reescreve os treinos ou a narrativa importados.
+Proficiências e ataques começam com resumos dos valores lidos.
+`proficiency-fields.ts` oferece checkboxes de idiomas, armas e ferramentas;
+`isProficient` marca e protege armas já concedidas pelas regras existentes.
+Grupos manuais cobrem suas armas sem fingir que uma exceção individual os remove.
+Idiomas raciais só são acrescentados por ação explícita. Opções não concedem
+novos treinos pelas regras; o registro livre conserva dados fora do catálogo.
+`toggleRecord` reconhece opções inteiras, sem remover nomes parecidos ou textos
+desconhecidos. Registros livres e correção/vínculo de ataques ficam em `details`,
 com os campos sempre montados. Resumos usam `textContent` e atualizam durante
 a edição. Armas montam `createWeaponFields`, também usado pela ficha, com
 adicionar/remover na proposta. Cada instância tem IDs próprios; a ponte da ficha
@@ -82,6 +92,22 @@ haver bônus informado/calculado. Isso não infere que todo ataque sem bônus se
 um efeito de resistência, nem calcula a CD de um sopro. Vincular explicitamente
 ao catálogo com modo Automático ativa o cálculo; editar/cancelar mantém os contratos anteriores.
 A validação revela o setor e os detalhes antes de focar o primeiro campo inválido.
+`spell-groups.ts` distribui os cartões de importação por círculo e classe sem
+ordenar o array salvo. Truques têm seção própria; cartões existentes começam
+recolhidos, com círculo/origem visíveis e avisos preservados. Adicionar truque
+começa em 0; adicionar magia começa em 1. Trocar círculo/origem atualiza o cartão
+e o reagrupamento ocorre ao navegar entre setores, fora do foco do editor.
+Não mover ancestrais no `focusout`: isso pode retirar o alvo entre o pressionar
+e soltar do mouse e cancelar o clique. Nós/rascunhos são mantidos nas escolhas.
+O editor compartilhado distingue escolher do livro de criar um efeito próprio;
+fórmula e lançamentos especiais continuam opcionais. Campos numéricos e selects
+alinham pela base; checkboxes de componentes ficam em faixa própria.
+`catalog-search.ts` substitui o datalist nativo por resultados locais no tema,
+no fluxo do cartão, com círculo e classes. Não há portal fixo sobre outro campo.
+Usa o padrão [combobox da WAI](https://www.w3.org/WAI/ARIA/apg/patterns/combobox/):
+setas destacam, Enter escolhe, Esc fecha sem descartar texto ou fechar a revisão;
+seleção por toque é explícita. Mantém foco no input, `aria-activedescendant`,
+lista rolável contida e textos como dados, sem HTML do arquivo.
 `pool-fields.ts` monta os campos de reservas e sincroniza apenas os resumos e
 aberturas. Todos permanecem no formulário. Quantidades exatamente zeradas e
 válidas começam recolhidas por reserva; o círculo de Pacto também deve ser válido.

@@ -22,6 +22,8 @@ export function proposeImport(backup:Backup,E:Engine):Backup {
     c.rules ||= {history:[],legacy:true};c.rules.history ||= [];
     const race=matchOption(c.rules.raceId,E.options.races)||(c.rules.manualMode?'':matchOption(c.race,E.options.races));
     if(race)c.rules.raceId=race;
+    const background=matchOption(c.rules.backgroundId,E.options.backgrounds)||(c.rules.manualMode?'':matchOption(c.background,E.options.backgrounds));
+    if(background)c.rules.backgroundId=background;
     for(const cls of c.classes) {
       const options=E.data.classes[cls.classId]?.subclasses || {};
       const id=matchOption(cls.subclassId,options)||matchOption(cls.subclass,options);

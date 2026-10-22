@@ -6,7 +6,7 @@
 #homebrewModal[data-editor-type=weapon] :is(input,select,textarea):focus-visible { outline:2px solid var(--text-accent); outline-offset:1px; }
 #homebrewModal[data-editor-type=weapon] :is(input,button):disabled { opacity:.6; }
 #homebrewModal[data-editor-type=weapon] textarea { resize:vertical; }
-.weapon-editor-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,10.5rem),1fr)); gap:.7rem; }
+.weapon-editor-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,10.5rem),1fr)); gap:.7rem; align-items:end; }
 .weapon-editor-field { display:flex; flex-direction:column; gap:.3rem; min-width:0; }
 .weapon-editor-field > span { font-weight:700; }
 .weapon-editor-adjustments { margin-top:.6rem; }

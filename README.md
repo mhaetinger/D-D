@@ -90,9 +90,17 @@ de magias, **Voltar à ficha** permite sair sem aplicar; escolhas pendentes pede
 confirmação antes do descarte. O lembrete do descanso só é retirado ao aplicar.
 Avisos de limite ou validação aparecem dentro da janela que estiver em uso.
 Na revisão da importação, proficiências e ataques mostram primeiro os registros
-lidos. Abra **Corrigir** quando precisar mudar um valor ou vincular uma arma ao
-catálogo. Armas/ferramentas são registros opcionais; a proficiência de armas já
-considera classe, raça e escolhas. Um bônus de ataque não informado pode ficar
+lidos. Idiomas têm opções para marcar; armas indicam **Pela ficha** quando o
+treino já vem das classes, raça e escolhas. Ferramentas e registros livres ficam
+na edição opcional, preservando textos que o catálogo não reconheceu.
+Antecedente e tendência permitem escrita livre ou escolha do livro.
+O grimório separa **Truques** e cada círculo, com agrupamento por classe e
+origem visível. **Adicionar truque / Adicionar magia** permite escolher no livro
+ou criar um efeito próprio; a busca mostra círculo e classes antes da escolha.
+Abra um cartão para corrigir seus campos. Ajustes de fórmula substituem os
+dados por uma adaptação; não são necessários para usar o efeito do livro.
+Moedas também são editáveis antes de importar. Abra **Corrigir ou vincular arma**
+quando precisar mudar um ataque ou usar o catálogo. Um bônus não informado pode ficar
 vazio, inclusive em efeitos que usam resistência; isso não inventa um bônus +0.
 As dicas de preparo aparecem no balão ao passar o mouse ou focar o controle
 pelo teclado. Marcar uma checkbox continua apenas alterando sua seleção.

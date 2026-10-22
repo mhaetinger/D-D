@@ -2,6 +2,34 @@
 
 ## Não lançado
 
+### Importação guiada por opções e círculos de magia — 2026-10-22
+
+- Antecedente e tendência permitem manter a escrita livre ou escolher do livro,
+  em pares separados como a raça. Um antecedente reconhecido é vinculado na
+  proposta sem refazer treinos ou narrativa; personalizados continuam livres.
+- Idiomas têm checkboxes e uma ação explícita para acrescentar os da raça.
+  Armas/ferramentas oferecem listas; armas já reconhecidas pelas classes, raça
+  e escolhas indicam **Pela ficha**. Grupos de armas cobrem seus itens. Registros
+  livres, idiomas desconhecidos e textos da mesa são preservados nas escolhas.
+- Grimório separa truques e círculos em ordem, com grupos de classe e origem
+  especial visível. Cartões existentes começam recolhidos e identificados;
+  adicionar truque começa em 0 e magia em 1. O agrupamento não ordena o array
+  salvo nem move ancestrais durante o clique ou o foco da edição.
+- A busca de magias usa resultados locais no tema, com círculo/classes e
+  teclado/toque, em vez do datalist nativo que aparecia deslocado e preto.
+  Escolher do livro e criar um efeito próprio ficam explícitos. Fórmulas
+  próprias e ajustes opcionais explicam seu uso; campos alinham pela base e
+  componentes têm faixa própria. Enter na busca não confirma a importação.
+- Moedas passam de resumo para campos editáveis/validados. Armas mantêm o
+  editor compartilhado, com nomes mais claros para o cálculo e dicas dos
+  ajustes avançados. Cópias, cancelamento, metadados e usos gastos preservados.
+- Verificados 422 testes Node, tipos/build e oito roteiros Chromium: revisão
+  guiada, setores, PDF/JSON, edição em linha, armas, cadeado, ajudas e
+  aplicativo/offline. Incluídos dados desconhecidos, teclado/toque/Esc,
+  cancelamento/validação, nós/rascunhos, 320px/GG/três temas e capturas visuais.
+  A suíte completa passa a 30 roteiros. Sem alteração de SQL/RLS/RPC ou avanço
+  das pendências de mecânicas; conferir a CI atual da PR #19 antes de integrar.
+
 ### Ajudas coordenadas e descrição no livrinho — 2026-10-22
 
 - A descrição da magia aparece somente no livrinho. As ajudas por mouse esperam

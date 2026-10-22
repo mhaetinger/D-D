@@ -230,7 +230,11 @@ narrativa aberta e editor de armas compartilhado com a ficha. Essas mudanças
 facilitam conferir a cópia. As ajudas passam a se substituir com atraso de um
 segundo por mouse; a descrição da magia fica no livrinho, com consulta por
 clique/teclado/toque. Nenhuma dessas correções completa um efeito de classe ou
-origem. Isso não implementa a
+origem. A revisão também oferece antecedente/tendência por catálogo ou texto,
+idiomas/armas/ferramentas por opções e moedas editáveis; truques e círculos têm
+grupos por classe, sem misturar sua apresentação ou ordenar o array salvo.
+As opções de treino usam o cálculo já existente; escolher um antecedente não
+refaz os treinos importados. Isso não implementa a
 aplicação automática de vantagem/imunidade nem a CD/área de um sopro; R3–R5
 mantêm seus limites e pendências abaixo.
 
