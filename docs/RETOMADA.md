@@ -16,8 +16,9 @@ A versão funcional foi publicada em **https://criticall.art/** pelas
 | Integração `develop` | `19e4ceb`, primeiro recorte de R2 integrado pela PR #18 após CI completa aprovada; contém mudanças ainda não publicadas |
 | Revisão offline publicada | `4e263eb66b70d44f` |
 | Verificação/publicação | [Workflow 39638188104](https://github.com/mhaetinger/D-D/actions/runs/39638188104), concluído com sucesso |
-| Trabalho atual | Segundo recorte de R2: talento Sortudo de três pontos, distinto do racial; verificar a entrega antes de integrar |
+| Trabalho atual | Segundo recorte de R2: talento Sortudo de três pontos, distinto do racial, em revisão na [PR #19](https://github.com/mhaetinger/D-D/pull/19); conferir a CI antes de integrar |
 | Branch da tarefa | `feature/talento-sortudo-r2`, criada do `develop` público após a PR #18 |
+| Implementação R2 atual | `c304e83`; 417 testes Node, tipos/build e 28 roteiros Chromium locais aprovados; CI/integração da PR #19 a conferir |
 | R1 integrada | `8bcab7dfcaa5750e512264a8ef43b8ebffcb6748`; [PR #17](https://github.com/mhaetinger/D-D/pull/17) e CI completa aprovadas, testes/limites na auditoria |
 | R2 inicial integrada | `7dc30eb`; 404 testes Node, tipos/build e 27 roteiros Chromium locais/CI aprovados; [PR #18](https://github.com/mhaetinger/D-D/pull/18) integrada em `19e4ceb` |
 
@@ -58,8 +59,8 @@ Texto para iniciar outra conversa:
 > Continue o CritCall. Leia AGENTS.md, docs/RETOMADA.md, README.md,
 > CHANGELOG.md e docs/ARQUITETURA.md. Confira a branch e o estado do Git.
 > O roteiro atual de regras está em docs/AUDITORIA-LIVRO-2014.md. Confira
-> primeiro a entrega do talento Sortudo em feature/talento-sortudo-r2 e suas
-> verificações/PR; depois continue os gastos/rerrolagens restantes de R2. Não
+> primeiro a PR #19 do talento Sortudo em feature/talento-sortudo-r2 e suas
+> verificações; depois continue os gastos/rerrolagens restantes de R2. Não
 > confundir Sortudo racial com o talento.
 
 ## Mapa dos documentos

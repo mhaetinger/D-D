@@ -162,6 +162,10 @@ banco não repetido localmente, permanecendo exigido na CI.
 
 ### Segundo recorte de R2: talento Sortudo — 22/10/2026
 
+Implementação `c304e83`, em revisão na
+[PR #19](https://github.com/mhaetinger/D-D/pull/19) para `develop`.
+Conferir a CI completa antes de integrar; sem publicação deste recorte.
+
 Fonte: Livro do Jogador local, página física **171**, e
 [Sage Advice v2.4/2020, página 8](https://media.wizards.com/2019/dnd/downloads/SA-Compendium.pdf#page=8).
 Na regra de 2014, o talento permite escolher qualquer um dos d20, inclusive
@@ -203,12 +207,13 @@ recarregar ou trocar de instalação não restaura o conjunto de d20; o gasto j�
 salvo permanece na ficha. Isso não é restauração de uma rolagem por backup.
 
 Regressões: `tests/lucky.test.ts` e `tests/lucky-browser.cjs`. Conferidos
-**417 testes Node**, tipos/build e o roteiro Chromium dedicado, incluindo
+**417 testes Node**, tipos/build e os **28 roteiros Chromium** locais, incluindo
 decisão tardia, custo/cancelamento/retomada, modificações concorrentes,
 vantagem/desvantagem, críticos, inspiração, racial/mínimo, dados físicos/OFF,
 dois layouts/três temas/320px/GG/toque e pontos/notas offline sob `/D-D/`.
-A suíte completa de navegador e banco descartável são exigidos na CI antes
-da integração. Não houve SQL/RLS/RPC nem validação entre dispositivos reais.
+Conferidos 62 links/âncoras locais e auditoria de produção sem vulnerabilidades.
+CI completa e banco descartável são exigidos antes da integração. Banco não
+repetido localmente; não houve SQL/RLS/RPC nem validação entre dispositivos reais.
 
 Continuam pendentes em R2: Atacante Bestial, Combate com Armas Grandes,
 Adepto Elemental, Atirador Aguçado/Mestre de Armas Grandes (-5/+10) e

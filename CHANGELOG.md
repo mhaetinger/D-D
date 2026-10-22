@@ -24,11 +24,12 @@
 - PR #18 integrada em `develop` `19e4ceb`, após autorização e CI completa
   aprovada: 404 testes, tipos/build, 27 roteiros Chromium e banco descartável.
   Produção continua em `27b3083`; R2 segue parcial na auditoria.
-- Conferidos 417 testes Node, tipos/build e o roteiro Chromium dedicado,
+- Conferidos 417 testes Node, tipos/build e os 28 roteiros Chromium,
   incluindo decisão tardia, cancelamento/retomada, concorrência, recebido/físico/
   OFF/Só Pool, mínimo/racial/inspiração, layouts/temas/320px/GG/toque e offline
-  com pontos/notas preservados. Suíte completa de navegador e banco exigidos na
-  CI antes da integração. Sem alteração de SQL/RLS/RPC.
+  com pontos/notas preservados; 62 links/âncoras locais válidos e auditoria de
+  produção sem vulnerabilidades. Entrega `c304e83` na PR #19; CI completa e
+  banco exigidos antes da integração. Sem alteração de SQL/RLS/RPC.
 
 ### Talento Confiável e Sortudo racial nas rolagens — 2026-10-21
 
