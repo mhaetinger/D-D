@@ -20,3 +20,17 @@
 .weapon-editor-dice-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.35rem; }
 #homebrewModal[data-editor-type=weapon] .weapon-editor-dice button { min-width:0; padding:.45rem .35rem; }
 #homebrewModal[data-editor-type=weapon] > div > div:last-child { flex-wrap:wrap; }
+/* O mesmo módulo funciona no painel estreito da ficha e na revisão de PDF. */
+.weapon-fields { display:grid; gap:.8rem; min-width:0; }
+.weapon-fields :is(input:not([type=checkbox]):not([type=hidden]),select,textarea) { width:100%; min-width:0; padding:.45rem .55rem; border:1px solid var(--border-main); border-radius:.4rem; background:var(--bg-inset); color:var(--text-main); color-scheme:var(--control-color-scheme); font:inherit; }
+.weapon-fields .weapon-editor-checks label { display:grid; grid-template-columns:auto minmax(0,1fr); }
+.weapon-fields .weapon-editor-checks input { width:1rem; }
+.weapon-fields .weapon-damage-builder { display:grid; gap:.65rem; min-width:0; padding:.7rem; border:1px solid var(--border-main); border-radius:.4rem; }
+.weapon-fields .weapon-damage-builder legend { font-weight:700; padding:0 .3rem; }
+.weapon-fields .weapon-editor-dice button { min-width:0; padding:.45rem .3rem; }
+.weapon-selected-dice { display:flex; flex-wrap:wrap; gap:.4rem; }
+.weapon-selected-dice button { padding:.25rem .5rem; }
+.weapon-fields .weapon-editor-formula { display:flex; justify-content:space-between; gap:.5rem; padding-top:.45rem; border-top:1px solid var(--border-main); }
+.weapon-fields .weapon-editor-formula output { font-weight:700; margin:0; }
+.weapon-fields [data-weapon-error] { font-weight:700; border-left:3px solid var(--text-accent); padding-left:.5rem; }
+.weapon-fields [hidden] { display:none !important; }

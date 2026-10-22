@@ -32,7 +32,7 @@ import {sheetInput,sheetSelect,sheetText,captureSheetFields,restoreSheetFields,r
 import {parkSheetPanels,restoreSheetPanels,clearSheetPanels,mountSheetPanel,closeSheetPanel,canSaveSheetPanel} from '../sheet-edit/panels';
 import {canEditSheet} from '../sheet-edit/access';
 import {canConfigureSheet} from '../sheet-edit/lock';
-import {weaponCalculationFields} from '../sheet-edit/weapon-fields';
+import {createWeaponFields} from '../sheet-edit/weapon-fields';
 import {featureConsultButton} from './feature-consult';
 import {updateDiceDockAppearance} from './dice-dock-appearance';
 
@@ -549,7 +549,7 @@ let expandedSingleSpells = {};
 let selectedCastLevelBySpell = {};
 let twinnedActiveBySpell = { "Mísseis Mágicos": true };
 let homebrewInitialState = "";
-let weaponDamageDraft = null; // Montagem do formulário; nunca usa o pool da bandeja.
+let weaponEditor = null; // Instância compartilhada com a revisão da importação.
 const COIN_LABELS = { pc: "Cobre", pp: "Prata", pe: "Electro", po: "Ouro", pl: "Platina" };
 const LORE_LABELS = { traits: "Personalidade", ideals: "Ideais", bonds: "Ligações", flaws: "Defeitos", backstory: "História do personagem", appearance: "Aparência", allies: "Aliados", treasure: "Tesouros narrativos" };
 const PHYSICAL_LABELS = { age: "Idade", height: "Altura", weight: "Peso", eyes: "Olhos", skin: "Pele", hair: "Cabelo" };
@@ -2521,44 +2521,11 @@ function getHomebrewFormState() {
     .map((input) => [input.id, input.value, input.checked]));
 }
 
-function initWeaponDamageBuilder(formula) {
-  const parsed = parseDiceFormula(formula);
-  weaponDamageDraft = { counts: {...(parsed?.counts || {})}, original: String(formula), changed: false };
-  document.getElementById("hbWepDamageMod").value = String(parsed?.modifier ?? 0);
-  renderWeaponDamageBuilder();
-}
-function changeWeaponDamageDie(sides, delta) {
-  if (!weaponDamageDraft || ![4,6,8,10,12,20,100].includes(sides) || ![1,-1].includes(delta)) return;
-  const counts = weaponDamageDraft.counts;
-  if (delta > 0 && Object.values(counts).reduce((sum,n) => sum+n,0) >= 100) {
-    showHomebrewError(`hbDamageDie${sides}`, "Use no máximo 100 dados nesta montagem."); return;
-  }
-  counts[sides] = Math.max(0, (counts[sides] || 0) + delta);
-  weaponDamageDraft.changed = true;
-  renderWeaponDamageBuilder();
-}
-function clearWeaponDamageDice() {
-  if (!weaponDamageDraft) return;
-  weaponDamageDraft.counts = {};
-  weaponDamageDraft.changed = true;
-  renderWeaponDamageBuilder();
-}
-function renderWeaponDamageBuilder(modifierChanged = false) {
-  if (!weaponDamageDraft) return;
-  if (modifierChanged) weaponDamageDraft.changed = true;
-  const input = document.getElementById("hbWepDamageMod"), modifier = Number(input.value);
-  const valid = input.value.trim() !== "" && Number.isSafeInteger(modifier) && Math.abs(modifier) <= 10000;
-  const entries = Object.entries(weaponDamageDraft.counts).filter(([,count]) => count > 0);
-  const dice = entries.map(([sides,count]) => `${count}d${sides}`).join("+");
-  // Sem edição, conserva até a escrita da fórmula legada. Alterar apenas
-  // notas/descrição não deve converter um ataque automático em manual.
-  const formula = !valid ? "" : !weaponDamageDraft.changed ? weaponDamageDraft.original
-    : dice ? dice + (modifier ? fmtMod(modifier) : "") : String(modifier);
-  document.getElementById("hbWepDmg").value = formula;
-  document.getElementById("hbWeaponDamagePreview").textContent = valid ? parseDiceFormula(formula)?.formula || "Escolha os dados do dano" : "Informe um modificador inteiro";
-  document.getElementById("hbWeaponDamageDice").innerHTML = entries.map(([sides,count]) => `<button type="button" class="t-inset px-2 py-1 rounded font-bold" onclick="changeWeaponDamageDie(${sides}, -1)" aria-label="Remover um d${sides}">${count}d${sides} <span aria-hidden="true">−</span></button>`).join("") || '<span class="t-text-muted">Nenhum dado</span>';
-  document.getElementById("hbFormError").classList.add("hidden");
-}
+// Ponte temporária para integrações anteriores; os campos são do módulo comum.
+function initWeaponDamageBuilder(formula) { weaponEditor?.setDamage(formula); }
+function changeWeaponDamageDie(sides, delta) { weaponEditor?.changeDie(sides, delta); }
+function clearWeaponDamageDice() { weaponEditor?.clearDice(); }
+function renderWeaponDamageBuilder(modifierChanged = false) { weaponEditor?.renderDamage(modifierChanged); }
 
 function saveCharacterCoins(values) {
   if(!requireSheetConfiguration())return;
@@ -2612,7 +2579,7 @@ function openHomebrewModal(type, index = null) {
   const saveBtn = document.getElementById("hbSaveBtn");
   const deleteBtn = document.getElementById("hbDeleteBtn");
   const e = escapeHTML;
-  weaponDamageDraft = null;
+  weaponEditor = null;
   document.getElementById("hbFormError").classList.add("hidden");
   hideBookTooltip();
   deleteBtn.classList.toggle("hidden", index === null);
@@ -2629,66 +2596,16 @@ function openHomebrewModal(type, index = null) {
     };
     if (!weapon) return;
     title.textContent = index !== null ? `Editar ataque: ${weapon.name}` : "Criar arma / ataque";
-    body.innerHTML = `
-      <div><label for="hbWepName" class="block font-bold mb-1">Nome</label><input id="hbWepName" maxlength="120" value="${e(weapon.name)}" class="w-full t-inset p-2 rounded-lg" /></div>
-      <div class="weapon-editor-grid">
-        <div><label for="hbWepBonus" class="block font-bold mb-1">Bônus de ataque (se houver)</label><input id="hbWepBonus" value="${e(weapon.bonus)}" placeholder="Ex.: +6; vazio se não informado" class="w-full t-inset p-2 rounded-lg" /></div>
-        <div><label for="hbWepDamageMod" class="block font-bold mb-1">Modificador de dano</label><input id="hbWepDamageMod" type="number" min="-10000" max="10000" step="1" required oninput="renderWeaponDamageBuilder(true)" class="w-full t-inset p-2 rounded-lg" /></div>
-      </div>
-      <fieldset class="space-y-2 min-w-0"><legend class="font-bold mb-1">Dados de dano</legend>
-        <div class="text-[11px] t-text-muted">Adicionar</div><div class="weapon-editor-dice">${[4,6,8,10,12,20,100].map(sides => `<button type="button" id="hbDamageDie${sides}" onclick="changeWeaponDamageDie(${sides}, 1)" aria-label="Adicionar d${sides} ao dano" class="t-inset p-2 rounded-lg font-bold">+d${sides}</button>`).join("")}</div>
-        <div class="border-t t-border pt-2 space-y-1.5"><div class="weapon-editor-dice-heading text-[11px] t-text-muted"><span>Selecionados</span><button type="button" onclick="clearWeaponDamageDice()" class="underline">Limpar dados</button></div><div id="hbWeaponDamageDice" class="flex flex-wrap gap-1.5" role="group" aria-label="Dados selecionados para o dano"></div></div>
-        <output id="hbWeaponDamagePreview" aria-label="Dano montado" aria-live="polite" class="sr-only"></output>
-        <input id="hbWepDmg" type="hidden" />
-      </fieldset>
-      <div><label for="hbWepType" class="block font-bold mb-1">Tipo de dano</label><input id="hbWepType" value="${e(weapon.dmgTypeLabel)}" placeholder="Cortante, fogo…" class="w-full t-inset p-2 rounded-lg" /></div>
-      <div><label for="hbWepNotes" class="block font-bold mb-1">Propriedades / resumo</label><input id="hbWepNotes" value="${e(weapon.notes)}" class="w-full t-inset p-2 rounded-lg" /></div>
-      <div><label for="hbWepDescription" class="block font-bold mb-1">Descrição ao passar o mouse ou tocar no nome</label><textarea id="hbWepDescription" rows="4" maxlength="8000" class="w-full t-inset p-2 rounded-lg">${e(weapon.description ?? BOOK_ITEMS_DB[weapon.name]?.bookDesc ?? weapon.notes)}</textarea></div>`;
-    initWeaponDamageBuilder(weapon.damage);
-    const original = index!==null ? {magicBonus:weapon.magicBonus,...char.weapons[index]} : {};
-    const options = weaponCalculationFields(original,weapon.ruleWeapon,CharacterEngine,char);
-    body.firstElementChild.after(options);
-    const calculationHint = document.createElement('p'); calculationHint.className = 'weapon-editor-hint';
-    options.after(calculationHint);
-    const updateCalculationMode = () => {
-      const automatic = document.getElementById('hbWepMode').value==='auto';
-      calculationHint.textContent = automatic ? 'Ataque e dano calculados pela ficha.' : 'Totais manuais: monte o dano e informe o bônus de ataque, se houver. Um efeito com resistência pode não fazer jogada de ataque.';
-      for (const id of ['hbWepBonus','hbWepDamageMod']) document.getElementById(id).disabled = automatic;
-      for (const button of body.querySelectorAll('[id^="hbDamageDie"]')) button.disabled = automatic;
-    };
-    document.getElementById('hbWepMode').addEventListener('change',updateCalculationMode); updateCalculationMode();
+    weaponEditor = createWeaponFields(char,index!==null?char.weapons[index]:null,CharacterEngine,{legacyIds:true,description:BOOK_ITEMS_DB[weapon.name]?.bookDesc});
+    body.replaceChildren(weaponEditor.element);
     saveBtn.onclick = () => {
-      const name = document.getElementById("hbWepName").value.trim();
-      const bonus = document.getElementById("hbWepBonus").value.trim();
-      const damage = parseDiceFormula(document.getElementById("hbWepDmg").value);
-      if (!name) return showHomebrewError("hbWepName", "Informe o nome do ataque.");
-      if (bonus!=='' && (!/^[+-]?\d+$/.test(bonus) || !Number.isSafeInteger(Number(bonus)) || Math.abs(Number(bonus)) > 1000)) return showHomebrewError("hbWepBonus", "Use um bônus inteiro, por exemplo +6 ou -1 (entre -1000 e +1000), ou deixe vazio se não houver.");
-      if (!damage) return showHomebrewError("hbWepDamageMod", "Selecione os dados e informe um modificador inteiro entre -10000 e +10000. Use 0 para não adicionar um modificador.");
-      // Só altera a ficha depois de validar todos os campos. Edições mantêm
-      // propriedades anteriores, inclusive metadados que o formulário não edita.
-      const updated = { ...weapon, ruleWeapon: bonus === weapon.bonus && damage.formula === weapon.damage ? weapon.ruleWeapon : undefined, name, bonus: bonus===''?'':fmtMod(Number(bonus)), damage: damage.formula,
-        dmgTypeLabel: document.getElementById("hbWepType").value.trim(),
-        notes: document.getElementById("hbWepNotes").value.trim(),
-        description: document.getElementById("hbWepDescription").value.trim() };
-      const numeric = ['hbWepMagic','hbWepAttackAdjust','hbWepDamageAdjust'];
-      if (numeric.some(id=>!Number.isInteger(Number(document.getElementById(id).value)) || Math.abs(Number(document.getElementById(id).value))>100)) return showHomebrewError('hbWepMagic','Use ajustes inteiros entre -100 e 100.');
-      Object.assign(updated,{calculationMode:document.getElementById('hbWepMode').value,ruleWeapon:document.getElementById('hbWepCatalog').value || undefined,
-        proficient:document.getElementById('hbWepProf').value==='auto'?undefined:document.getElementById('hbWepProf').value==='yes',magicBonus:Number(document.getElementById('hbWepMagic').value),abilityOverride:document.getElementById('hbWepAbility').value,attackMode:document.getElementById('hbWepAttackMode').value,
-        attackAdjustment:Number(document.getElementById('hbWepAttackAdjust').value),damageAdjustment:Number(document.getElementById('hbWepDamageAdjust').value),duelingEligible:document.getElementById('hbWepDuel').checked,offHand:document.getElementById('hbWepOffhand').checked});
-      if(updated.calculationMode==='auto' && updated.bonus==='') {
-        const computed=CharacterEngine.weaponStats(char,updated);
-        if(computed.calculationMode==='manual')return showHomebrewError('hbWepCatalog','Escolha uma arma do catálogo ou mantenha o cálculo manual.');
-        updated.bonus=computed.bonus;
-      }
-      const pactField=document.getElementById('hbWepPact');
-      if(pactField) {
-        updated.pactWeapon=pactField.checked;
-        if(updated.pactWeapon)for(const other of char.weapons)other.pactWeapon=false;
-      }
-      if (index === null) char.weapons.push(updated);
-      else char.weapons[index] = updated;
-      closeHomebrewModal(true);
-      recordStepAndSave(`${index === null ? "Criou" : "Editou"} ataque: ${name} (${damage.formula})`);
+      try {
+        const updated=weaponEditor.read();
+        if(weaponEditor.field('hbWepPact')&&updated.pactWeapon)for(const other of char.weapons)other.pactWeapon=false;
+        if(index===null)char.weapons.push(updated);else char.weapons[index]=updated;
+        closeHomebrewModal(true);
+        recordStepAndSave(`${index===null?"Criou":"Editou"} ataque: ${updated.name} (${updated.damage})`);
+      } catch(error) { showHomebrewError(error.field?.id || 'hbWepName',error.message); }
     };
   } else if (type === "item") {
     const item = index !== null ? char.inventoryItems[index] : { name: "", qty: 1, weightKg: 0, description: "" };

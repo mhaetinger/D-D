@@ -224,7 +224,10 @@ adicionais/manobras dos demais talentos/estilos. **R2 não está concluída.**
 Correções de consulta/interface em revisão na PR #19 (22/10): Ancestral Feérico
 usa o próprio parágrafo racial e página; o moderno distribui origens/níveis
 conforme a largura do quadro; revisão de importação começa pelos resumos e
-preserva ataque manual sem bônus como não informado. Isso não implementa a
+preserva ataque manual sem bônus como não informado. A apresentação foi
+reorganizada com identificação/classes distintas, dicas de treino/reservas,
+narrativa aberta e editor de armas compartilhado com a ficha. Essas mudanças
+facilitam conferir a cópia; não completam um efeito de classe ou origem. Isso não implementa a
 aplicação automática de vantagem/imunidade nem a CD/área de um sopro; R3–R5
 mantêm seus limites e pendências abaixo.
 

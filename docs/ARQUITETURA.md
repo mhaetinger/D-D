@@ -63,15 +63,24 @@ reescrever sua origem. Não infere sub-raça/juramento/preparo ausentes; confere
 origem especial/habilidade, usos, preparo e recursos. `review-ui.ts` reutiliza
 confirmação, foco e rolagem existentes, sem recriar linhas ao mudar opções.
 Cinco setores mantêm os controles montados; navegação compacta em telas pequenas.
+`review-presentation.ts` concentra identificação/narrativa e as explicações de
+treino. Identidade usa nome em destaque sem caixa externa; classes têm ícone,
+linhas e nível total. Resistências formam uma faixa compacta; registros e
+armaduras dividem o espaço. Personalidade, história e aparência usam textareas
+visíveis; inventário/moedas têm resumo e tesouros permanecem editáveis. Ícones
+são decorativos do catálogo local Lucide, sem assets remotos.
 Proficiências e ataques começam com resumos dos valores lidos. Registros de
 armas/ferramentas/idiomas e correção/vínculo de cada ataque ficam em `details`,
 com os campos sempre montados. Resumos usam `textContent` e atualizam durante
-a edição. Validação revela setor e detalhes antes de focar um campo inválido.
+a edição. Armas montam `createWeaponFields`, também usado pela ficha, com
+adicionar/remover na proposta. Cada instância tem IDs próprios; a ponte da ficha
+conserva IDs `hb*`. A validação revela setor e detalhes antes de focar o campo,
+inclusive em outro personagem editado no mesmo arquivo.
 Bônus vazio em um ataque manual representa ausência de informação, não +0:
 o armazenamento preserva a string vazia e a ficha oferece somente o dano até
 haver bônus informado/calculado. Isso não infere que todo ataque sem bônus seja
 um efeito de resistência, nem calcula a CD de um sopro. Vincular explicitamente
-ao catálogo ativa o cálculo; editar/cancelar mantém os contratos anteriores.
+ao catálogo com modo Automático ativa o cálculo; editar/cancelar mantém os contratos anteriores.
 A validação revela o setor e os detalhes antes de focar o primeiro campo inválido.
 `pool-fields.ts` monta os campos de reservas e sincroniza apenas os resumos e
 aberturas. Todos permanecem no formulário. Quantidades exatamente zeradas e
@@ -79,6 +88,8 @@ válidas começam recolhidas por reserva; o círculo de Pacto também deve ser v
 Dados ausentes/inconsistentes não são tratados como zero. Durante a edição não
 recolhe o grupo do usuário; novas reservas após comparação abrem sem recriar nós.
 O recolhimento considera os valores, não a classe, para preservar adaptações.
+O botão Conferir máximos pelas classes tem explicação visível antes da ação:
+compara uma proposta; não escolhe magias, recupera usos ou aplica valores sozinho.
 A tipografia da revisão fica restrita ao diálogo em `import-review.css`, com
 16px de leitura/campos em M, rótulos de 15px e títulos Cinzel; a escala usa rem.
 O aceite de preparo adaptado tem margem própria após a lista, mesmo vazia.
@@ -209,7 +220,12 @@ As notas não são truncadas nem alteradas; os medidores invisíveis do botão d
 dano continuam reservando espaço para normal/crítico, sem mudar nós ou foco.
 
 O editor de arma permanece no bloco da ficha. `sheet-edit/weapon-fields.ts`
-estrutura os campos de cálculo e conserva os IDs usados pela ponte anterior.
+fornece `createWeaponFields` para ficha/importação: campos, montagem de dados,
+prévia, alternância de cálculo e leitura validada. Não acessa estado global nem
+persiste. A ficha confirma a permissão antes de aplicar; a importação altera
+somente a proposta. Metadados anteriores e ausência de ataque são preservados.
+Montagem mantém a escrita da fórmula até haver edição, limita a 100 dados e
+conserva os nós dos botões. A ponte anterior delega à instância com IDs `hb*`.
 Proficiência, habilidade e ajustes ficam em `details`, sem desmontar controles
 ou limpar valores ao recolher. `styles/weapon-editor.css` aplica controles do
 tema e grades pela largura disponível do cartão, inclusive em colunas estreitas

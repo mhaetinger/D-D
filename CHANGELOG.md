@@ -2,6 +2,29 @@
 
 ## Não lançado
 
+### Hierarquia da revisão de PDF e editor de armas compartilhado — 2026-10-22
+
+- Identificação com ícone de pergaminho e nome em destaque, separada das linhas
+  de classes/níveis e seu total. Resistências usam faixa compacta; registros de
+  proficiência/idiomas e armaduras dividem o espaço, com títulos e ícones locais.
+- Reservas explicam quando conferir máximos pelas classes e que a comparação
+  só propõe valores. Dicas de proficiência, especialização e total manual usam
+  os balões de hover/foco existentes, mantendo o clique normal das checkboxes.
+- Armas da ficha e da importação usam `createWeaponFields`: nome, bônus, dados,
+  modificador, tipo, propriedades, descrição e ajustes/catálogo. IDs são isolados
+  por instância; a ponte da ficha conserva seus IDs e delega ao módulo. A proposta
+  permite adicionar/remover ataques; prévia acompanha a edição sem salvar a origem.
+- Personalidade, história e aparência começam visíveis. Itens/quantidades,
+  moedas e tesouros têm sua própria apresentação; notas pessoais ficam separadas.
+  Validação de rascunhos alcança também outro personagem do mesmo arquivo,
+  revelando o campo correto. Metadados de armas, bônus ausente, valores e
+  cancelamento são preservados. Sem novos efeitos de regras ou alteração de SQL.
+- Verificados 420 testes Node, tipos/build e oito roteiros Chromium: importação,
+  revisão por setores, editor de armas, edição em linha, cadeado, passivos,
+  dano de armas e aplicativo/offline. Incluídos dados compostos, manual/catálogo,
+  metadados/cópias/cancelamento, validação em outra pessoa, dicas/treino/zero
+  manual, nós/rascunhos e 320px/GG/três temas. Capturas desktop/mobile conferidas.
+
 ### Consulta racial/antecedentes, revisão de magias e recusa lembrada — 2026-10-22
 
 - A consulta usa os parágrafos dos traços raciais, sem cair na narrativa da raça

@@ -48,6 +48,15 @@ oferece escolha explícita da origem racial. A recusa **Não quero** para copiar
 fichas sem conta é lembrada por conta/navegador; retomar fica no Perfil. Essas
 correções também pertencem à PR #19; não mudam as pendências de regras da auditoria.
 
+A revisão de PDF foi reorganizada para a primeira conferência: identificação e
+classes têm formatos distintos, treino/reservas têm ajuda e personalidade/história
+começam abertas. `createWeaponFields` agora atende ficha e importação, incluindo
+montagem de dados e leitura validada; a proposta permite adicionar/remover ataques.
+Última conferência local: 420 testes Node, tipos/build e oito roteiros Chromium
+pertinentes aprovados, com capturas desktop/mobile, cópias/cancelamento/metadados,
+validação entre pessoas e três temas/320px/GG. Integração segue pela PR #19, após
+conferir a CI atual; não altera a cobertura de mecânicas das matrizes.
+
 ## Como continuar
 
 Em um clone novo, com Node.js 22.12+:

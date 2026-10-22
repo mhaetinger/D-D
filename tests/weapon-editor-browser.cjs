@@ -32,7 +32,7 @@ const {unlockSheet}=require('./sheet-lock-actions.cjs'),{confirmationActions}=re
      const r=control.getBoundingClientRect();if(r.left<bounds.left-1||r.right>bounds.right+1||r.width<10)result.push(control.id||control.textContent);
     }
     for(const label of e.querySelectorAll('.weapon-editor-field')){
-     const text=label.querySelector('span'),control=label.querySelector('input,select');if(!visible(control))continue;
+     const text=label.querySelector('span'),control=label.querySelector('input,select,textarea');if(!visible(control))continue;
      if(text.getBoundingClientRect().bottom>control.getBoundingClientRect().top)result.push(text.textContent+' sobreposto');
     }
     for(const label of e.querySelectorAll('.weapon-editor-checks label')){

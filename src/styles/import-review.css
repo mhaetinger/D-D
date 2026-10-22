@@ -125,3 +125,50 @@
   .import-card > :not(h3) { margin:.6rem; }
   .import-skill-row { grid-template-columns:minmax(0,1fr) 4rem; gap:.35rem; }
 }
+/* Identificação, formação e narrativa têm formatos próprios, sem depender
+ * de cores para o jogador reconhecer onde está. Combate mantém sua grade. */
+.import-card > h3 { display:flex; align-items:center; gap:.55rem; }
+.import-card > h3 svg { width:1.2rem; height:1.2rem; flex:none; }
+.import-review .import-identity { border:0; border-bottom:1px solid var(--border-main); border-radius:0; background:transparent; overflow:visible; padding-bottom:.5rem; }
+.import-review .import-identity > h3 { background:transparent; border:0; padding:.3rem 0; margin-bottom:.4rem; }
+.import-identity > h3 svg { width:2.6rem; height:2.6rem; padding:.55rem; border:1px solid var(--border-main); border-radius:.6rem; background:var(--bg-inset); }
+.import-review .import-identity > .import-grid { margin:.6rem 0; }
+.import-identity-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr)); }
+.import-character-name { grid-column:1/-1; }
+#confirmationDialog.import-review-open .import-character-name input { font-family:"Cinzel",serif; font-size:1.3rem; font-weight:700; color:var(--text-accent); background:transparent; border:0; border-bottom:2px solid var(--border-main); border-radius:0; padding:.35rem .1rem; }
+.import-review .import-class-section { background:var(--bg-inset); border-top:3px solid var(--text-accent); }
+.import-class-section > h3 { background:transparent; }
+.import-class-section .import-class-row:last-child { border-bottom:0; }
+.import-class-section [data-import-total-level] { font-weight:600; }
+.import-training-overview { display:block; }
+.import-training-overview .import-resistance-section { display:grid; grid-template-columns:minmax(11rem,.9fr) minmax(0,3fr); align-items:center; }
+.import-resistance-section > h3 { background:transparent; border:0; }
+.import-resistance-section .import-saves { grid-template-columns:repeat(auto-fit,minmax(min(100%,8rem),1fr)); }
+.import-training-overview .import-proficiency-section { display:grid; grid-template-columns:minmax(0,1.3fr) minmax(0,1fr); align-items:start; }
+.import-proficiency-section > h3 { grid-column:1/-1; }
+.import-proficiency-section > fieldset .import-saves { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.import-training-overview .import-proficiency-summary { grid-template-columns:repeat(auto-fit,minmax(min(100%,9rem),1fr)); }
+.import-training-overview .import-proficiency-summary > div { border-left:2px solid var(--border-main); padding-left:.6rem; }
+.import-review .import-narrative { border:0; border-radius:0; overflow:visible; background:transparent; }
+.import-review .import-narrative > h3 { padding:.6rem 0; background:transparent; }
+.import-review .import-narrative > .import-grid { margin:.8rem 0 1rem; }
+.import-personality,.import-history { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.import-history .import-lore-backstory { grid-column:1/-1; }
+.import-narrative textarea { resize:vertical; }
+.import-belongings ul { display:grid; gap:.5rem; margin-bottom:.7rem; }
+.import-belongings li { display:flex; gap:1rem; justify-content:space-between; border-bottom:1px solid var(--border-main); padding-bottom:.3rem; overflow-wrap:anywhere; }
+.import-belongings li span { flex:none; }
+.import-coins { display:flex; flex-wrap:wrap; gap:.5rem 1rem; padding:.65rem 0; }
+.import-pool-compare { display:flex; align-items:start; gap:.75rem; flex-wrap:wrap; }
+.import-pool-compare > p { flex:1 1 17rem; }
+.import-pools > summary > span:first-child { display:inline-flex; align-items:center; gap:.5rem; }
+.import-pools > summary svg { width:1.2rem; height:1.2rem; }
+.import-weapon { margin-bottom:.75rem; background:var(--bg-inset); }
+.import-weapon > header { display:flex; align-items:center; justify-content:space-between; gap:.65rem; }
+.import-weapon > header h4 { font-family:"Cinzel",serif; font-weight:700; }
+.import-review .import-weapon > details { border:0; border-top:1px solid var(--border-main); border-radius:0; padding:.6rem 0 0; }
+.import-weapon .weapon-fields { padding:.3rem 0; }
+.import-weapons-section .import-actions p { flex:1 1 22rem; }
+@media (max-width:700px) { .import-training-overview :is(.import-resistance-section,.import-proficiency-section) { grid-template-columns:1fr; }
+.import-resistance-section > h3 { border-bottom:1px solid var(--border-main); } }
+@media (max-width:600px) { .import-personality,.import-history { grid-template-columns:1fr; } }
