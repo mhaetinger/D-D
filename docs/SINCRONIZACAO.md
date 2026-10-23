@@ -7,8 +7,9 @@ O projeto exclusivo é **`qhrpgkpvwbztubnrdhya`**, URL pública
 `https://qhrpgkpvwbztubnrdhya.supabase.co`, identificado como D-D no painel na
 inspeção de 16/10/2026. Nesse dia foram aplicadas as migrações descritas abaixo,
 sem alterações em outros projetos. A publicação atual e as validações externas
-pendentes estão somente na [RETOMADA.md](RETOMADA.md). Os testes controlados não
-substituem sincronização e isolamento com contas/dispositivos reais.
+pendentes estão somente na [RETOMADA.md](RETOMADA.md). O responsável confirmou
+e-mails e envio imediato entre telefone/computador. Os testes controlados não
+certificam os cenários adicionais de conflito/offline e isolamento com contas reais.
 
 ## Dados e fila
 
@@ -31,7 +32,7 @@ fila. A RPC aceita esses IDs de preferência.
 Isso separa edições de personagens diferentes; edições simultâneas do mesmo
 histórico continuam sujeitas à resolução de versões/conflitos existente.
 
-Ao gravar um histórico legível, o cliente mantém até **100 estados / 2 MiB**,
+Ao gravar um histórico legível, o cliente mantém até **10 estados / 256 KiB**,
 com o ponteiro atual e seus vizinhos. Um único estado maior que esse teto é
 preservado inteiro. A leitura não trunca o histórico e dados ilegíveis continuam
 preservados. Checkpoints participam do limite; não são um arquivo permanente.
@@ -121,17 +122,21 @@ tal; não se apresenta como edição nova para substituir uma versão remota dat
 
 ### Retenção de versões
 
-A migração `20261022212048_bounded_sync_versions.sql` foi aplicada ao projeto
-exclusivo CritCall em **22/10/2026**, após aprovação explícita da retenção pelo
-responsável. A versão remota é **`20261022213804`**; não reaplicar para igualar o
-nome local. A sincronização retira versões antigas/excedentes, uma mudança
-irreversível no histórico restaurável. Não foi feita limpeza global das contas.
+A primeira política foi ativada em 22/10/2026 por
+`20261022212048_bounded_sync_versions.sql` (remota `20261022213804`). Os antigos
+20/documento, 30 dias, 200/conta e 8 MiB foram substituídos em **23/10/2026**, após
+nova autorização explícita para reduzir o histórico devido ao egress.
 
-- Até **20 versões por documento**, com **30 dias** desde o recebimento.
-- Até **200 versões e 8 MiB de conteúdo por conta**, prevalecendo o limite
+`20261023114717_reduced_sync_retention.sql`, versão remota **`20261023115335`**,
+foi aplicada somente ao CritCall `qhrpgkpvwbztubnrdhya`. Não reaplicar para igualar
+os timestamps. A poda de versões é irreversível e foi autorizada pelo responsável.
+
+- Até **5 versões por documento**, com **7 dias** desde o recebimento.
+- Até **50 versões e 2 MiB de conteúdo por conta**, prevalecendo o limite
   atingido primeiro. Uma versão maior que o teto pode não ficar restaurável.
-- A limpeza ocorre ao salvar nessa conta, sob lock transacional. Uma conta
-  inativa não cresce; versões vencidas saem na próxima sincronização.
+- A limpeza ocorre ao salvar nessa conta, sob lock transacional. A migração de
+  23/10 também podou versões existentes das contas inativas; depois disso,
+  versões vencidas saem na próxima sincronização.
 - `critcall_documents`, fichas atuais, notas atuais e retratos ficam fora da
   limpeza. Versões de histórico e recuperação deixam de ser duplicadas em cada
   envio normal; o documento atual continua sincronizado. Conflitos conservam
@@ -144,22 +149,67 @@ irreversível no histórico restaurável. Não foi feita limpeza global das cont
 - A RPC mantém os oito argumentos e o formato da resposta para clientes já
   publicados. O proprietário continua vindo de `auth.uid()`. A tabela de
   recibos fica em schema privado, sem grant ao navegador; índices começam pelo
-  dono e a limpeza nunca alcança outra conta.
+  dono; cada gravação limpa somente a própria conta. A migração administrativa
+  percorre as contas existentes sob o mesmo lock.
 
 A política instalada foi consultada pela RPC e conferida com os limites acima.
-Inspecionados grants, RLS dos recibos e `search_path`. Um teste transacional no
-PostgreSQL 17 real, com identidade fictícia sem e-mail e role authenticated,
+Inspecionados grants, RLS dos recibos e `search_path`. Na ativação inicial de
+22/10, um teste transacional no PostgreSQL 17 real, com identidade fictícia sem
+e-mail e role authenticated,
 confirmou escrita/repetição com revisão única. Todo o teste foi revertido; nenhum
 usuário/documento de teste permaneceu. A quantidade e a assinatura agregada dos
 documentos atuais ficaram iguais antes/depois da migração e do teste, sem expor
 seus conteúdos. Testes de quantidade/prazo/bytes/conflitos rodam também no banco
-descartável. Isso não substitui V2 de dispositivos reais.
+descartável. O responsável confirmou e-mails e sincronização imediata entre telefone e
+computador. Os cenários adicionais de conflito/offline da V2 continuam registrados
+separadamente, sem exigir repetir esse teste básico.
 
 O diálogo de versões consulta `critcall_version_policy` e só mostra os limites
 quando confirmados pelo servidor. Uma implantação ainda sem essa RPC informa
 que a retenção limitada não foi confirmada. Backup privado continua sendo o
 caminho para guardar um estado por prazo maior; a restauração não promete
 retenção permanente da versão substituída.
+
+### Incidente de egress em 23/10/2026
+
+O responsável confirmou que os **11,78 GB** mostrados no ciclo 17/10–17/11 eram
+do projeto CritCall. O serviço permanecia `ACTIVE_HEALTHY`; não foi contratado
+plano pago. O código publicado baixava todos os documentos a cada 30 segundos
+com a aba visível, além das tentativas após edição/foco. Nos logs das 24 horas
+anteriores a 23/10 11:38 UTC havia **2.502 GETs** de `critcall_documents` e
+2.501 chamadas de relógio; não havia tamanho de resposta nesses logs para
+atribuir uma quantidade exata de bytes a cada chamada.
+
+A consulta agregada encontrou aproximadamente **6,3 MB de históricos** e apenas
+**66 kB de fichas atuais**. A correção usa índice de revisões e diário persistido:
+sem mudanças, a resposta não contém os valores; após salvar, a revisão confirmada
+já evita baixar novamente o próprio envio. Só uma instalação sem esse diário
+precisa receber todos os conteúdos. Bootstrap/cópia sem conta conserva seu fluxo.
+Índice e conteúdos mantêm paginação, filtro de dono e tombstones. Nenhuma chave,
+cache de dados ou conteúdo ilegível foi apagado para reduzir tráfego.
+
+No teste sintético com um histórico de 2 MiB, 100 consultas sem mudança receberam
+**7.300 bytes de JSON**, contra **209.756.800 bytes** ao repetir a leitura completa.
+A conta real varia por número de documentos/edições; a medição não inclui headers
+nem estima o próximo ciclo. Não é uma medição da produção após publicação.
+
+A redução remota deixou **58 de 211 versões**, com conteúdo de **4.555.053 para
+190.636 bytes**. Os **45 documentos atuais** conservaram a mesma assinatura
+agregada antes/depois, sem baixar ou expor seu conteúdo. A RPC confirmou 5/7/50/2 MiB,
+grants permaneceram restritos e os advisors não acrescentaram alertas aos já
+registrados. A migração passou antes pelo PostgreSQL 18 descartável, incluindo
+limites, contas inativas, conflito grande sem perda da operação e repetição.
+
+A retenção menor já está ativa no servidor. O limite de 10 estados/256 KiB se
+aplica a gravações legíveis feitas pelo cliente novo; leituras e o documento
+legado não são truncados. A correção dos downloads depende de integrar/publicar
+`fix/sync-egress`; abas abertas com o build antigo seguem o comportamento antigo.
+Até receber a atualização, fechar abas do CritCall sem uso reduz consultas.
+O consumo do ciclo não diminui com a poda: a otimização vale para novas
+transferências. Não forçar reload de uma edição em andamento.
+
+Fontes oficiais: [egress e quotas](https://supabase.com/docs/guides/platform/manage-your-usage/egress)
+e [excedentes no plano gratuito](https://supabase.com/docs/guides/platform/billing-faq).
 
 ### Migrações já aplicadas
 
@@ -197,7 +247,7 @@ contém dados pessoais ou exclusões e pode ser reaplicado sem apagar registros.
 
 ## Alertas do serviço para revisão
 
-A inspeção de **16/10/2026**, repetida em **22/10/2026**, do projeto real encontrou a função preexistente
+A inspeção de **16/10/2026**, repetida em **22 e 23/10/2026**, do projeto real encontrou a função preexistente
 `public.rls_auto_enable` executável por anon/authenticated. Revisar sua origem,
 necessidade e privilégios antes de alterar; ela não foi criada pela migração
 pessoal. Orientação do [linter de funções expostas](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable).

@@ -4,7 +4,7 @@ import type { JournalPort, Pending, RemoteDocument } from "./journal";
 export interface PushResult { document: RemoteDocument; conflict: boolean; server_time: string }
 export interface RemotePort {
   clock?(): Promise<string>;
-  pull(): Promise<RemoteDocument[]>;
+  pull(knownRevisions?: Record<string,number>): Promise<RemoteDocument[]>;
   push(operation: Pending): Promise<PushResult>;
 }
 export interface SyncView {
@@ -113,7 +113,10 @@ export class SyncEngine extends EventTarget {
         }
       }
       if (this.stopped) return;
-      const received = (await this.remote.pull()).map(doc => this.checkRemote(doc));
+      // O diário já conserva os conteúdos. Consultas periódicas só precisam
+      // baixar valores cuja revisão mudou, inclusive exclusões por tombstone.
+      const knownRevisions=await this.journal.change(this.scope,state=>Object.fromEntries(Object.entries(state.remote).map(([key,doc])=>[key,doc.revision])));
+      const received = (await this.remote.pull(knownRevisions)).map(doc => this.checkRemote(doc));
       await this.journal.change(this.scope, state => {
         for (const doc of received) if (!state.remote[doc.key] || state.remote[doc.key].revision <= doc.revision) state.remote[doc.key] = doc;
       });
