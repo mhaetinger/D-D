@@ -1,5 +1,20 @@
 # Changelog
 
+## Não lançado — limite local de histórico — 2026-10-23
+
+- Histórico por personagem limitado a 25 registros, incluindo checkpoints,
+  ao abrir e gravar. Cópias do histórico coletivo já nascem limitadas;
+  originais legados e arquivos ilegíveis continuam intactos.
+- Corrigido o crescimento em memória quando falta quota ou a gravação está
+  bloqueada por arquivo ilegível. Ficha atual, ponteiro, vizinhos de desfazer/
+  refazer, notas e outros personagens/contas são preservados. Mantido o teto
+  auxiliar de 256 KiB e a preservação de um estado isolado maior.
+- A gaveta informa até 25 registros locais e descreve o retorno ao primeiro
+  registro disponível, sem prometer um marco inicial que já saiu do histórico.
+- Verificados 443 testes Node, tipos/build e dois roteiros Chromium: limite em
+  celular sob `/D-D/` e armazenamento/backup/recarga offline. Incluídos quota,
+  checkpoints, dados ilegíveis, notas e isolamento. A CI passa a exigir 33 roteiros.
+
 ## Não lançado — nuvem manual — 2026-10-23
 
 - Por escolha explícita do responsável, salvar no aparelho é automático;

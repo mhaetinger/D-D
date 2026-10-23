@@ -25,7 +25,7 @@ import { concentrationControls } from '../rules/concentration-ui';
 import { automaticSaveFailure } from '../rules/conditions';
 import { takeRest } from "../rules/rest";
 import { onSpellCast } from "../rules/resources";
-import { characterSnapshot, historyComparable as characterHistoryComparable, historyKey, HISTORY_PREFIX, isCharacterHistoryKey, migrateCharacterHistories, splitLegacyHistory, validateCharacterHistory, boundedCharacterHistory } from '../storage/character-history';
+import { characterSnapshot, historyComparable as characterHistoryComparable, historyKey, HISTORY_PREFIX, HISTORY_MAX_STEPS, isCharacterHistoryKey, migrateCharacterHistories, splitLegacyHistory, validateCharacterHistory, boundedCharacterHistory } from '../storage/character-history';
 import { setupDiceDock } from "./dice-dock";
 import { avatarMarkup } from "../media/avatar";
 import {sheetInput,sheetSelect,sheetText,sheetIdentity,captureSheetFields,restoreSheetFields,requireSheetEdit,requireSheetConfiguration,updateSheetLockUI,poolEditorVisible,beginSheetRender,endSheetRender} from '../sheet-edit/ui';
@@ -603,6 +603,8 @@ function restoreSavedHistory() {
       historyStack.push({ timestamp: new Date().toISOString(), action: 'Estado mais recente carregado', isCheckpoint: true, stateJson: historySnapshot() });
       historyPointer = historyStack.length - 1;
     }
+    // Históricos de versões anteriores também recebem o teto ao abrir a ficha.
+    persistHistory();
   } catch {
     historyWritable = false;
     showToast('O histórico desta ficha não pôde ser lido. O original foi preservado; novos passos ficam só nesta aba.');
@@ -610,10 +612,11 @@ function restoreSavedHistory() {
 }
 function persistHistory() {
   if(!getChar() || historyOwnerId!==getChar().id) return;
-  if (!historyWritable) { showToast('O histórico anterior está ilegível e foi preservado. Baixe um backup antes de fechar.'); return; }
   const bounded=boundedCharacterHistory({version:2,characterId:historyOwnerId,stack:historyStack,pointer:historyPointer});
+  // O teto vale na memória mesmo se a escrita falhar ou o original for ilegível.
+  historyStack=bounded.stack;historyPointer=bounded.pointer;
+  if (!historyWritable) { showToast('O histórico anterior está ilegível e foi preservado. Baixe um backup antes de fechar.'); return; }
   if (!writePreference(historyKey(historyOwnerId),JSON.stringify(bounded))) showToast('O histórico não pôde ser salvo. Baixe um backup antes de fechar.');
-  else {historyStack=bounded.stack;historyPointer=bounded.pointer;}
 }
 
 const COIN_RATES_IN_PC = { pc: 1, pp: 10, pe: 50, po: 100, pl: 1000 };
@@ -816,7 +819,7 @@ function undoStep() {
   if(!requireSheetEdit())return;
   if(document.querySelector('#sheetViewport .sheet-inline-editor')){showToast('Conclua ou feche a edição aberta antes de usar o histórico.');return;}
   if (historyPointer <= 0) {
-    showToast("Você já está no Marco Zero da sessão!");
+    showToast("Você já está no primeiro registro disponível desta ficha.");
     return;
   }
   historyPointer -= 1;
@@ -859,7 +862,7 @@ async function restoreToSessionStart() {
   if(!requireSheetEdit())return;
   if(document.querySelector('#sheetViewport .sheet-inline-editor')){showToast('Conclua ou feche a edição aberta antes de usar o histórico.');return;}
   const ownId=getChar()?.id;if(!ownId) return;
-  if (!await confirmDestructiveAction("Voltar ao Marco Zero?", "Somente esta ficha voltará ao primeiro estado do seu histórico. As outras fichas e as anotações pessoais serão preservadas.", "Voltar ao Marco Zero")) return;
+  if (!await confirmDestructiveAction("Voltar ao início disponível?", "Somente esta ficha voltará ao primeiro registro ainda disponível no histórico local. As outras fichas e as anotações pessoais serão preservadas.", "Voltar ao início disponível")) return;
   if(getChar()?.id!==ownId) return;
   jumpToHistoryStep(0);
 }
@@ -876,7 +879,7 @@ function toggleHistoryDrawer() {
 function renderHistoryDrawerList() {
   const listEl = document.getElementById("historyTimelineList");
   if (!listEl) return;
-  document.getElementById('historyCharacterName').textContent=getChar()?.name || 'Abra uma ficha';
+  document.getElementById('historyCharacterName').textContent=getChar()?`${getChar().name} · até ${HISTORY_MAX_STEPS} registros locais`:'Abra uma ficha';
   listEl.innerHTML = historyStack
     .map((item, idx) => {
       const isCurrent = idx === historyPointer;

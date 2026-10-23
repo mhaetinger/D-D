@@ -7,9 +7,9 @@ export const historyKey=(id:string)=>HISTORY_PREFIX+id;
 export const isCharacterHistoryKey=(key:string)=>key.startsWith(HISTORY_PREFIX) && key.length>HISTORY_PREFIX.length && key.length<HISTORY_PREFIX.length+200;
 export interface HistoryStep {timestamp:string;action:string;isCheckpoint:boolean;stateJson:string}
 export interface CharacterHistory {version:2;characterId:string;stack:HistoryStep[];pointer:number}
-export const HISTORY_MAX_STEPS=10;
+export const HISTORY_MAX_STEPS=25;
 export const HISTORY_MAX_BYTES=256*1024;
-/** Só limita um histórico legível ao gravar. Mantém o estado apontado e os
+/** Limita um histórico legível ao carregar e gravar. Mantém o estado apontado e os
  * passos mais próximos; se um único passo superar o teto, ele é preservado. */
 export function boundedCharacterHistory(history:CharacterHistory):CharacterHistory {
   let start=0,end=history.stack.length;
@@ -72,7 +72,7 @@ export function migrateCharacterHistories(port:StoragePort):string[] {
   const keys:string[]=[];
   for(const [id,h] of splitLegacyHistory(raw)) {
     const key=historyKey(id);keys.push(key);
-    if(port.getItem(key)===null) port.setItem(key,JSON.stringify(h));
+    if(port.getItem(key)===null) port.setItem(key,JSON.stringify(boundedCharacterHistory(h)));
   }
   migrated.set(port,{raw,keys});return keys;
 }

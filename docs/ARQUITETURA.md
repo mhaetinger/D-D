@@ -439,9 +439,11 @@ O adaptador da interface conserva localStorage e o formato legado. A fila nova
 usa transações IndexedDB por projeto/usuário, com IDs de operação idempotentes,
 revisões remotas e projeção que aguarda editores. Histórico/checkpoints passam a
 ser persistidos separadamente e entram na fila; seus snapshots não incluem notas.
-`boundedCharacterHistory` limita gravações legíveis a 10 estados / 256 KiB,
-conservando o ponteiro e os vizinhos. Um estado isolado maior é preservado.
-A leitura não trunca dados e o original legado/ilegível continua preservado.
+`boundedCharacterHistory` limita históricos legíveis a 25 registros / 256 KiB
+ao carregar, migrar e gravar, conservando o ponteiro e os vizinhos. O mesmo teto
+vale em memória quando o armazenamento falha ou o original é ilegível. Um estado
+isolado maior é preservado. O original coletivo legado e dados ilegíveis não
+são sobrescritos; apenas as cópias legíveis por personagem recebem a poda.
 Limites de versões remotas, recibos e ativação ficam em
 [SINCRONIZACAO.md](SINCRONIZACAO.md#retenção-de-versões).
 
