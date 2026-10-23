@@ -2,6 +2,30 @@
 
 ## Não lançado
 
+### Sopro de draconato e prioridades confirmadas — 2026-10-23
+
+- Arma de Sopro recebe o controle na própria característica: dez ancestralidades
+  de 2014, CD de CON/proficiência, dano por nível total e resultado integral/metade.
+  Um uso racial por descanso curto ou longo, sem espaço de magia, inspiração,
+  Afinidade Elemental ou bônus de Evocação. Alvos/testes/defesas ficam na mesa.
+- Reutilizados diálogo físico/virtual, rolador, usos, descanso e histórico.
+  OFF não rola dados internos. Cancelar ou alterar ficha/permissão antes de
+  confirmar não gasta o uso. Resultado persiste, com desfazer/refazer e offline.
+- Ancestralidade racial pode ser corrigida/removida com a ficha desbloqueada,
+  mantendo nó/foco, uso gasto, ancestral de feiticeiro e outros dados. Registros
+  de uso ilegíveis são preservados. Forma Selvagem exige CON da forma e
+  confirmação de capacidade física; Fúria permite o sopro.
+- O responsável confirmou e-mails e sincronização imediata telefone/computador.
+  Documentação e retomada registram essa validação básica e a prioridade
+  **draconatos → rolagens → magias → importação**, com o PDF real adiado.
+  Offline/conflito/restauração entre contas reais continuam casos adicionais.
+- Verificados 454 testes Node, tipos/build, sete roteiros Chromium pertinentes
+  (sopro, regras, consulta, dado, cadeado, concentração e 32 casos A01–A14),
+  incluindo 320px/GG/três temas/dois layouts e offline. Diagnóstico puro: 3.321
+  verificações sem divergências. Conferidos links/matrizes e diff; suíte completa
+  ampliada para 34 roteiros, sem repetição integral local nesta rodada. Sem SQL,
+  teste de banco local, dados pessoais, mudança no dado flutuante ou publicação.
+
 ### Correções dos achados A01–A14 — 2026-10-23
 
 - CON digitada compartilha o ajuste dos botões; PV conservam dano sofrido, totais

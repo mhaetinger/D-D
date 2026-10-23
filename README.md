@@ -9,8 +9,9 @@ a apresentação. A cobertura das mecânicas é parcial e está registrada na
 Versão publicada em **https://criticall.art/**, hospedada no GitHub Pages.
 O DNS usa Cloudflare; a migração da hospedagem está preparada, sem ativação.
 Login e sincronização pessoal estão publicados, com migrações aplicadas ao
-projeto exclusivo CritCall. O envio deve ser confirmado no perfil; validação
-entre dispositivos reais e SMTP próprio continuam pendentes.
+projeto exclusivo CritCall. O responsável confirmou os e-mails e a sincronização
+imediata entre telefone e computador em 23/10/2026. O envio deve ser confirmado
+no perfil; casos avançados e a configuração opcional de SMTP próprio ficam na retomada.
 
 Para continuar o desenvolvimento, comece por [docs/RETOMADA.md](docs/RETOMADA.md).
 Esse arquivo registra a última entrega, a próxima etapa e as validações externas.
@@ -121,7 +122,13 @@ A previsão de reservas aparece automaticamente pelas classes e níveis; aplicar
 os máximos continua sendo uma escolha explícita, sem recuperar os usos gastos.
 Draconatos têm escolha das dez ancestralidades de 2014, com consulta de dano,
 área, teste e CD do sopro. A ancestralidade da Linhagem Dracônica do feiticeiro
-fica em outra escolha. A resolução completa do sopro continua na auditoria.
+fica em outra escolha. Na entrega em revisão, a característica **Arma de Sopro**
+registra o total físico ou rola seus d6 virtuais, mostra dano integral/metade e
+gasta um uso racial, recuperado em descanso curto ou longo. A área e a CD
+seguem a ancestralidade e o nível total; os testes/defesas dos alvos são
+resolvidos na mesa. Alterar a ancestralidade exige desbloquear a ficha e
+não recupera o uso. Em Forma Selvagem, informe a CON da forma e confirme
+com a mesa sua capacidade física de usar o sopro.
 As dicas de preparo aparecem no balão ao passar o mouse ou focar o controle
 pelo teclado. Marcar uma checkbox continua apenas alterando sua seleção.
 
@@ -189,7 +196,8 @@ a recuperação de uma versão da ficha não restaura pixels antigos no servidor
 
 Fichas e notas mantêm uma cópia neste navegador. A aplicação inclui salvamento por
 conta no Supabase com fila offline, perfil, preferências e versões recuperáveis;
-**migração aplicada no projeto real; validação entre dispositivos reais pendente**.
+**migração aplicada no projeto real; sincronização básica entre telefone e
+computador confirmada pelo responsável em 23/10/2026**.
 Confira o estado de envio no perfil. Estar conectado não significa que tudo já
 chegou à nuvem. `VITE_AUTH_ENABLED=false` permite uma edição apenas local.
 Veja [docs/SINCRONIZACAO.md](docs/SINCRONIZACAO.md).
@@ -390,15 +398,16 @@ atende cadastros pendentes; **Esqueci a senha** inicia a recuperação. Quem já
 entrou pode usar **Enviar link para trocar senha**, sem sair da conta.
 E-mail/senha permitem entrar em outros navegadores e dispositivos. Os links de
 confirmação/recuperação exigem o mesmo navegador/dispositivo que os solicitou;
-o envio de fichas usa a fila própria, com migração aplicada e teste real entre
-dispositivos ainda pendente.
+o envio de fichas usa a fila própria. Em 23/10/2026, o responsável confirmou
+os e-mails e a atualização imediata entre telefone e computador.
 
 Cada conta abre seu próprio espaço de fichas neste navegador. A cópia do espaço
 sem conta depende do fluxo de entrada descrito acima, com novos identificadores
 e sem substituir fichas existentes. Ao sair, as cópias são preservadas. Isso não
 criptografa o dispositivo. A migração do banco foi aplicada; conferir a
-confirmação de envio no perfil antes de trocar de computador. Login e
-sincronização real entre dispositivos e SMTP próprio ainda precisam de validação/configuração.
+confirmação de envio no perfil antes de trocar de computador. Casos avançados
+de offline/conflito/restauração e eventual SMTP próprio são acompanhados na retomada,
+separados da validação básica já confirmada pelo responsável.
 
 Bônus de regras da etapa R1: Percepção e Investigação mostram o valor passivo
 com Observador, separado da rolagem. Nos ajustes de defesa, Ambidestro oferece

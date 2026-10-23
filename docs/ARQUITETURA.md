@@ -1220,3 +1220,24 @@ editorial de Onda Destrutiva. Consulta da importação/ficha mostra a nota; o PD
 não muda. Regeneração preservou as outras 359 magias e os dois catálogos restantes.
 Escopo e regressões ficam na seção atual de
 [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md#check-up-profundo-de-23102026).
+
+## Arma de Sopro de draconato — 23/10/2026
+
+`draconic-ancestry.ts` mantém a tabela única das dez cores e separa a escolha
+racial `raceDragon` da origem `dragon` de feiticeiro. `dragonborn-breath.ts`
+valida consciência, ancestralidade, nível, CON, uso e total antes de qualquer
+mutação. `race:breath` é um recurso comum de recuperação curta/longa; o vínculo
+em `placement.ts` ocupa a característica racial já existente, sem outro painel.
+
+`dragonborn-breath-ui.ts` reutiliza o diálogo e a seleção físico/virtual de PV,
+e `rollWeaponFormula` para os d6, sem pool manual, inspiração ou modo de d20.
+Confirmação cancelada ou ficha modificada não consome recurso. A edição racial
+exige `canConfigureSheet`, conserva o próprio select/foco e não reseta gastos.
+`ruleState.lastBreath` v1 guarda ancestral, tipo, área, teste, dados, CD, total,
+metade e fonte do dado; é resultado passado, sem estado de turno ou alvo.
+
+Em Forma Selvagem, capacidade física e modificador de CON da forma são entradas
+explícitas, sem preencher estatísticas de criatura nem alterar a CON humana.
+Não se trata de magia: nenhum espaço, afinidade ou concentração é consumido.
+Testes/defesas dos alvos e aplicação a outras criaturas permanecem na mesa.
+Regressões: `tests/dragonborn-breath.test.ts` e `tests/dragonborn-breath-browser.cjs`.

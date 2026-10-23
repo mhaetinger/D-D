@@ -15,11 +15,12 @@ import { luckRemaining } from './lucky';
 import { setupLuckyUI } from './lucky-ui';
 import {chooseResourceDice} from './resource-roll-ui';
 import {applyRolledResource,finishInterventionWeek,interventionWaiting} from './resource-effects';
+import {dragonbornBreathControls,setupDragonbornBreathUI} from './dragonborn-breath-ui';
 
 export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
   const number = (n:number) => Number.isFinite(n)?n:'∞';
   const tip = (r:Resource) => {
-    const ref = r.id==='feat:lucky'?E.reference('Sortudo',null,null,'feat'):E.reference(r.name,r.classId);
+    const ref = r.id==='race:breath'?E.reference('Arma de Sopro',null,'draconato','race'):r.id==='feat:lucky'?E.reference('Sortudo',null,null,'feat'):E.reference(r.name,r.classId);
     return `data-rule-tooltip="${escape(JSON.stringify({name:r.name,text:r.note,page:ref?.page || E.data.classes[r.classId]?.page,pdfPage:ref?.pdfPage || E.data.classes[r.classId]?.page}))}"`;
   };
   return resources.map(r=>{
@@ -28,7 +29,8 @@ export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],sho
     const source = r.cost ? r.cost[0]==='feiticeiro:sorceryPool' ? {id:r.cost[0],max:c.sorceryPoints.max,kind:'pool'} as Resource : resourcesFor(c,E).find(x=>x.id===r.cost![0]) : null;
     const affordable = !r.cost || !!source && remaining(c,source)>=r.cost[1];
     let control = '';
-    if(r.id==='feat:lucky')control=`<span><span data-lucky-balance>${number(value)}</span>/${maxInput} pontos</span><button type="button" data-lucky-action="table" ${value<1?'disabled':''}>Usar na mesa</button><button type="button" data-lucky-action="incoming" ${value<1?'disabled':''}>Ataque contra mim</button><button type="button" data-rule-action="refund" data-resource="feat:lucky" ${value===r.max?'disabled':''} aria-label="Devolver um ponto de Sortudo">↶</button>`;
+    if(r.id==='race:breath')control=dragonbornBreathControls(c,E,r,maxInput);
+    else if(r.id==='feat:lucky')control=`<span><span data-lucky-balance>${number(value)}</span>/${maxInput} pontos</span><button type="button" data-lucky-action="table" ${value<1?'disabled':''}>Usar na mesa</button><button type="button" data-lucky-action="incoming" ${value<1?'disabled':''}>Ataque contra mim</button><button type="button" data-rule-action="refund" data-resource="feat:lucky" ${value===r.max?'disabled':''} aria-label="Devolver um ponto de Sortudo">↶</button>`;
     else if (r.kind==='portent') control = c.ruleState?.portent?.length ? c.ruleState.portent.map((p:Sheet,i:number)=>`<button type="button" data-rule-action="portent" data-index="${i}" ${p.spent?'disabled':''} aria-label="Gastar presságio ${i+1}, resultado ${p.value}">${p.value}${p.spent?' ✓':''}</button>`).join('') : '<button type="button" data-rule-action="portentInitial">Rolar dados iniciais</button>';
     else if (r.kind==='toggle' || r.action==='rage') control = `<button type="button" data-rule-action="toggle" data-resource="${r.id}" aria-pressed="${enabled}">${enabled?'✓ Ativo · encerrar':'Ativar'}</button>${r.action==='rage'?`<span>${number(value)}/${maxInput} usos</span>`:''}`;
     else if (r.kind==='pool') control = `<label>Reserva <input type="number" min="0" max="${r.max}" step="1" data-rule-pool="${r.id}" value="${value}" aria-label="${escape(r.name)} atuais"></label><span>/ ${maxInput}</span>`;
@@ -119,6 +121,7 @@ export function setupRuleUI(E: Engine) {
   setupConcentrationUI(E,save);
   setupWeaponDamageUI(E,save);
   setupLuckyUI(E,save);
+  setupDragonbornBreathUI(E,save);
   document.addEventListener('change',event=>{
     const input = event.target as HTMLInputElement;
     if(!(input instanceof HTMLElement) || !input.getAttributeNames().some(name=>name.startsWith('data-rule-'))) return;
@@ -152,6 +155,7 @@ export function setupRuleUI(E: Engine) {
     if(button.disabled)return;
     const c = host.getChar(); if (!c) return;
     let r = resourcesFor(c,E).find(x=>x.id===button.dataset.resource);
+    if(r?.id==='race:breath' && !host.requireSheetEdit())return;
     try {
       const action = button.dataset.ruleAction;
       const oldConcentration=concentration(c);

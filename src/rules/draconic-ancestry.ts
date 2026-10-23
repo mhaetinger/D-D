@@ -1,4 +1,4 @@
-import {ability,norm,proficiency,type Sheet} from './model';
+import {ability,norm,proficiency,type Sheet,type Engine} from './model';
 
 // Livro do Jogador da mesa, p. 34 impressa (PDF 33): a cor determina também
 // área e resistência do sopro de 2014, não só seu elemento.
@@ -16,6 +16,9 @@ export const DRAGON_ANCESTRIES=[
 ] as const;
 export const dragonAncestry=(value:unknown)=>DRAGON_ANCESTRIES.find(x=>norm(x.choice)===norm(value));
 export function dragonFromRaceName(value:unknown){return DRAGON_ANCESTRIES.find(x=>norm(value)==='draconato '+norm(x.choice.split(' — ')[0]));}
+export const isDragonborn=(c:Sheet)=>c.rules?.raceId?c.rules.raceId==='draconato':norm(c.race)==='draconato'||!!dragonFromRaceName(c.race);
+/** Só a escolha racial concede o sopro; a origem de feiticeiro não a substitui. */
+export const racialBreathProfile=(c:Sheet,E:Engine)=>isDragonborn(c)?breathProfile(c,E.selections(c,null,'raceDragon').at(-1)):null;
 export function breathProfile(c:Sheet,choice:unknown){
   const dragon=dragonAncestry(choice);if(!dragon)return null;
   const total=c.classes.reduce((n:number,x:Sheet)=>n+Number(x.level),0),valid=Number.isInteger(total)&&total>=1&&total<=20;
@@ -23,8 +26,8 @@ export function breathProfile(c:Sheet,choice:unknown){
     dice:valid?(total>=16?'5d6':total>=11?'4d6':total>=6?'3d6':'2d6'):null,
     dc:valid&&Number.isInteger(c.abilities?.con?.score)?8+ability(c,'con')+proficiency(c):null};
 }
-/** A proposta já é uma cópia. Corrige apenas esta escolha; os outros dados de
- * cada evento e todas as escolhas da outra origem permanecem no histórico. */
+/** Compartilhado pela proposta de importação (já uma cópia) e edição racial.
+ * Corrige só esta escolha; outros dados/eventos, usos e a outra origem ficam. */
 export function setDragonChoice(c:Sheet,key:'raceDragon'|'dragon',value:string){
   if(value&&!dragonAncestry(value))throw new Error('Escolha uma ancestralidade do livro.');
   c.rules ||= {history:[],legacy:true};c.rules.history ||= [];

@@ -171,9 +171,10 @@ livrinho não conclui a característica. Nesta rodada foram reinspecionados:
   completo entre a magia, eventual espaço de Pacto e o uso diário. Não adicionar
   um contador paralelo ao implementar a conjuração. Não confundir invocação
   conhecida com concessão automática de uma magia conhecida de bruxo.
-- Sopro do draconato: ancestralidade/consulta e resistência por tipo existem;
-  gasto, alvos, resistência do alvo e dano não estão resolvidos. Ancestralidade
-  racial e Linhagem Dracônica seguem independentes; não deduzir pela pele.
+- Sopro do draconato: gasto, dano/metade, dado físico/virtual e recuperação
+  implementados no recorte abaixo. Alvos, suas resistências e defesas são
+  resolvidos na mesa. Ancestralidade racial e Linhagem Dracônica seguem
+  independentes; não deduzir pela pele.
 - Forma Selvagem/companheiro: PV e usos parciais existem, mas estatísticas,
   capacidades da criatura e escolha/custo de elemental seguem em R4.
 - Outros gatilhos, imunidades/auras, rerrolagens, manobras, talentos e início de
@@ -216,15 +217,19 @@ No ambiente local original, usar
 Ao corrigir cada ID: guardar o comportamento esperado em regressão efetiva,
 exigir prévia/rolagem/uso coerentes, conferir físico/virtual e cancelamento,
 preservar ajustes e dados anteriores, atualizar esta seção e a matriz pertinente.
-A01–A14 recebem regressões nesta entrega. Depois de validar e integrar a
-correção, retomar os recortes restantes de R2; R3–R6 continuam parciais. Não
+A01–A14 recebem regressões nesta entrega. O responsável priorizou em 23/10
+draconatos, depois os recortes restantes de R2, magias e por último importação.
+R3–R6 continuam parciais. Não
 declarar essas famílias concluídas com a correção dos casos conhecidos.
 
 ## Roteiro de implementação
 
-A ordem começa pelos números que o jogador pode presumir já calculados. Cada
-etapa deve ser dividida em entregas pequenas; as listas abaixo não autorizam
-reescrever a ficha nem automatizar toda decisão da mesa.
+A ordem escolhida pelo responsável em **23/10/2026** é **draconatos → rolagens
+(R2) → magias (R5) → importação (V1 da retomada)**. A numeração R1–R6 identifica
+as famílias e preserva o progresso; não obriga executar pela ordem numérica.
+R3/R4/R6 continuam no roteiro. Cada etapa deve ser dividida em entregas pequenas,
+sem reescrever a ficha nem automatizar toda decisão da mesa. E-mails e uso
+básico real telefone/computador já foram confirmados pelo responsável.
 
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
@@ -234,6 +239,42 @@ reescrever a ficha nem automatizar toda decisão da mesa.
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
 | R5 — famílias de magias | Planejada; fórmulas auditadas já corrigidas | Revisar metadados e exceções do catálogo por família: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
 | R6 — equipamento e contexto de combate | Planejada | Munição/recarga/consumíveis, penalidades de equipamento, carga e ações condicionais. Definir antes qualquer acompanhamento opcional de turno; alvos, alcance, cobertura e viagem podem continuar na mesa, com essa limitação clara. |
+
+### Draconatos — recorte de 23/10/2026
+
+**Implementado nesta branch, aguardando integração/publicação.** Fonte: Livro
+do Jogador 2014, p. 34 impressa / PDF 33; dez ancestralidades conferidas na
+tabela existente. O sopro usa uma **ação**, não um ataque de Ataque Extra.
+
+- [x] Um uso racial por descanso curto ou longo, junto à própria característica,
+  com correção de clique e histórico existentes. Não cria magia nem reserva paralela.
+- [x] Dano por nível total: 2d6; 3d6 no 6; 4d6 no 11; 5d6 no 16. CD 8 + CON +
+  proficiência; ancestral define elemento, cone/linha e resistência DES/CON.
+- [x] Dado físico em OFF ou virtual pelo rolador existente, com total integral e
+  metade arredondada para baixo. Vantagem/inspiração, Afinidade Elemental e
+  Evocação Potencializada não acrescentam dados/bônus de magia ao sopro.
+- [x] Escolha racial editável somente com ficha desbloqueada; remover/trocar
+  preserva gasto, ancestral de feiticeiro, outros dados e foco do seletor.
+- [x] Forma Selvagem exige CON da forma e confirmação de capacidade física;
+  nenhum valor humano é aplicado silenciosamente à besta. Fúria permite sopro.
+- [x] Cancelamento, dados inválidos, incapacitação ou ficha alterada durante a
+  confirmação não gastam o uso. Resultado e contador persistem no documento.
+
+**Limite operacional:** cada criatura na área, inclusive aliados, faz seu teste
+na mesa. O controle informa área, CD, tipo e dano/metade; não decide quais alvos
+estão presentes, não rola resistências de outras criaturas nem aplica PV em
+outras fichas. Defesas específicas e economia de ações continuam no contexto
+da mesa. Isso não certifica os demais traços raciais nem R3/R4 completos.
+
+Verificação deste recorte: **454 testes Node**, tipos/build e **sete roteiros
+Chromium pertinentes** aprovados: sopro, regras, consulta de características,
+dado, cadeado, concentração e os 32 casos A01–A14. Incluídos dez ancestrais,
+limiares/multiclasse, dados físicos/OFF/virtuais, cancelamento, estado/permissão
+alterados, descanso, desfazer/refazer, foco, 320px/GG/três temas/dois layouts e
+offline sob `/D-D/`. Diagnóstico puro repetido: **3.321 verificações, zero
+divergências**. A suíte completa agora inclui o 34º roteiro de navegador para
+este sopro; não foi repetida integralmente nesta rodada. Sem SQL ou teste de
+banco local nesta mudança; sem teste com PDF pessoal.
 
 ### Primeiro recorte: R1
 
@@ -427,8 +468,9 @@ grupos por classe, sem misturar sua apresentação ou ordenar o array salvo.
 As opções de treino usam o cálculo já existente; escolher um antecedente não
 refaz os treinos importados. As dez ancestralidades de draconato foram cruzadas
 com a tabela de 2014; a revisão preserva escolhas racial/feiticeiro separadas e
-mostra elemento, área, teste, CD e dano do sopro para consulta. Não resolve o
-sopro nem a aplicação automática de outras vantagens/imunidades; R3–R5
+mostra elemento, área, teste, CD e dano do sopro para consulta. A entrega de
+22/10 não resolvia o sopro; o recorte de 23/10 acima acrescenta dano e gasto.
+A aplicação automática de outras vantagens/imunidades continua parcial; R3–R5
 mantêm seus limites e pendências abaixo.
 
 As entregas funcionais de 19 a 21/10 estão resumidas aqui e antecedem a nova
@@ -481,7 +523,7 @@ casos corrigidos como se toda a funcionalidade estivesse ausente.
 | --- | --- | --- |
 | Capa, índice, prefácio e introdução, 1–7 | Consulta local e navegação | Explicação do jogo; sem necessidade de novos campos |
 | Cap. 1, criação, 10–14 | Atributos, 27 pontos, conjunto padrão, rolagem, criação/evolução e multiclasse | Distinguir uma escolha cadastrada de seu efeito aplicado; ver passivos abaixo |
-| Cap. 2, raças, 16–42 | Atributos, idiomas, opções, descrições, magias e resistências de tiefling/anão/draconato no dano por tipo | Outras resistências/condições, rerrolagens e gatilhos raciais seguem pendentes |
+| Cap. 2, raças, 16–42 | Atributos, idiomas, opções, descrições, magias e resistências de tiefling/anão/draconato no dano por tipo; sopro com dano, gasto e descanso no recorte de 23/10 | Outras resistências/condições, rerrolagens e gatilhos raciais seguem pendentes |
 | Cap. 3, classes, 44–120 | Progressão das 12 classes/41 subclasses; várias reservas e ações contextuais | Matriz por classe abaixo; contadores não controlam alvos, turnos e todos os passivos |
 | Cap. 4, personalidade/antecedentes, 122–142 | 13 antecedentes, tendências, sugestões editáveis, campos narrativos e inspiração de 2014 | Personalização completa de antecedente ainda exige adaptação manual |
 | Cap. 5, equipamento, 144–160 | Compras em cobre, quantidades/peso, armadura/escudo, armas e propriedades consultáveis | Penalidades por falta de proficiência, munição, recarga, consumíveis e detalhes de carga; ver itens abaixo |
@@ -531,13 +573,15 @@ Implacável do meio-orc está integrada à prevenção de queda, e Ataques Selva
 A revisão permite informar/corrigir a ancestralidade do draconato e a da
 Linhagem Dracônica do feiticeiro, em escolhas independentes. Elementos seguem
 as dez cores válidas do livro; cor de pele e textos arbitrários não concedem
-resistência. A consulta do sopro confere área, DES/CON, CD e dados por nível
-total; gasto, alvos, teste e aplicação de seu dano continuam fora dessa consulta.
+resistência. Além da consulta de área, DES/CON, CD e dados por nível total,
+o recorte de 23/10 registra dano/metade, gasto e recuperação do sopro. Alvos,
+seus testes e aplicação do dano/defesas continuam resolvidos na mesa.
 
 Sortudo dos halflings foi integrado às rolagens contextuais no primeiro recorte
 de R2, conforme condições e limites acima; não é o talento homônimo.
-Continuam pendentes a resolução completa do sopro do draconato, sensibilidade
-solar do drow e outras resistências/vantagens e gatilhos raciais.
+Continuam pendentes sensibilidade solar do drow e outras resistências/vantagens
+e gatilhos raciais. A aplicação do sopro aos alvos exige resolução na mesa,
+conforme o limite do recorte implementado acima.
 Visão no escuro, idiomas, ferramentas, transe, máscaras naturais e
 características sociais podem permanecer como consulta quando não houver uma
 operação da ficha a resolver. Antecedentes e origens ambíguas não devem ser

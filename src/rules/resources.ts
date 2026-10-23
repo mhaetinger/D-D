@@ -3,6 +3,7 @@ import { deathStatus, endRage, requireConscious } from './health';
 import { concentration, endConcentration, startConcentration, validateConcentrationStart } from './concentration';
 import { relentlessDC } from './survival';
 import { hasFeat } from './passives';
+import {isDragonborn,racialBreathProfile} from './draconic-ancestry';
 export interface Resource { id:string; classId:string; name:string; max:number; recovery:'short'|'long'|'none'; kind:'counter'|'pool'|'toggle'|'note'|'portent'; note:string; cost?:[string,number]; action?:string }
 
 /** Cada definição usa nível da própria classe, nunca nível total. Sem ficha-modelo. */
@@ -11,6 +12,10 @@ export function resourcesFor(c: Sheet, E: Engine): Resource[] {
   const add = (classId:string,id:string,name:string,max:number,recovery:Resource['recovery'],note:string,kind:Resource['kind']='counter',extra:Partial<Resource>={}) => list.push({classId,id:classId+':'+id,name,max,recovery,note,kind,...extra});
   const sub = (id:string) => subclass(c,id,E);
   const wisdom = Math.max(1,ability(c,'wis')), charisma = Math.max(1,ability(c,'cha'));
+  if(isDragonborn(c)){
+    const p=racialBreathProfile(c,E);
+    add('race','breath','Arma de Sopro',1,'short',p?`Ação: ${p.dice || 'conferir dano'}; ${p.area}; resistência de ${p.save==='dex'?'DES':'CON'}, CD 8 + CON + proficiência. Cada criatura na área sofre dano integral na falha e metade no sucesso. Recupera em descanso curto ou longo. Não é magia nem substitui um ataque de Ataque Extra.`:'Escolha a ancestralidade racial com a ficha desbloqueada. Um uso por descanso curto ou longo.','counter',{action:'dragonbornBreath'});
+  }
   const b = level(c,'barbaro');
   if (b) {
     add('barbaro','rage','Fúria',b===20?Infinity:b>=17?6:b>=12?5:b>=6?4:b>=3?3:2,'long',`Dura até 1 minuto; sem armadura pesada. Dano corpo a corpo com FOR +${b>=16?4:b>=9?3:2}. Não pode conjurar/concentrar. Resistência a concussão, cortante e perfurante.`, 'counter',{action:'rage'});
@@ -193,6 +198,7 @@ export function spend(c: Sheet, r: Resource, amount=1) {
 /** Corrigir um clique deve devolver o mesmo uso na magia e no painel. */
 export function refund(c:Sheet,r:Resource) {
   const recorded=c.ruleState?.used?.[r.id];
+  if(r.id==='race:breath' && recorded!==undefined && (!Number.isSafeInteger(recorded) || recorded<0))throw new Error('Registro de uso do sopro ilegível preservado. Confira o registro antes de corrigi-lo.');
   if(r.id==='feat:lucky' && recorded!==undefined && (!Number.isInteger(recorded) || recorded<0))throw new Error('Reserva de Sortudo ilegível preservada. Confira o registro antes de corrigi-lo.');
   const value = Math.max(0,(r.id==='feat:lucky'?recorded ?? 0:used(c,r))-1);
   state(c).used[r.id] = value;

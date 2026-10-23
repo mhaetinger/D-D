@@ -20,8 +20,8 @@ concluídas na `main` `beed393`, no
 | Integração `develop` | `8ce0c0d`, PR #19, com R1 e os dois recortes implementados de R2 |
 | Revisão offline publicada | `8c517c3c837af0c0`; conferida no domínio público |
 | Conferência da entrega | 433 testes Node, tipos/build, banco descartável, auditoria e 32 roteiros Chromium aprovados na CI; mobile, recarga normal e offline conferidos no site |
-| Trabalho atual | Correções A01–A14 na branch `feature/auditoria-profunda-2014`, PR #21; validação concluída, integração/publicação pendentes |
-| Próxima tarefa | Revisar/integrar a PR #21 e depois retomar os recortes restantes de R2; não repetir A01–A14 ou Sortudo |
+| Trabalho atual | Correções A01–A14 e controle do sopro de draconato na branch `feature/auditoria-profunda-2014`, PR #21; integração/publicação pendentes |
+| Próxima tarefa | Concluir a revisão da PR #21 e seguir a ordem do responsável: draconatos → rolagens → magias → importação. Sopro implementado nesta branch; próximo recorte de mecânicas em R2. Integração depende de aprovação |
 | Branch encerrada por esta entrega | `feature/talento-sortudo-r2`; criar a próxima a partir de `develop` atualizado |
 | R1 | PR #17, com testes/limites na auditoria |
 | Primeiro recorte de R2 | PR #18, com Talento Confiável e Sortudo racial |
@@ -43,7 +43,18 @@ sem divergências**. Passaram os **33 roteiros Chromium**; após o último ajust
 repetidos Node/build e cinco roteiros pertinentes, todos aprovados.
 A [PR #21](https://github.com/mhaetinger/D-D/pull/21) reúne diagnóstico, correções
 e regressões. Escopo atual e limites ficam somente na auditoria.
-A versão pública permanece a entrega de 22/10.
+A versão pública permanece a entrega de 22/10. A CI das correções A01–A14
+passou em `e9a3992`; a ampliação com o sopro tem validação própria na auditoria.
+
+Em **23/10/2026**, o responsável confirmou os **e-mails** e a **sincronização
+imediata entre telefone e computador**. Não pedir novamente esse teste básico.
+A prioridade acordada é **draconatos → rolagens → magias → importação**; o ciclo
+com PDF real foi adiado expressamente. O primeiro recorte acrescenta gasto,
+dado físico/virtual, dano/metade e descanso à própria Arma de Sopro. Casos
+avançados de sincronização continuam separados do teste básico relatado.
+O recorte passou por 454 testes Node, tipos/build e sete roteiros Chromium
+pertinentes; diagnóstico puro com 3.321 verificações sem divergências. A suíte
+completa passa a ter 34 roteiros; a execução integral cabe à CI da PR.
 
 A organização documental e **R1 — bônus ausentes nos cálculos** foram integradas
 em `develop`, junto do primeiro recorte de **R2 — rolagens e gastos condicionais**
@@ -51,7 +62,7 @@ em `develop`, junto do primeiro recorte de **R2 — rolagens e gastos condiciona
 O segundo recorte implementou o **talento Sortudo**, com uma reserva de três
 pontos e escolha do d20 nos controles existentes. Escopo e limites estão na
 [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md#roteiro-de-implementação).
-Depois dos achados do check-up, os próximos recortes de R2 cobrem as demais rerrolagens/dados mínimos,
+Após o recorte de draconatos priorizado em 23/10, os próximos recortes de R2 cobrem as demais rerrolagens/dados mínimos,
 -5/+10 e adicionais de talentos/estilos. As matrizes e os critérios ficam naquele arquivo. Não
 marcar uma mecânica como concluída por ter descrição, escolha ou contador.
 
@@ -80,7 +91,10 @@ legendas e jogador/XP têm hierarquia acima dos valores. A previsão de reservas
 aparece automaticamente, com aplicação explícita que preserva os gastos.
 Draconato e Linhagem Dracônica têm ancestralidades independentes na revisão;
 as dez cores foram conferidas com o livro, sem deduzir pela pele. A consulta
-mostra CD/área/dano do sopro; sua resolução completa continua pendente.
+mostra CD/área/dano do sopro. O controle em revisão registra ou rola o dano,
+mostra metade, gasta o uso e recupera em descanso curto/longo. Alvos, testes
+e defesas das criaturas continuam resolvidos na mesa, sem aplicar PV a outras
+fichas. A CON da Forma Selvagem exige entrada própria e capacidade confirmada.
 
 O grimório separa truques/círculos e grupos de classe, mantendo o array salvo.
 Escolher do livro e criar efeito próprio são caminhos explícitos. O editor
@@ -154,12 +168,14 @@ Texto para iniciar outra conversa:
 > Continue o CritCall. Leia AGENTS.md, docs/RETOMADA.md, README.md,
 > CHANGELOG.md e docs/ARQUITETURA.md. Confira a branch e o estado do Git.
 > O roteiro atual de regras está em docs/AUDITORIA-LIVRO-2014.md. Confira
-> as correções A01–A14 de 23/10 e a PR #21 antes de ampliar R2. O trabalho está
+> as correções A01–A14 e o controle do sopro de 23/10 na PR #21. Siga a prioridade
+> draconatos → rolagens → magias → importação; o PDF real foi adiado. O trabalho está
 > em feature/auditoria-profunda-2014; a versão publicada é beed393, PR #20.
 > Confira a branch pendente antes de criar outra. Não repetir Sortudo nem
 > confundir o traço racial com o talento. Confira a validação final das correções.
 > A integração/publicação depende da aprovação do responsável; não repetir os
-> achados já corrigidos nem declarar R2–R6 concluídos.
+> achados já corrigidos nem declarar R2–R6 concluídos. E-mails e sincronização
+> básica telefone/computador já foram confirmados pelo responsável em 23/10.
 
 ## Mapa dos documentos
 
@@ -205,14 +221,15 @@ Os links de PR/workflow acima registram a entrega compartilhável.
 
 ## Validações externas e trabalho posterior
 
-Estas pendências são separadas do roteiro de mecânicas. Nenhuma delas foi
-marcada como concluída nesta revisão de documentos.
+Estas validações são separadas do roteiro de mecânicas. Em 23/10, o responsável
+confirmou e-mails e sincronização básica real; os casos adicionais abaixo
+não foram incluídos automaticamente nesse relato.
 
 | ID | Pendente | Critério para concluir / referência |
 | --- | --- | --- |
-| V1 | Ciclo completo com os PDFs reais de importação solicitados | Importar como cópia, conferir dados/vínculos, salvar/recarregar e evoluir. Leitura/cancelamento e testes sintéticos já feitos não substituem esse ciclo. Arquivos pessoais continuam fora do Git. |
-| V2 | Mesma conta em dispositivos reais e isolamento de outra conta | Conferir fichas, notas, perfil, imagens, offline/reconexão, conflito e restauração, sem pedir credenciais. Contratos em [SINCRONIZACAO.md](SINCRONIZACAO.md). |
-| V3 | SMTP próprio e fluxo real de e-mails | Configurar remetente no serviço e conferir cadastro, confirmação, reenvio e recuperação no site. O sucesso local relatado pelo usuário não certifica todos esses fluxos. [LOGIN.md](LOGIN.md) e [DOMINIO.md](DOMINIO.md). |
+| V1 | **Adiado pelo responsável; último na prioridade atual:** ciclo com PDFs reais | Retomar após draconatos, rolagens e magias. Importar como cópia, conferir vínculos, salvar/recarregar e evoluir. Testes sintéticos não substituem o ciclo; arquivos pessoais ficam fora do Git. |
+| V2 | **Uso básico real validado pelo responsável em 23/10:** telefone/computador atualizam imediatamente | Permanecem casos adicionais de offline/reconexão, conflitos, restauração, imagens e isolamento entre contas reais. Não repetir nem desconsiderar a confirmação básica. Contratos em [SINCRONIZACAO.md](SINCRONIZACAO.md). |
+| V3 | **E-mails validados pelo responsável em 23/10** | SMTP próprio continua uma configuração de infraestrutura opcional, sem confirmação de ativação; não manter o teste funcional de e-mail como bloqueio. [LOGIN.md](LOGIN.md) e [DOMINIO.md](DOMINIO.md). |
 | V4 | Alertas do serviço reinspecionados em 22/10/2026 | Decidir correção da função `public.rls_auto_enable` e da proteção contra senhas vazadas. Alertas anteriores continuam presentes; detalhes em [SINCRONIZACAO.md](SINCRONIZACAO.md#alertas-do-serviço-para-revisão). |
 | V5 | Hospedagem Cloudflare | Conectar administração, criar projeto Pages e configurar credenciais/destino; depois validar domínio e offline. O DNS já usa Cloudflare, mas a hospedagem é GitHub Pages. Seguir [CLOUDFLARE.md](CLOUDFLARE.md). |
 | V6 | Remoção voluntária do cache de uma conta em dispositivo compartilhado | Definir exportação/confirmação e comportamento offline; não apagar dados automaticamente. Limites em [LOGIN.md](LOGIN.md#dados-sessão-e-troca-de-conta). |

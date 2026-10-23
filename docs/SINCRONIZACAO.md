@@ -7,8 +7,11 @@ O projeto exclusivo é **`qhrpgkpvwbztubnrdhya`**, URL pública
 `https://qhrpgkpvwbztubnrdhya.supabase.co`, identificado como D-D no painel na
 inspeção de 16/10/2026. Nesse dia foram aplicadas as migrações descritas abaixo,
 sem alterações em outros projetos. A publicação atual e as validações externas
-pendentes estão somente na [RETOMADA.md](RETOMADA.md). Os testes controlados não
-substituem sincronização e isolamento com contas/dispositivos reais.
+pendentes estão somente na [RETOMADA.md](RETOMADA.md). Em 23/10/2026, o responsável
+confirmou os e-mails e a atualização imediata entre seu telefone e computador.
+Esse relato valida a sincronização básica real. Offline/reconexão, conflitos,
+restauração e isolamento entre contas reais continuam como casos adicionais,
+sem atribuí-los ao teste relatado.
 
 ## Dados e fila
 
@@ -153,7 +156,8 @@ confirmou escrita/repetição com revisão única. Todo o teste foi revertido; n
 usuário/documento de teste permaneceu. A quantidade e a assinatura agregada dos
 documentos atuais ficaram iguais antes/depois da migração e do teste, sem expor
 seus conteúdos. Testes de quantidade/prazo/bytes/conflitos rodam também no banco
-descartável. Isso não substitui V2 de dispositivos reais.
+descartável. A sincronização básica real foi confirmada pelo responsável em
+23/10/2026; os casos avançados de V2 continuam separados desse relato.
 
 O diálogo de versões consulta `critcall_version_policy` e só mostra os limites
 quando confirmados pelo servidor. Uma implantação ainda sem essa RPC informa

@@ -53,8 +53,9 @@
 - Sincronização pessoal foi implementada em `src/sync/`, com migração em
   `supabase/migrations/`. A migração foi aplicada ao projeto exclusivo CritCall
   `qhrpgkpvwbztubnrdhya` em 16/10/2026 (versão remota `20261016101143`);
-  publicação no GitHub Pages validada em 16/10/2026; sincronização entre
-  dispositivos reais ainda não validada.
+  publicação no GitHub Pages validada em 16/10/2026. O responsável confirmou
+  e-mails e sincronização imediata entre telefone e computador em 23/10/2026.
+  Casos avançados de conflito/offline/restauração continuam separados na retomada.
   Consultar `docs/SINCRONIZACAO.md` e `docs/RETOMADA.md`; nunca aplicar ao outro aplicativo.
   Ao alterar SQL/RLS/RPC, executar `npm run test:database` (PostgreSQL descartável
   em Docker). Não anunciar salvamento remoto antes da confirmação do envio.
