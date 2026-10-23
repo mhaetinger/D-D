@@ -1,3 +1,4 @@
+import { registerManualImages } from '../sync/manual-images';
 import type { AccountSession } from "../auth/session";
 import { currentWorkspaceKey, workspaceKey } from "../storage/account-scope";
 import { readPreference, writePreference } from "../storage/preferences";
@@ -17,42 +18,48 @@ export function setupAvatars(account: AccountSession) {
   const profileStatus = document.getElementById("avatarSyncStatus")!;
   const urls = new Map<string, string>(), loading = new Set<string>(), uploads = new Set<string>();
   const failures = new Set<string>();
-  let target: { scope: string; characterId: string | null } | null = null, busy = false, flushing = "";
+  let target: { scope: string; characterId: string | null } | null = null, busy = false;
   const profile = (): AvatarRef | null => {
     try { const ref = JSON.parse(readPreference("dnd_profile_avatar") || "null"); return isAvatarRef(ref) ? ref : null; }
     catch { return null; }
   };
   const references = () => [profile(), ...host.characters.map(char => char.avatar)].filter(isAvatarRef);
   const assetKey = (scope: string, ref: AvatarRef) => `${scope}${ref.id}:${ref.revision}`;
+  const downloadKeys = new Set<string>(), flushing = new Map<string, Promise<void>>();
   async function flush() {
-    const identity = account.identity, scope = currentWorkspaceKey();
-    if (!identity || scope !== workspaceKey(identity) || !account.client || account.offline || !navigator.onLine) return;
+    const identity = account.identity, scope = currentWorkspaceKey(), client = account.client;
+    if (!identity || scope !== workspaceKey(identity) || !client || account.offline || !navigator.onLine) return;
     if (sheetStore.issue) return;
-    if (flushing === scope) return;
-    flushing = scope;
-    const selected = new Set(references().map(ref => assetKey(scope, ref)));
-    try {
-      const pending = (await cache.list(scope)).filter(asset => asset.pending && selected.has(asset.key));
-      if (pending.length) profileStatus.textContent = "Enviando imagens…";
-      for (const asset of pending) {
-        if (currentWorkspaceKey() !== scope || uploads.has(asset.key)) continue;
-        uploads.add(asset.key);
-        try {
-          const { data, error } = await account.client.storage.from(AVATAR_BUCKET).upload(`${identity.userId}/${asset.id}.webp`, asset.blob, { upsert: true, contentType: "image/webp", cacheControl: "0" });
-          if (error || !data?.path) throw error || new Error("Envio não confirmado");
-          await cache.put({ ...asset, pending: false });
-        } finally { uploads.delete(asset.key); }
+    if (flushing.has(scope)) return flushing.get(scope);
+    if (!references().length) return;
+    const task = (async () => {
+      const selected = new Set(references().map(ref => assetKey(scope, ref)));
+      try {
+        const pending = (await cache.list(scope)).filter(asset => asset.pending && selected.has(asset.key));
+        if (pending.length) profileStatus.textContent = "Enviando imagens…";
+        for (const asset of pending) {
+          if (currentWorkspaceKey() !== scope || uploads.has(asset.key)) continue;
+          uploads.add(asset.key);
+          try {
+            const { data, error } = await client.storage.from(AVATAR_BUCKET).upload(`${identity.userId}/${asset.id}.webp`, asset.blob, { upsert: true, contentType: "image/webp", cacheControl: "0" });
+            if (error || !data?.path) throw error || new Error("Envio não confirmado");
+            await cache.put({ ...asset, pending: false });
+          } finally { uploads.delete(asset.key); }
+        }
+        if (currentWorkspaceKey() === scope && pending.length) {
+          const assets = await cache.list(scope);
+          const live = new Set(references().map(ref => assetKey(scope, ref)));
+          const remaining = assets.some(asset => asset.pending && live.has(asset.key));
+          if (currentWorkspaceKey() === scope) profileStatus.textContent = remaining ? "Imagem salva neste dispositivo; use Sincronizar com a nuvem." : "Imagens enviadas ao armazenamento privado.";
+          if (remaining) throw new Error("Há uma nova imagem pendente. Sincronize novamente pelo botão.");
+        }
+      } catch (error) {
+        if (currentWorkspaceKey() === scope) profileStatus.textContent = "Imagem salva neste dispositivo; envio pendente. Confira a conexão e sincronize pelo botão.";
+        throw error;
       }
-      if (currentWorkspaceKey() === scope && pending.length) {
-        const assets = await cache.list(scope);
-        const live = new Set(references().map(ref => assetKey(scope, ref)));
-        const remaining = assets.some(asset => asset.pending && live.has(asset.key));
-        if (currentWorkspaceKey() === scope) profileStatus.textContent = remaining ? "Imagem salva neste dispositivo; aguardando envio." : "Imagens enviadas ao armazenamento privado.";
-        if (remaining) setTimeout(() => { void flush(); }, 600);
-      }
-    } catch {
-      if (currentWorkspaceKey() === scope) profileStatus.textContent = "Imagem salva neste dispositivo; envio pendente. Confira a conexão e tente novamente no perfil.";
-    } finally { if (flushing === scope) flushing = ""; }
+    })();
+    flushing.set(scope, task);
+    try { await task; } finally { if (flushing.get(scope) === task) flushing.delete(scope); }
   }
   function refFor(node: HTMLElement): AvatarRef | null {
     if (node.hasAttribute("data-avatar-profile")) return profile();
@@ -83,7 +90,7 @@ export function setupAvatars(account: AccountSession) {
     try {
       let asset = await cache.get(scope, ref);
       if (scope !== currentWorkspaceKey()) return;
-      if (!asset && identity && client && scope === workspaceKey(identity) && navigator.onLine && !account.offline) {
+      if (!asset && downloadKeys.has(key) && identity && client && scope === workspaceKey(identity) && navigator.onLine && !account.offline) {
         const { data, error } = await client.storage.from(AVATAR_BUCKET).download(`${identity.userId}/${ref.id}.webp`);
         if (error || !data || data.type !== "image/webp" || data.size > AVATAR_BYTES) throw new Error("Imagem indisponível");
         if (scope !== currentWorkspaceKey()) return;
@@ -110,7 +117,7 @@ export function setupAvatars(account: AccountSession) {
         const rect = node.getBoundingClientRect();
         if (rect.width && rect.height && rect.bottom > 0 && rect.top < innerHeight) void paint(node);
       }
-      document.getElementById("avatarRetry")!.hidden = !references().length;
+      document.getElementById("avatarRetry")!.hidden = !account.identity || !references().length;
     });
   }
   const mutations = new MutationObserver(records => {
@@ -135,7 +142,7 @@ export function setupAvatars(account: AccountSession) {
   };
   dialog.addEventListener("cancel", event => { if (busy) event.preventDefault(); });
   document.getElementById("avatarClose")!.addEventListener("click", () => dialog.close());
-  document.getElementById("avatarRetry")!.addEventListener("click", () => { failures.clear(); void flush(); refresh(); });
+  document.getElementById("avatarRetry")!.addEventListener("click", () => { (document.getElementById("syncNow") as HTMLButtonElement).click(); });
   file.addEventListener("change", () => {
     const image = file.files?.[0], selection = target;
     if (!image || !selection || busy) return;
@@ -160,8 +167,8 @@ export function setupAvatars(account: AccountSession) {
           if (sheetStore.issue) throw new Error("A ficha não foi salva neste navegador. Preserve um backup antes de fechar.");
         } else if (!writePreference("dnd_profile_avatar", JSON.stringify(ref))) throw new Error("A imagem não pôde ser associada ao perfil. A anterior foi mantida.");
         status.textContent = `Imagem reduzida para ${Math.ceil(blob.size / 1024)} KB e salva neste dispositivo.${account.identity ? " Confira o envio no perfil." : ""}`;
-        profileStatus.textContent = account.identity ? "Imagem salva neste dispositivo; aguardando envio." : "Imagens salvas somente neste navegador.";
-        failures.clear(); refresh(); void flush();
+        profileStatus.textContent = account.identity ? "Imagem salva neste dispositivo; use Sincronizar com a nuvem." : "Imagens salvas somente neste navegador.";
+        failures.clear(); refresh();
       } catch (error) { status.textContent = (error as Error).message; }
       finally { setBusy(false); file.value = ""; }
     })();
@@ -174,12 +181,19 @@ export function setupAvatars(account: AccountSession) {
       node.querySelector("svg")?.removeAttribute("hidden");
     }
     urls.clear(); failures.clear(); profileStatus.textContent = "";
-    refresh(); void flush();
+    downloadKeys.clear(); refresh();
   });
   storageMutations.addEventListener("write", refresh);
-  window.addEventListener("critcall-avatars-imported", () => { failures.clear(); refresh(); void flush(); });
-  account.addEventListener("change", () => { refresh(); void flush(); });
-  window.addEventListener("online", () => { failures.clear(); refresh(); void flush(); });
-  setInterval(() => { if (!document.hidden) { failures.clear(); refresh(); void flush(); } }, 60000);
-  refresh(); void flush();
+  window.addEventListener("critcall-avatars-imported", () => { failures.clear(); refresh(); });
+  account.addEventListener("change", refresh);
+  window.addEventListener("online", refresh);
+  registerManualImages({
+    prepare: async scope => { if (scope === currentWorkspaceKey()) await flush(); },
+    complete: scope => {
+      if (scope !== currentWorkspaceKey()) return;
+      for (const ref of references()) downloadKeys.add(assetKey(scope, ref));
+      failures.clear(); refresh();
+    },
+  });
+  refresh();
 }

@@ -1,5 +1,13 @@
 # Changelog
 
+## Integração local do modo manual — 2026-10-23
+
+- Incorporados o modo manual da PR #24 e a correção #22/#23 à branch de regras,
+  preservando A01–A14, sopro e –5/+10. Conflitos resolvidos somente nos textos.
+- Verificados 473 testes Node, tipos/build e quatro roteiros Chromium: nuvem
+  manual, dado, sopro e –5/+10. Esta integração atualiza o localhost; não publica
+  as regras da PR #21. A publicação do modo manual segue a CI da PR #24.
+
 ## Não lançado
 
 ### Terceiro recorte de R2: –5 ataque / +10 dano — 2026-10-23
@@ -109,6 +117,58 @@
   de fórmula, clique de concentração, OFF e captura em 390px/GG. Sem erros JS.
   Nenhuma alteração no aplicativo executável, catálogos distribuídos, dados
   reais, dado flutuante ou serviço remoto; esta rodada não publica outra versão.
+
+## Não lançado — nuvem manual — 2026-10-23
+
+- Por escolha explícita do responsável, salvar no aparelho é automático;
+  sincronizar fichas/notas/preferências/imagens exige o botão. Removidos polling,
+  envio por edição/foco/reconexão e retries automáticos. Uma instalação nova
+  carrega a nuvem pelo mesmo botão; confirmação só após resposta validada.
+- Desfazer e recuperações ficam no aparelho. A política preserva operações e
+  caches antigos, sem reenviar, apagar ou projetar históricos da nuvem sobre
+  os locais. O índice filtra tipo/ID antes dos conteúdos, inclusive no bootstrap.
+- Imagens são enviadas antes das referências na ação manual; downloads faltantes
+  são liberados por essa ação. Interface informa modo local/manual e orienta
+  sincronizar origem e destino ao trocar de aparelho. Auth continua online.
+- O localhost deve incorporar o modo novo; a auditoria de regras permanece
+  separada na PR #21. Referência de consumo: 1,537 GB de PostgREST em 23/10
+  na captura recebida às 10:49 de Brasília, sem atribuir o acumulado à versão nova.
+
+- Verificados 442 testes Node, tipos/build e cinco roteiros Chromium: nuvem
+  manual, autenticação, cópia sem conta, abas e atualização offline. Incluídos
+  zero chamadas de dados em login/edição/foco/reconexão/125 segundos simulados,
+  imagens manuais, duas instalações, contas isoladas, filas antigas preservadas,
+  falha de armazenamento, conflito/restauração e 320px/GG/três temas.
+
+## 2026-10-23 — redução de downloads repetidos
+
+### Redução de tráfego e histórico da sincronização
+
+Publicada pelas PRs #22/#23, main `69e3213`, pacote `04a6bfee62966396`.
+CI: 438 testes, banco, build/auditoria e 32 roteiros aprovados. HTML/worker/bundle,
+entrada mobile e recarga offline conferidos no domínio público.
+
+- Consultas periódicas passam a receber somente chaves/revisões; os conteúdos
+  baixam quando novos/alterados, em lotes de até 25 com paginação e filtro do
+  dono. O diário persistido evita repetir o download após salvar/recarregar.
+  Exclusões continuam em tombstones; falhas preservam cache, fila e revisões.
+- Histórico legível passa a 10 estados/256 KiB por personagem ao gravar, com
+  ponteiro atual e estado isolado maior preservados. Leituras não truncam;
+  documentos legados/ilegíveis, notas e imagens permanecem intactos.
+- Retenção menor autorizada pelo responsável: 5 versões/documento por 7 dias,
+  50 versões/2 MiB por conta. Migração remota `20261023115335` aplicada somente
+  ao CritCall; podou também versões anteriores de contas inativas. Os 45
+  documentos atuais mantiveram assinatura agregada antes/depois. Recibos privados
+  de idempotência conservam 2.000 operações/30 dias; conflitos maiores que o
+  teto são recusados sem apagar a operação local. RPCs/grants seguem compatíveis.
+- No teste sintético com histórico de 2 MiB, 100 consultas sem mudança recebem
+  7.300 bytes de JSON, contra 209.756.800 da leitura completa repetida. Isso não
+  estorna consumo acumulado nem representa medição da produção após publicação.
+  Diagnóstico e ativação em [SINCRONIZACAO.md](docs/SINCRONIZACAO.md).
+- Verificados 438 testes Node, tipos/build, PostgreSQL 18 descartável e cinco
+  roteiros Chromium: sincronização (incluindo consultas sem repetir valores),
+  autenticação sob `/D-D/` e `/`, cópia sem conta, abas da conta e atualização
+  offline. A CI continua exigindo os 32 roteiros completos.
 
 ## 2026-10-22
 

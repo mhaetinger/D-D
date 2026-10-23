@@ -232,9 +232,12 @@ test("paginação carrega tudo mesmo com limite do PostgREST menor que o solicit
   const client=createClient('https://critcall-pagination.supabase.co','sb_publishable_test',{
     auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},
     global:{fetch:async(input)=>{
-      const url=new URL(String(input)); const offset=Number(url.searchParams.get('offset')||0); offsets.push(offset);
-      const length=Math.min(100,total-offset);
-      return new Response(JSON.stringify(Array.from({length},(_,n)=>({key:`note:${offset+n}`,kind:'note',id:String(offset+n),value:'Texto',revision:1,edited_at:new Date().toISOString(),updated_at:new Date().toISOString(),operation_id:crypto.randomUUID()}))),{status:200,headers:{'content-type':'application/json','content-range':`${offset}-${offset+length-1}/${total}`}});
+      const url=new URL(String(input)),offset=Number(url.searchParams.get('offset')||0),filter=url.searchParams.get('document_key');
+      if(!filter)offsets.push(offset);
+      const keys=filter?filter.slice(4,-1).split(',').map(key=>key.replace(/^"|"$/g,'')):null;
+      const all=Array.from({length:total},(_,n)=>({key:`note:${n}`,kind:'note',id:String(n),value:'Texto',revision:1,edited_at:new Date().toISOString(),updated_at:new Date().toISOString(),operation_id:crypto.randomUUID()})).filter(d=>!keys||keys.includes(d.key));
+      const found=all.slice(offset,offset+100);
+      return new Response(JSON.stringify(found),{status:200,headers:{'content-type':'application/json','content-range':`${offset}-${offset+found.length-1}/${all.length}`}});
     }}
   });
   const rows=await new SupabaseDocuments(client,'dono-fictício').pull();

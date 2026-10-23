@@ -6,6 +6,36 @@ projeto sem depender da conversa. Leia também `AGENTS.md`, `README.md`,
 
 ## Onde o trabalho parou
 
+**Prioridade imediata: modo econômico de nuvem manual.** O responsável usa
+site e localhost, compartilhou o link com três amigos e escolheu explicitamente:
+**salvamento automático no aparelho; nuvem só pelo botão; desfazer local**.
+A implementação fica em `fix/nuvem-manual`, a partir do develop público.
+Verificados 442 testes Node, tipos/build e cinco roteiros Chromium: nuvem manual,
+autenticação, cópia sem conta, abas e atualização offline; a CI exige os 32.
+Login continua; imagens, fichas, notas e preferências atualizam pelo botão.
+A integração local passou por 473 testes, tipos/build e quatro roteiros Chromium
+(nuvem manual, dado, sopro e –5/+10), preservando as alterações da auditoria.
+Não contratar plano pago nem voltar a sincronização contínua sem nova decisão.
+
+A correção anterior foi integrada pela [PR #22](https://github.com/mhaetinger/D-D/pull/22)
+e publicada pela [PR #23](https://github.com/mhaetinger/D-D/pull/23), main `69e3213`,
+pacote `04a6bfee62966396`. Main aprovou 438 testes, banco, build/auditoria e os
+32 roteiros; site real teve HTML/worker/bundle iguais ao build, entrada mobile e
+recarga offline, sem erros JS. A retenção remota já está reduzida a 5/documento,
+7 dias e 50 versões/2 MiB por conta (migração remota `20261023115335`).
+São 58 versões/190.636 bytes; nenhuma exclusão extra foi necessária após a
+nova autorização condicional para históricos anteriores. Documentos atuais,
+notas, imagens e recibos permanecem preservados.
+
+Captura de referência: 1,537 GB de PostgREST no dia 23/10, recebida às 10:49 de
+Brasília; painel atualiza por hora. Logs disponíveis após publicação até esse
+horário mostram apenas Auth. Detalhes em
+[SINCRONIZACAO.md](SINCRONIZACAO.md#modo-manual-para-o-plano-gratuito).
+O localhost estava na branch com sincronização antiga. Esta integração incorpora
+o modo manual da **PR #24**, preservando a auditoria da **PR #21**
+em `feature/auditoria-profunda-2014` (`9725f92`). Não misturar as regras à entrega
+urgente publicada; depois retomar draconatos → rolagens → magias → importação.
+
 A entrega de **22/10/2026** reúne as melhorias da ficha, revisão da importação,
 conta e histórico, além de R1 e dois recortes de R2. Integração pela
 [PR #19](https://github.com/mhaetinger/D-D/pull/19) e publicação em
@@ -43,7 +73,8 @@ sem divergências**. Passaram os **33 roteiros Chromium**; após o último ajust
 repetidos Node/build e cinco roteiros pertinentes, todos aprovados.
 A [PR #21](https://github.com/mhaetinger/D-D/pull/21) reúne diagnóstico, correções
 e regressões. Escopo atual e limites ficam somente na auditoria.
-A versão pública permanece a entrega de 22/10. A CI das correções A01–A14
+As regras desta branch ainda não foram publicadas. A produção recebeu a correção
+de nuvem #22/#23 e a entrega manual segue na PR #24. A CI das correções A01–A14
 passou em `e9a3992`; a ampliação com o sopro tem validação própria na auditoria.
 
 Em **23/10/2026**, o responsável confirmou os **e-mails** e a **sincronização
@@ -136,14 +167,13 @@ dados pessoais no repositório. A CI e a publicação dessa entrega foram conclu
 no workflow acima; verificações anteriores ficam no changelog. A auditoria
 posterior tem seu registro próprio e não alterou o PDF pessoal.
 
-**Retenção remota ativa:** após aprovação explícita, aplicada ao CritCall a
-migração local `20261022212048_bounded_sync_versions.sql`, versão remota
-`20261022213804`, em 22/10/2026. Não reaplicar para igualar timestamps. A conta
-que sincroniza mantém até 20 versões/documento por 30 dias, 200 versões / 8 MiB
-por conta. Não houve limpeza global; documentos atuais/notas/imagens ficam fora
-da poda. Teste transacional real de escrita/repetição revertido; assinatura
-agregada dos documentos atuais permaneceu igual. O histórico do cliente tem
-100 estados / 2 MiB ao gravar. Detalhes em [SINCRONIZACAO.md](SINCRONIZACAO.md).
+**Retenção remota ativa:** a política de 22/10 foi substituída pela migração
+local `20261023114717_reduced_sync_retention.sql`, remota `20261023115335`, em
+23/10. Limites atuais: 5 versões/documento, 7 dias, 50 versões/2 MiB por conta.
+A migração também podou versões antigas de contas inativas; documentos atuais,
+notas e imagens não foram alterados. O cliente novo limita gravações legíveis a
+10 estados/256 KiB. Não reaplicar migrações para igualar timestamps. Detalhes em
+[SINCRONIZACAO.md](SINCRONIZACAO.md).
 
 ## Como continuar
 
@@ -173,15 +203,13 @@ Texto para iniciar outra conversa:
 > Continue o CritCall. Leia AGENTS.md, docs/RETOMADA.md, README.md,
 > CHANGELOG.md e docs/ARQUITETURA.md. Confira a branch e o estado do Git.
 > O roteiro atual de regras está em docs/AUDITORIA-LIVRO-2014.md. Confira
-> as correções A01–A14, o sopro e –5/+10 de 23/10 na PR #21. Siga a prioridade
-> draconatos → rolagens → magias → importação; o PDF real foi adiado. O trabalho está
-> em feature/auditoria-profunda-2014; a versão publicada é beed393, PR #20.
-> Próximos recortes de rolagem: Atacante Bestial/Combate com Armas Grandes e
-> depois Adepto Elemental. Confira a branch pendente antes de criar outra. Não repetir Sortudo nem
-> confundir o traço racial com o talento. Confira a validação final das correções.
-> A integração/publicação depende da aprovação do responsável; não repetir os
-> achados já corrigidos nem declarar R2–R6 concluídos. E-mails e sincronização
-> básica telefone/computador já foram confirmados pelo responsável em 23/10.
+> a entrega de nuvem manual da PR #24, sua publicação e a versão do localhost.
+> O código do modo manual foi incorporado nesta branch sem publicar suas regras.
+> A auditoria da PR #21 mantém A01–A14, sopro e –5/+10. Depois retomar
+> Atacante Bestial/Combate com Armas Grandes e Adepto Elemental, seguindo
+> draconatos → rolagens → magias → importação. O PDF real continua adiado.
+> Não repetir Sortudo, os achados corrigidos ou os testes básicos de e-mail/
+> telefone já confirmados. Conferir o workflow da main para a produção atual.
 
 ## Mapa dos documentos
 
@@ -236,7 +264,7 @@ não foram incluídos automaticamente nesse relato.
 | V1 | **Adiado pelo responsável; último na prioridade atual:** ciclo com PDFs reais | Retomar após draconatos, rolagens e magias. Importar como cópia, conferir vínculos, salvar/recarregar e evoluir. Testes sintéticos não substituem o ciclo; arquivos pessoais ficam fora do Git. |
 | V2 | **Uso básico real validado pelo responsável em 23/10:** telefone/computador atualizam imediatamente | Permanecem casos adicionais de offline/reconexão, conflitos, restauração, imagens e isolamento entre contas reais. Não repetir nem desconsiderar a confirmação básica. Contratos em [SINCRONIZACAO.md](SINCRONIZACAO.md). |
 | V3 | **E-mails validados pelo responsável em 23/10** | SMTP próprio continua uma configuração de infraestrutura opcional, sem confirmação de ativação; não manter o teste funcional de e-mail como bloqueio. [LOGIN.md](LOGIN.md) e [DOMINIO.md](DOMINIO.md). |
-| V4 | Alertas do serviço reinspecionados em 22/10/2026 | Decidir correção da função `public.rls_auto_enable` e da proteção contra senhas vazadas. Alertas anteriores continuam presentes; detalhes em [SINCRONIZACAO.md](SINCRONIZACAO.md#alertas-do-serviço-para-revisão). |
+| V4 | Alertas do serviço reinspecionados em 23/10/2026 | Decidir correção da função `public.rls_auto_enable` e da proteção contra senhas vazadas. Alertas anteriores continuam presentes; detalhes em [SINCRONIZACAO.md](SINCRONIZACAO.md#alertas-do-serviço-para-revisão). |
 | V5 | Hospedagem Cloudflare | Conectar administração, criar projeto Pages e configurar credenciais/destino; depois validar domínio e offline. O DNS já usa Cloudflare, mas a hospedagem é GitHub Pages. Seguir [CLOUDFLARE.md](CLOUDFLARE.md). |
 | V6 | Remoção voluntária do cache de uma conta em dispositivo compartilhado | Definir exportação/confirmação e comportamento offline; não apagar dados automaticamente. Limites em [LOGIN.md](LOGIN.md#dados-sessão-e-troca-de-conta). |
 | V7 | Ambientes, acompanhamento e proteção do repositório | Preparar separação teste/produção, acompanhamento de uso/erros/custos e proteção de branches/aprovações. Não são garantias da configuração atual. |

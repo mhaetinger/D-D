@@ -28,10 +28,12 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     server=await serve(directory); browser=await chromium.launch({headless:true});
     async function computer({holdImages=false}={}) {
       let releaseImages,downloads=0; const imageGate=new Promise(resolve=>{releaseImages=resolve;});
+      const documentReads=[],cloudCalls=[];
       const context=await browser.newContext({viewport:{width:1440,height:1000}});
       await context.route(`${endpoint}/**`,async route=>{
         const req=route.request(),url=new URL(req.url()),body=req.postData()&&req.headers()['content-type']?.includes('application/json')?req.postDataJSON():{};
         const headers={'x-supabase-api-version':'2024-01-01','access-control-allow-origin':'*','access-control-allow-headers':'*'};
+        if(req.method()!=='OPTIONS'&&(url.pathname.startsWith('/rest/')||url.pathname.startsWith('/storage/')))cloudCalls.push({path:url.pathname,body});
         const reply=(data,status=200)=>route.fulfill({status,headers,contentType:'application/json',body:JSON.stringify(data)});
         if(req.method()==='OPTIONS') return route.fulfill({status:204,headers});
         if(url.pathname.endsWith('/token')) return reply(session(body.email==='b@example.test'?'b':'a'));
@@ -52,7 +54,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
           const bytes=raw.subarray(start,end); assert.ok(bytes.length<=32768);
           images.set(object,bytes); return reply({Key:'critcall-avatars/'+object,Id:randomUUID()});
         }
-        if(url.pathname.endsWith('/rpc/critcall_version_policy')) return body.p_owner_id===owner ? reply({version:1,per_document:20,days:30,per_account:200,bytes:8388608}) : reply({code:'42501'},403);
+        if(url.pathname.endsWith('/rpc/critcall_version_policy')) return body.p_owner_id===owner ? reply({version:1,per_document:5,days:7,per_account:50,bytes:2097152}) : reply({code:'42501'},403);
         if(url.pathname.endsWith('/rpc/critcall_sync_clock')) return body.p_owner_id===owner ? reply(new Date().toISOString()) : reply({code:'42501'},403);
         if(url.pathname.endsWith('/rpc/critcall_save_document')) {
           assert.equal(body.p_owner_id,owner,'o dono capturado precisa corresponder à sessão');
@@ -65,7 +67,13 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
           const result={document:rows.get(key),conflict,server_time:new Date().toISOString()}; operations.set(body.p_operation_id,result);
           return reply(result);
         }
-        if(url.pathname.endsWith('/critcall_documents')) return reply([...rows].filter(([key])=>key.startsWith(owner+':')).map(([,value])=>value));
+        if(url.pathname.endsWith('/critcall_documents')) {
+          documentReads.push({select:url.searchParams.get('select'),keys:url.searchParams.get('document_key')});
+          let found=[...rows].filter(([key])=>key.startsWith(owner+':')).map(([,value])=>value);
+          const changed=url.searchParams.get('document_key');if(changed){const keys=changed.slice(4,-1).split(',').map(x=>x.replace(/^"|"$/g,''));found=found.filter(d=>keys.includes(d.key));}
+          if(url.searchParams.get('select')==='key:document_key,kind,id:document_id,revision')return reply(found.map(d=>({key:d.key,kind:d.kind,id:d.id,revision:d.revision})));
+          return reply(found);
+        }
         if(url.pathname.endsWith('/critcall_versions')) {
           const found=versions.filter(v=>v.owner_id===owner);
           const id=url.searchParams.get('version_id')?.replace('eq.','');
@@ -73,7 +81,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
         }
         return reply({code:'PGRST205'},404);
       });
-      const page=await context.newPage(); page.on('pageerror',error=>errors.push(error.message));
+      const page=await context.newPage(); await page.clock.install(); page.on('pageerror',error=>errors.push(error.message));
       await page.goto(server.url,{waitUntil:'networkidle'});
       await page.waitForFunction(()=>typeof getChar==='function');
       async function login(key='a') {
@@ -87,10 +95,12 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
       async function sync() {
         await page.evaluate(()=>openAuthAccountModal('profile')); await page.locator('#syncNow').click();
         await page.waitForFunction(()=>document.querySelector('#syncStatus').textContent.startsWith('Salvo no Supabase')||document.querySelector('#syncStatus').textContent.startsWith('Sincronizado.'),{},{timeout:15000});
+        await page.waitForFunction(()=>!document.querySelector('#syncNow').disabled);
       }
-      return {context,page,login,sync,releaseImages,downloads:()=>downloads};
+      return {context,page,login,sync,releaseImages,downloads:()=>downloads,documentReads,cloudCalls};
     }
     const a=await computer(); await a.login();
+    assert.equal(a.cloudCalls.length,0,'login não inicia sincronização de fichas');
     await a.page.locator('#accPlayerName').fill('Nome salvo automaticamente');
     await a.sync();
     await a.page.reload({waitUntil:'networkidle'});
@@ -118,6 +128,23 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     await a.page.locator('#backupFile').setInputFiles({name:'teste.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(backup))});
     await confirmImportReview(a.page);
     await a.page.waitForFunction(()=>characters.length===1); await a.sync();
+    // O jogo e o histórico salvam localmente, sem rede por tempo/foco/reconexão.
+    const cloudBefore=a.cloudCalls.length;
+    await a.page.evaluate(()=>{closeAuthAccountModal();getChar().hpCurrent=17;recordStepAndSave('Alteração local sem envio');window.dispatchEvent(new Event('focus'));window.dispatchEvent(new Event('online'));document.dispatchEvent(new Event('visibilitychange'));});
+    await a.page.clock.fastForward(125000);await a.page.waitForTimeout(150);
+    assert.equal(a.cloudCalls.length,cloudBefore,'edição, dois minutos, foco e reconexão não iniciam nuvem');
+    assert.equal(await a.page.evaluate(()=>getChar().hpCurrent),17);
+    await a.sync();
+    assert.ok(a.cloudCalls.filter(c=>c.path.endsWith('/critcall_save_document')).every(c=>c.body.p_kind!=='recovery'&&!c.body.p_id.startsWith('dnd_character_history_v2:')&&c.body.p_id!=='dnd_history_v1'),'nenhum histórico de desfazer é enviado');
+    // Em uma conta já carregada, sincronizar sem editar consulta apenas revisões.
+    // O conteúdo do histórico não deve voltar em cada clique/reconexão.
+    a.documentReads.length=0;
+    for(let n=0;n<3;n++) {
+      const manifest=a.page.waitForResponse(response=>response.url().includes('/critcall_documents?')&&new URL(response.url()).searchParams.get('select')==='key:document_key,kind,id:document_id,revision');
+      await a.sync();await manifest;
+    }
+    assert.ok(a.documentReads.length>=3);
+    assert.ok(a.documentReads.every(read=>read.select==='key:document_key,kind,id:document_id,revision'),'consulta sem edição não baixa fichas nem históricos completos');
     const id=await a.page.evaluate(()=>getChar().id);
     await a.page.evaluate(()=>{closeAuthAccountModal();});
     await a.page.locator('#btnModern').click();
@@ -128,11 +155,18 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     // Arquivo fictício grande em pixels: o upload precisa conter só a miniatura.
     const image=Buffer.from(await a.page.evaluate(()=>{const c=document.createElement('canvas');c.width=c.height=640;const ctx=c.getContext('2d');ctx.fillStyle='#b57936';ctx.fillRect(0,0,640,640);ctx.fillStyle='#223344';ctx.fillRect(0,0,320,640);return c.toDataURL('image/png').split(',')[1];}),'base64');
     async function uploadPhoto(page,selector,remote=true) {
+      const wasOpen=await page.locator("#authAccountModal").isVisible(),before=images.size;
       await page.locator(selector+':visible').click();
       await page.locator('#avatarFile').setInputFiles({name:'retrato.png',mimeType:'image/png',buffer:image});
       await page.waitForFunction(()=>document.querySelector('#avatarStatus').textContent.includes('reduzida'));
       await page.locator('#avatarClose').click();
-      if(remote) await page.waitForFunction(()=>document.querySelector('#avatarSyncStatus').textContent.includes('enviadas'));
+      assert.equal(images.size,before,'trocar a imagem só grava no aparelho');
+      if(remote) {
+        await page.evaluate(()=>openAuthAccountModal('profile'));await page.locator('#syncNow').click();
+        await page.waitForFunction(()=>!document.querySelector('#syncNow').disabled);
+        await page.waitForFunction(()=>document.querySelector('#avatarSyncStatus').textContent.includes('enviadas'));
+        if(!wasOpen)await page.evaluate(()=>closeAuthAccountModal());
+      }
     }
     await uploadPhoto(a.page,'[data-avatar-edit=""]');
     await a.page.evaluate(()=>closeAuthAccountModal());
@@ -149,7 +183,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     const avatar=await a.page.evaluate(()=>getChar().avatar);
     assert.equal(typeof avatar.id,'string');
     assert.ok(!JSON.stringify(rows.get(`${ids.a}:character:${id}`)).includes('data:image'),'documento não recebe pixels/base64');
-    const b=await computer(); await b.login();
+    const b=await computer(); await b.login(); await b.sync();
     await b.page.waitForFunction(id=>getChar()?.id===id,id);
     assert.equal(await b.page.locator('#currentUserBadge').textContent(),'Nome salvo automaticamente');
     await b.page.waitForFunction(()=>document.body.dataset.theme==='pergaminho_escuro'&&document.body.dataset.backdrop==='textured');
@@ -177,7 +211,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     await b.page.waitForFunction(()=>!!navigator.serviceWorker.controller);
     await b.context.setOffline(true);
     await uploadPhoto(b.page,'[data-avatar-edit=""]',false);
-    assert.ok((await b.page.locator('#avatarSyncStatus').textContent()).includes('aguardando envio'));
+    assert.ok((await b.page.locator('#avatarSyncStatus').textContent()).includes('use Sincronizar com a nuvem'));
 
     await a.page.evaluate(()=>{getChar().coins.po=123;recordStepAndSave('Alteração no computador A');}); await a.sync();
     await b.page.evaluate(()=>{getChar().name='Edição offline mais recente';getChar().hpCurrent=7;recordStepAndSave('Alteração offline no B',true);setTab('lore');savePrivateNotes('Nota alterada offline');});
@@ -199,7 +233,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     const previous=versions.find(v=>v.kind==='character'&&v.value?.coins?.po===123);
     assert.ok(previous,'a versão anterior permanece disponível para recuperação');
     previous.name='<img src=x onerror=window.__versionPwned=1>'+('X'.repeat(300));
-    await a.page.locator('#syncVersions').click();await a.page.locator('#syncVersionsPolicy').getByText(/20 versões por documento/).waitFor();
+    await a.page.locator('#syncVersions').click();await a.page.locator('#syncVersionsPolicy').getByText(/5 versões por documento/).waitFor();
     await a.page.locator(`[data-version-id="${previous.version_id}"]`).waitFor();
     assert.equal(await a.page.evaluate(()=>window.__versionPwned),undefined);
     assert.equal(await a.page.locator('#syncVersionsList img').count(),0);
@@ -237,7 +271,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     assert.notEqual(await a.page.evaluate(id=>characters.find(char=>char.id===id).avatar.id,copyId),source.avatar.id);
     await a.sync();
     // Um download atrasado da conta A não pode preencher imagem/cache da conta B.
-    const delayed=await computer({holdImages:true}); await delayed.login();
+    const delayed=await computer({holdImages:true}); await delayed.login(); await delayed.sync();
     for(let n=0;n<100&&!delayed.downloads();n++)await delayed.page.waitForTimeout(20);
     assert.ok(delayed.downloads()>0);
     await delayed.page.locator('#accountSignOut').click(); await delayed.login('b');
@@ -246,6 +280,6 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     assert.equal(await delayed.page.evaluate(()=>new Promise((resolve,reject)=>{const r=indexedDB.open('critcall-avatars-v1');r.onsuccess=()=>{const q=r.result.transaction('assets').objectStore('assets').getAll();q.onsuccess=()=>resolve(q.result.length);q.onerror=reject;};r.onerror=reject;})),0,'download antigo não é guardado na conta nova');
     await delayed.context.close();
     assert.deepEqual(errors,[]);
-    console.log('PASS imagens privadas/reduzidas em dois navegadores, conta B isolada, SVG recusado, fila de imagem offline; sync Chromium: perfil automático/recarga, recuperação após falha da fila IndexedDB, duas instalações A, conta B isolada, fichas/notas, edição offline/recarga/reconexão, versão mais recente, histórico de conflitos e restauração sem alterar notas; sem erros JS.');
+    console.log('PASS imagens privadas/reduzidas em dois navegadores, conta B isolada, SVG recusado, fila de imagem offline; sync Chromium: perfil local e nuvem manual/recarga, recuperação após falha da fila IndexedDB, duas instalações A, conta B isolada, fichas/notas, edição offline/recarga/reconexão, versão mais recente, histórico de conflitos e restauração sem alterar notas; sem erros JS.');
   } finally { if(browser)await browser.close();if(server)await server.close();fs.rmSync(directory,{recursive:true,force:true}); }
 })().catch(error=>{console.error(error);process.exitCode=1;});

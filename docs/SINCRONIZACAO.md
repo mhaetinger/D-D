@@ -7,17 +7,60 @@ O projeto exclusivo é **`qhrpgkpvwbztubnrdhya`**, URL pública
 `https://qhrpgkpvwbztubnrdhya.supabase.co`, identificado como D-D no painel na
 inspeção de 16/10/2026. Nesse dia foram aplicadas as migrações descritas abaixo,
 sem alterações em outros projetos. A publicação atual e as validações externas
-pendentes estão somente na [RETOMADA.md](RETOMADA.md). Em 23/10/2026, o responsável
-confirmou os e-mails e a atualização imediata entre seu telefone e computador.
-Esse relato valida a sincronização básica real. Offline/reconexão, conflitos,
-restauração e isolamento entre contas reais continuam como casos adicionais,
-sem atribuí-los ao teste relatado.
+pendentes estão somente na [RETOMADA.md](RETOMADA.md). O responsável confirmou
+e-mails e envio imediato entre telefone/computador. Os testes controlados não
+certificam os cenários adicionais de conflito/offline e isolamento com contas reais.
+
+## Modo manual para o plano gratuito
+
+Em 23/10/2026, após compartilhar o site com amigos e usar também o localhost,
+o responsável escolheu: **salvar automaticamente no aparelho, sincronizar com
+a nuvem só pelo botão e manter desfazer somente no aparelho**. Não contratar
+plano pago ou reativar sincronização contínua sem nova decisão do responsável.
+
+- **Sincronizar com a nuvem** envia as últimas fichas/notas/preferências locais
+  pendentes e recebe alterações elegíveis da conta. Não é apenas upload: usar
+  no aparelho de origem e depois no de destino. Uma instalação nova só carrega
+  fichas da nuvem por esse botão. Login sozinho mantém o cache já disponível.
+- Edições, foco, visibilidade, passagem do tempo e reconexão não iniciam RPC,
+  download de documentos ou envio de imagens. Não há repetição automática após
+  erro. A interface diferencia estado local, pendência e confirmação remota.
+- Desfazer/checkpoints e recuperações ficam locais. Filas/caches antigos e
+  registros de histórico na nuvem são preservados, sem voltar a enviá-los,
+  apagá-los ou projetá-los sobre o histórico local.
+- O índice de chave/tipo/ID/revisão filtra os históricos antes dos downloads de
+  valores, inclusive no primeiro acesso e na consulta da cópia sem conta.
+- Imagens novas são guardadas em IndexedDB e enviadas no clique, antes das
+  referências. O botão de repetir imagens usa a mesma ação manual. As imagens
+  remotas visíveis são liberadas após a sincronização; não há polling/retry por
+  minuto. Arquivos já recebidos continuam no cache privado/offline.
+- Login, confirmação e renovação de sessão continuam usando Auth. A consulta
+  explícita de versões e a oferta de copiar fichas sem conta também usam a rede;
+  suas leituras não incluem os históricos inteiros no fluxo normal.
+- A fila mantém a consolidação existente no momento do envio. Edições surgidas
+  durante a requisição ficam pendentes para outro clique. A confirmação de
+  envio só aparece após resposta validada; o erro não apaga a edição local.
+
+### Referência para comparar o consumo
+
+Captura enviada em 23/10, recebida por volta de **10:49 de Brasília**:
+**1,537 GB de PostgREST no dia 23/10**, Auth 180,13 KB. É acumulado diário,
+atualizado pelo painel por hora; não comparar como se fosse tráfego por hora.
+A publicação anterior, pacote `04a6bfee62966396`, foi confirmada às 09:22 e
+corrigiu downloads repetidos, mas ainda tinha envio/polling automático.
+
+Nos logs consultados de 09:22–10:49, havia 11 requisições de Auth e nenhuma
+requisição PostgREST disponível. Isso não comprova o tráfego em bytes nem uso
+ativo de uma partida. Os logs de respostas de documentos continuam sem tamanhos
+reportados. A captura pode refletir contabilização anterior. O localhost estava
+na branch de regras com sincronização antiga; deve incorporar o modo manual
+antes de continuar os testes. Nenhuma ficha pessoal foi consultada para medir.
 
 ## Dados e fila
 
 Sincronizam-se fichas completas, anotações pessoais separadas, nome, ficha ativa,
-tema/fundo/fonte, preferências de dados/bandeja, histórico/checkpoints e cópias
-de recuperação. A lista de preferências fica em `src/storage/preferences.ts`.
+tema/fundo/fonte e preferências de dados/bandeja. Histórico/checkpoints e
+recuperações são locais no modo manual. A lista de preferências fica em `src/storage/preferences.ts`.
 Nome é salvo ao digitar; falha mantém o texto e não anuncia sucesso. Senhas e
 tokens não são documentos nem backups. Editores ainda não confirmados mantêm
 seu fluxo de salvar/descartar; pool temporário, buscas, animações e painéis
@@ -29,12 +72,13 @@ separa mudanças reais do antigo `dnd_history_v1`, preservando o documento origi
 checkpoints antigos sem autor identificável ficam no original. Os ponteiros de
 desfazer/refazer são independentes. Históricos de fichas excluídas permanecem
 disponíveis para restaurá-las, sem recuperar/substituir as outras fichas ou notas.
-Histórico ilegível não é sobrescrito e vira uma cópia privada de recuperação na
-fila. A RPC aceita esses IDs de preferência.
+Histórico ilegível não é sobrescrito. O formato antigo de recuperação permanece
+compatível, mas históricos/recuperações ficam fora da fila elegível da nuvem.
 Isso separa edições de personagens diferentes; edições simultâneas do mesmo
-histórico continuam sujeitas à resolução de versões/conflitos existente.
+histórico não são sincronizadas no modo manual; as fichas atuais continuam
+sujeitas à resolução de versões/conflitos existente.
 
-Ao gravar um histórico legível, o cliente mantém até **100 estados / 2 MiB**,
+Ao gravar um histórico legível, o cliente mantém até **10 estados / 256 KiB**,
 com o ponteiro atual e seus vizinhos. Um único estado maior que esse teto é
 preservado inteiro. A leitura não trunca o histórico e dados ilegíveis continuam
 preservados. Checkpoints participam do limite; não são um arquivo permanente.
@@ -52,14 +96,14 @@ já agendadas, impedindo que a cópia anterior da nuvem substitua a edição loc
 No fluxo normal, a comparação conserva o estado observado no instante da captura
 para não transformar uma projeção remota posterior em uma edição local antiga.
 
-O bootstrap busca dados antes da ficha; há tentativas após edições, reconexão,
-foco/visibilidade e periodicamente com a página visível. Atualizações aguardam
+O bootstrap usa somente o cache/diário local antes da ficha. O botão manual
+envia/carrega dados; não há tentativas periódicas ou por foco/reconexão. Atualizações aguardam
 campos/editores abertos. Troca de conta cancela a projeção anterior e fecha a
 consulta de versões. A RPC compara o dono esperado com `auth.uid()`, impedindo
 enviar uma fila antiga com token que passou a pertencer a outra conta.
 
-**Outro PC só recebe uma edição offline depois que o dispositivo que a fez
-reconectar e confirmar o envio.** Antes, usa a última versão recebida na nuvem.
+**Outro PC só recebe uma edição depois de sincronizar pelo botão no aparelho
+de origem e também no de destino.** Reconectar sozinho não envia alterações. Antes, usa a última versão recebida na nuvem.
 Primeiro login exige rede. O perfil distingue fila, falta de configuração/rede
 e confirmação remota. Quota/armazenamento bloqueado são informados; não existe
 garantia de persistência se o navegador recusa escrever. Manter backups é necessário.
@@ -124,17 +168,21 @@ tal; não se apresenta como edição nova para substituir uma versão remota dat
 
 ### Retenção de versões
 
-A migração `20261022212048_bounded_sync_versions.sql` foi aplicada ao projeto
-exclusivo CritCall em **22/10/2026**, após aprovação explícita da retenção pelo
-responsável. A versão remota é **`20261022213804`**; não reaplicar para igualar o
-nome local. A sincronização retira versões antigas/excedentes, uma mudança
-irreversível no histórico restaurável. Não foi feita limpeza global das contas.
+A primeira política foi ativada em 22/10/2026 por
+`20261022212048_bounded_sync_versions.sql` (remota `20261022213804`). Os antigos
+20/documento, 30 dias, 200/conta e 8 MiB foram substituídos em **23/10/2026**, após
+nova autorização explícita para reduzir o histórico devido ao egress.
 
-- Até **20 versões por documento**, com **30 dias** desde o recebimento.
-- Até **200 versões e 8 MiB de conteúdo por conta**, prevalecendo o limite
+`20261023114717_reduced_sync_retention.sql`, versão remota **`20261023115335`**,
+foi aplicada somente ao CritCall `qhrpgkpvwbztubnrdhya`. Não reaplicar para igualar
+os timestamps. A poda de versões é irreversível e foi autorizada pelo responsável.
+
+- Até **5 versões por documento**, com **7 dias** desde o recebimento.
+- Até **50 versões e 2 MiB de conteúdo por conta**, prevalecendo o limite
   atingido primeiro. Uma versão maior que o teto pode não ficar restaurável.
-- A limpeza ocorre ao salvar nessa conta, sob lock transacional. Uma conta
-  inativa não cresce; versões vencidas saem na próxima sincronização.
+- A limpeza ocorre ao salvar nessa conta, sob lock transacional. A migração de
+  23/10 também podou versões existentes das contas inativas; depois disso,
+  versões vencidas saem na próxima sincronização.
 - `critcall_documents`, fichas atuais, notas atuais e retratos ficam fora da
   limpeza. Versões de histórico e recuperação deixam de ser duplicadas em cada
   envio normal; o documento atual continua sincronizado. Conflitos conservam
@@ -147,11 +195,13 @@ irreversível no histórico restaurável. Não foi feita limpeza global das cont
 - A RPC mantém os oito argumentos e o formato da resposta para clientes já
   publicados. O proprietário continua vindo de `auth.uid()`. A tabela de
   recibos fica em schema privado, sem grant ao navegador; índices começam pelo
-  dono e a limpeza nunca alcança outra conta.
+  dono; cada gravação limpa somente a própria conta. A migração administrativa
+  percorre as contas existentes sob o mesmo lock.
 
 A política instalada foi consultada pela RPC e conferida com os limites acima.
-Inspecionados grants, RLS dos recibos e `search_path`. Um teste transacional no
-PostgreSQL 17 real, com identidade fictícia sem e-mail e role authenticated,
+Inspecionados grants, RLS dos recibos e `search_path`. Na ativação inicial de
+22/10, um teste transacional no PostgreSQL 17 real, com identidade fictícia sem
+e-mail e role authenticated,
 confirmou escrita/repetição com revisão única. Todo o teste foi revertido; nenhum
 usuário/documento de teste permaneceu. A quantidade e a assinatura agregada dos
 documentos atuais ficaram iguais antes/depois da migração e do teste, sem expor
@@ -164,6 +214,48 @@ quando confirmados pelo servidor. Uma implantação ainda sem essa RPC informa
 que a retenção limitada não foi confirmada. Backup privado continua sendo o
 caminho para guardar um estado por prazo maior; a restauração não promete
 retenção permanente da versão substituída.
+
+### Incidente de egress em 23/10/2026
+
+O responsável confirmou que os **11,78 GB** mostrados no ciclo 17/10–17/11 eram
+do projeto CritCall. O serviço permanecia `ACTIVE_HEALTHY`; não foi contratado
+plano pago. O código publicado baixava todos os documentos a cada 30 segundos
+com a aba visível, além das tentativas após edição/foco. Nos logs das 24 horas
+anteriores a 23/10 11:38 UTC havia **2.502 GETs** de `critcall_documents` e
+2.501 chamadas de relógio; não havia tamanho de resposta nesses logs para
+atribuir uma quantidade exata de bytes a cada chamada.
+
+A consulta agregada encontrou aproximadamente **6,3 MB de históricos** e apenas
+**66 kB de fichas atuais**. A correção usa índice de revisões e diário persistido:
+sem mudanças, a resposta não contém os valores; após salvar, a revisão confirmada
+já evita baixar novamente o próprio envio. Só uma instalação sem esse diário
+precisa receber todos os conteúdos. Bootstrap/cópia sem conta conserva seu fluxo.
+Índice e conteúdos mantêm paginação, filtro de dono e tombstones. Nenhuma chave,
+cache de dados ou conteúdo ilegível foi apagado para reduzir tráfego.
+
+No teste sintético com um histórico de 2 MiB, 100 consultas sem mudança receberam
+**7.300 bytes de JSON**, contra **209.756.800 bytes** ao repetir a leitura completa.
+A conta real varia por número de documentos/edições; a medição não inclui headers
+nem estima o próximo ciclo. Não é uma medição da produção após publicação.
+
+A redução remota deixou **58 de 211 versões**, com conteúdo de **4.555.053 para
+190.636 bytes**. Os **45 documentos atuais** conservaram a mesma assinatura
+agregada antes/depois, sem baixar ou expor seu conteúdo. A RPC confirmou 5/7/50/2 MiB,
+grants permaneceram restritos e os advisors não acrescentaram alertas aos já
+registrados. A migração passou antes pelo PostgreSQL 18 descartável, incluindo
+limites, contas inativas, conflito grande sem perda da operação e repetição.
+
+A retenção menor já está ativa no servidor. O limite de 10 estados/256 KiB se
+aplica a gravações legíveis feitas pelo cliente novo; leituras e o documento
+legado não são truncados. A correção dos downloads foi publicada por #22/#23 na main `69e3213`,
+pacote `04a6bfee62966396`. Abas antigas seguem seu comportamento até a atualização.
+O modo manual descrito acima é a entrega seguinte, em `fix/nuvem-manual`.
+Até receber a atualização, fechar abas do CritCall sem uso reduz consultas.
+O consumo do ciclo não diminui com a poda: a otimização vale para novas
+transferências. Não forçar reload de uma edição em andamento.
+
+Fontes oficiais: [egress e quotas](https://supabase.com/docs/guides/platform/manage-your-usage/egress)
+e [excedentes no plano gratuito](https://supabase.com/docs/guides/platform/billing-faq).
 
 ### Migrações já aplicadas
 
@@ -201,7 +293,7 @@ contém dados pessoais ou exclusões e pode ser reaplicado sem apagar registros.
 
 ## Alertas do serviço para revisão
 
-A inspeção de **16/10/2026**, repetida em **22/10/2026**, do projeto real encontrou a função preexistente
+A inspeção de **16/10/2026**, repetida em **22 e 23/10/2026**, do projeto real encontrou a função preexistente
 `public.rls_auto_enable` executável por anon/authenticated. Revisar sua origem,
 necessidade e privilégios antes de alterar; ela não foi criada pela migração
 pessoal. Orientação do [linter de funções expostas](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable).

@@ -439,7 +439,7 @@ O adaptador da interface conserva localStorage e o formato legado. A fila nova
 usa transações IndexedDB por projeto/usuário, com IDs de operação idempotentes,
 revisões remotas e projeção que aguarda editores. Histórico/checkpoints passam a
 ser persistidos separadamente e entram na fila; seus snapshots não incluem notas.
-`boundedCharacterHistory` limita gravações legíveis a 100 estados / 2 MiB,
+`boundedCharacterHistory` limita gravações legíveis a 10 estados / 256 KiB,
 conservando o ponteiro e os vizinhos. Um estado isolado maior é preservado.
 A leitura não trunca dados e o original legado/ilegível continua preservado.
 Limites de versões remotas, recibos e ativação ficam em
@@ -495,10 +495,35 @@ a anon, permitem authenticated e têm `search_path` vazio. Teste SQL real com
 identidade sintética, integralmente revertido, confirmou escrita/idempotência
 e isolamento do dono, sem dados pessoais. Cliente e SQL também foram testados
 com HTTP controlado e PostgreSQL 16 descartável, respectivamente. Ainda faltam
-sincronização real entre dispositivos, SMTP próprio e revisão dos alertas
-descritos em SINCRONIZACAO.md. A publicação foi concluída; evidências em
+SMTP próprio e revisão dos alertas descritos em SINCRONIZACAO.md. O responsável
+confirmou envio imediato entre telefone e computador em outubro de 2026; os
+roteiros externos completos continuam discriminados na retomada. A publicação
+foi concluída; evidências em
 [RETOMADA.md](RETOMADA.md). Contratos em [LOGIN.md](LOGIN.md) e
 [SINCRONIZACAO.md](SINCRONIZACAO.md).
+
+O modo gratuito usa sincronização manual. O controller captura alterações na fila
+IndexedDB, mas chama `SyncEngine.run()` somente pelo botão. Não há polling nem
+rede por foco/reconexão/edição. Na abertura, aplica apenas o diário já disponível
+no aparelho. `manual-images.ts` coordena upload explícito antes das referências;
+novos downloads de retratos são liberados após a ação manual. Login/renovação de
+sessão continuam independentes e podem usar rede.
+
+`cloud-policy.ts` mantém históricos e recuperações fora da sincronização normal.
+`readDocuments(..., false)` não valida nem remigra históricos durante a captura
+remota. `SyncEngine` aceita uma política opcional (produção: manual + conteúdo
+atual), usada na captura, fila elegível, contagem e projeção. Operações/caches
+antigos excluídos da política permanecem intactos no diário; não viram tombstones,
+não são enviados nem substituem o histórico local. O motor genérico conserva
+seu contrato anterior quando não recebe essa política.
+
+`SupabaseDocuments.pull(knownRevisions)` sempre pagina o índice de chave, tipo,
+ID e revisão, inclusive sem diário. Só busca conteúdos elegíveis novos/alterados
+em lotes de 25, sob filtro do dono. Fichas/notas/preferências pequenas continuam
+sincronizadas. Mesmo um primeiro acesso/cópia sem conta ignora os valores de
+históricos antigos na nuvem. Ausência não apaga nada; exclusões usam tombstones.
+Falhas preservam a fila. Detalhes em
+[SINCRONIZACAO.md](SINCRONIZACAO.md#modo-manual-para-o-plano-gratuito).
 
 Documentos têm revisão crescente e datas de edição/recebimento, com calibração
 do relógio. Se edições simultâneas disputam a mesma revisão, vence a data mais
