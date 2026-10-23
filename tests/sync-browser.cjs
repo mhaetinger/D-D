@@ -28,6 +28,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     server=await serve(directory); browser=await chromium.launch({headless:true});
     async function computer({holdImages=false}={}) {
       let releaseImages,downloads=0; const imageGate=new Promise(resolve=>{releaseImages=resolve;});
+      const documentReads=[];
       const context=await browser.newContext({viewport:{width:1440,height:1000}});
       await context.route(`${endpoint}/**`,async route=>{
         const req=route.request(),url=new URL(req.url()),body=req.postData()&&req.headers()['content-type']?.includes('application/json')?req.postDataJSON():{};
@@ -52,7 +53,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
           const bytes=raw.subarray(start,end); assert.ok(bytes.length<=32768);
           images.set(object,bytes); return reply({Key:'critcall-avatars/'+object,Id:randomUUID()});
         }
-        if(url.pathname.endsWith('/rpc/critcall_version_policy')) return body.p_owner_id===owner ? reply({version:1,per_document:20,days:30,per_account:200,bytes:8388608}) : reply({code:'42501'},403);
+        if(url.pathname.endsWith('/rpc/critcall_version_policy')) return body.p_owner_id===owner ? reply({version:1,per_document:5,days:7,per_account:50,bytes:2097152}) : reply({code:'42501'},403);
         if(url.pathname.endsWith('/rpc/critcall_sync_clock')) return body.p_owner_id===owner ? reply(new Date().toISOString()) : reply({code:'42501'},403);
         if(url.pathname.endsWith('/rpc/critcall_save_document')) {
           assert.equal(body.p_owner_id,owner,'o dono capturado precisa corresponder à sessão');
@@ -65,7 +66,13 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
           const result={document:rows.get(key),conflict,server_time:new Date().toISOString()}; operations.set(body.p_operation_id,result);
           return reply(result);
         }
-        if(url.pathname.endsWith('/critcall_documents')) return reply([...rows].filter(([key])=>key.startsWith(owner+':')).map(([,value])=>value));
+        if(url.pathname.endsWith('/critcall_documents')) {
+          documentReads.push({select:url.searchParams.get('select'),keys:url.searchParams.get('document_key')});
+          let found=[...rows].filter(([key])=>key.startsWith(owner+':')).map(([,value])=>value);
+          const changed=url.searchParams.get('document_key');if(changed){const keys=changed.slice(4,-1).split(',').map(x=>x.replace(/^"|"$/g,''));found=found.filter(d=>keys.includes(d.key));}
+          if(url.searchParams.get('select')==='key:document_key,revision')return reply(found.map(d=>({key:d.key,revision:d.revision})));
+          return reply(found);
+        }
         if(url.pathname.endsWith('/critcall_versions')) {
           const found=versions.filter(v=>v.owner_id===owner);
           const id=url.searchParams.get('version_id')?.replace('eq.','');
@@ -88,7 +95,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
         await page.evaluate(()=>openAuthAccountModal('profile')); await page.locator('#syncNow').click();
         await page.waitForFunction(()=>document.querySelector('#syncStatus').textContent.startsWith('Salvo no Supabase')||document.querySelector('#syncStatus').textContent.startsWith('Sincronizado.'),{},{timeout:15000});
       }
-      return {context,page,login,sync,releaseImages,downloads:()=>downloads};
+      return {context,page,login,sync,releaseImages,downloads:()=>downloads,documentReads};
     }
     const a=await computer(); await a.login();
     await a.page.locator('#accPlayerName').fill('Nome salvo automaticamente');
@@ -118,6 +125,15 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     await a.page.locator('#backupFile').setInputFiles({name:'teste.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(backup))});
     await confirmImportReview(a.page);
     await a.page.waitForFunction(()=>characters.length===1); await a.sync();
+    // Em uma conta já carregada, sincronizar sem editar consulta apenas revisões.
+    // O conteúdo do histórico não deve voltar em cada clique/reconexão.
+    a.documentReads.length=0;
+    for(let n=0;n<3;n++) {
+      const manifest=a.page.waitForResponse(response=>response.url().includes('/critcall_documents?')&&new URL(response.url()).searchParams.get('select')==='key:document_key,revision');
+      await a.sync();await manifest;
+    }
+    assert.ok(a.documentReads.length>=3);
+    assert.ok(a.documentReads.every(read=>read.select==='key:document_key,revision'),'consulta sem edição não baixa fichas nem históricos completos');
     const id=await a.page.evaluate(()=>getChar().id);
     await a.page.evaluate(()=>{closeAuthAccountModal();});
     await a.page.locator('#btnModern').click();
@@ -199,7 +215,7 @@ const session = key => ({access_token:token(key),refresh_token:`refresh_${key}`,
     const previous=versions.find(v=>v.kind==='character'&&v.value?.coins?.po===123);
     assert.ok(previous,'a versão anterior permanece disponível para recuperação');
     previous.name='<img src=x onerror=window.__versionPwned=1>'+('X'.repeat(300));
-    await a.page.locator('#syncVersions').click();await a.page.locator('#syncVersionsPolicy').getByText(/20 versões por documento/).waitFor();
+    await a.page.locator('#syncVersions').click();await a.page.locator('#syncVersionsPolicy').getByText(/5 versões por documento/).waitFor();
     await a.page.locator(`[data-version-id="${previous.version_id}"]`).waitFor();
     assert.equal(await a.page.evaluate(()=>window.__versionPwned),undefined);
     assert.equal(await a.page.locator('#syncVersionsList img').count(),0);

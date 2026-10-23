@@ -10,7 +10,7 @@ Versão publicada em **https://criticall.art/**, hospedada no GitHub Pages.
 O DNS usa Cloudflare; a migração da hospedagem está preparada, sem ativação.
 Login e sincronização pessoal estão publicados, com migrações aplicadas ao
 projeto exclusivo CritCall. O envio deve ser confirmado no perfil; validação
-entre dispositivos reais e SMTP próprio continuam pendentes.
+entre telefone/computador foi confirmada pelo responsável; SMTP próprio segue pendente.
 
 Para continuar o desenvolvimento, comece por [docs/RETOMADA.md](docs/RETOMADA.md).
 Esse arquivo registra a última entrega, a próxima etapa e as validações externas.
@@ -178,7 +178,7 @@ a recuperação de uma versão da ficha não restaura pixels antigos no servidor
 
 Fichas e notas mantêm uma cópia neste navegador. A aplicação inclui salvamento por
 conta no Supabase com fila offline, perfil, preferências e versões recuperáveis;
-**migração aplicada no projeto real; validação entre dispositivos reais pendente**.
+**migração aplicada no projeto real; envio entre telefone e computador validado pelo responsável**.
 Confira o estado de envio no perfil. Estar conectado não significa que tudo já
 chegou à nuvem. `VITE_AUTH_ENABLED=false` permite uma edição apenas local.
 Veja [docs/SINCRONIZACAO.md](docs/SINCRONIZACAO.md).
@@ -189,13 +189,17 @@ Cada personagem tem sua própria linha do tempo, com desfazer/refazer e marcos.
 Voltar um passo afeta somente essa ficha; notas pessoais e as outras fichas são
 preservadas. A linha do tempo também permite restaurar fichas excluídas. O
 histórico coletivo antigo é copiado por personagem sem apagar o original.
-Ao gravar, o histórico de desfazer mantém até 100 estados / 2 MiB por ficha,
+Ao gravar, o histórico de desfazer mantém até 10 estados / 256 KiB por ficha,
 preservando o estado apontado. Um único estado maior é mantido inteiro.
 Checkpoints também participam desse limite. Versões em nuvem têm política
 própria, conferida no diálogo e descrita em [SINCRONIZACAO.md](docs/SINCRONIZACAO.md).
-A retenção do servidor foi ativada no CritCall em 22/10/2026: até 20 versões
-por documento / 30 dias, com teto de 200 versões / 8 MiB por conta. A limpeza
-ocorre ao sincronizar; os documentos atuais ficam preservados.
+A retenção do servidor foi reduzida no CritCall em 23/10/2026, por autorização
+do responsável: até 5 versões por documento / 7 dias, com teto de 50 versões /
+2 MiB por conta. A limpeza ocorre ao sincronizar; a migração também podou versões
+antigas já salvas, preservando todos os documentos atuais. A sincronização consulta
+primeiro as revisões e baixa somente conteúdos novos/alterados, reutilizando o
+diário local após recargas. Isso evita baixar históricos inteiros a cada 30 segundos.
+A correção do cliente depende da publicação; consumo já acumulado não é estornado.
 
 No perfil local, **Baixar backup** salva suas fichas em JSON. As anotações pessoais
 ficam fora do arquivo por padrão; marque a opção para incluí-las em um backup
