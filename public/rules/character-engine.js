@@ -1858,6 +1858,12 @@
     "protecao-contra-laminas": { dmgType: "defesa", dmgLabel: "Defesa", targetType: "pessoal", defType: "nenhuma", canTwin: false, effectSummary: "Resistência física (1 rod.)", diceFormula: null },
     "escudo-arcano": { dmgType: "defesa", dmgLabel: "Defesa", targetType: "pessoal", defType: "nenhuma", canTwin: false, effectSummary: "+5 CA (1 rodada)", diceFormula: null },
     "escudo-da-fe": { dmgType: "defesa", dmgLabel: "Defesa", targetType: "mira", defType: "nenhuma", canTwin: true, effectSummary: "+2 CA (10 min)", diceFormula: null },
+    // Componentes simultâneos: não usar o primeiro dado como dano completo.
+    // Momentos distintos/alternativas de outras magias continuam no resolvedor.
+    "chuva-de-meteoros": { dmgType:"misto", dmgLabel:"Fogo + Concussão", targetType:"esfera", defType:"tr_des", canTwin:false, effectSummary:"20d6 Fogo + 20d6 Concussão", diceFormula:"20d6+20d6", damageComponents:[{formula:"20d6",type:"fogo",label:"Fogo"},{formula:"20d6",type:"concussao",label:"Concussão"}] },
+    "tempestade-de-gelo": { dmgType:"misto", dmgLabel:"Concussão + Frio", targetType:"cilindro", defType:"tr_des", canTwin:false, effectSummary:"2d8 Concussão + 4d6 Frio", diceFormula:"2d8+4d6", damageComponents:[{formula:"2d8",type:"concussao",label:"Concussão"},{formula:"4d6",type:"frio",label:"Frio"}] },
+    "coluna-de-chamas": { dmgType:"misto", dmgLabel:"Fogo + Radiante", targetType:"cilindro", defType:"tr_des", canTwin:false, effectSummary:"4d6 Fogo + 4d6 Radiante", diceFormula:"4d6+4d6", damageComponents:[{formula:"4d6",type:"fogo",label:"Fogo"},{formula:"4d6",type:"radiante",label:"Radiante"}] },
+    "onda-destrutiva": { dmgType:"misto", dmgLabel:"Trovejante + Radiante ou Necrótico", targetType:"esfera", defType:"tr_con", canTwin:false, effectSummary:"5d6 Trovejante + 5d6 Radiante ou Necrótico", diceFormula:"5d6+5d6", damageComponents:[{formula:"5d6",type:"trovejante",label:"Trovejante"},{formula:"5d6",type:"escolha",label:"Radiante ou Necrótico · escolha da mesa"}] },
   };
   function spellMeta(entry) {
     const s = typeof entry === "string" ? spell(entry) : entry?.bookId || entry?.id ? spell(entry.bookId || entry.id) || entry : spell(entry?.name) || entry;
@@ -1908,6 +1914,10 @@
     let targetType = "mira";
     const areaText = `${range} ${text}`;
     if (s.ritual && s.level > 0 && dmgType === "utilidade" && /^(?:Pessoal|Toque|3 metros)/i.test(range)) targetType = "ritual_inv";
+    else if (/\blinha de \d+/i.test(range)) targetType = "linha";
+    else if (/\bcone de \d+/i.test(range)) targetType = "cone";
+    else if (/\bcubo de \d+/i.test(range)) targetType = "cubo";
+    else if (/\bcilindro de \d+/i.test(range)) targetType = "cilindro";
     else if (/\besfera\b|raio de \d+/i.test(areaText)) targetType = "esfera";
     else if (/\bcone de \d+/i.test(areaText)) targetType = "cone";
     else if (/\blinha de \d+/i.test(areaText)) targetType = "linha";
@@ -1915,7 +1925,8 @@
     else if (/\bcilindro de \d+/i.test(areaText)) targetType = "cilindro";
     else if (/^Pessoal/i.test(range)) targetType = "pessoal";
     else if (/^Toque/i.test(range)) targetType = "toque";
-    const canTwin = !/^Pessoal/i.test(range) && ["mira", "toque"].includes(targetType) && !/criaturas|até três|escolha duas|cada criatura|qualquer número|múltiplos|dois feixes|três raios|vários alvos/i.test(text);
+    const createdEffect=["ilusao-menor","imagem-silenciosa","maos-magicas"].includes(id);
+    const canTwin = !createdEffect && !/^Pessoal/i.test(range) && ["mira", "toque"].includes(targetType) && !/criaturas|até três|escolha duas|cada criatura|qualquer número|múltiplos|dois feixes|três raios|vários alvos/i.test(text);
     return { dmgType, dmgLabel, targetType, defType, canTwin, effectSummary, diceFormula };
   }
   function toSheetSpell(s, classId, extra = {}) {

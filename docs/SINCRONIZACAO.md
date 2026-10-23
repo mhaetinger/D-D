@@ -208,9 +208,8 @@ confirmou escrita/repetição com revisão única. Todo o teste foi revertido; n
 usuário/documento de teste permaneceu. A quantidade e a assinatura agregada dos
 documentos atuais ficaram iguais antes/depois da migração e do teste, sem expor
 seus conteúdos. Testes de quantidade/prazo/bytes/conflitos rodam também no banco
-descartável. O responsável confirmou e-mails e sincronização imediata entre telefone e
-computador. Os cenários adicionais de conflito/offline da V2 continuam registrados
-separadamente, sem exigir repetir esse teste básico.
+descartável. A sincronização básica real foi confirmada pelo responsável em
+23/10/2026; os casos avançados de V2 continuam separados desse relato.
 
 O diálogo de versões consulta `critcall_version_policy` e só mostra os limites
 quando confirmados pelo servidor. Uma implantação ainda sem essa RPC informa

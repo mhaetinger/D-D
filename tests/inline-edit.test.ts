@@ -9,10 +9,11 @@ import {takeRest} from '../src/rules/rest';
 import {resourcesFor} from '../src/rules/resources';
 const E=require('../public/rules/character-engine'),{warrior}=require('./fixture.cjs');
 
-test('edição direta altera só o campo escolhido e não troca a ficha para outro modo',()=>{
+test('edição direta de CON ajusta PV retroativos sem trocar o modo nem reconstruir a ficha',()=>{
   const original=warrior(),before=structuredClone(original);original.lore.backstory='História preservada';before.lore.backstory=original.lore.backstory;
-  let c=editSheetField(original,'abilities.con.score','30',E);assert.equal(c.hpMax,original.hpMax);assert.equal(c.abilities.con.score,30);assert.deepEqual(original,before);assert.equal(c.rules.manualMode,undefined);
-  c=editSheetField(c,'classes.0.level','6',E);assert.equal(c.classes[0].level,6);assert.equal(c.hpMax,original.hpMax);assert.equal(c.spells.length,original.spells.length);assert.equal(c.lore.backstory,original.lore.backstory);
+  const expectedMax=original.hpMax+(10-Math.floor((original.abilities.con.score-10)/2))*original.classes[0].level;
+  let c=editSheetField(original,'abilities.con.score','30',E);assert.equal(c.hpMax,expectedMax);assert.equal(c.abilities.con.score,30);assert.deepEqual(original,before);assert.equal(c.rules.manualMode,undefined);
+  c=editSheetField(c,'classes.0.level','6',E);assert.equal(c.classes[0].level,6);assert.equal(c.hpMax,expectedMax);assert.equal(c.spells.length,original.spells.length);assert.equal(c.lore.backstory,original.lore.backstory);
   assert.throws(()=>editSheetField(c,'abilities.con.score','31',E));assert.throws(()=>editSheetField(c,'classes.0.level','2.5',E));assert.throws(()=>editSheetField(c,'__proto__.x','teste',E));assert.equal(({} as any).x,undefined);
 });
 test('máximos e reservas ajustados sobrevivem ao refresh e ao descanso sem alterar o criador',()=>{

@@ -1,5 +1,17 @@
 # Changelog
 
+## Entrega de regras revisada — 2026-10-23
+
+- Autorizada a conclusão da PR #21 com A01–A14, Arma de Sopro e –5/+10,
+  preservando o modo manual de nuvem e o histórico local de até 25 registros.
+- Reorganizada a retomada: referências de entrega, validações e limites atuais
+  substituem instruções já concluídas. Auditoria e arquitetura distinguem
+  correções, evoluções opcionais e a futura interação entre fichas.
+- Código em `3290de6` aprovado por 474 testes Node, banco, build e 36 roteiros
+  completos na CI. Conferência adicional: 3.321 verificações puras sem
+  divergências. Nesta consolidação, alterada somente documentação; a publicação
+  deve ser conferida na PR #21 e no workflow de main.
+
 ## Não lançado — limite local de histórico — 2026-10-23
 
 - Histórico por personagem limitado a 25 registros, incluindo checkpoints,
@@ -14,6 +26,124 @@
 - Verificados 443 testes Node, tipos/build e dois roteiros Chromium: limite em
   celular sob `/D-D/` e armazenamento/backup/recarga offline. Incluídos quota,
   checkpoints, dados ilegíveis, notas e isolamento. A CI passa a exigir 33 roteiros.
+
+## Integração local do modo manual — 2026-10-23
+
+- Incorporados o modo manual da PR #24 e a correção #22/#23 à branch de regras,
+  preservando A01–A14, sopro e –5/+10. Conflitos resolvidos somente nos textos.
+- Verificados 473 testes Node, tipos/build e quatro roteiros Chromium: nuvem
+  manual, dado, sopro e –5/+10. Esta integração atualiza o localhost; não publica
+  as regras da PR #21. A publicação do modo manual segue a CI da PR #24.
+
+## Não lançado
+
+### Terceiro recorte de R2: –5 ataque / +10 dano — 2026-10-23
+
+- Atirador Aguçado e Mestre de Armas Grandes oferecem a escolha compacta nas
+  armas proficientes elegíveis. Atualizam d20 e dano sem alterar valores salvos,
+  remontar o checkbox ou conceder bônus por notas livres. Dardo é à distância;
+  Adaga/Azagaia arremessadas e arma apenas versátil não ganham elegibilidade.
+- Dano normal/crítico/adicionais compartilham o plano existente. +10 entra uma
+  vez, do tipo da arma, separado de Destruição. Sortudo conserva o –5 do ataque.
+  OFF/Só Pool registram o total físico já com o bônus, sem somar novamente.
+- Dardo automático agora escolhe FOR/DES pela acuidade, preservando a habilidade
+  explícita. Arremesso improvisado de arma pesada não recebe Mestre.
+- Preparação transitória termina ao confirmar dano, é mantida ao cancelar e
+  descartada na recarga. Mudança de ficha, arma, documento, escolha ou permissão
+  invalida a confirmação. Valores manuais e o dado flutuante são preservados.
+- Alcance/cobertura, declaração antes do ataque, acerto/erro e o ataque bônus de
+  Mestre continuam na mesa. Restam Atacante Bestial, Combate com Armas Grandes,
+  Adepto Elemental e outros gatilhos; R2 segue parcial e importação adiada.
+- Verificados 464 testes Node, tipos/build e nove roteiros Chromium pertinentes:
+  –5/+10, crítico/adicionais, dado, R2 inicial, Sortudo, editor de armas, regras,
+  passivos e cadeado. Incluídos cancelamento/físico/concorrência, mobile/GG/temas/
+  layouts, notas e offline. Após a guarda final de arremesso, repetidos Node/build
+  e três roteiros pertinentes. Diagnóstico puro: 3.321 verificações sem divergências.
+  Suíte completa ampliada para 35 roteiros, sem repetição integral local. Links,
+  matrizes e diff conferidos; sem SQL, banco local, PDF pessoal ou publicação.
+
+### Sopro de draconato e prioridades confirmadas — 2026-10-23
+
+- Arma de Sopro recebe o controle na própria característica: dez ancestralidades
+  de 2014, CD de CON/proficiência, dano por nível total e resultado integral/metade.
+  Um uso racial por descanso curto ou longo, sem espaço de magia, inspiração,
+  Afinidade Elemental ou bônus de Evocação. Alvos/testes/defesas ficam na mesa.
+- Reutilizados diálogo físico/virtual, rolador, usos, descanso e histórico.
+  OFF não rola dados internos. Cancelar ou alterar ficha/permissão antes de
+  confirmar não gasta o uso. Resultado persiste, com desfazer/refazer e offline.
+- Ancestralidade racial pode ser corrigida/removida com a ficha desbloqueada,
+  mantendo nó/foco, uso gasto, ancestral de feiticeiro e outros dados. Registros
+  de uso ilegíveis são preservados. Forma Selvagem exige CON da forma e
+  confirmação de capacidade física; Fúria permite o sopro.
+- O responsável confirmou e-mails e sincronização imediata telefone/computador.
+  Documentação e retomada registram essa validação básica e a prioridade
+  **draconatos → rolagens → magias → importação**, com o PDF real adiado.
+  Offline/conflito/restauração entre contas reais continuam casos adicionais.
+- Verificados 454 testes Node, tipos/build, sete roteiros Chromium pertinentes
+  (sopro, regras, consulta, dado, cadeado, concentração e 32 casos A01–A14),
+  incluindo 320px/GG/três temas/dois layouts e offline. Diagnóstico puro: 3.321
+  verificações sem divergências. Conferidos links/matrizes e diff; suíte completa
+  ampliada para 34 roteiros, sem repetição integral local nesta rodada. Sem SQL,
+  teste de banco local, dados pessoais, mudança no dado flutuante ou publicação.
+
+### Correções dos achados A01–A14 — 2026-10-23
+
+- CON digitada compartilha o ajuste dos botões; PV conservam dano sofrido, totais
+  manuais e 0 PV. Druida reconhece Foice Curta, Porrete e Maça pelo catálogo.
+  Atletismo Extraordinário arredonda para cima em iniciativa/testes físicos sem
+  treino, sem acumular Versatilidade ou duplicar proficiência/especialização.
+- Magias preservam os componentes simultâneos dos quatro casos auditados;
+  corrigidos aumentos de Raio de Bruxa, Lâmina Flamejante e Arma Espiritual,
+  modificador de conjuração e Evocação Potencializada nos danos reconhecidos.
+  Fórmula própria continua soberana; escolhas de tipo ficam explícitas na mesa.
+- Duplicidade e Presença Dracônica entram no registro único de concentração:
+  confirmação antes do custo, cancelamento, testes de dano e encerramento
+  sincronizados. Asas de Dragão sobrevivem a descansos até serem recolhidas.
+- Ilusão Menor, Imagem Silenciosa e Mãos Mágicas deixam de oferecer Gêmea;
+  preservada a adaptação de Mísseis. Raio Solar usa a linha explícita, inclusive
+  na apresentação de fichas antigas sem modificar seus dados.
+- Extrator encerra descrições antes do apêndice e registra correção editorial de
+  5d5 → 5d6 de Onda Destrutiva, visível na consulta. PDF intacto; regenerados os
+  catálogos. Somente essa magia e Zona da Verdade mudam; outras 359 preservadas.
+- Retomar o Fôlego, cura da Lua, Presságio inicial/no descanso e Intervenção
+  oferecem o fluxo físico/virtual existente e validam antes do gasto. OFF não
+  sorteia resultados internos. Intervenção no nível 20 não rola d100; sucessos
+  aguardam sete dias na aventura, com confirmação da semana e suporte ao prazo
+  legado. Descanso isolado não remove a espera.
+- Regressões próprias cobrem os achados e o diagnóstico puro passou a zero
+  divergências nos 3.321 casos. Passaram 448 testes Node, tipos/build e os 33
+  roteiros Chromium. Após o ajuste final, repetidos Node/build e cinco roteiros
+  pertinentes, incluindo 32 casos desta correção. Incluídos dados físicos/
+  virtuais, troca com campo inválido, cancelamento, títulos legados, toque,
+  recarga/offline e 320px/GG/três temas/dois layouts. Reextração isolada reproduziu
+  os três catálogos byte a byte; dados reais, dado flutuante e serviços remotos
+  preservados. Entrega preparada na PR #21, sem publicação.
+
+### Check-up profundo de regras, usos e consultas — 2026-10-23
+
+- Primeiro commit, anterior às correções acima: revisão da entrega de 22/10
+  contra o PDF local de 2014/Patrulheiro Revisado.
+  Reextração isolada reproduziu os três catálogos byte a byte. Conferidos 820
+  estados de 12 classes/41 subclasses, limites/recuperações, Pacto e presença
+  das consultas raciais, antecedentes, talentos e magias.
+- Diagnósticos repetíveis em `scripts/audit-book-consistency.cjs` e
+  `scripts/audit-book-ui.cjs`: 3.321 verificações com 24 casos divergentes no
+  motor; 15 casos de interface com 11 divergências, parcialmente repetidas.
+  Código 0 indica execução concluída, não aprovação. Não integram a suíte verde.
+- Achados consolidados como A01–A14 em `docs/AUDITORIA-LIVRO-2014.md`:
+  CON/PV, proficiências de druida, dano misto/escalonamento/modificadores,
+  Atletismo Extraordinário, concentração de características, Gêmea em ilusões/
+  Mãos Mágicas, 5d5 herdado do PDF, texto de Zona da Verdade, geometria de Raio
+  Solar, duração de Asas de Dragão, dados internos em OFF e bloqueio de
+  Intervenção Divina por sete dias reais. Matrizes e retomada
+  priorizam essas correções antes de novas automações de R2.
+- Verificados 433 testes Node, tipos/build e três roteiros Chromium existentes
+  (32 cenários auditados anteriores, ajudas e consulta de características), além
+  do diagnóstico de interface sob `/D-D/` com rede externa bloqueada. Incluídos
+  digitação/botões de CON, rolagem real do efeito, custo preservado na rejeição
+  de fórmula, clique de concentração, OFF e captura em 390px/GG. Sem erros JS.
+  Nenhuma alteração no aplicativo executável, catálogos distribuídos, dados
+  reais, dado flutuante ou serviço remoto; esta rodada não publica outra versão.
 
 ## Não lançado — nuvem manual — 2026-10-23
 

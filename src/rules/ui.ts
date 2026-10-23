@@ -3,7 +3,7 @@ import { castingRestriction } from './spellcasting';
 import { remaining, resourcesFor, spend, refund, toggleResource, useResource, type Resource } from './resources';
 import { ability, active, escape, level, state, type Engine, type Sheet } from './model';
 import { resourcesAt } from './placement';
-import { healHitPoints, markDead, syncIncapacity } from './health';
+import { healHitPoints, markDead, syncIncapacity, requireConscious } from './health';
 import { setupHealthUI } from './health-ui';
 import { CONDITIONS, derivedCondition, hasCondition, setCondition } from './conditions';
 import { concentration } from './concentration';
@@ -13,11 +13,14 @@ import {sheetInput} from '../sheet-edit/ui';
 import {hasFeat} from './passives';
 import { luckRemaining } from './lucky';
 import { setupLuckyUI } from './lucky-ui';
+import {chooseResourceDice} from './resource-roll-ui';
+import {applyRolledResource,finishInterventionWeek,interventionWaiting} from './resource-effects';
+import {dragonbornBreathControls,setupDragonbornBreathUI} from './dragonborn-breath-ui';
 
 export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
   const number = (n:number) => Number.isFinite(n)?n:'∞';
   const tip = (r:Resource) => {
-    const ref = r.id==='feat:lucky'?E.reference('Sortudo',null,null,'feat'):E.reference(r.name,r.classId);
+    const ref = r.id==='race:breath'?E.reference('Arma de Sopro',null,'draconato','race'):r.id==='feat:lucky'?E.reference('Sortudo',null,null,'feat'):E.reference(r.name,r.classId);
     return `data-rule-tooltip="${escape(JSON.stringify({name:r.name,text:r.note,page:ref?.page || E.data.classes[r.classId]?.page,pdfPage:ref?.pdfPage || E.data.classes[r.classId]?.page}))}"`;
   };
   return resources.map(r=>{
@@ -26,12 +29,14 @@ export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],sho
     const source = r.cost ? r.cost[0]==='feiticeiro:sorceryPool' ? {id:r.cost[0],max:c.sorceryPoints.max,kind:'pool'} as Resource : resourcesFor(c,E).find(x=>x.id===r.cost![0]) : null;
     const affordable = !r.cost || !!source && remaining(c,source)>=r.cost[1];
     let control = '';
-    if(r.id==='feat:lucky')control=`<span><span data-lucky-balance>${number(value)}</span>/${maxInput} pontos</span><button type="button" data-lucky-action="table" ${value<1?'disabled':''}>Usar na mesa</button><button type="button" data-lucky-action="incoming" ${value<1?'disabled':''}>Ataque contra mim</button><button type="button" data-rule-action="refund" data-resource="feat:lucky" ${value===r.max?'disabled':''} aria-label="Devolver um ponto de Sortudo">↶</button>`;
+    if(r.id==='race:breath')control=dragonbornBreathControls(c,E,r,maxInput);
+    else if(r.id==='feat:lucky')control=`<span><span data-lucky-balance>${number(value)}</span>/${maxInput} pontos</span><button type="button" data-lucky-action="table" ${value<1?'disabled':''}>Usar na mesa</button><button type="button" data-lucky-action="incoming" ${value<1?'disabled':''}>Ataque contra mim</button><button type="button" data-rule-action="refund" data-resource="feat:lucky" ${value===r.max?'disabled':''} aria-label="Devolver um ponto de Sortudo">↶</button>`;
     else if (r.kind==='portent') control = c.ruleState?.portent?.length ? c.ruleState.portent.map((p:Sheet,i:number)=>`<button type="button" data-rule-action="portent" data-index="${i}" ${p.spent?'disabled':''} aria-label="Gastar presságio ${i+1}, resultado ${p.value}">${p.value}${p.spent?' ✓':''}</button>`).join('') : '<button type="button" data-rule-action="portentInitial">Rolar dados iniciais</button>';
     else if (r.kind==='toggle' || r.action==='rage') control = `<button type="button" data-rule-action="toggle" data-resource="${r.id}" aria-pressed="${enabled}">${enabled?'✓ Ativo · encerrar':'Ativar'}</button>${r.action==='rage'?`<span>${number(value)}/${maxInput} usos</span>`:''}`;
     else if (r.kind==='pool') control = `<label>Reserva <input type="number" min="0" max="${r.max}" step="1" data-rule-pool="${r.id}" value="${value}" aria-label="${escape(r.name)} atuais"></label><span>/ ${maxInput}</span>`;
     else if (r.kind==='counter') control = `<span>${r.cost?`Custo ${r.cost[1]} ${r.cost[0]==='monge:ki'?'Chi':r.cost[0]==='feiticeiro:sorceryPool'?'pt':'uso'}`:`${number(value)}/${maxInput} usos`}</span><button type="button" data-rule-action="use" data-resource="${r.id}" ${value<1 || !affordable?'disabled':''}>Usar</button>${!r.cost?`<button type="button" data-rule-action="refund" data-resource="${r.id}" ${value===r.max?'disabled':''} aria-label="Devolver um uso de ${escape(r.name)}">↶</button>`:''}`;
     if (r.action==='wildShape') control += `<label>PV da forma <input type="number" min="0" data-rule-beast-hp value="${Number(c.ruleState?.pools?.[r.id] || 0)}"></label><label>PV máximos <input type="number" min="1" data-rule-beast-max value="${Number(c.ruleState?.beastMax || 1)}"></label>${enabled?`<button type="button" data-rule-action="toggle" data-resource="${r.id}">Encerrar forma</button>`:''}`;
+    if(r.action==='intervention' && interventionWaiting(c))control+='<span>7 dias na aventura</span><button type="button" data-rule-action="interventionWeek" data-resource="clerigo:intervention">Registrar semana transcorrida</button>';
     const needsTarget = ['paladino:sacredWeapon','paladino:enmity','mago:hypnotic'].includes(r.id);
     const target = needsTarget ? r.id==='paladino:sacredWeapon' ? `<label>Arma<select data-rule-target="${r.id}"><option value="">Escolha a arma</option>${c.weapons.map((w:Sheet)=>`<option ${c.ruleState?.targets?.[r.id]===w.name?'selected':''}>${escape(w.name)}</option>`).join('')}</select></label>` : `<input data-rule-target="${r.id}" value="${escape(c.ruleState?.targets?.[r.id] || '')}" placeholder="Alvo" aria-label="Alvo de ${escape(r.name)}">` : '';
     const stone = r.id==='mago:stone'?`<label>Benefício <select data-rule-target="${r.id}">${[['darkvision','Visão no escuro'],['speed','Deslocamento +3 m'],['constitution','Proficiência em CON'],['acid','Resistência · ácido'],['cold','Resistência · frio'],['fire','Resistência · fogo'],['lightning','Resistência · elétrico'],['thunder','Resistência · trovejante']].map(([id,name])=>`<option value="${id}" ${c.ruleState?.targets?.[r.id]===id?'selected':''}>${name}</option>`).join('')}</select></label>`:'';
@@ -116,7 +121,7 @@ export function setupRuleUI(E: Engine) {
   setupConcentrationUI(E,save);
   setupWeaponDamageUI(E,save);
   setupLuckyUI(E,save);
-  const rand = (sides:number) => 1+Math.floor(Math.random()*sides);
+  setupDragonbornBreathUI(E,save);
   document.addEventListener('change',event=>{
     const input = event.target as HTMLInputElement;
     if(!(input instanceof HTMLElement) || !input.getAttributeNames().some(name=>name.startsWith('data-rule-'))) return;
@@ -147,11 +152,19 @@ export function setupRuleUI(E: Engine) {
   });
   document.addEventListener('click',async event=>{
     const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-rule-action]'); if (!button) return;
+    if(button.disabled)return;
     const c = host.getChar(); if (!c) return;
     let r = resourcesFor(c,E).find(x=>x.id===button.dataset.resource);
+    if(r?.id==='race:breath' && !host.requireSheetEdit())return;
     try {
       const action = button.dataset.ruleAction;
       const oldConcentration=concentration(c);
+      if(r && action==='toggle' && !active(c,r.id) && ['clerigo:duplicate','feiticeiro:presence'].includes(r.id) && oldConcentration){
+        const before=JSON.stringify(c);
+        if(!await host.confirmDestructiveAction('Ativar '+r.name+'?',`Encerra concentração em ${oldConcentration.name}. O custo só é descontado ao confirmar.`,'Ativar'))return;
+        if(host.getChar()!==c || JSON.stringify(c)!==before)return;
+        r=resourcesFor(c,E).find(x=>x.id===button.dataset.resource);if(!r)return;
+      }
       if(r?.id==='barbaro:rage' && action==='toggle' && !active(c,r.id) && oldConcentration) {
         if(!await host.confirmDestructiveAction('Entrar em Fúria?','Encerra concentração em '+oldConcentration.name+'. O uso de Fúria só é gasto ao confirmar.','Entrar em Fúria'))return;
         if(host.getChar()!==c || concentration(c)?.id!==oldConcentration.id || active(c,r.id))return;
@@ -159,7 +172,13 @@ export function setupRuleUI(E: Engine) {
       }
       if (action==='prepare') { host.CharacterWizard.openPrepare(button.dataset.class); return; }
       const s=state(c);
-      if (action==='portentInitial') { if (s.portent.length) return; const n = resourcesFor(c,E).find(x=>x.kind==='portent')?.max; if (!n) return; s.portent = Array.from({length:n},()=>({value:rand(20),spent:false})); }
+      if(action==='interventionWeek'){
+        const before=JSON.stringify(c);
+        if(!await host.confirmDestructiveAction('Concluir a espera de Intervenção Divina?','Confirme somente quando sete dias tiverem passado na aventura. Um descanso isolado não libera a característica.','A semana passou'))return;
+        if(host.getChar()!==c || JSON.stringify(c)!==before)return;
+        finishInterventionWeek(c);save('Intervenção Divina · sete dias transcorridos na aventura');return;
+      }
+      if (action==='portentInitial') { if (s.portent.length) return; const n = resourcesFor(c,E).find(x=>x.kind==='portent')?.max; if (!n) return; const faces=await chooseResourceDice(c,'Presságio',20,n);if(!faces)return;s.portent=faces.map(value=>({value,spent:false})); }
       if (action==='portent') { const p = s.portent[Number(button.dataset.index)]; if (!p || p.spent) return; p.spent = true; }
       if (action==='hitDie') { const cls = c.classes.find((x:Sheet)=>x.classId===button.dataset.class); if (!s.hitDiceRecovery || !cls?.hitDiceUsed) return; cls.hitDiceUsed--; s.hitDiceRecovery--; }
       if (r && action==='refund') refund(c,r);
@@ -182,6 +201,7 @@ export function setupRuleUI(E: Engine) {
           if (r.action==='wildShape' && active(c,r.id)) throw new Error('Encerre a forma atual antes de gastar outra utilização.');
           if (r.action==='wildShape' && !(s.pools[r.id]>0)) throw new Error('Registre os PV da forma de besta antes de ativar.');
           if (r.action==='moonHeal') {
+            requireConscious(c);
             if (!active(c,'druida:wildShape')) throw new Error('Entre em Forma Selvagem antes de curar a besta.');
             const controls = document.createElement('div');
             controls.innerHTML = `<label>Espaço <select data-heal-slot>${Object.entries(c.standardSlots).filter(([,v]:any)=>v.used<v.total).map(([n])=>`<option value="${n}">${n}º nível</option>`).join('')}</select></label>`;
@@ -189,18 +209,21 @@ export function setupRuleUI(E: Engine) {
             if (host.getChar()!==c || !active(c,'druida:wildShape')) return;
             const circle = Number(controls.querySelector<HTMLSelectElement>('select')!.value), slot = c.standardSlots[circle];
             if (!slot || slot.used>=slot.total) throw new Error('Não há espaço disponível.');
+            const faces=await chooseResourceDice(c,'Curar a forma de besta',8,circle);if(!faces)return;
+            if(!active(c,'druida:wildShape') || slot.used>=slot.total)throw new Error('A forma ou o espaço mudou.');
             slot.used++;
-            const healed = Array.from({length:circle},()=>rand(8)).reduce((a,b)=>a+b,0);
+            const healed = faces.reduce((a,b)=>a+b,0);
             s.pools['druida:wildShape']=Math.min(s.beastMax,s.pools['druida:wildShape']+healed);
+          } else if(r.action==='secondWind' || r.action==='intervention'){
+            useResource(structuredClone(c),r,E);
+            const automatic=r.action==='intervention' && level(c,'clerigo')>=20;
+            const faces=automatic?[]:await chooseResourceDice(c,r.name,r.action==='secondWind'?10:100);if(!faces)return;
+            const result=applyRolledResource(c,r,E,faces[0]);
+            if(r.action==='intervention')host.showToast(`Intervenção: ${automatic?'sucesso automático':faces[0]}. ${result.success?'Sucesso; aguarde sete dias na aventura.':'Falhou; recupera no descanso longo.'}`);
           } else useResource(c,r,E);
-          if (r.action==='secondWind' || r.action==='wholeness') healHitPoints(c,r.action==='secondWind'?rand(10)+level(c,'guerreiro'):3*level(c,'monge'));
+          if (r.action==='wholeness') healHitPoints(c,3*level(c,'monge'));
           if (r.action==='pactRecovery') c.pactMagic.used = 0;
           if (r.action==='wildShape') { s.active[r.id] = true; host.showToast('Forma ativa. Elemental exige 2 usos no nível 10+; confira a forma no livro.'); }
-          if (r.action==='intervention') {
-            const roll = rand(100), success = roll<=level(c,'clerigo') || level(c,'clerigo')===20;
-            if (success) { s.blockedUntil ||= {}; s.blockedUntil[r.id] = Date.now()+7*24*60*60*1000; }
-            host.showToast(`Intervenção: ${roll}. ${success?'Sucesso; só pode tentar novamente em 7 dias.':'Falhou; recupera no descanso longo.'}`);
-          }
         }
       }
       save('Atualizou '+(r?.name || 'recurso')+(oldConcentration && !concentration(c)?' · encerrou concentração em '+oldConcentration.name:''));

@@ -10,8 +10,16 @@ export function lifedrinkerBonus(c:Sheet,w:Sheet,E:Engine) {
 }
 
 /** Mantém o contrato do bônus ativo anterior, inclusive ajuste total zero. */
+export function untrainedAbilityBonus(c:Sheet,key:string) {
+  const fighter=c.classes.find((x:Sheet)=>x.classId==='guerreiro');
+  const champion=fighter?.subclassId?fighter.subclassId==='campeao':norm(fighter?.subclass).split(' ').includes('campeao');
+  const athlete=fighter?.level>=7 && champion && ['str','dex','con'].includes(key);
+  // As duas metades não acumulam. Atletismo Extraordinário arredonda para
+  // cima; Versatilidade, para baixo. Só testes sem proficiência chegam aqui.
+  return Math.max(athlete?Math.ceil(proficiency(c)/2):0,level(c,'bardo')>=2?Math.floor(proficiency(c)/2):0);
+}
 export function skillBonus(c:Sheet,skill:Sheet) {
-  return c.customSkillBonuses?.[skill.id] ?? (ability(c,skill.ability)+(c.skillsProf.includes(skill.id)?proficiency(c)*(c.expertise?.includes(skill.id)?2:1):level(c,'bardo')>=2?Math.floor(proficiency(c)/2):0));
+  return c.customSkillBonuses?.[skill.id] ?? (ability(c,skill.ability)+(c.skillsProf.includes(skill.id)?proficiency(c)*(c.expertise?.includes(skill.id)?2:1):untrainedAbilityBonus(c,skill.ability)));
 }
 export function passiveSkill(c:Sheet,skill:Sheet,E:Engine,mode:'normal'|'adv'|'dis'='normal') {
   const bonus=skillBonus(c,skill),observer=['percepcao','investigacao'].includes(skill.id) && hasFeat(c,E,'Observador')?5:0;
