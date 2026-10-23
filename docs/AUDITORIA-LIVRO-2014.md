@@ -12,6 +12,26 @@ registram os limites das implementações. A entrega de 22/10/2026 reúne R1
 (PR #17), o primeiro recorte de R2 (PR #18) e o talento Sortudo (PR #19),
 com publicação pela PR #20. Estado da publicação em RETOMADA.md.
 
+## Escopo desta entrega e interação entre fichas
+
+Em 23/10/2026 o responsável autorizou concluir a entrega já implementada da
+PR #21, conferindo regressões. O código em `3290de6` passou na CI completa:
+474 testes Node, banco, build e 36 roteiros de navegador. Nesta conferência,
+o diagnóstico puro repetiu 3.321 verificações sem divergências. A entrega reúne
+A01–A14, sopro e –5/+10; não acrescenta outra família de automação.
+
+O restante das matrizes descreve possibilidades de evolução da ficha individual.
+Resolução manual da mesa pode permanecer manual; uma linha parcial não bloqueia
+uma publicação nem significa necessariamente um defeito. A automação integral
+do livro não é o critério para poder usar esta versão.
+
+Interação entre fichas (alvos, dano/cura/efeitos compartilhados e mestre) fica
+para outra etapa. Os módulos e a guarda de interface são reaproveitáveis;
+a autorização no servidor e os contratos entre participantes ainda precisarão
+ser implementados. Nenhuma chamada automática ou nova estrutura de nuvem faz
+parte desta entrega. Estado da publicação e próxima ação em
+[RETOMADA.md](RETOMADA.md).
+
 ## Como ler e atualizar o estado
 
 - **Calculado/controle existente:** operação implementada no escopo descrito;
@@ -76,7 +96,7 @@ cargas/sintonização de todos os itens mágicos nem ativa suas regras opcionais
 
 ### Correções de 23/10/2026
 
-**A01–A14 implementados e validados nesta branch; integração pendente.** A tabela da
+**A01–A14 implementados e validados na entrega da PR #21.** A tabela da
 seção seguinte preserva as reproduções da base publicada, para rastrear os erros.
 
 - **A01/A02/A06:** digitação e botões compartilham o ajuste retroativo de CON,
@@ -117,8 +137,9 @@ descanso, cancelamento e 390px/GG. A suíte completa de **33 roteiros Chromium**
 passou. Após o último ajuste de compatibilidade/validação, repetidos Node/build
 e os cinco roteiros pertinentes (passivos, rolagens condicionais, concentração,
 PV e os 32 casos desta correção), todos aprovados. Reextração isolada reproduziu
-os três catálogos corrigidos byte a byte. Não houve alteração SQL/RLS/RPC nem
-publicação; a produção continua a entrega de 22/10.
+os três catálogos corrigidos byte a byte. Naquela validação não houve alteração SQL/RLS/RPC nem
+publicação; a produção ainda era a entrega de 22/10. As publicações posteriores
+e o estado atual ficam em RETOMADA.md.
 
 Regressões em `tests/audit-corrections.test.ts` e
 `tests/audit-corrections-browser.cjs`, este último encadeado em `test:browser`.
@@ -234,7 +255,7 @@ básico real telefone/computador já foram confirmados pelo responsável.
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
 | R1 — bônus nos cálculos | **Quatro passivos entregues; achados A01/A05/A06 corrigidos nesta branch** | O recorte original continua implementado. A01/A05/A06 corrigem os bônus/modificadores adicionais e a inconsistência de PV identificados no check-up; regressões nesta entrega. Tipos variáveis/efeitos posteriores seguem em R5. |
-| R2 — rolagens e gastos condicionais | **Terceiro recorte implementado em revisão; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo implementados na entrega da PR #20. -5/+10 de Atirador Aguçado/Mestre de Armas Grandes implementado no terceiro recorte em revisão. Faltam demais rerrolagens/dados mínimos e adicionais de talentos/estilos. Integrar escolha/gasto à jogada pertinente, sem duplicar reservas ou aplicar bônus a jogadas inelegíveis. |
+| R2 — rolagens e gastos condicionais | **Terceiro recorte implementado na PR #21; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo implementados na entrega da PR #20. -5/+10 de Atirador Aguçado/Mestre de Armas Grandes implementado no terceiro recorte da PR #21. Faltam demais rerrolagens/dados mínimos e adicionais de talentos/estilos. Integrar escolha/gasto à jogada pertinente, sem duplicar reservas ou aplicar bônus a jogadas inelegíveis. |
 | R3 — condições, defesas e características | Planejada; já há cobertura parcial | Completar efeitos das condições, imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
 | R5 — famílias de magias | Planejada; fórmulas auditadas já corrigidas | Revisar metadados e exceções do catálogo por família: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
@@ -242,7 +263,7 @@ básico real telefone/computador já foram confirmados pelo responsável.
 
 ### Draconatos — recorte de 23/10/2026
 
-**Implementado nesta branch, aguardando integração/publicação.** Fonte: Livro
+**Implementado e validado na entrega da PR #21; publicação em RETOMADA.md.** Fonte: Livro
 do Jogador 2014, p. 34 impressa / PDF 33; dez ancestralidades conferidas na
 tabela existente. O sopro usa uma **ação**, não um ataque de Ataque Extra.
 
@@ -453,7 +474,7 @@ de -5/+10 foi acrescentada no terceiro recorte abaixo. **R2 não está concluíd
 
 ### Terceiro recorte de R2: –5 no ataque / +10 no dano — 23/10/2026
 
-**Implementado nesta branch, aguardando integração/publicação.** Fontes: Livro
+**Implementado e validado na entrega da PR #21; publicação em RETOMADA.md.** Fontes: Livro
 do Jogador 2014, Atirador Aguçado p. 167 (PDF 166) e Mestre de Armas Grandes
 p. 171 (PDF 170). A escolha ocorre antes do ataque; exige o talento estruturado
 e proficiência na arma. Não se trata do estilo Combate com Armas Grandes.
@@ -691,7 +712,7 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 | Robusto | +2 PV por nível, inclusive retroativo | PV e ajustes manuais devem ser preservados ao evoluir |
 | Sentinela | Registro | Oportunidade, reação e deslocamento do alvo |
 | Sorrateiro | Registro | Ocultação/luz e revelação por ataque falho |
-| Sortudo | Reserva única de três pontos/descanso longo, escolha contextual do d20, ataques recebidos e dado físico; segundo recorte de R2 em revisão | Acerto, momento anterior à resolução e anúncio dos usos de outras criaturas são informados pela mesa; escolhas de dados são transitórias |
+| Sortudo | Reserva única de três pontos/descanso longo, escolha contextual do d20, ataques recebidos e dado físico; segundo recorte de R2 entregue na PR #20 | Acerto, momento anterior à resolução e anúncio dos usos de outras criaturas são informados pela mesa; escolhas de dados são transitórias |
 | Resistente | +1 CON; mínimo de cura ao gastar Dados de Vida | Efeitos cobertos nos cenários testados de descanso |
 | Proteção Leve | +1 FOR/DES e proficiência leve | Conjuração já respeita proficiência; outras penalidades de armadura seguem parciais |
 | Proteção Moderada | +1 FOR/DES, média e escudo | Mesma revisão de elegibilidade/penalidades |

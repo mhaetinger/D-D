@@ -5,6 +5,21 @@ e as validações externas estão em [RETOMADA.md](RETOMADA.md); o progresso e o
 roteiro de mecânicas estão em [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md).
 Seções datadas registram a implementação do módulo, sem substituir esses estados.
 
+## Fronteira da futura interação entre fichas
+
+As regras recebem o documento de um personagem e o motor por argumentos. Os
+controles aplicam custos/resultados nesse documento, com prévia e revalidação.
+Essa separação permite reaproveitar cálculo sem acoplar regras a transporte ou
+identidade remota. A guarda `src/sheet-edit/access.ts` é apenas uma fronteira de
+interface para um contexto futuro; não fornece autorização no servidor.
+
+Efeitos recebidos de outro personagem ainda são registrados pelo jogador. Uma
+futura mesa compartilhada precisará identificar origem/alvo, conferir permissão
+no servidor, definir confirmação, idempotência e conflitos, e testar isolamento
+entre participantes. A sincronização pessoal manual não é esse protocolo.
+As entregas da ficha individual não criam polling nem novas chamadas para
+antecipar essa etapa. Estado/limites das mecânicas ficam somente na auditoria.
+
 ## Base implementada
 
 A interface aprovada foi preservada, com migração gradual para Vite e TypeScript.

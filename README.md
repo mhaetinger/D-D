@@ -122,7 +122,7 @@ A previsão de reservas aparece automaticamente pelas classes e níveis; aplicar
 os máximos continua sendo uma escolha explícita, sem recuperar os usos gastos.
 Draconatos têm escolha das dez ancestralidades de 2014, com consulta de dano,
 área, teste e CD do sopro. A ancestralidade da Linhagem Dracônica do feiticeiro
-fica em outra escolha. Na entrega em revisão, a característica **Arma de Sopro**
+fica em outra escolha. A característica **Arma de Sopro**
 registra o total físico ou rola seus d6 virtuais, mostra dano integral/metade e
 gasta um uso racial, recuperado em descanso curto ou longo. A área e a CD
 seguem a ancestralidade e o nível total; os testes/defesas dos alvos são
@@ -185,7 +185,8 @@ original e seus metadados não são enviados. SVG/GIF não são aceitos.
 
 As imagens usam Storage privado da conta; documentos/histórico guardam somente
 referências. O navegador mantém cópias em IndexedDB por espaço e pode enviar
-imagens escolhidas offline ao reconectar. Confira o envio no perfil. Uma imagem
+imagens escolhidas offline ao clicar em **Sincronizar com a nuvem**. Confira o
+envio no perfil. Uma imagem
 não disponível sem rede mantém o ícone padrão. Fotos locais sem login continuam
 separadas das contas. Os retratos não são embutidos no JSON do backup: as
 referências funcionam na mesma conta, mas não levam os arquivos a outra conta.
@@ -365,8 +366,8 @@ O servidor de desenvolvimento não instala o cache offline.
 O aplicativo guarda seu código, regras, estilos, fontes e ícones. Os PDFs não são
 baixados automaticamente: a consulta aos livros exige conexão, ou você pode abrir
 uma cópia previamente baixada fora do leitor integrado. A fila de sincronização envia
-alterações ao reconectar; o banco real já recebeu a migração. Outro PC só recebe edições
-offline depois de seu envio.
+alterações pelo botão **Sincronizar com a nuvem**, quando houver conexão. Outro
+PC recebe as edições depois do envio e de sincronizar também no destino.
 
 O aplicativo procura atualizações ao abrir/retomar a página e a cada minuto
 enquanto ela estiver visível. Uma versão pronta oferece **Atualizar**; F5 comum
@@ -469,7 +470,7 @@ dados extras do crítico: não lança dados novamente nem dobra o total informad
 Em **Adicionais** no Auto Ficha, **Rolar aqui** usa os dados virtuais. Confirmar desconta um único espaço quando
 escolhido. Cancelar preserva tudo; desfazer devolve o espaço. O dano virtual desse
 controle preserva o pool e a inspiração. O botão **Dano** comum continua direto.
-Na entrega em revisão, Atirador Aguçado e Mestre de Armas Grandes oferecem
+Atirador Aguçado e Mestre de Armas Grandes oferecem
 **–5 ataque / +10 dano** junto ao Crítico, apenas nas armas proficientes
 elegíveis. Marque antes do ataque; os botões mostram os valores preparados.
 O +10 entra uma vez, inclusive no crítico. Confirmar o dano desmarca; cancelar

@@ -1,5 +1,17 @@
 # Changelog
 
+## Entrega de regras revisada — 2026-10-23
+
+- Autorizada a conclusão da PR #21 com A01–A14, Arma de Sopro e –5/+10,
+  preservando o modo manual de nuvem e o histórico local de até 25 registros.
+- Reorganizada a retomada: referências de entrega, validações e limites atuais
+  substituem instruções já concluídas. Auditoria e arquitetura distinguem
+  correções, evoluções opcionais e a futura interação entre fichas.
+- Código em `3290de6` aprovado por 474 testes Node, banco, build e 36 roteiros
+  completos na CI. Conferência adicional: 3.321 verificações puras sem
+  divergências. Nesta consolidação, alterada somente documentação; a publicação
+  deve ser conferida na PR #21 e no workflow de main.
+
 ## Não lançado — limite local de histórico — 2026-10-23
 
 - Histórico por personagem limitado a 25 registros, incluindo checkpoints,
