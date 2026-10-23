@@ -132,6 +132,11 @@ com a mesa sua capacidade física de usar o sopro.
 As dicas de preparo aparecem no balão ao passar o mouse ou focar o controle
 pelo teclado. Marcar uma checkbox continua apenas alterando sua seleção.
 
+Cura Completa e Cura Completa em Massa mostram o valor fixo e os bônus
+pertinentes sem lançar dados; a aplicação e distribuição de PV ficam na mesa.
+Cópias antigas recebem a apresentação corrigida sem substituir seus campos.
+Bom Fruto não oferece Gêmea; suas reservas/efeitos são resolvidos na mesa.
+
 Concentração acompanha um efeito ativo do personagem, como Bênção. Combate e
 grimório mostram o mesmo registro. Preparar uma magia só a deixa disponível;
 conjurar registra o efeito, e outra concentração pede substituição. Ao registrar
