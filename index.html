@@ -604,8 +604,9 @@
       <button onclick="closeAuthAccountModal();openNewCharacterModal()" class="t-inset px-3 py-2 rounded">Criar personagem</button>
       </section>
       <section class="space-y-2 border-t t-border pt-3" aria-label="Armazenamento e sincronização">
+        <p id="syncManualHelp" class="text-sm t-text-muted" hidden>Salvamento automático neste aparelho. A nuvem atualiza pelo botão; antes de trocar de aparelho, sincronize nos dois. Desfazer fica neste aparelho.</p>
         <p id="syncStatus" class="text-xs" role="status" aria-live="polite">Preparando salvamento…</p>
-        <div class="flex flex-wrap gap-2"><button id="syncNow" type="button" class="underline text-xs" hidden>Sincronizar agora</button><button id="syncVersions" type="button" class="underline text-xs" hidden>Versões salvas</button></div>
+        <div class="flex flex-wrap gap-2"><button id="syncNow" type="button" class="t-inset px-3 py-2 rounded text-sm" hidden>Sincronizar com a nuvem</button><button id="syncVersions" type="button" class="underline text-xs" hidden>Versões salvas</button></div>
         <p id="offlineStatus" class="text-xs t-text-muted" role="status"></p>
         <p id="storageIssue" class="text-sm font-bold t-text-accent" role="alert" hidden></p>
         <button id="downloadRecovery" type="button" class="t-inset px-3 py-2 rounded text-xs" hidden>Baixar dados para recuperação</button>

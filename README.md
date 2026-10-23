@@ -9,8 +9,9 @@ a apresentação. A cobertura das mecânicas é parcial e está registrada na
 Versão publicada em **https://criticall.art/**, hospedada no GitHub Pages.
 O DNS usa Cloudflare; a migração da hospedagem está preparada, sem ativação.
 Login e sincronização pessoal estão publicados, com migrações aplicadas ao
-projeto exclusivo CritCall. O envio deve ser confirmado no perfil; validação
-entre telefone/computador foi confirmada pelo responsável; SMTP próprio segue pendente.
+projeto exclusivo CritCall. O salvamento é automático no aparelho; a nuvem é
+manual, pelo botão **Sincronizar com a nuvem** no perfil. O responsável confirmou
+o envio básico entre telefone/computador na entrega anterior; SMTP próprio segue pendente.
 
 Para continuar o desenvolvimento, comece por [docs/RETOMADA.md](docs/RETOMADA.md).
 Esse arquivo registra a última entrega, a próxima etapa e as validações externas.
@@ -179,27 +180,33 @@ a recuperação de uma versão da ficha não restaura pixels antigos no servidor
 Fichas e notas mantêm uma cópia neste navegador. A aplicação inclui salvamento por
 conta no Supabase com fila offline, perfil, preferências e versões recuperáveis;
 **migração aplicada no projeto real; envio entre telefone e computador validado pelo responsável**.
-Confira o estado de envio no perfil. Estar conectado não significa que tudo já
-chegou à nuvem. `VITE_AUTH_ENABLED=false` permite uma edição apenas local.
+Use **Sincronizar com a nuvem** no perfil para enviar alterações e carregar
+atualizações da conta. Antes de trocar de aparelho, sincronize no de origem e
+depois no de destino. Estar conectado não confirma envio. Não há consulta a cada
+30 segundos, envio ao editar, foco ou reconexão. Autenticação continua online. `VITE_AUTH_ENABLED=false` permite uma edição apenas local.
 Veja [docs/SINCRONIZACAO.md](docs/SINCRONIZACAO.md).
 Ao reabrir a aplicação, a última ficha selecionada é restaurada. Se ela tiver
 sido removida, abre a primeira ficha disponível.
 
 Cada personagem tem sua própria linha do tempo, com desfazer/refazer e marcos.
 Voltar um passo afeta somente essa ficha; notas pessoais e as outras fichas são
-preservadas. A linha do tempo também permite restaurar fichas excluídas. O
+preservadas. O histórico de desfazer fica somente neste aparelho, inclusive
+checkpoints e recuperação de fichas excluídas. O
 histórico coletivo antigo é copiado por personagem sem apagar o original.
 Ao gravar, o histórico de desfazer mantém até 10 estados / 256 KiB por ficha,
 preservando o estado apontado. Um único estado maior é mantido inteiro.
-Checkpoints também participam desse limite. Versões em nuvem têm política
+Checkpoints também participam desse limite e não vão para a nuvem. Versões da
+ficha atual na nuvem têm política
 própria, conferida no diálogo e descrita em [SINCRONIZACAO.md](docs/SINCRONIZACAO.md).
 A retenção do servidor foi reduzida no CritCall em 23/10/2026, por autorização
 do responsável: até 5 versões por documento / 7 dias, com teto de 50 versões /
 2 MiB por conta. A limpeza ocorre ao sincronizar; a migração também podou versões
-antigas já salvas, preservando todos os documentos atuais. A sincronização consulta
-primeiro as revisões e baixa somente conteúdos novos/alterados, reutilizando o
-diário local após recargas. Isso evita baixar históricos inteiros a cada 30 segundos.
-A correção do cliente depende da publicação; consumo já acumulado não é estornado.
+antigas já salvas, preservando todos os documentos atuais. Ao clicar em sincronizar,
+o cliente consulta as revisões e baixa apenas fichas, notas e preferências novas
+ou alteradas. Históricos de desfazer/recuperações antigos do servidor continuam
+preservados, mas não são baixados no acesso normal nem enviados novamente.
+Retratos também são enviados pelo botão; os já disponíveis ficam no cache privado.
+A nuvem não atualiza em segundo plano. O consumo já acumulado não é estornado.
 
 No perfil local, **Baixar backup** salva suas fichas em JSON. As anotações pessoais
 ficam fora do arquivo por padrão; marque a opção para incluí-las em um backup
@@ -383,8 +390,8 @@ atende cadastros pendentes; **Esqueci a senha** inicia a recuperação. Quem já
 entrou pode usar **Enviar link para trocar senha**, sem sair da conta.
 E-mail/senha permitem entrar em outros navegadores e dispositivos. Os links de
 confirmação/recuperação exigem o mesmo navegador/dispositivo que os solicitou;
-o envio de fichas usa a fila própria, com migração aplicada e envio entre telefone
-e computador confirmado pelo responsável.
+o envio de fichas usa a fila própria quando você clica em **Sincronizar com a nuvem**.
+Uma instalação nova carrega as fichas da conta por esse mesmo botão.
 
 Cada conta abre seu próprio espaço de fichas neste navegador. A cópia do espaço
 sem conta depende do fluxo de entrada descrito acima, com novos identificadores

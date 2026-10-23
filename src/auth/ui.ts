@@ -64,7 +64,7 @@ export function setupAccountUI(account: AccountSession) {
     signedOut.hidden = !account.client || !!user && !account.recovery;
     signedIn.hidden = !user || account.recovery;
     document.getElementById("workspaceDescription")!.textContent = user
-      ? "Fichas e anotações desta conta têm cópia local e fila de sincronização. Confira o estado do salvamento abaixo. Fichas feitas sem login continuam no espaço local."
+      ? "Fichas e anotações salvam automaticamente neste aparelho. Use Sincronizar com a nuvem para enviar ou carregar nesta conta. Fichas feitas sem login continuam no espaço local."
       : "Suas fichas e anotações ficam neste navegador. Use um backup para levá-las a outro dispositivo.";
     const badge = document.getElementById("currentUserBadge")!;
     badge.title = user ? `Conta: ${user.email}. Fichas salvas neste navegador.` : "Espaço local deste navegador";

@@ -2202,7 +2202,7 @@ async function clearPrivateNotes() {
   savePrivateNotes(''); renderAll();
 }
 function renderPrivateNotes(char) {
-  return `<section class="player-private-notes t-card-accent p-4 space-y-2 text-xs"><div class="flex justify-between items-center gap-2"><h3 class="font-rpg font-bold uppercase t-text-accent">Anotações pessoais do jogador</h3><button class="underline" onclick="clearPrivateNotes()">Apagar</button></div><p class="t-text-muted">Privadas e separadas da ficha. Com login, entram na fila de sincronização da sua conta; confira o estado no perfil.</p><textarea aria-label="Anotações pessoais do jogador" rows="7" class="w-full t-inset p-3 rounded-lg" oninput="savePrivateNotes(this.value)">${escapeHTML(readPrivateNotes(char.id))}</textarea><p id="privateNotesStatus" class="t-text-muted" aria-live="polite">Salvas neste navegador</p></section>`;
+  return `<section class="player-private-notes t-card-accent p-4 space-y-2 text-xs"><div class="flex justify-between items-center gap-2"><h3 class="font-rpg font-bold uppercase t-text-accent">Anotações pessoais do jogador</h3><button class="underline" onclick="clearPrivateNotes()">Apagar</button></div><p class="t-text-muted">Privadas e separadas da ficha. Salvam neste aparelho; com login, use Sincronizar com a nuvem no perfil para enviar.</p><textarea aria-label="Anotações pessoais do jogador" rows="7" class="w-full t-inset p-3 rounded-lg" oninput="savePrivateNotes(this.value)">${escapeHTML(readPrivateNotes(char.id))}</textarea><p id="privateNotesStatus" class="t-text-muted" aria-live="polite">Salvas neste navegador</p></section>`;
 }
 
 function toggleWornArmor(index) {
