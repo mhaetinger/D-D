@@ -502,16 +502,28 @@ foi concluída; evidências em
 [RETOMADA.md](RETOMADA.md). Contratos em [LOGIN.md](LOGIN.md) e
 [SINCRONIZACAO.md](SINCRONIZACAO.md).
 
-O adaptador `SupabaseDocuments.pull(knownRevisions)` pagina um índice de
-`document_key, revision`, sob o filtro do dono, e busca valores apenas das chaves
-novas/alteradas em lotes de até 25. `SyncEngine` fornece as revisões do diário
-IndexedDB, inclusive após recargas e confirmações de envio. Os resultados são
-parciais e mesclados ao cache; ausência não apaga nada e exclusões continuam
-usando tombstones. Falha/validação recusada não avança revisões conhecidas.
-A consulta completa sem argumento continua disponível para bootstrap/cópia sem
-conta. Polls permanecem a cada 30 segundos com a página visível. A mudança evita
-repetir o conteúdo dos históricos; limites e evidências de tráfego estão em
-[SINCRONIZACAO.md](SINCRONIZACAO.md#incidente-de-egress-em-23102026).
+O modo gratuito usa sincronização manual. O controller captura alterações na fila
+IndexedDB, mas chama `SyncEngine.run()` somente pelo botão. Não há polling nem
+rede por foco/reconexão/edição. Na abertura, aplica apenas o diário já disponível
+no aparelho. `manual-images.ts` coordena upload explícito antes das referências;
+novos downloads de retratos são liberados após a ação manual. Login/renovação de
+sessão continuam independentes e podem usar rede.
+
+`cloud-policy.ts` mantém históricos e recuperações fora da sincronização normal.
+`readDocuments(..., false)` não valida nem remigra históricos durante a captura
+remota. `SyncEngine` aceita uma política opcional (produção: manual + conteúdo
+atual), usada na captura, fila elegível, contagem e projeção. Operações/caches
+antigos excluídos da política permanecem intactos no diário; não viram tombstones,
+não são enviados nem substituem o histórico local. O motor genérico conserva
+seu contrato anterior quando não recebe essa política.
+
+`SupabaseDocuments.pull(knownRevisions)` sempre pagina o índice de chave, tipo,
+ID e revisão, inclusive sem diário. Só busca conteúdos elegíveis novos/alterados
+em lotes de 25, sob filtro do dono. Fichas/notas/preferências pequenas continuam
+sincronizadas. Mesmo um primeiro acesso/cópia sem conta ignora os valores de
+históricos antigos na nuvem. Ausência não apaga nada; exclusões usam tombstones.
+Falhas preservam a fila. Detalhes em
+[SINCRONIZACAO.md](SINCRONIZACAO.md#modo-manual-para-o-plano-gratuito).
 
 Documentos têm revisão crescente e datas de edição/recebimento, com calibração
 do relógio. Se edições simultâneas disputam a mesma revisão, vence a data mais

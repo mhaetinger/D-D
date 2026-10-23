@@ -1,3 +1,5 @@
+import { isCloudDocument } from './cloud-policy';
+import { prepareManualImages, completeManualImages } from './manual-images';
 import type { AccountSession } from "../auth/session";
 import { currentWorkspaceKey, workspaceKey, workspaceStorage } from "../storage/account-scope";
 import { storageMutations, announceStorageChange } from "../storage/mutations";
@@ -18,7 +20,7 @@ const host = window as unknown as Host;
 
 export async function initializeSync(account: AccountSession) {
   let engine: SyncEngine | null = null, remote: SupabaseDocuments | null = null;
-  let scope = "", timer: ReturnType<typeof setTimeout> | undefined, generation = 0, projecting = false;
+  let scope = "", generation = 0, projecting = false, manualBusy = false;
   let journal: BrowserJournal;
   const failedPreferences = new Map<string, Set<string>>();
   let observedStore = sheetStore;
@@ -26,26 +28,27 @@ export async function initializeSync(account: AccountSession) {
   const update = () => {
     const unsaved = ["write", "unavailable"].includes(sheetStore.issue?.kind || "") || sheetStore.hasPendingNotes || !!failedPreferences.get(currentWorkspaceKey())?.size;
     label().textContent = unsaved ? "Há alterações que não foram salvas neste dispositivo. Preserve um backup e os textos pendentes antes de fechar."
-      : engine ? !navigator.onLine ? "Offline · alterações neste dispositivo, aguardando conexão." : engine.status
+      : engine ? !navigator.onLine ? "Offline · dados neste aparelho. Sincronize pelo botão quando conectar." : engine.status
       : "Sem login · dados salvos somente neste navegador.";
     document.getElementById("syncNow")!.hidden = !engine;
+    document.getElementById("syncManualHelp")!.hidden = !engine;
     document.getElementById("syncVersions")!.hidden = !engine;
   };
   observedStore.addEventListener("change", update);
-  const schedule = () => {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      const own = engine;
-      if (navigator.onLine) void own?.run().then(() => {
-        if (own === engine && own.pending && own.status.startsWith("Alterações salvas")) schedule();
-      });
-      else update();
-    }, 600);
+  // Foco, reconexão e alterações só atualizam o armazenamento local. A rede
+  // depende exclusivamente do botão; nenhuma tentativa fica agendada depois.
+  const applyLocal = () => {
+    const own = engine;
+    if (!own) return;
+    void own.capture().then(() => own.applyLatest()).then(() => {
+      if (!own.deferred && own.status.startsWith('Atualizações recebidas.')) own.status = 'Atualização da nuvem carregada neste aparelho.';
+      update();
+    }).catch(update);
   };
   async function bind() {
     const next = workspaceKey(account.identity);
     if (currentWorkspaceKey() !== next || !account.client) return;
-    if (next === scope && engine) { schedule(); return; }
+    if (next === scope && engine) { update(); return; }
     generation++;
     const versionsDialog = document.getElementById("syncVersionsDialog") as HTMLDialogElement;
     if (versionsDialog.open) versionsDialog.close();
@@ -60,7 +63,7 @@ export async function initializeSync(account: AccountSession) {
       const sourceKeys = Object.keys(localStorage).filter(key=>key.startsWith(next)).map(key=>key.slice(next.length));
       migrateStorage(port,sourceKeys);
       const keys = sourceKeys.map(currentStorageKey).filter(key=>key.startsWith('critcall_recovery_v1') || isCharacterHistoryKey(key));
-      return readDocuments(port, keys);
+      return readDocuments(port, keys, false);
     };
     remote = new SupabaseDocuments(account.client, identity.userId);
     const own = engine = new SyncEngine(next, journal, remote, {
@@ -68,12 +71,11 @@ export async function initializeSync(account: AccountSession) {
       apply: docs => { projecting = true; try { projectDocuments(port, docs); host.refreshSyncedWorkspace?.(); } finally { projecting = false; } },
       canApply: () => ownGeneration === generation && currentWorkspaceKey() === next && !host.hasOpenAccountEditor?.()
         && !document.activeElement?.matches("input:focus, textarea:focus, [contenteditable=true]:focus"),
-    });
+    }, {manual:true,shouldSync:isCloudDocument});
     own.addEventListener("change", update);
     try {
       await own.capture(true);
-      if (navigator.onLine && !account.offline) await own.run();
-      else await own.applyLatest();
+      await own.applyLatest();
     } catch { /* O mecanismo mantém o aviso de armazenamento sem apagar caches. */ }
     if (ownGeneration === generation) update();
   }
@@ -81,7 +83,7 @@ export async function initializeSync(account: AccountSession) {
   catch { label().textContent = "Fila offline indisponível. Seus dados locais foram preservados; baixe um backup."; }
   storageMutations.addEventListener("write", event => {
     if ((event as CustomEvent).detail !== scope || !engine || projecting) return;
-    void engine.capture().then(schedule).catch(update);
+    void engine.capture().then(update).catch(update);
   });
   storageMutations.addEventListener("preference-write", event => {
     const { scope: changedScope, key, saved } = (event as CustomEvent).detail;
@@ -94,16 +96,29 @@ export async function initializeSync(account: AccountSession) {
     observedStore.removeEventListener("change", update); observedStore = sheetStore; observedStore.addEventListener("change", update);
     void bind();
   });
-  window.addEventListener("online", schedule);
+  window.addEventListener("online", update);
   window.addEventListener("offline", update);
-  window.addEventListener("focus", schedule);
-  document.addEventListener("focusout", () => { if (engine?.deferred) schedule(); });
-  window.addEventListener("storage", event => {
-    if (scope && event.key?.startsWith(scope)) schedule();
+  document.addEventListener("focusout", () => { if (engine?.deferred) applyLocal(); });
+  window.addEventListener("storage", event => { if (scope && event.key?.startsWith(scope)) applyLocal(); });
+  const syncButton = document.getElementById("syncNow") as HTMLButtonElement;
+  syncButton.addEventListener("click", () => {
+    const own = engine, selectedScope = scope;
+    if (!own || manualBusy) return;
+    if (!navigator.onLine || account.offline) { label().textContent = 'Sem conexão. Os dados continuam neste aparelho; conecte-se e use o botão para sincronizar.'; return; }
+    manualBusy = true; syncButton.disabled = true; syncButton.textContent = 'Sincronizando…';
+    void (async () => {
+      try {
+        await prepareManualImages(selectedScope);
+        if (own !== engine || selectedScope !== currentWorkspaceKey()) return;
+        await own.capture(); await own.run();
+        if (own === engine && selectedScope === currentWorkspaceKey()) completeManualImages(selectedScope);
+      } catch {
+        if (own === engine) own.status = 'Não foi possível concluir a sincronização. Dados e imagens locais preservados; tente novamente pelo botão.';
+      } finally {
+        manualBusy = false; syncButton.disabled = false; syncButton.textContent = 'Sincronizar com a nuvem'; update();
+      }
+    })();
   });
-  document.addEventListener("visibilitychange", () => { if (!document.hidden) schedule(); });
-  setInterval(() => { if (navigator.onLine && !document.hidden) schedule(); }, 30000);
-  document.getElementById("syncNow")!.addEventListener("click", () => { void engine?.capture().then(schedule).catch(update); });
 
   const dialog = document.getElementById("syncVersionsDialog") as HTMLDialogElement;
   const list = document.getElementById("syncVersionsList")!;
@@ -138,7 +153,7 @@ export async function initializeSync(account: AccountSession) {
             const docs = readDocuments(port); docs[documentKey(doc.kind, doc.id)] = doc;
             projectDocuments(port, docs); host.refreshSyncedWorkspace?.();
             announceStorageChange(selectedScope);
-            schedule();
+            applyLocal();
           } catch { label().textContent = "Não foi possível restaurar a versão. Os dados atuais foram preservados."; }
         });
         row.append(text, restore); list.append(row);

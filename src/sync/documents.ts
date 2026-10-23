@@ -1,3 +1,4 @@
+import { isCloudDocument } from './cloud-policy';
 import { isAvatarRef } from "../media/avatar";
 import { SHEET_KEY, LEGACY_KEY, NOTES_KEY, RECOVERY_KEY } from "../storage/character-store";
 import { PERSONAL_KEYS } from "../storage/preferences";
@@ -38,20 +39,21 @@ export function validateDocument(doc: DocumentValue): DocumentValue {
   return doc;
 }
 
-export function readDocuments(port: StoragePort, recoveryKeys: string[] = []): Documents {
+export function readDocuments(port: StoragePort, recoveryKeys: string[] = [], localHistory = true): Documents {
   migrateStorage(port);
   const docs: Documents = {};
   const put = (kind: Kind, id: string, value: unknown) => { docs[documentKey(kind, id)] = validateDocument({ kind, id, value }); };
   const raw = port.getItem(SHEET_KEY), legacy = port.getItem(LEGACY_KEY);
   const chars = raw !== null ? validateCharacters(JSON.parse(raw).characters) : legacy !== null ? validateCharacters(JSON.parse(legacy)) : [];
   let migratedKeys:string[]=[];
-  try { migratedKeys=migrateCharacterHistories(port); } catch { /* O original continua disponível; fichas válidas seguem sincronizando. */ }
+  try { if (localHistory) migratedKeys=migrateCharacterHistories(port); } catch { /* O original continua disponível; fichas válidas seguem sincronizando. */ }
   for (const char of chars) put("character", char.id, char);
   const notes = JSON.parse(port.getItem(NOTES_KEY) || "{}");
   if (!notes || typeof notes !== "object" || Array.isArray(notes)) throw new Error("Anotações ilegíveis");
   for (const [id, text] of Object.entries(notes)) put("note", id, text);
   const historyKeys=[...new Set([...chars.map(c=>historyKey(c.id)),...migratedKeys,...recoveryKeys.filter(isCharacterHistoryKey)])];
   for (const id of [...PERSONAL_KEYS,...historyKeys]) {
+    if (!localHistory && !isCloudDocument({kind:"preference",id})) continue;
     const value = port.getItem(id);
     if (value !== null) {
       try { put("preference", id, value); }
@@ -63,7 +65,7 @@ export function readDocuments(port: StoragePort, recoveryKeys: string[] = []): D
       }
     }
   }
-  for (const id of recoveryKeys.filter(key=>!isCharacterHistoryKey(key))) { const value = port.getItem(id); if (value !== null) put("recovery", id, value); }
+  for (const id of recoveryKeys.filter(key=>localHistory && !isCharacterHistoryKey(key))) { const value = port.getItem(id); if (value !== null) put("recovery", id, value); }
   return docs;
 }
 

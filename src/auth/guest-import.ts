@@ -53,8 +53,6 @@ export function setupGuestImport(account: AccountSession) {
         if (source.issue) throw new Error(source.issue.message);
         const draft = loadDraft('');
         if (!sourceCharacters.length && !draft) return;
-        const remote = await new SupabaseDocuments(account.client!, identity.userId).pull();
-        if (!valid()) return;
         const target = new CharacterStore(() => port, scope), current = target.read();
         if (target.issue) throw new Error(target.issue.message);
         if (host.hasOpenAccountEditor?.() || sheetStore.issue || sheetStore.hasPendingNotes) throw new Error('Termine ou salve a edição aberta e retome a vinculação no perfil. Os originais locais foram mantidos.');
@@ -67,6 +65,10 @@ export function setupGuestImport(account: AccountSession) {
         // Diálogo ocupado não é uma recusa do usuário a ser lembrada.
         if (!valid()) return;
         if (host.hasOpenAccountEditor?.()) throw new Error('Termine ou salve a edição aberta e retome a vinculação no perfil. Os originais locais foram mantidos.');
+        // Uma cópia já concluída não consulta a nuvem novamente a cada login.
+        const remote = await new SupabaseDocuments(account.client!, identity.userId).pull();
+        if (!valid()) return;
+        if (host.hasOpenAccountEditor?.()) throw new Error('Termine a edição e retome a vinculação no perfil.');
         const existing = current.length > 0 || remote.some(d => d.kind === 'character' && d.value !== null);
         let characters = sourceCharacters;
         if (sourceCharacters.length > 1) {
@@ -147,7 +149,7 @@ export function setupGuestImport(account: AccountSession) {
         catch (error) { for (const [key, value] of previous) { try { value === null ? port.removeItem(key) : port.setItem(key, value); } catch { /* Fonte e IDs da tentativa permanecem preservados. */ } } throw error; }
         host.refreshSyncedWorkspace?.(); announceStorageChange(scope);
         window.dispatchEvent(new Event('critcall-avatars-imported'));
-        report(`${characters.length} ficha(s) vinculada(s) à conta${draft ? ', com o rascunho disponível em + Novo' : ''}. A sincronização ainda precisa confirmar o envio. Os originais locais foram mantidos.`);
+        report(`${characters.length} ficha(s) vinculada(s) à conta${draft ? ', com o rascunho disponível em + Novo' : ''}. Use Sincronizar com a nuvem para enviar. Os originais locais foram mantidos.`);
       });
     } catch (error) { if (valid()) report(error instanceof Error ? error.message : 'Não foi possível vincular agora. As fichas locais foram mantidas.', true); }
     finally { running = false; }
