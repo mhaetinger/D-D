@@ -6,7 +6,18 @@ projeto sem depender da conversa. Leia também `AGENTS.md`, `README.md`,
 
 ## Onde o trabalho parou
 
-**Prioridade imediata: modo econômico de nuvem manual.** O responsável usa
+**Ajuste seguinte solicitado: até 25 registros de histórico local por ficha.**
+Aplicar ao abrir, migrar e gravar, inclusive em memória sem quota; checkpoints
+participam do teto. Preservar ficha atual, ponteiro, notas, dados ilegíveis e
+original coletivo legado. A proteção adicional de 256 KiB continua valendo.
+Implementação em `fix/historico-local-25`, separada das regras da PR #21.
+
+O modo manual foi publicado por #24/#25, main `301f76b`, pacote
+`d611a7aa248a317e`: 442 testes Node, banco, build e 32 roteiros de navegador
+aprovados na CI. Site público, tamanho de celular e recarga offline conferidos.
+O localhost recebeu a integração `1a00ea8`, preservando a auditoria da PR #21.
+
+**Decisão mantida: modo econômico de nuvem manual.** O responsável usa
 site e localhost, compartilhou o link com três amigos e escolheu explicitamente:
 **salvamento automático no aparelho; nuvem só pelo botão; desfazer local**.
 A implementação fica em `fix/nuvem-manual`, a partir do develop público.

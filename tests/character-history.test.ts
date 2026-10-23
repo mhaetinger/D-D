@@ -45,3 +45,17 @@ test('limite de histórico conserva o estado atual, ponteiro e vizinhos sem alte
  assert.ok(new TextEncoder().encode(JSON.stringify(limited)).byteLength<=HISTORY_MAX_BYTES);assert.equal(limited.stack[limited.pointer],large.stack[149]);
  const huge={...original,pointer:0,stack:[{...stack[0],action:'a'.repeat(HISTORY_MAX_BYTES+1)}]};assert.equal(boundedCharacterHistory(huge).stack[0],huge.stack[0]);
 });
+
+
+test('migração aplica o teto de 25 registros às cópias e preserva o original coletivo',async()=>{
+ const {HISTORY_MAX_STEPS}=await import('../src/storage/character-history');
+ assert.equal(HISTORY_MAX_STEPS,25);
+ const c=warrior(),stack=Array.from({length:80},(_,i)=>step('Moedas '+i,[{...c,coins:{...c.coins,po:i}}]));
+ const raw=JSON.stringify({stack,pointer:40}),values=new Map([['dnd_history_v1',raw]]);
+ const port={getItem:(key:string)=>values.get(key)??null,setItem:(key:string,value:string)=>{values.set(key,value)},removeItem:()=>{throw Error('não apagar')}};
+ migrateCharacterHistories(port);
+ const h=validateCharacterHistory(values.get(historyKey(c.id))!,c.id);
+ assert.equal(h.stack.length,25);assert.equal(h.stack[h.pointer].action,'Moedas 40');
+ assert.equal(h.stack[h.pointer-1].action,'Moedas 39');assert.equal(h.stack[h.pointer+1].action,'Moedas 41');
+ assert.equal(values.get('dnd_history_v1'),raw);
+});

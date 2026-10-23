@@ -78,10 +78,12 @@ Isso separa edições de personagens diferentes; edições simultâneas do mesmo
 histórico não são sincronizadas no modo manual; as fichas atuais continuam
 sujeitas à resolução de versões/conflitos existente.
 
-Ao gravar um histórico legível, o cliente mantém até **10 estados / 256 KiB**,
+Ao abrir e gravar um histórico legível, o cliente mantém até **25 registros / 256 KiB**,
 com o ponteiro atual e seus vizinhos. Um único estado maior que esse teto é
-preservado inteiro. A leitura não trunca o histórico e dados ilegíveis continuam
-preservados. Checkpoints participam do limite; não são um arquivo permanente.
+preservado inteiro. Históricos antigos legíveis também são limitados ao abrir;
+o teto vale na memória mesmo sem quota para gravar. O original coletivo legado
+e dados ilegíveis continuam intactos. Checkpoints participam do limite; não são
+um arquivo permanente.
 
 localStorage conserva o cache legado. IndexedDB `critcall-sync-v1`, separado por
 projeto/usuário, registra fila e versões em transações entre abas. Respostas
@@ -245,9 +247,10 @@ grants permaneceram restritos e os advisors não acrescentaram alertas aos já
 registrados. A migração passou antes pelo PostgreSQL 18 descartável, incluindo
 limites, contas inativas, conflito grande sem perda da operação e repetição.
 
-A retenção menor já está ativa no servidor. O limite de 10 estados/256 KiB se
-aplica a gravações legíveis feitas pelo cliente novo; leituras e o documento
-legado não são truncados. A correção dos downloads foi publicada por #22/#23 na main `69e3213`,
+A retenção menor já está ativa no servidor. A entrega #22/#23 limitava apenas
+gravações legíveis a 10 estados/256 KiB; a correção local seguinte passa a
+25 registros/256 KiB também no carregamento e na memória. O documento coletivo
+legado e arquivos ilegíveis continuam preservados. A correção dos downloads foi publicada por #22/#23 na main `69e3213`,
 pacote `04a6bfee62966396`. Abas antigas seguem seu comportamento até a atualização.
 O modo manual descrito acima é a entrega seguinte, em `fix/nuvem-manual`.
 Até receber a atualização, fechar abas do CritCall sem uso reduz consultas.

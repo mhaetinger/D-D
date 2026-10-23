@@ -210,7 +210,7 @@ Voltar um passo afeta somente essa ficha; notas pessoais e as outras fichas são
 preservadas. O histórico de desfazer fica somente neste aparelho, inclusive
 checkpoints e recuperação de fichas excluídas. O
 histórico coletivo antigo é copiado por personagem sem apagar o original.
-Ao gravar, o histórico de desfazer mantém até 10 estados / 256 KiB por ficha,
+Ao abrir e gravar, o histórico de desfazer mantém até 25 registros / 256 KiB por ficha,
 preservando o estado apontado. Um único estado maior é mantido inteiro.
 Checkpoints também participam desse limite e não vão para a nuvem. Versões da
 ficha atual na nuvem têm política
