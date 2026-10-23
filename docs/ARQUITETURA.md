@@ -1241,3 +1241,28 @@ explícitas, sem preencher estatísticas de criatura nem alterar a CON humana.
 Não se trata de magia: nenhum espaço, afinidade ou concentração é consumido.
 Testes/defesas dos alvos e aplicação a outras criaturas permanecem na mesa.
 Regressões: `tests/dragonborn-breath.test.ts` e `tests/dragonborn-breath-browser.cjs`.
+
+## –5 no ataque / +10 no dano — terceiro recorte de R2, 23/10/2026
+
+`weapon-power-attack.ts` valida talento, categoria/modo da arma e proficiência
+sem alterar `weaponStats` ou os totais do documento. Atirador exige categoria
+à distância (Dardo é elegível; Adaga/Azagaia arremessadas não); Mestre exige
+ataque corpo a corpo com arma pesada. Valores manuais e Forma Selvagem não
+recebem o ajuste automático. Arremesso improvisado de arma pesada é excluído.
+`weaponStats` respeita acuidade do Dardo também ao escolher FOR/DES; overrides
+continuam soberanos. O +10 é uma parcela fixa do tipo da arma em
+`previewWeaponDamage`, inclusive no crítico e com Destruição.
+
+`weapon-damage-ui.ts` mantém a preparação num WeakSet por objeto de arma,
+como o crítico. O checkbox atualiza os próprios textos/nós sem histórico/RNG;
+`sheet.js` usa o bônus transitório no d20, mantendo seu contexto/Sortudo.
+Dimensionadores invisíveis reservam os rótulos com e sem crítico/+10.
+Dano direto e Adicionais usam o mesmo plano; total físico já inclui o bônus e
+não recebe outra soma. Confirmação limpa as marcas; cancelamento mantém.
+Revalida ficha, arma, documento, preparação e autorização antes de rolar/gastar.
+Recarga/novos objetos descartam a preparação; não há migração ou novo contador.
+
+A declaração anterior ao ataque, acerto/erro, turnos, cobertura/alcance e ação
+bônus de Mestre de Armas Grandes permanecem na mesa; o controle permite
+corrigir uma preparação manualmente. Registros/fórmulas existentes ficam
+intactos. Regressões em `weapon-power-attack.test.ts` e no roteiro de navegador.

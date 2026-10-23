@@ -20,8 +20,8 @@ concluídas na `main` `beed393`, no
 | Integração `develop` | `8ce0c0d`, PR #19, com R1 e os dois recortes implementados de R2 |
 | Revisão offline publicada | `8c517c3c837af0c0`; conferida no domínio público |
 | Conferência da entrega | 433 testes Node, tipos/build, banco descartável, auditoria e 32 roteiros Chromium aprovados na CI; mobile, recarga normal e offline conferidos no site |
-| Trabalho atual | Correções A01–A14 e controle do sopro de draconato na branch `feature/auditoria-profunda-2014`, PR #21; integração/publicação pendentes |
-| Próxima tarefa | Concluir a revisão da PR #21 e seguir a ordem do responsável: draconatos → rolagens → magias → importação. Sopro implementado nesta branch; próximo recorte de mecânicas em R2. Integração depende de aprovação |
+| Trabalho atual | Correções A01–A14, sopro de draconato e terceiro recorte de R2 (–5/+10) na branch `feature/auditoria-profunda-2014`, PR #21; integração/publicação pendentes |
+| Próxima tarefa | Concluir a revisão da PR #21 e seguir a ordem do responsável: draconatos → rolagens → magias → importação. Sopro e –5/+10 implementados nesta branch; próximos recortes de R2: Atacante Bestial/Combate com Armas Grandes, depois Adepto Elemental. Integração depende de aprovação |
 | Branch encerrada por esta entrega | `feature/talento-sortudo-r2`; criar a próxima a partir de `develop` atualizado |
 | R1 | PR #17, com testes/limites na auditoria |
 | Primeiro recorte de R2 | PR #18, com Talento Confiável e Sortudo racial |
@@ -53,8 +53,12 @@ com PDF real foi adiado expressamente. O primeiro recorte acrescenta gasto,
 dado físico/virtual, dano/metade e descanso à própria Arma de Sopro. Casos
 avançados de sincronização continuam separados do teste básico relatado.
 O recorte passou por 454 testes Node, tipos/build e sete roteiros Chromium
-pertinentes; diagnóstico puro com 3.321 verificações sem divergências. A suíte
-completa passa a ter 34 roteiros; a execução integral cabe à CI da PR.
+pertinentes; diagnóstico puro com 3.321 verificações sem divergências. A CI do sopro em `93dfebb` passou
+nos 34 roteiros completos (workflows 39905947232 e 39905951819). O recorte
+seguinte acrescenta –5/+10 de Atirador Aguçado/Mestre de Armas Grandes e corrige
+acuidade automática do Dardo. Passaram 464 testes Node, tipos/build e nove
+roteiros Chromium pertinentes; a suíte integral passa a ter 35 roteiros e fica
+exigida na CI. Escopo e validação dessa ampliação ficam na auditoria.
 
 A organização documental e **R1 — bônus ausentes nos cálculos** foram integradas
 em `develop`, junto do primeiro recorte de **R2 — rolagens e gastos condicionais**
@@ -62,8 +66,9 @@ em `develop`, junto do primeiro recorte de **R2 — rolagens e gastos condiciona
 O segundo recorte implementou o **talento Sortudo**, com uma reserva de três
 pontos e escolha do d20 nos controles existentes. Escopo e limites estão na
 [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md#roteiro-de-implementação).
-Após o recorte de draconatos priorizado em 23/10, os próximos recortes de R2 cobrem as demais rerrolagens/dados mínimos,
--5/+10 e adicionais de talentos/estilos. As matrizes e os critérios ficam naquele arquivo. Não
+Após draconatos e o recorte de –5/+10, as próximas entregas de R2 cobrem
+Atacante Bestial/Combate com Armas Grandes, Adepto Elemental e outros adicionais.
+As matrizes e os critérios ficam naquele arquivo. Não
 marcar uma mecânica como concluída por ter descrição, escolha ou contador.
 
 A PR #19 reúne também as correções de interface desta entrega. O moderno distribui
@@ -168,10 +173,11 @@ Texto para iniciar outra conversa:
 > Continue o CritCall. Leia AGENTS.md, docs/RETOMADA.md, README.md,
 > CHANGELOG.md e docs/ARQUITETURA.md. Confira a branch e o estado do Git.
 > O roteiro atual de regras está em docs/AUDITORIA-LIVRO-2014.md. Confira
-> as correções A01–A14 e o controle do sopro de 23/10 na PR #21. Siga a prioridade
+> as correções A01–A14, o sopro e –5/+10 de 23/10 na PR #21. Siga a prioridade
 > draconatos → rolagens → magias → importação; o PDF real foi adiado. O trabalho está
 > em feature/auditoria-profunda-2014; a versão publicada é beed393, PR #20.
-> Confira a branch pendente antes de criar outra. Não repetir Sortudo nem
+> Próximos recortes de rolagem: Atacante Bestial/Combate com Armas Grandes e
+> depois Adepto Elemental. Confira a branch pendente antes de criar outra. Não repetir Sortudo nem
 > confundir o traço racial com o talento. Confira a validação final das correções.
 > A integração/publicação depende da aprovação do responsável; não repetir os
 > achados já corrigidos nem declarar R2–R6 concluídos. E-mails e sincronização

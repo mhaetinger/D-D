@@ -460,6 +460,12 @@ dados extras do crítico: não lança dados novamente nem dobra o total informad
 Em **Adicionais** no Auto Ficha, **Rolar aqui** usa os dados virtuais. Confirmar desconta um único espaço quando
 escolhido. Cancelar preserva tudo; desfazer devolve o espaço. O dano virtual desse
 controle preserva o pool e a inspiração. O botão **Dano** comum continua direto.
+Na entrega em revisão, Atirador Aguçado e Mestre de Armas Grandes oferecem
+**–5 ataque / +10 dano** junto ao Crítico, apenas nas armas proficientes
+elegíveis. Marque antes do ataque; os botões mostram os valores preparados.
+O +10 entra uma vez, inclusive no crítico. Confirmar o dano desmarca; cancelar
+mantém. Se errou, desmarque antes de continuar. OFF/Só Pool registram o total
+já incluindo +10. A preparação não é salva nem transferida a outras armas.
 Armas manuais mantêm a fórmula; seu crítico dobra os dados informados, sem
 adicionais automáticos. Não controla PV do alvo, limite de ataques ou munição.
 

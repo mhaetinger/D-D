@@ -2,6 +2,31 @@
 
 ## Não lançado
 
+### Terceiro recorte de R2: –5 ataque / +10 dano — 2026-10-23
+
+- Atirador Aguçado e Mestre de Armas Grandes oferecem a escolha compacta nas
+  armas proficientes elegíveis. Atualizam d20 e dano sem alterar valores salvos,
+  remontar o checkbox ou conceder bônus por notas livres. Dardo é à distância;
+  Adaga/Azagaia arremessadas e arma apenas versátil não ganham elegibilidade.
+- Dano normal/crítico/adicionais compartilham o plano existente. +10 entra uma
+  vez, do tipo da arma, separado de Destruição. Sortudo conserva o –5 do ataque.
+  OFF/Só Pool registram o total físico já com o bônus, sem somar novamente.
+- Dardo automático agora escolhe FOR/DES pela acuidade, preservando a habilidade
+  explícita. Arremesso improvisado de arma pesada não recebe Mestre.
+- Preparação transitória termina ao confirmar dano, é mantida ao cancelar e
+  descartada na recarga. Mudança de ficha, arma, documento, escolha ou permissão
+  invalida a confirmação. Valores manuais e o dado flutuante são preservados.
+- Alcance/cobertura, declaração antes do ataque, acerto/erro e o ataque bônus de
+  Mestre continuam na mesa. Restam Atacante Bestial, Combate com Armas Grandes,
+  Adepto Elemental e outros gatilhos; R2 segue parcial e importação adiada.
+- Verificados 464 testes Node, tipos/build e nove roteiros Chromium pertinentes:
+  –5/+10, crítico/adicionais, dado, R2 inicial, Sortudo, editor de armas, regras,
+  passivos e cadeado. Incluídos cancelamento/físico/concorrência, mobile/GG/temas/
+  layouts, notas e offline. Após a guarda final de arremesso, repetidos Node/build
+  e três roteiros pertinentes. Diagnóstico puro: 3.321 verificações sem divergências.
+  Suíte completa ampliada para 35 roteiros, sem repetição integral local. Links,
+  matrizes e diff conferidos; sem SQL, banco local, PDF pessoal ou publicação.
+
 ### Sopro de draconato e prioridades confirmadas — 2026-10-23
 
 - Arma de Sopro recebe o controle na própria característica: dez ancestralidades

@@ -11,6 +11,7 @@ import { resourcesAt } from "../rules/placement";
 import { featureGroups } from '../rules/feature-groups';
 import { canCastNormally, canRitual, preparation, wizardPrivilege, castingRestriction, armorProficiencies } from "../rules/spellcasting";
 import { resolveSpellEffect, innateCastLevel, twinEligible, spellDamageBreakdown } from "../rules/spell-effects";
+import {weaponPowerAttackOption} from '../rules/weapon-power-attack';
 import {skillBonus,passiveSkill,untrainedAbilityBonus} from '../rules/passives';
 import { consumeInspiration, deathStatus, healHitPoints, inspirationRollMode } from '../rules/health';
 import { damageDescription, deathControls, hitDiceControls, inspirationControls } from '../rules/health-ui';
@@ -19,7 +20,7 @@ import { parseDiceFormula } from '../rules/dice-formula';
 import { evaluateDicePool, sheetD20Rules, canRerollHalfling, rerollHalfling, addLuckyDie, chooseLuckyDie, luckyFaces } from '../rules/dice-roll';
 import { luckRemaining } from '../rules/lucky';
 import { askToUseLucky, chooseLuckyFace, payLuckyPoint } from '../rules/lucky-ui';
-import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponDamageLabel } from '../rules/weapon-damage-ui';
+import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponDamageLabel, weaponAttackBonus, weaponPowerAttackPrepared } from '../rules/weapon-damage-ui';
 import { applyCastConcentration, concentration, concentrationBlock, incapacityReason, needsConcentrationConfirmation, spellConcentration, validateConcentrationStart } from '../rules/concentration';
 import { concentrationControls } from '../rules/concentration-ui';
 import { automaticSaveFailure } from '../rules/conditions';
@@ -2129,7 +2130,7 @@ function renderAttacksBlock(char) {
       <div class="p-3 space-y-2">
         ${char.weapons
           .map((storedWeapon, idx) => {
-            const w = CharacterEngine.weaponStats(char, storedWeapon);
+            const w = CharacterEngine.weaponStats(char, storedWeapon), attackBonus=weaponAttackBonus(char,storedWeapon,CharacterEngine);
             const validDamage = !!parseDiceFormula(w.damage);
             return `
             <div class="weapon-card t-inset p-2.5 rounded-lg text-xs" data-weapon-card="${idx}">
@@ -2140,12 +2141,13 @@ function renderAttacksBlock(char) {
                 <p class="weapon-description t-text-muted">${escapeHTML(w.notes)}${w.critical?`${w.notes?' · ':''}Crítico ${w.critical===20?'20':`${w.critical}–20`}`:''}</p>
 
               <div class="weapon-rolls">
-                ${w.bonus===''?'<span class="t-text-muted">Ataque não informado</span>':`<button onclick="rollWeapon(${idx}, 'attack')" class="px-2 py-1 badge-feiticeiro rounded font-bold">
-                  Atq ${escapeHTML(w.bonus)}
+                ${attackBonus===''?'<span class="t-text-muted">Ataque não informado</span>':`<button onclick="rollWeapon(${idx}, 'attack')" data-weapon-attack-label="${idx}" class="px-2 py-1 badge-feiticeiro rounded font-bold">
+                  <span data-weapon-attack-text>Atq ${escapeHTML(attackBonus)}</span>
                 </button>`}
                 <button onclick="rollWeapon(${idx}, 'damage')" data-weapon-damage-label="${idx}" class="weapon-damage-button px-2.5 py-1 t-btn-primary rounded font-extrabold shadow-sm">
                   <span aria-hidden="true" class="weapon-damage-sizer">${validDamage?escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine,false)):''}</span>
                   <span aria-hidden="true" class="weapon-damage-sizer">${validDamage?escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine,true)):''}</span>
+                  ${weaponPowerAttackOption(char,storedWeapon,CharacterEngine)?[false,true].map(critical=>`<span aria-hidden="true" class="weapon-damage-sizer">${escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine,critical,true))}</span>`).join(''):''}
                   <span data-weapon-damage-text>${validDamage ? escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine)) : "Corrigir dano"}</span>
                 </button>
               </div>
@@ -2699,7 +2701,7 @@ function rollWeapon(index, kind) {
   const c=getChar(),entry=c.weapons[index];
   const weapon = CharacterEngine.weaponStats(c, entry);
   if (!weapon) return;
-  const bonus = String(weapon.bonus).trim();
+  const bonus = String(weaponAttackBonus(c,entry,CharacterEngine)).trim();
   if(kind==='attack' && bonus==='')return showToast('Ataque não informado. Confira o bônus da origem; efeitos com resistência são resolvidos na mesa.');
   if (kind === "attack" && !/^[+-]?\d+$/.test(bonus)) {
     showToast("Bônus de ataque inválido. Corrija o cadastro.");
@@ -2710,7 +2712,7 @@ function rollWeapon(index, kind) {
     showToast("Fórmula inválida. Corrija o ataque antes de rolar.");
     return;
   }
-  const result=triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}`,kind==='attack',kind==='attack'?{type:'attack',weapon:entry}:null);
+  const result=triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}${kind==='attack' && weaponPowerAttackPrepared(c,entry,CharacterEngine)?' · '+weaponPowerAttackOption(c,entry,CharacterEngine).name+' (–5 ataque / +10 dano)':''}`,kind==='attack',kind==='attack'?{type:'attack',weapon:entry}:null);
   // Usa o resultado resolvido neste clique, nunca o texto da animação ou o
   // total com bônus. Só ataques reais em Auto Ficha atualizam esta preparação.
   if(kind==='attack' && result && c===getChar() && c.weapons[index]===entry)

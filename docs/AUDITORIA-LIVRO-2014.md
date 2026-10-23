@@ -234,7 +234,7 @@ básico real telefone/computador já foram confirmados pelo responsável.
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
 | R1 — bônus nos cálculos | **Quatro passivos entregues; achados A01/A05/A06 corrigidos nesta branch** | O recorte original continua implementado. A01/A05/A06 corrigem os bônus/modificadores adicionais e a inconsistência de PV identificados no check-up; regressões nesta entrega. Tipos variáveis/efeitos posteriores seguem em R5. |
-| R2 — rolagens e gastos condicionais | **Segundo recorte implementado; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo implementados na entrega da PR #20. Faltam demais rerrolagens/dados mínimos, -5/+10 e adicionais de talentos/estilos. Integrar escolha/gasto à jogada pertinente, sem duplicar reservas ou aplicar bônus a jogadas inelegíveis. |
+| R2 — rolagens e gastos condicionais | **Terceiro recorte implementado em revisão; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo implementados na entrega da PR #20. -5/+10 de Atirador Aguçado/Mestre de Armas Grandes implementado no terceiro recorte em revisão. Faltam demais rerrolagens/dados mínimos e adicionais de talentos/estilos. Integrar escolha/gasto à jogada pertinente, sem duplicar reservas ou aplicar bônus a jogadas inelegíveis. |
 | R3 — condições, defesas e características | Planejada; já há cobertura parcial | Completar efeitos das condições, imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
 | R5 — famílias de magias | Planejada; fórmulas auditadas já corrigidas | Revisar metadados e exceções do catálogo por família: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
@@ -448,8 +448,53 @@ CI completa e banco descartável são exigidos antes da integração. Banco não
 repetido localmente; não houve SQL/RLS/RPC nem validação entre dispositivos reais.
 
 Continuam pendentes em R2: Atacante Bestial, Combate com Armas Grandes,
-Adepto Elemental, Atirador Aguçado/Mestre de Armas Grandes (-5/+10) e
-adicionais/manobras dos demais talentos/estilos. **R2 não está concluída.**
+Adepto Elemental e adicionais/manobras dos demais talentos/estilos. A cobertura
+de -5/+10 foi acrescentada no terceiro recorte abaixo. **R2 não está concluída.**
+
+### Terceiro recorte de R2: –5 no ataque / +10 no dano — 23/10/2026
+
+**Implementado nesta branch, aguardando integração/publicação.** Fontes: Livro
+do Jogador 2014, Atirador Aguçado p. 167 (PDF 166) e Mestre de Armas Grandes
+p. 171 (PDF 170). A escolha ocorre antes do ataque; exige o talento estruturado
+e proficiência na arma. Não se trata do estilo Combate com Armas Grandes.
+
+- [x] Checkbox compacta junto a Crítico/Adicionais, somente em armas elegíveis.
+  Atualiza bônus de ataque e prévia de dano sem remontar nós, perder foco,
+  modificar os totais cadastrados ou gravar uma escolha permanente.
+- [x] Atirador usa arma da categoria à distância, incluindo Dardo; Adaga/Azagaia
+  arremessadas continuam armas corpo a corpo. Mestre exige ataque corpo a corpo
+  e propriedade pesada; arma versátil com duas mãos ou arremesso improvisado
+  de arma pesada não bastam. Dardo automático respeita acuidade (FOR/DES),
+  preservando habilidade explícita. Não acumular
+  os dois talentos em um ataque nem usar regras de 2024.
+- [x] –5 na rolagem contextual, inclusive nas mesmas faces de Sortudo, e +10
+  uma vez do tipo de dano da arma. Crítico duplica dados; não duplica +10 nem
+  transforma o bônus em dano radiante de Destruição.
+- [x] Dano comum/crítico e Adicionais compartilham o plano existente. OFF/Só
+  Pool registram o total físico já incluindo +10, sem somar novamente. Prévia
+  e cancelamento não gastam espaço; Destruição confirmada gasta só um.
+- [x] Preparação por objeto de arma, sem estado no backup: confirmar dano limpa
+  a marca, cancelar mantém, recarregar a descarta. Outras fichas/armas não a
+  recebem. Mudança de ficha/documento/preparação/permissão invalida confirmação.
+
+**Limites:** acerto/erro, alcance/cobertura e ataque bônus após crítico/abate
+continuam na mesa. Se errou, desmarcar a preparação antes de continuar. A ficha
+não controla turnos/alvos e permite correção manual da preparação; não impede
+uma declaração tardia na mesa. Armas com totais manuais não recebem +10 inferido
+porque podem já incluí-lo; preservar as fórmulas cadastradas. Atacante Bestial,
+Combate com Armas Grandes, Adepto Elemental e demais gatilhos continuam pendentes.
+
+Verificação deste recorte: **464 testes Node**, tipos/build e **nove roteiros
+Chromium pertinentes** aprovados: –5/+10, crítico/adicionais, dado, R2 inicial,
+Sortudo, editor de armas, regras, passivos e cadeado. Cobertos elegíveis e
+inelegíveis, arremesso, acuidade de Dardo, bônus/critério de crítico, inspiração,
+Sortudo sem nova penalidade, prévia/cancelamento, físico/OFF/virtual, espaço
+único, concorrência/permissão, nós/foco, 320px/GG/três temas/dois layouts,
+fichas/notas e offline sob `/D-D/`. Após a exclusão explícita do arremesso
+improvisado, repetidos Node/build, –5/+10, crítico/adicionais e cadeado.
+Diagnóstico puro: **3.321 verificações, zero divergências**. A suíte completa
+agora tem **35 roteiros**, sem repetição integral local nesta rodada; a CI exige
+a execução completa. Sem SQL, teste de banco local ou PDF pessoal nesta mudança.
 
 ## Progresso já entregue
 
@@ -484,7 +529,7 @@ corrigidos não devem voltar à lista de ausências.
 | Concentração e condições | Registro único nas duas abas, substituição confirmada, fila de testes por dano, físico/virtual, incapacidade e encerramentos; 14 condições, movimento e falhas de FOR/DES pertinentes | Outros modos de rolagem, sentidos, fontes/alvos e imunidades; sem relógio de duração/turnos |
 | Dano por tipo | Uma ocorrência com tipos/origem, prévia, proteção externa, imunidade/redução/resistência/vulnerabilidade; fontes raciais, Fúria e outras fontes explicitamente verificadas | Não abrange todas as fontes; formas usam o modo já resolvido; ajustes da mesa não viram bônus permanentes |
 | Defesas e prevenção de queda | Maestria em Armadura Pesada, Esquiva Sobrenatural, Evasão, Resistência Implacável e Fúria Implacável/CD crescente | Proteção contra a Morte, outras reações/reduções e morte sem dano; reação/visibilidade/contexto são confirmados pela mesa |
-| Críticos e adicionais de arma | Crítico, Ataque Furtivo, Colossos, Destruição com gasto único de Conjuração/Pacto, Aprimorada, Crítico Brutal e Ataques Selvagens; modos físico/virtual e histórico | Outros adicionais, rerrolagens e ataques da forma; alvo/acerto, uso no turno e limite de ataques permanecem manuais |
+| Críticos e adicionais de arma | Crítico, Ataque Furtivo, Colossos, Destruição com gasto único de Conjuração/Pacto, Aprimorada, Crítico Brutal e Ataques Selvagens; –5/+10 opcional em armas elegíveis; modos físico/virtual e histórico | Outros adicionais, rerrolagens e ataques da forma; alvo/acerto, uso no turno e limite de ataques permanecem manuais |
 | Importação e evolução | Revisão por setores de PDF preenchível/JSON/ficha atual; cópias, vínculos propostos, preparação/origem, valores escritos preservados e avisos de campos manuais; consulta de magia por ID do catálogo e prévia ao trocar raça/antecedente | Troca de origem mantém totais/treinos manuais mediante aceite e aposenta escolhas antigas; não reconstrói automaticamente bônus/escolhas raciais. Não reconstrói integralmente talentos/equipamento/características em prosa; OCR/PDF achatado ausentes; ciclo com PDFs reais segue em V1 da retomada |
 
 Armadura/escudo sem proficiência já impedem conjuração/ritual com motivo, mas
@@ -614,7 +659,7 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 | Alerta | +5 na iniciativa | Surpresa/atacante oculto |
 | Ambidestro | +1 CA calculada com duas armas empunhadas confirmadas, sem duplicar CA escrita | Elegibilidade de duas armas, sacar/guardar e contexto da mesa |
 | Atacante Bestial | Registro | Nova rolagem de dano uma vez por turno |
-| Atirador Aguçado | Registro | -5/+10 por ataque, cobertura e alcance |
+| Atirador Aguçado | -5/+10 opcional por ataque com arma à distância proficiente; integrado ao crítico/adicionais no terceiro recorte de R2 | Cobertura e alcance continuam na mesa; valores manuais não recebem bônus automático |
 | Atirador de Magia | Escolha de truque de ataque, incluindo Criar Chamas | Alcance/cobertura |
 | Atleta | +1 FOR/DES | Levantar, escalar e salto |
 | Ator | +1 CAR | Vantagem e imitação nas condições do texto |
@@ -636,7 +681,7 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 | Matador de Conjuradores | Registro | Reação, concentração do alvo e vantagem situacional |
 | Mente Afiada | +1 INT | Orientação, horário e memória consultáveis |
 | Mestre de Armas | +1 FOR/DES, quatro proficiências | Demais condições do ataque usam o fluxo comum |
-| Mestre de Armas Grandes | Registro | -5/+10 e ataque bônus após crítico/abate |
+| Mestre de Armas Grandes | -5/+10 opcional por ataque corpo a corpo com arma pesada proficiente; terceiro recorte de R2 | Ataque bônus após crítico/abate e economia de ações continuam na mesa |
 | Mestre de Escudo | Registro | Empurrão, bônus de resistência e reação condicionais |
 | Mobilidade | +3 m no deslocamento | Terreno difícil/Disparada e oportunidade |
 | Observador | +1 INT/SAB; +5 nos passivos de Percepção/Investigação | Leitura labial consultável; contexto de vantagem/desvantagem na mesa |

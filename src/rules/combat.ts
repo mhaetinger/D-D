@@ -40,7 +40,8 @@ export function weaponStats(c: Sheet, entry: Sheet, E: Engine):WeaponResult {
   const rangedWeapon = w.kind.endsWith('Ranged'), thrown = entry.attackMode === 'thrown' && /arremesso/i.test(w.properties), meleeAttack = !rangedWeapon && !thrown;
   const monk = level(c,'monge'), monkWeapon = monk > 0 && !c.armorEquipped && !c.shieldEquipped && (norm(w.name) === 'espada curta' || w.kind === 'simpleMelee' && !/pesada|duas mãos/i.test(w.properties));
   const str = ability(c,'str'), dex = ability(c,'dex'), canDex = /acuidade/i.test(w.properties) || monkWeapon;
-  const key = entry.abilityOverride === 'str' || entry.abilityOverride === 'dex' ? entry.abilityOverride : rangedWeapon ? 'dex' : canDex && dex > str ? 'dex' : 'str';
+  // Acuidade permite FOR ou DES também numa arma à distância, como Dardo.
+  const key = entry.abilityOverride === 'str' || entry.abilityOverride === 'dex' ? entry.abilityOverride : rangedWeapon && !canDex ? 'dex' : canDex && dex > str ? 'dex' : 'str';
   const modifier = ability(c,key), proficient = isProficient(c,entry,w,E), pb = proficient ? proficiency(c) : 0;
   const namedMagic = String(entry.name).match(/\+([1-3])\b/);
   const magic = Number(entry.magicBonus ?? namedMagic?.[1] ?? 0);
