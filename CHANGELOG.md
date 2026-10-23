@@ -1,5 +1,21 @@
 # Changelog
 
+## Curas fixas e elegibilidade de Gêmea — 2026-10-23
+
+- Integrados dois achados confirmados da auditoria independente das oito curas:
+  Cura Completa/Em Massa recebem classificação e resumo de cura; Bom Fruto
+  deixa de oferecer Gêmea, pois cria frutos sem criatura-alvo.
+- Resumo fixo informa círculo, Discípulo da Vida e distribuição manual dos
+  700 PV, sem RNG ou aplicação de PV/condições em outras fichas. Fórmulas
+  próprias mantêm precedência. Simulacro e as outras cinco fórmulas conferidas
+  permanecem iguais; não foi ampliada a heurística genérica nem o catálogo.
+- Fichas antigas com tipo Utilidade nessas duas curas passam a apresentar Cura
+  somente na leitura automática, sem regravar os campos, notas ou adaptações.
+- Verificados 478 testes Node, tipos/build e dois roteiros Chromium: curas
+  auditadas e ajudas. Incluídos fichas antigas, espaços/Gêmea, ausência de RNG,
+  outra ficha/notas/pool preservados, 320px/GG/temas/layouts e offline /D-D/.
+  O novo roteiro entra na suíte completa de 37 exigida pela CI. Sem SQL.
+
 ## Entrega de regras revisada — 2026-10-23
 
 - Autorizada a conclusão da PR #21 com A01–A14, Arma de Sopro e –5/+10,

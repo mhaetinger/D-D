@@ -717,7 +717,10 @@ function resolveSpellMeta(spell) {
   const catalog = CharacterEngine.spell?.(spell?.bookId || spell?.name);
   const catalogMeta = CharacterEngine.spellMeta?.(catalog || spell) || {};
   const automatic=catalog && !spell.customSpell && !spell.customRoll;
-  const dmgType = automatic && catalogMeta.damageComponents ? 'misto' : spell?.dmgType && spell.dmgType !== "livro" ? spell.dmgType : (catalogMeta.dmgType || "utilidade");
+  // Cópias antigas dessas curas guardaram "utilidade". Corrige só a leitura
+  // automática reconhecida, sem regravar escolhas ou fórmulas personalizadas.
+  const oldFixedHealing=automatic && spell.dmgType==='utilidade' && ['cura-completa','cura-completa-em-massa'].includes(catalog.id);
+  const dmgType = automatic && catalogMeta.damageComponents ? 'misto' : oldFixedHealing ? 'cura' : spell?.dmgType && spell.dmgType !== "livro" ? spell.dmgType : (catalogMeta.dmgType || "utilidade");
   const targetType = automatic && catalog.id==='raio-solar' && spell.range===catalog.range ? catalogMeta.targetType : spell?.targetType || catalogMeta.targetType || null;
   const defType = spell?.defType && spell.defType !== "nenhuma" ? spell.defType : (catalogMeta.defType || "nenhuma");
   const canTwin = spell?.canTwin !== undefined && spell?.dmgType && spell.dmgType !== "livro" ? !!spell.canTwin : !!(spell?.canTwin || catalogMeta.canTwin);
