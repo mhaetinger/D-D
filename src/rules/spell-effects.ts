@@ -69,6 +69,15 @@ export function resolveSpellEffect(c:Sheet, s:Sheet, circle:number, E:Engine, op
   } else if (id==='raio-ardente') {
     formula='2d6';summary=`${3+Math.max(0,circle-base)} raio(s) × 2d6 Fogo`;
     explanation='Cada raio exige seu próprio ataque. Role o dano de um raio que acertou, sem gastar outro espaço.';
+  } else if (!s.customSpell && (id==='cura-completa' || id==='cura-completa-em-massa')) {
+    // Valores fixos, sem rolagem. Discípulo da Vida soma 2 + círculo do espaço
+    // a cada criatura curada (Livro do Jogador 2014, p. 70 / PDF 69).
+    const life=level(c,'clerigo')>=1 && subclass(c,'clerigo',E)==='vida'?2+circle:0;
+    formula=null;
+    summary=id==='cura-completa'
+      ? `${70+10*Math.max(0,circle-base)} PV${life?` +${life} Discípulo da Vida`:''} · encerra cegueira, surdez e doenças`
+      : `Até 700 PV divididos à sua escolha${life?` · +${life} por criatura curada (Discípulo da Vida)`:''} · encerra cegueira, surdez e doenças`;
+    explanation='Cura de valor fixo: aplique o total na mesa, sem rolagem. Não afeta mortos-vivos ou constructos.';
   } else if (meta.damageComponents) {
     components=meta.damageComponents.map((part:{formula:string;type:string;label:string},index:number)=>{
       const extra=Math.max(0,circle-base),m=part.formula.match(/^(\d+)d(\d+)$/)!;

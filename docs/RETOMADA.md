@@ -5,6 +5,16 @@ Estado consolidado em **23/10/2026**. Leia também `AGENTS.md`, `README.md`,
 
 ## Onde o trabalho parou
 
+**Revisão paralela de curas integrada em `fix/curas-fixas-gemea`.** Dos oito
+casos conferidos pelo Claude, reproduzidos e corrigidos dois achados delimitados:
+classificação/resumo de Cura Completa/Em Massa e Gêmea indevida em Bom Fruto.
+A integração cobre também fichas antigas já salvas, sem alterar seus campos.
+Passaram 478 testes Node, build e dois roteiros de navegador; a CI exige os 37.
+Fontes, contratos e melhorias opcionais estão somente na auditoria. Publicação
+conforme o workflow da main e a descrição das PRs desta entrega. Próxima entrega
+pequena continua R2 (rerrolagens de dano); o restante da revisão de curas é opcional.
+
+
 **Entrega de regras autorizada pelo responsável: concluir a PR #21.** Ela reúne
 as correções A01–A14, Arma de Sopro e –5/+10 de Atirador Aguçado/Mestre de Armas
 Grandes. A branch `feature/auditoria-profunda-2014` incorporou o modo manual e o

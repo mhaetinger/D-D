@@ -1858,6 +1858,10 @@
     "protecao-contra-laminas": { dmgType: "defesa", dmgLabel: "Defesa", targetType: "pessoal", defType: "nenhuma", canTwin: false, effectSummary: "Resistência física (1 rod.)", diceFormula: null },
     "escudo-arcano": { dmgType: "defesa", dmgLabel: "Defesa", targetType: "pessoal", defType: "nenhuma", canTwin: false, effectSummary: "+5 CA (1 rodada)", diceFormula: null },
     "escudo-da-fe": { dmgType: "defesa", dmgLabel: "Defesa", targetType: "mira", defType: "nenhuma", canTwin: true, effectSummary: "+2 CA (10 min)", diceFormula: null },
+    // Curas de valor fixo: o texto usa "recuperar"/"restaura", que a leitura
+    // genérica não reconhece. Sem dados para rolar; o resolvedor calcula o total.
+    "cura-completa": { dmgType:"cura", dmgLabel:"Cura", targetType:"mira", defType:"nenhuma", canTwin:true, effectSummary:"70 PV · encerra cegueira, surdez e doenças", diceFormula:null },
+    "cura-completa-em-massa": { dmgType:"cura", dmgLabel:"Cura", targetType:"mira", defType:"nenhuma", canTwin:false, effectSummary:"Até 700 PV divididos à sua escolha · encerra cegueira, surdez e doenças", diceFormula:null },
     // Componentes simultâneos: não usar o primeiro dado como dano completo.
     // Momentos distintos/alternativas de outras magias continuam no resolvedor.
     "chuva-de-meteoros": { dmgType:"misto", dmgLabel:"Fogo + Concussão", targetType:"esfera", defType:"tr_des", canTwin:false, effectSummary:"20d6 Fogo + 20d6 Concussão", diceFormula:"20d6+20d6", damageComponents:[{formula:"20d6",type:"fogo",label:"Fogo"},{formula:"20d6",type:"concussao",label:"Concussão"}] },
@@ -1925,7 +1929,9 @@
     else if (/\bcilindro de \d+/i.test(areaText)) targetType = "cilindro";
     else if (/^Pessoal/i.test(range)) targetType = "pessoal";
     else if (/^Toque/i.test(range)) targetType = "toque";
-    const createdEffect=["ilusao-menor","imagem-silenciosa","maos-magicas"].includes(id);
+    // Bom Fruto cria objetos e não tem criatura como alvo; Magia Duplicada
+    // exige uma criatura-alvo (Livro do Jogador 2014, p. 80 / PDF 79).
+    const createdEffect=["ilusao-menor","imagem-silenciosa","maos-magicas","bom-fruto"].includes(id);
     const canTwin = !createdEffect && !/^Pessoal/i.test(range) && ["mira", "toque"].includes(targetType) && !/criaturas|até três|escolha duas|cada criatura|qualquer número|múltiplos|dois feixes|três raios|vários alvos/i.test(text);
     return { dmgType, dmgLabel, targetType, defType, canTwin, effectSummary, diceFormula };
   }

@@ -1308,3 +1308,15 @@ A declaração anterior ao ataque, acerto/erro, turnos, cobertura/alcance e aç�
 bônus de Mestre de Armas Grandes permanecem na mesa; o controle permite
 corrigir uma preparação manualmente. Registros/fórmulas existentes ficam
 intactos. Regressões em `weapon-power-attack.test.ts` e no roteiro de navegador.
+
+
+## Curas de valor fixo e compatibilidade — 23/10/2026
+
+O motor possui duas entradas explícitas para Cura Completa/Em Massa; não ampliar
+a heurística genérica de cura, que também atingiria Simulacro. O resolvedor
+produz resumo com círculo/Discípulo da Vida e `formula:null`: conjurar registra
+o espaço, sem RNG, pool novo ou aplicação automática de PV/condições.
+`resolveSpellMeta` apresenta Cura em cópias antigas dessas duas entradas que
+salvaram Utilidade, apenas quando automáticas do catálogo; não altera os dados
+armazenados e respeita fórmula/tipo próprios. Bom Fruto integra a exclusão de
+Gêmea para efeitos que criam objetos. Referência/cobertura ficam na auditoria.

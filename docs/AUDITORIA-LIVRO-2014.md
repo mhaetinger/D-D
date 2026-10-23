@@ -32,6 +32,35 @@ ser implementados. Nenhuma chamada automática ou nova estrutura de nuvem faz
 parte desta entrega. Estado da publicação e próxima ação em
 [RETOMADA.md](RETOMADA.md).
 
+## Auditoria independente de oito curas — 23/10/2026
+
+Relatório do Claude compartilhado pelo responsável, base pública `d6258cb`.
+Foram conferidas Curar Ferimentos, Palavra Curativa, Oração Curativa, Palavra
+Curativa em Massa, Curar Ferimentos em Massa, Cura Completa, Cura Completa em
+Massa e Bom Fruto. Os dois achados abaixo foram reproduzidos pelo agente de
+integração; o patch proposto foi revisado e ampliado com compatibilidade de
+fichas antigas. Os artefatos temporários não são outro roteiro permanente.
+
+| Achado | Fonte e comportamento anterior | Correção e limite |
+| --- | --- | --- |
+| C1 · P2 · curas fixas | Livro local p. 236 / PDF 234: Cura Completa cura 70 PV, +10/círculo acima do 6º; Em Massa distribui até 700 PV. Apareciam como Utilidade/Instantânea | Entradas explícitas e resumo com Discípulo da Vida (p. 70 / PDF 69), mantendo distribuição/efeitos na mesa, sem fórmula ou RNG. Tipo antigo Utilidade corrigido só na apresentação automática, sem regravar a magia |
+| C2 · P2 · Gêmea | Magia Duplicada exige criatura-alvo (livro p. 80 / PDF 79); Bom Fruto cria objetos (p. 224 / PDF 222), mas oferecia o botão e permitiria gastar feitiçaria indevida | Excluído dos efeitos elegíveis, inclusive quando a ficha antiga salva canTwin=true. Curar Ferimentos e Cura Completa permanecem elegíveis; fórmulas próprias conservam seu contrato |
+
+A conferência primária complementar de Gêmea está no
+[Sage Advice Compendium v2.7, p. 6](https://media.wizards.com/2020/dnd/downloads/SA-Compendium.pdf#page=6).
+O bônus da Vida em Bom Fruto é esclarecido na
+[p. 18 do mesmo compêndio](https://media.wizards.com/2020/dnd/downloads/SA-Compendium.pdf#page=18);
+seu controle/informação e a reserva de frutos permanecem uma melhoria opcional,
+sem prometer automação hoje. Indicar cada alvo nas outras curas também é opcional.
+A distribuição de PV e a aplicação de condições em outras fichas ficam na mesa.
+
+Verificados na integração: 478 testes Node, tipos/build e dois roteiros Chromium
+(curas auditadas e ajudas), incluindo estado antigo salvo, consulta, slots,
+Gêmea sem custo indevido, valores fixos sem RNG, pool/HP/notas/outra ficha
+preservados, fonte GG/320px/temas/layouts e recarga offline sob `/D-D/`.
+Sem alterações em SQL, dados pessoais, importação ou sincronização. Nova suíte
+completa: 37 roteiros de navegador. Estado de publicação em RETOMADA.md.
+
 ## Como ler e atualizar o estado
 
 - **Calculado/controle existente:** operação implementada no escopo descrito;
@@ -258,7 +287,7 @@ básico real telefone/computador já foram confirmados pelo responsável.
 | R2 — rolagens e gastos condicionais | **Terceiro recorte implementado na PR #21; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo implementados na entrega da PR #20. -5/+10 de Atirador Aguçado/Mestre de Armas Grandes implementado no terceiro recorte da PR #21. Faltam demais rerrolagens/dados mínimos e adicionais de talentos/estilos. Integrar escolha/gasto à jogada pertinente, sem duplicar reservas ou aplicar bônus a jogadas inelegíveis. |
 | R3 — condições, defesas e características | Planejada; já há cobertura parcial | Completar efeitos das condições, imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
-| R5 — famílias de magias | Planejada; fórmulas auditadas já corrigidas | Revisar metadados e exceções do catálogo por família: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
+| R5 — famílias de magias | Parcial: fórmulas anteriores e oito curas auditadas | Revisar metadados e exceções do catálogo por família: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
 | R6 — equipamento e contexto de combate | Planejada | Munição/recarga/consumíveis, penalidades de equipamento, carga e ações condicionais. Definir antes qualquer acompanhamento opcional de turno; alvos, alcance, cobertura e viagem podem continuar na mesa, com essa limitação clara. |
 
 ### Draconatos — recorte de 23/10/2026
