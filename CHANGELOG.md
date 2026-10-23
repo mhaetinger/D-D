@@ -1,5 +1,32 @@
 # Changelog
 
+## Não lançado
+
+### Check-up profundo de regras, usos e consultas — 2026-10-23
+
+- Revisão da entrega de 22/10 contra o PDF local de 2014/Patrulheiro Revisado.
+  Reextração isolada reproduziu os três catálogos byte a byte. Conferidos 820
+  estados de 12 classes/41 subclasses, limites/recuperações, Pacto e presença
+  das consultas raciais, antecedentes, talentos e magias.
+- Diagnósticos repetíveis em `scripts/audit-book-consistency.cjs` e
+  `scripts/audit-book-ui.cjs`: 3.321 verificações com 24 casos divergentes no
+  motor; 15 casos de interface com 11 divergências, parcialmente repetidas.
+  Código 0 indica execução concluída, não aprovação. Não integram a suíte verde.
+- Achados consolidados como A01–A14 em `docs/AUDITORIA-LIVRO-2014.md`:
+  CON/PV, proficiências de druida, dano misto/escalonamento/modificadores,
+  Atletismo Extraordinário, concentração de características, Gêmea em ilusões/
+  Mãos Mágicas, 5d5 herdado do PDF, texto de Zona da Verdade, geometria de Raio
+  Solar, duração de Asas de Dragão, dados internos em OFF e bloqueio de
+  Intervenção Divina por sete dias reais. Matrizes e retomada
+  priorizam essas correções antes de novas automações de R2.
+- Verificados 433 testes Node, tipos/build e três roteiros Chromium existentes
+  (32 cenários auditados anteriores, ajudas e consulta de características), além
+  do diagnóstico de interface sob `/D-D/` com rede externa bloqueada. Incluídos
+  digitação/botões de CON, rolagem real do efeito, custo preservado na rejeição
+  de fórmula, clique de concentração, OFF e captura em 390px/GG. Sem erros JS.
+  Nenhuma alteração no aplicativo executável, catálogos distribuídos, dados
+  reais, dado flutuante ou serviço remoto; esta rodada não publica outra versão.
+
 ## 2026-10-22
 
 Entrega solicitada pelo responsável, reunindo R1, os dois primeiros recortes de

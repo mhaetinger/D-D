@@ -1,6 +1,6 @@
 # Retomada do CritCall
 
-Estado atualizado em **22/10/2026**. Este é o ponto de entrada para continuar o
+Estado atualizado em **23/10/2026**. Este é o ponto de entrada para continuar o
 projeto sem depender da conversa. Leia também `AGENTS.md`, `README.md`,
 `CHANGELOG.md` e [ARQUITETURA.md](ARQUITETURA.md) antes de alterar.
 
@@ -10,20 +10,33 @@ A entrega de **22/10/2026** reúne as melhorias da ficha, revisão da importaç�
 conta e histórico, além de R1 e dois recortes de R2. Integração pela
 [PR #19](https://github.com/mhaetinger/D-D/pull/19) e publicação em
 **https://criticall.art/** pela [PR #20](https://github.com/mhaetinger/D-D/pull/20).
-O responsável autorizou a publicação após a conferência. O resultado e o SHA da
-`main` ficam no [workflow de publicação](https://github.com/mhaetinger/D-D/actions/workflows/pipeline.yml?query=branch%3Amain).
+O responsável autorizou a publicação após a conferência. CI e publicação
+concluídas na `main` `beed393`, no
+[workflow 39861954879](https://github.com/mhaetinger/D-D/actions/runs/39861954879).
 
 | Referência | Estado da entrega de 22/10/2026 |
 | --- | --- |
-| Produção `main` | Entrega da PR #20; conferir SHA e resultado no workflow acima |
-| Integração `develop` | Entrega da PR #19, com R1 e os dois recortes implementados de R2 |
-| Revisão offline do artefato preparado | `8c517c3c837af0c0`; conferir `offline-manifest.json` no site após a publicação |
-| Conferência da entrega | 433 testes Node, tipos/build e quatro roteiros Chromium do ajuste de abas aprovados localmente; CI exige também banco descartável, auditoria e os 32 roteiros completos |
-| Próxima tarefa | Continuar os gastos/rerrolagens restantes de R2, conforme a auditoria; não repetir a implementação de Sortudo |
+| Produção `main` | `beed3930ef34564ebe41e3454f6a1d332521fb21`, PR #20 publicada |
+| Integração `develop` | `8ce0c0d`, PR #19, com R1 e os dois recortes implementados de R2 |
+| Revisão offline publicada | `8c517c3c837af0c0`; conferida no domínio público |
+| Conferência da entrega | 433 testes Node, tipos/build, banco descartável, auditoria e 32 roteiros Chromium aprovados na CI; mobile, recarga normal e offline conferidos no site |
+| Trabalho atual | Check-up profundo de 23/10, na branch `feature/auditoria-profunda-2014`; revisão documental/diagnósticos, sem mudar o aplicativo publicado |
+| Próxima tarefa | Corrigir os achados A01–A14 da auditoria antes de ampliar R2; não repetir a implementação de Sortudo |
 | Branch encerrada por esta entrega | `feature/talento-sortudo-r2`; criar a próxima a partir de `develop` atualizado |
 | R1 | PR #17, com testes/limites na auditoria |
 | Primeiro recorte de R2 | PR #18, com Talento Confiável e Sortudo racial |
 | Segundo recorte de R2 e interface | PR #19, com talento Sortudo e correções descritas abaixo |
+
+O check-up pedido após a publicação encontrou **14 grupos de divergências**.
+Foram 3.321 verificações do motor/catálogos, com 24 casos divergentes, e 15
+casos de interface, com 11 divergências parcialmente repetidas. Espaços e
+limites/recuperações verificados passaram em 820 estados das 41 subclasses;
+isso não certifica todos os efeitos. Achados, páginas, reproduções, comandos e
+prioridades ficam somente em
+[Check-up profundo](AUDITORIA-LIVRO-2014.md#check-up-profundo-de-23102026).
+Passaram nesta rodada 433 testes Node, tipos/build e três roteiros Chromium
+existentes; os diagnósticos adicionais registram as pendências, sem mascará-las
+como testes verdes. A versão pública permanece a entrega de 22/10.
 
 A organização documental e **R1 — bônus ausentes nos cálculos** foram integradas
 em `develop`, junto do primeiro recorte de **R2 — rolagens e gastos condicionais**
@@ -31,7 +44,7 @@ em `develop`, junto do primeiro recorte de **R2 — rolagens e gastos condiciona
 O segundo recorte implementou o **talento Sortudo**, com uma reserva de três
 pontos e escolha do d20 nos controles existentes. Escopo e limites estão na
 [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md#roteiro-de-implementação).
-Os próximos recortes de R2 cobrem as demais rerrolagens/dados mínimos,
+Depois dos achados do check-up, os próximos recortes de R2 cobrem as demais rerrolagens/dados mínimos,
 -5/+10 e adicionais de talentos/estilos. As matrizes e os critérios ficam naquele arquivo. Não
 marcar uma mecânica como concluída por ter descrição, escolha ou contador.
 
@@ -93,8 +106,9 @@ Incluídos 320px/GG/três temas, fonte dos dados e livrinho em modal, nós/rascu
 proposta antiga, recarga e limites de retenção/conflitos em duas contas.
 Após o ajuste visual final, repetidos origens, revisão clara e setores.
 O PDF pessoal foi conferido na etapa anterior, sem alterar o original ou incluir
-dados pessoais no repositório. Conferir a CI do último commit da PR #19 antes
-de publicar; verificações anteriores ficam no changelog.
+dados pessoais no repositório. A CI e a publicação dessa entrega foram concluídas
+no workflow acima; verificações anteriores ficam no changelog. A auditoria
+posterior tem seu registro próprio e não alterou o PDF pessoal.
 
 **Retenção remota ativa:** após aprovação explícita, aplicada ao CritCall a
 migração local `20261022212048_bounded_sync_versions.sql`, versão remota
@@ -121,9 +135,10 @@ build; não precisa copiar `.env.local`. A porta 5173 pertence a outro aplicativ
 na máquina original.
 
 Em um clone existente, confira `git status`, preserve trabalho pendente e faça
-`git fetch origin`. Esta entrega encerra
-`feature/talento-sortudo-r2`. Para a próxima tarefa, parta do `develop` público
-atualizado e crie `feature/*` ou `fix/*`. Entregue por PR para
+`git fetch origin`. A entrega anterior encerrou `feature/talento-sortudo-r2`.
+Para continuar a revisão ainda não integrada, use
+`feature/auditoria-profunda-2014`. Para uma nova tarefa, parta do `develop`
+público atualizado e crie `feature/*` ou `fix/*`. Entregue por PR para
 `develop`; após revisão e aprovação, PR para `main`. Não fazer push direto à
 `main`, enviar tags extras ou mesclar o histórico privado do protótipo.
 
@@ -132,9 +147,11 @@ Texto para iniciar outra conversa:
 > Continue o CritCall. Leia AGENTS.md, docs/RETOMADA.md, README.md,
 > CHANGELOG.md e docs/ARQUITETURA.md. Confira a branch e o estado do Git.
 > O roteiro atual de regras está em docs/AUDITORIA-LIVRO-2014.md. Confira
-> as PRs #19/#20 e o resultado da publicação. Crie uma branch de develop
-> atualizado e continue os gastos/rerrolagens restantes de R2. Não repetir
-> Sortudo nem confundir o traço racial com o talento.
+> o check-up de 23/10 e os achados A01–A14 antes de ampliar R2. A revisão está
+> em feature/auditoria-profunda-2014; a versão publicada é beed393, PR #20.
+> Confira a branch pendente antes de criar outra. Não repetir Sortudo nem
+> confundir o traço racial com o talento. Esta rodada de auditoria não altera
+> a aplicação publicada; os ajustes dependem da próxima tarefa autorizada.
 
 ## Mapa dos documentos
 

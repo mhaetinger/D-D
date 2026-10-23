@@ -1,7 +1,7 @@
 # Regras de 2014: cobertura e roteiro
 
-Auditoria inicial em **19/10/2026**, implementações até **22/10/2026** e estado
-consolidado em **22/10/2026**. Este é o registro único de progresso das mecânicas.
+Auditoria inicial em **19/10/2026**, implementações até **22/10/2026** e novo
+check-up em **23/10/2026**. Este é o registro único de progresso das mecânicas.
 Para branch, publicação e validações externas, consulte [RETOMADA.md](RETOMADA.md).
 Contratos técnicos ficam em [ARQUITETURA.md](ARQUITETURA.md); entregas/testes
 históricos, no [CHANGELOG.md](../CHANGELOG.md).
@@ -29,6 +29,139 @@ correspondente e o changelog na mesma entrega. Só conclua uma etapa depois de
 conferir seus critérios; marcar um item parcial não conclui a família inteira.
 Use fichas sintéticas e preserve fórmulas manuais, dados, notas e escolhas antigas.
 
+## Check-up profundo de 23/10/2026
+
+**Resultado: há divergências confirmadas; a versão não recebe um selo de
+conformidade integral.** Esta rodada é de diagnóstico e documentação. Nenhuma
+regra executável, catálogo distribuído, ficha real, dado flutuante ou serviço
+remoto foi alterado. Os ajustes dos itens abaixo ficam para a próxima etapa.
+
+Base: entrega publicada `beed393` / `develop` `8ce0c0d`, com o mesmo conteúdo
+executável e revisão offline `8c517c3c837af0c0`. O exemplar local de 314 páginas
+continua sendo a fonte principal, com Patrulheiro Revisado e as adaptações já
+registradas. Páginas abaixo são **do PDF**, não da numeração impressa.
+O Livro do Mestre permanece consulta de 322 páginas: esta rodada não homologa
+cargas/sintonização de todos os itens mágicos nem ativa suas regras opcionais.
+
+### O que foi cruzado
+
+- Reextração isolada do PDF em pasta temporária: magias, equipamento e
+  referências ficaram idênticos byte a byte aos três catálogos existentes.
+  Isso confirma a origem/reprodutibilidade, inclusive dos problemas herdados
+  da fonte; não certifica cada interpretação feita pelo motor.
+- 12 classes / 41 subclasses nos níveis 1–20: **820 estados** de progressão;
+  espaços comparados à tabela de 2014 e às progressões próprias de classes
+  únicas. **593 verificações de limites/regimes de recuperação**, **589 ciclos
+  de gasto e descanso curto/longo** nas reservas finitas, **60 verificações de
+  limites/círculos de Pacto** e **60 ciclos de sua recuperação** sem divergências
+  nos contratos verificados. Não simula todas as ações de cada característica
+  em combate.
+- 368 ocorrências de características de classe/subclasse, com **693 consultas
+  contextualizadas** por repetir características-base nas subclasses; 66 traços
+  nas opções raciais, 13 antecedentes, 42 talentos, 361 magias e 1.073 referências
+  (958 cabeçalhos + 115 parágrafos raciais). Presença de texto e metadados passou;
+  a fidelidade semântica foi conferida nos casos reproduzidos abaixo.
+- Diagnóstico puro: **3.321 verificações, 24 casos divergentes**, agrupados em
+  A01–A12. A repetição de tabelas/presença não é percentual de cobertura do livro.
+  Diagnóstico de interface: **15 casos, 11 divergentes**, incluindo A13/A14 e
+  reproduções de achados do motor. Os totais não devem ser somados como se
+  fossem problemas distintos.
+- Nesta rodada passaram **433 testes Node, tipos/build e três roteiros
+  Chromium existentes**: cenários auditados anteriores (32 cenários), ajudas e
+  consulta de características. O novo diagnóstico em Chromium usou `/D-D/`,
+  rede externa bloqueada, dados fictícios e captura em 390px/GG; não gerou erros
+  JavaScript. A suíte completa de 32 roteiros aprovada na publicação anterior
+  não foi repetida inteira nesta auditoria. Não houve SQL/RLS/RPC.
+
+### Divergências e ordem de correção
+
+P1: cálculo, gasto ou restrição que pode mudar o resultado do jogo. P2:
+consulta/indicação ou duração que precisa ser corrigida, mantendo o contexto
+manual da mesa. Os IDs são a fila desta revisão, dentro deste documento.
+
+| ID / prioridade | Livro e comportamento esperado | Reproduzido na aplicação | Onde corrigir / etapa |
+| --- | --- | --- | --- |
+| A01 · P1 | CON permanente muda os PV retroativamente, PDF 178 | Guerreiro 5, CON 14 → 16: digitar mantém 44 PV máximos; os botões +/− chegam corretamente a 49. A mesma alteração percorre contratos diferentes | `sheet-edit/model.ts`, `rules/combat.ts`; unificar o ajuste, preservando dano sofrido e valores manuais |
+| A02 · P1 | Proficiências do druida, PDF 71; nomes das armas na tabela, PDF 150 | Druida criado pelo assistente fica sem proficiência automática com **Foice Curta** e **Porrete**. Texto de classe usa foices/clavas; detecção de combate não resolve os nomes do catálogo. Sem o texto de proficiências, Maça também falha | `rules/combat.ts`, `isProficient`; normalizar aliases exatos sem conceder armas parecidas |
+| A03 · P1 | Componentes simultâneos de dano, PDFs 225, 226, 285 | **Chuva de Meteoros**: 20d6 fogo + 20d6 concussão vira só 20d6; **Coluna de Chamas**: 4d6 fogo + 4d6 radiante vira só 4d6; **Tempestade de Gelo**: 2d8 concussão + 4d6 frio vira só 2d8. Prévia e rolagem herdam o primeiro componente | `character-engine.js:spellMeta`, `rules/spell-effects.ts`; R5, manter componentes e tipos separados |
+| A04 · P1 | Escalonamento específico, PDFs 218, 251–252, 271 | **Raio de Bruxa** no 3º círculo mantém 1d12 no dano inicial, em vez de 3d12. **Lâmina Flamejante** no 3º/4º mostra 4d6/5d6, em vez de 3d6/4d6. **Arma Espiritual** no 3º/4º mostra 2d8/3d8, em vez de 1d8/2d8, antes do modificador. O algoritmo não distingue dano inicial nem aumentos a cada dois círculos | `rules/spell-effects.ts`; R5, separar regras de escalonamento e dano posterior |
+| A05 · P1 | Modificadores de dano, PDFs 99 e 218 | **Evocação Potencializada**, mago 10/INT 16: Bola de Fogo sai 8d6 em vez de 8d6+3. **Arma Espiritual**, SAB 16: sai 1d8 em vez de 1d8+3 | `rules/spell-effects.ts`; complemento de bônus ausentes/R3–R5, sem somar por raio ou afetar fórmulas manuais |
+| A06 · P1 | **Atletismo Extraordinário** arredonda metade da proficiência para cima, PDF 84 | Campeão 7/DES 14: iniciativa sai +3 em vez de +4. Acrobacia sem proficiência sai +2 em vez de +4. A iniciativa usa o arredondamento de Versatilidade e a perícia ignora o benefício | `rules/combat.ts:initiativeBonus`, `rules/passives.ts:skillBonus`; bônus elegível uma única vez, com casos proficientes e multiclasse |
+| A07 · P1 | **Invocar Duplicidade** e **Presença Dracônica** exigem concentração como uma magia, PDFs 67 e 80 | Ativar mantém Bênção/Voo em concentração e deixa o recurso ativo em paralelo. O custo é descontado, mas a característica não participa da troca, dos testes e do encerramento da concentração | `rules/resources.ts`, `rules/ui.ts`, `rules/concentration.ts`; R3, reutilizar confirmação/fila existentes e não cobrar ao cancelar |
+| A08 · P1 | Magia Duplicada/Gêmea exige uma magia que tenha uma criatura como alvo elegível, PDF 79; descrições em 248, 250, 255 | **Ilusão Menor**, **Imagem Silenciosa** e **Mãos Mágicas** recebem elegibilidade; Ilusão Menor mostra efetivamente o botão Gêmea. Criar som/imagem/mão não satisfaz essa condição | `character-engine.js:spellMeta`, `rules/spell-effects.ts:twinEligible`; R5, preservar a adaptação explícita de Mísseis Mágicos |
+| A09 · P1 · fonte | **Onda Destrutiva**, PDF 264 | O próprio PDF, conferido visualmente, imprime **5d5** trovejante, além do componente radiante/necrótico. A extração preserva 5d5 e a fórmula do motor é inválida para o rolador. Conjurar recusa o lançamento, inclusive em OFF, sem gastar o espaço | Registrar correção de fonte/errata de 2014 de forma explícita e testada; não editar o catálogo gerado manualmente nem chamar esse erro de adaptação aprovada |
+| A10 · P2 | Descrição de **Zona da Verdade** termina antes do apêndice, PDFs 288–289 | O extrator continua a última magia na página de condições. O livrinho/balão inclui **APÊNDICE A: CONDIÇÕES** e regras alheias à magia | `scripts/extract-phb.py`, limites da extração; regenerar e verificar preservação das outras 360 descrições |
+| A11 · P2 | **Raio Solar** cria uma linha de 18 m, PDF 273 | O metadado indica esfera, escolhido pelo raio de iluminação mencionado depois no texto. A área do efeito e a área da luz foram confundidas | `character-engine.js:spellMeta`; priorizar a geometria explícita e testar o indicativo do cartão |
+| A12 · P2 | **Asas de Dragão** duram até dissipar por ação bônus, PDF 80 | O descanso curto desativa as asas automaticamente. A limpeza comum apaga um estado sem esse término previsto | `rules/resources.ts:resetResources`; preservar efeitos duradouros, com transições de descanso específicas |
+| A13 · P1 · contrato de uso | OFF registra dados físicos, conforme o contrato do projeto no README | **Retomar o Fôlego** em OFF chama `Math.random`, gasta o uso e cura imediatamente: no teste, 10 → 16 PV, sem perguntar a face física. Intervenção, Presságio e cura da forma também merecem revisar o caminho interno de dados; não foram todos reproduzidos nesta rodada | `rules/ui.ts`; oferecer o fluxo físico/virtual existente e manter o gasto após validação/decisão |
+| A14 · P1 · tempo de jogo | Após sucesso em **Intervenção Divina**, esperar sete dias, PDF 65 | O botão grava `Date.now() + 7 dias` e a disponibilidade depende do relógio real. Não há ação para registrar que a semana transcorreu na aventura; o bloqueio não acompanha o tempo ficcional da mesa | `rules/ui.ts`, `rules/resources.ts:remaining`; distinguir tempo da aventura de tempo real, com registro explícito da mesa sem liberar por qualquer descanso isolado |
+
+As verificações A03 e A04 conferem os casos citados, não todas as famílias de
+magia. Fome de Hadar tem momentos diferentes para frio/ácido; Escudo de Fogo
+tem alternativas; Rajada/Muralha Prismática têm resultados por cor; Tempestade
+da Vingança tem fases. A busca pelo primeiro dado também é insuficiente nesses
+casos, mas somar todos os dados do texto não seria uma correção válida.
+Sono e Regeneração não têm fórmula automática completa no fluxo atual.
+
+### Usos e limites que continuam manuais
+
+As matrizes abaixo continuam sendo o roteiro R2–R6. A presença de contador ou
+livrinho não conclui a característica. Nesta rodada foram reinspecionados:
+
+- Invocações de conjuração como **Armadura de Sombras**, **Vigor Abissal** e
+  **Escultor de Carne**: a escolha/descrição existe; não há vínculo automático
+  completo entre a magia, eventual espaço de Pacto e o uso diário. Não adicionar
+  um contador paralelo ao implementar a conjuração. Não confundir invocação
+  conhecida com concessão automática de uma magia conhecida de bruxo.
+- Sopro do draconato: ancestralidade/consulta e resistência por tipo existem;
+  gasto, alvos, resistência do alvo e dano não estão resolvidos. Ancestralidade
+  racial e Linhagem Dracônica seguem independentes; não deduzir pela pele.
+- Forma Selvagem/companheiro: PV e usos parciais existem, mas estatísticas,
+  capacidades da criatura e escolha/custo de elemental seguem em R4.
+- Outros gatilhos, imunidades/auras, rerrolagens, manobras, talentos e início de
+  combate seguem em R2/R3. Munição, recarga, consumíveis, efeitos/cargas de itens
+  mágicos e contexto de equipamento continuam em R6/mesa.
+- Duração, economia de ações/reações, alcance, cobertura, alvo e benefício
+  recebido de aliado exigem contexto. A ajuda deve dizer quando a resolução é
+  manual; o nome **Do catálogo** comprova vínculo à fonte, não homologação de
+  todo efeito. Uma indicação compacta de resolução manual é preferível a uma
+  fórmula parcial apresentada como completa.
+
+O hover com atraso, livrinho e consulta por toque/teclado passaram nos roteiros
+existentes. Os problemas A08–A11 mostram que interface de ajuda funcionando e
+conteúdo correto são verificações distintas. Ancestral Feérico, Versatilidade
+em Perícia e Pesquisador continuam com consulta própria, sem reabrir as falhas
+antigas já corrigidas.
+
+Para esclarecer dúvidas de 2014 foi consultado o
+[Sage Advice Compendium v2.4](https://media.wizards.com/2019/dnd/downloads/SA-Compendium.pdf),
+particularmente Magia Gêmea e distinções de proficiência/rolagem. Não foi usado
+o conjunto de 2024. A página oficial da versão antiga de Onda Destrutiva exige
+acesso ao livro; não foi usada como prova acessível para alterar silenciosamente
+o valor da tradução local.
+
+### Repetir e fechar os achados
+
+```sh
+node --import tsx scripts/audit-book-consistency.cjs > /tmp/critcall-regras.json
+npm run build
+node --import tsx scripts/audit-book-ui.cjs > /tmp/critcall-interface.json
+```
+
+Os dois scripts são diagnósticos, usam apenas fichas fictícias e **código 0
+significa execução concluída**, não regras aprovadas. Inspecionar `divergences`
+e `matches`; não estão encadeados como teste verde em `npm test`. `sourceCommit`
+identifica a revisão e o diagnóstico Chromium inclui `buildRevision`.
+No ambiente local original, usar
+`PLAYWRIGHT_HOST_PLATFORM_OVERRIDE=ubuntu24.04-x64` ao chamar Chromium.
+
+Ao corrigir cada ID: guardar o comportamento esperado em regressão efetiva,
+exigir prévia/rolagem/uso coerentes, conferir físico/virtual e cancelamento,
+preservar ajustes e dados anteriores, atualizar esta seção e a matriz pertinente.
+Priorizar A01–A09/A13/A14 antes de retomar novas automações de R2. A10–A12 seguem
+na mesma fila para não perder o resultado do check-up. Não declarar R2–R6
+concluídas com a correção desses casos.
+
 ## Roteiro de implementação
 
 A ordem começa pelos números que o jogador pode presumir já calculados. Cada
@@ -37,7 +170,7 @@ reescrever a ficha nem automatizar toda decisão da mesa.
 
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
-| R1 — bônus nos cálculos | **Implementada; entrega da PR #20** | Quatro passivos integrados com elegibilidade e preservação de valores manuais. Tipos variáveis/efeitos posteriores seguem em R5. |
+| R1 — bônus nos cálculos | **Quatro passivos entregues; novos achados priorizados** | O recorte original continua implementado. O check-up identificou bônus/modificadores adicionais ausentes e inconsistência de PV em A01/A05/A06; corrigir antes do próximo recorte de R2. Tipos variáveis/efeitos posteriores seguem em R5. |
 | R2 — rolagens e gastos condicionais | **Segundo recorte implementado; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo implementados na entrega da PR #20. Faltam demais rerrolagens/dados mínimos, -5/+10 e adicionais de talentos/estilos. Integrar escolha/gasto à jogada pertinente, sem duplicar reservas ou aplicar bônus a jogadas inelegíveis. |
 | R3 — condições, defesas e características | Planejada; já há cobertura parcial | Completar efeitos das condições, imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
@@ -282,7 +415,7 @@ casos corrigidos como se toda a funcionalidade estivesse ausente.
 - Os testes de progressão até o nível 20 verificam os contratos cobertos pelos
   testes. **Não certificam a execução de cada característica, talento ou magia**.
   Não foi simulado um combate para cada combinação possível. O Livro do Mestre
-  não faz parte desta auditoria.
+  não tem suas mecânicas integralmente auditadas; continua uma fonte de consulta.
 
 ## Todos os capítulos e apêndices
 
@@ -321,7 +454,7 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 | Clérigo, 62–69 | Conhecimento; Enganação; Guerra; Luz; Natureza; Tempestade; Vida | Preparação/domínios, Canalizar compartilhado, usos e Intervenção | Efeitos de cada domínio no alvo, cura/dano condicionado e Expulsar/Destruir Mortos-Vivos por ND |
 | Druida, 70–75 | Terra; Lua | Preparação/círculo, Forma Selvagem/PV, cura da Lua, Recuperação Natural e concentração mantida na transformação | Bloco de besta/estatísticas e custo de elemental; CON da forma informada no teste |
 | Feiticeiro, 76–81 | Magia Selvagem; Linhagem Dracônica | Feitiçaria/metamágica, conversão, Marés, CA, resistência e bônus inicial de Afinidade Elemental nos casos reconhecidos | Surto/gatilhos, tipos variáveis/efeitos posteriores e elegibilidade completa de metamagias; adaptações identificadas |
-| Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa de Atleta Extraordinário | Outros testes de Atleta; rerrolagem de Combate com Armas Grandes; manobras/reações; Sobrevivente |
+| Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa parcial de Atletismo Extraordinário | A06: iniciativa arredonda errado e perícias físicas sem treino ignoram o bônus; A13: Retomar em OFF. Rerrolagem de Combate com Armas Grandes; manobras/reações; Sobrevivente |
 | Ladino, 88–92 | Ladrão; Assassino; Trapaceiro Arcano | Especialização, composição de Ataque Furtivo, Esquiva/Evasão, usos avançados, magias e Talento Confiável nas perícias da ficha (R2 inicial) | Testes com ferramentas na mesa; surpresa/Assassinar e Ação Ardilosa |
 | Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, Dominar/Assinatura, recuperação, Proteção Arcana inclusive multiclasse, Conjuração Focada, Presságio e usos/estados de escola | Efeitos por alvo, demais bônus de escola, lacaios, pedra e Sobrecarga; fluxo de troca temporal das escolhas |
 | Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi, movimento/CA, curas/usos, Evasão e defesas de Pureza Corporal/Corpo Vazio no dano por tipo | Imunidade a condições, Artes Marciais/dano desarmado em todas as condições, Atordoar/Defletir Projéteis e recuperação ao iniciar combate |
@@ -453,8 +586,10 @@ produção atual. O relatório detalhado anterior pode ser recuperado com
 `git show de3eda0:docs/AUDITORIA-LIVRO-2014.md`; changelog e arquitetura preservam
 as implementações e seus contratos.
 
-A última versão publicada passou 385 testes Node, tipos/build, 25 roteiros
-Chromium e banco descartável na CI, conforme [RETOMADA.md](RETOMADA.md).
+A entrega publicada em 22/10 passou 433 testes Node, tipos/build, 32 roteiros
+Chromium e banco descartável na
+[CI da main](https://github.com/mhaetinger/D-D/actions/runs/39861954879),
+conforme [RETOMADA.md](RETOMADA.md).
 Esses números não são porcentagem de cobertura do livro. A consolidação documental anterior
 não repetiu a auditoria integral do PDF. As verificações específicas da entrega
 R1 ficam na seção correspondente, sem certificar as etapas R2–R6.
