@@ -133,6 +133,17 @@ e efeitos nos alvos ficam com a mesa. **Só Pool** deixa a conjuração na mesa;
 **OFF** permite registrá-la sem dados virtuais. **Registrar efeito da mesa**
 acompanha um efeito resolvido fora dos botões, sem gastar espaços ou usos.
 
+Recursos com resultado aleatório, como Retomar o Fôlego, cura da Lua e Presságio,
+usam a escolha de dado físico ou virtual antes de aplicar o resultado. Cancelar
+mantém os usos. Intervenção Divina bem-sucedida aguarda sete dias na aventura;
+**Registrar semana transcorrida** libera após a confirmação da mesa. Um descanso
+isolado não encerra essa espera.
+
+Nos danos mistos auditados, a prévia e o resultado distinguem os componentes e
+seus subtotais; resistências e escolhas de tipo do alvo continuam na mesa.
+A consulta de Onda Destrutiva informa a correção editorial de 5d5 para 5d6 no
+catálogo, mantendo o PDF original.
+
 ## Dado flutuante e retratos
 
 O dado começa recolhido ao abrir a aplicação ou trocar de conta. Mostra **20**

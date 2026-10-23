@@ -1,6 +1,6 @@
 # Regras de 2014: cobertura e roteiro
 
-Auditoria inicial em **19/10/2026**, implementações até **22/10/2026** e novo
+Auditoria inicial em **19/10/2026**, implementações até **23/10/2026** e novo
 check-up em **23/10/2026**. Este é o registro único de progresso das mecânicas.
 Para branch, publicação e validações externas, consulte [RETOMADA.md](RETOMADA.md).
 Contratos técnicos ficam em [ARQUITETURA.md](ARQUITETURA.md); entregas/testes
@@ -31,10 +31,11 @@ Use fichas sintéticas e preserve fórmulas manuais, dados, notas e escolhas ant
 
 ## Check-up profundo de 23/10/2026
 
-**Resultado: há divergências confirmadas; a versão não recebe um selo de
-conformidade integral.** Esta rodada é de diagnóstico e documentação. Nenhuma
-regra executável, catálogo distribuído, ficha real, dado flutuante ou serviço
-remoto foi alterado. Os ajustes dos itens abaixo ficam para a próxima etapa.
+**Resultado da base publicada em 22/10: 14 grupos de divergências confirmadas.**
+O primeiro commit desta rodada registrou somente o diagnóstico. Após autorização
+do responsável para corrigir, A01–A14 foram implementados na mesma branch; a
+validação e os limites ficam abaixo. Fichas reais, dado flutuante e serviço remoto
+foram preservados. A aplicação não recebe um selo de conformidade integral.
 
 Base: entrega publicada `beed393` / `develop` `8ce0c0d`, com o mesmo conteúdo
 executável e revisão offline `8c517c3c837af0c0`. O exemplar local de 314 páginas
@@ -73,28 +74,81 @@ cargas/sintonização de todos os itens mágicos nem ativa suas regras opcionais
   JavaScript. A suíte completa de 32 roteiros aprovada na publicação anterior
   não foi repetida inteira nesta auditoria. Não houve SQL/RLS/RPC.
 
+### Correções de 23/10/2026
+
+**A01–A14 implementados e validados nesta branch; integração pendente.** A tabela da
+seção seguinte preserva as reproduções da base publicada, para rastrear os erros.
+
+- **A01/A02/A06:** digitação e botões compartilham o ajuste retroativo de CON,
+  conservando dano sofrido, totais manuais e 0 PV; druida reconhece os nomes do
+  catálogo; Atletismo Extraordinário aplica metade arredondada para cima nos
+  testes físicos sem treino, sem acumular Versatilidade ou modificar resistências.
+- **A03–A05:** componentes simultâneos separados em Chuva de Meteoros, Coluna de
+  Chamas, Tempestade de Gelo e Onda Destrutiva; aumentos próprios de Raio de Bruxa,
+  Lâmina Flamejante e Arma Espiritual; modificador de conjuração e Evocação
+  Potencializada. Fórmula própria continua tendo precedência. Tipos variáveis e
+  dados adicionais à escolha ficam identificados para resolução na mesa.
+- **A07/A12:** Duplicidade e Presença Dracônica compartilham concentração,
+  confirmação antes do custo, fila de dano e encerramento. Descansos não
+  dissipam Asas de Dragão. Características de concentração encerradas também
+  perdem o estado ativo, sem conceder usos de volta.
+- **A08/A10/A11:** imagens/mão dos três casos deixam de oferecer Gêmea;
+  Zona da Verdade termina antes do apêndice; a linha explícita de Raio Solar
+  tem precedência sobre a iluminação descrita. Fichas anteriores usam o
+  indicativo corrigido sem apagar os campos salvos/adaptações.
+- **A09:** correção editorial explícita no extrator de **5d5 para 5d6** no
+  componente trovejante de Onda Destrutiva (Destructive Wave, PHB 2014, p. 231).
+  O catálogo e a consulta informam a divergência com o exemplar local; não se
+  apresenta como errata oficial da tradução. O PDF permanece intacto. Apenas
+  Onda Destrutiva e Zona da Verdade mudaram no catálogo de 361 magias; as outras
+  359 entradas e os catálogos de equipamento/referências foram preservados.
+- **A13/A14:** Retomar o Fôlego, cura da Lua, Presságio inicial/no descanso e
+  Intervenção usam escolha físico/virtual e validação antes do gasto. No nível
+  20, Intervenção tem sucesso sem sortear d100. Novos sucessos aguardam sete dias
+  **na aventura**, com confirmação explícita da semana; descansos não liberam.
+  Bloqueios antigos ficam legíveis e podem usar a mesma confirmação, preservando
+  compatibilidade com o prazo anteriormente gravado.
+
+Passaram **448 testes Node, tipos/build, 3.321 verificações puras sem
+divergências e 32 casos de interface sem divergências**. Os casos de interface
+incluem subtotais de dano por tipo usando as mesmas faces roladas, testes
+diretos de atributos nos dois layouts, dados físicos/virtuais, Presságio no
+descanso, cancelamento e 390px/GG. A suíte completa de **33 roteiros Chromium**
+passou. Após o último ajuste de compatibilidade/validação, repetidos Node/build
+e os cinco roteiros pertinentes (passivos, rolagens condicionais, concentração,
+PV e os 32 casos desta correção), todos aprovados. Reextração isolada reproduziu
+os três catálogos corrigidos byte a byte. Não houve alteração SQL/RLS/RPC nem
+publicação; a produção continua a entrega de 22/10.
+
+Regressões em `tests/audit-corrections.test.ts` e
+`tests/audit-corrections-browser.cjs`, este último encadeado em `test:browser`.
+Os diagnósticos anteriores continuam disponíveis e passam a refletir a versão
+corrigida; evidências originais ficam no histórico Git/artefatos locais, sem
+transformar resultados errados em expectativas aceitas.
+
 ### Divergências e ordem de correção
 
 P1: cálculo, gasto ou restrição que pode mudar o resultado do jogo. P2:
 consulta/indicação ou duração que precisa ser corrigida, mantendo o contexto
-manual da mesa. Os IDs são a fila desta revisão, dentro deste documento.
+manual da mesa. As reproduções se referem ao diagnóstico original; A01–A14 têm
+correções nesta branch. Os IDs são a fila desta revisão, dentro deste documento.
 
-| ID / prioridade | Livro e comportamento esperado | Reproduzido na aplicação | Onde corrigir / etapa |
+| ID / prioridade | Livro e comportamento esperado | Reproduzido na aplicação | Estado da correção nesta branch |
 | --- | --- | --- | --- |
-| A01 · P1 | CON permanente muda os PV retroativamente, PDF 178 | Guerreiro 5, CON 14 → 16: digitar mantém 44 PV máximos; os botões +/− chegam corretamente a 49. A mesma alteração percorre contratos diferentes | `sheet-edit/model.ts`, `rules/combat.ts`; unificar o ajuste, preservando dano sofrido e valores manuais |
-| A02 · P1 | Proficiências do druida, PDF 71; nomes das armas na tabela, PDF 150 | Druida criado pelo assistente fica sem proficiência automática com **Foice Curta** e **Porrete**. Texto de classe usa foices/clavas; detecção de combate não resolve os nomes do catálogo. Sem o texto de proficiências, Maça também falha | `rules/combat.ts`, `isProficient`; normalizar aliases exatos sem conceder armas parecidas |
-| A03 · P1 | Componentes simultâneos de dano, PDFs 225, 226, 285 | **Chuva de Meteoros**: 20d6 fogo + 20d6 concussão vira só 20d6; **Coluna de Chamas**: 4d6 fogo + 4d6 radiante vira só 4d6; **Tempestade de Gelo**: 2d8 concussão + 4d6 frio vira só 2d8. Prévia e rolagem herdam o primeiro componente | `character-engine.js:spellMeta`, `rules/spell-effects.ts`; R5, manter componentes e tipos separados |
-| A04 · P1 | Escalonamento específico, PDFs 218, 251–252, 271 | **Raio de Bruxa** no 3º círculo mantém 1d12 no dano inicial, em vez de 3d12. **Lâmina Flamejante** no 3º/4º mostra 4d6/5d6, em vez de 3d6/4d6. **Arma Espiritual** no 3º/4º mostra 2d8/3d8, em vez de 1d8/2d8, antes do modificador. O algoritmo não distingue dano inicial nem aumentos a cada dois círculos | `rules/spell-effects.ts`; R5, separar regras de escalonamento e dano posterior |
-| A05 · P1 | Modificadores de dano, PDFs 99 e 218 | **Evocação Potencializada**, mago 10/INT 16: Bola de Fogo sai 8d6 em vez de 8d6+3. **Arma Espiritual**, SAB 16: sai 1d8 em vez de 1d8+3 | `rules/spell-effects.ts`; complemento de bônus ausentes/R3–R5, sem somar por raio ou afetar fórmulas manuais |
-| A06 · P1 | **Atletismo Extraordinário** arredonda metade da proficiência para cima, PDF 84 | Campeão 7/DES 14: iniciativa sai +3 em vez de +4. Acrobacia sem proficiência sai +2 em vez de +4. A iniciativa usa o arredondamento de Versatilidade e a perícia ignora o benefício | `rules/combat.ts:initiativeBonus`, `rules/passives.ts:skillBonus`; bônus elegível uma única vez, com casos proficientes e multiclasse |
-| A07 · P1 | **Invocar Duplicidade** e **Presença Dracônica** exigem concentração como uma magia, PDFs 67 e 80 | Ativar mantém Bênção/Voo em concentração e deixa o recurso ativo em paralelo. O custo é descontado, mas a característica não participa da troca, dos testes e do encerramento da concentração | `rules/resources.ts`, `rules/ui.ts`, `rules/concentration.ts`; R3, reutilizar confirmação/fila existentes e não cobrar ao cancelar |
-| A08 · P1 | Magia Duplicada/Gêmea exige uma magia que tenha uma criatura como alvo elegível, PDF 79; descrições em 248, 250, 255 | **Ilusão Menor**, **Imagem Silenciosa** e **Mãos Mágicas** recebem elegibilidade; Ilusão Menor mostra efetivamente o botão Gêmea. Criar som/imagem/mão não satisfaz essa condição | `character-engine.js:spellMeta`, `rules/spell-effects.ts:twinEligible`; R5, preservar a adaptação explícita de Mísseis Mágicos |
-| A09 · P1 · fonte | **Onda Destrutiva**, PDF 264 | O próprio PDF, conferido visualmente, imprime **5d5** trovejante, além do componente radiante/necrótico. A extração preserva 5d5 e a fórmula do motor é inválida para o rolador. Conjurar recusa o lançamento, inclusive em OFF, sem gastar o espaço | Registrar correção de fonte/errata de 2014 de forma explícita e testada; não editar o catálogo gerado manualmente nem chamar esse erro de adaptação aprovada |
-| A10 · P2 | Descrição de **Zona da Verdade** termina antes do apêndice, PDFs 288–289 | O extrator continua a última magia na página de condições. O livrinho/balão inclui **APÊNDICE A: CONDIÇÕES** e regras alheias à magia | `scripts/extract-phb.py`, limites da extração; regenerar e verificar preservação das outras 360 descrições |
-| A11 · P2 | **Raio Solar** cria uma linha de 18 m, PDF 273 | O metadado indica esfera, escolhido pelo raio de iluminação mencionado depois no texto. A área do efeito e a área da luz foram confundidas | `character-engine.js:spellMeta`; priorizar a geometria explícita e testar o indicativo do cartão |
-| A12 · P2 | **Asas de Dragão** duram até dissipar por ação bônus, PDF 80 | O descanso curto desativa as asas automaticamente. A limpeza comum apaga um estado sem esse término previsto | `rules/resources.ts:resetResources`; preservar efeitos duradouros, com transições de descanso específicas |
-| A13 · P1 · contrato de uso | OFF registra dados físicos, conforme o contrato do projeto no README | **Retomar o Fôlego** em OFF chama `Math.random`, gasta o uso e cura imediatamente: no teste, 10 → 16 PV, sem perguntar a face física. Intervenção, Presságio e cura da forma também merecem revisar o caminho interno de dados; não foram todos reproduzidos nesta rodada | `rules/ui.ts`; oferecer o fluxo físico/virtual existente e manter o gasto após validação/decisão |
-| A14 · P1 · tempo de jogo | Após sucesso em **Intervenção Divina**, esperar sete dias, PDF 65 | O botão grava `Date.now() + 7 dias` e a disponibilidade depende do relógio real. Não há ação para registrar que a semana transcorreu na aventura; o bloqueio não acompanha o tempo ficcional da mesa | `rules/ui.ts`, `rules/resources.ts:remaining`; distinguir tempo da aventura de tempo real, com registro explícito da mesa sem liberar por qualquer descanso isolado |
+| A01 · P1 | CON permanente muda os PV retroativamente, PDF 178 | Guerreiro 5, CON 14 → 16: digitar mantém 44 PV máximos; os botões +/− chegam corretamente a 49. A mesma alteração percorre contratos diferentes | **Corrigido:** `sheet-edit/model.ts` e `rules/combat.ts` compartilham ajuste retroativo e preservação do déficit. |
+| A02 · P1 | Proficiências do druida, PDF 71; nomes das armas na tabela, PDF 150 | Druida criado pelo assistente fica sem proficiência automática com **Foice Curta** e **Porrete**. Texto de classe usa foices/clavas; detecção de combate não resolve os nomes do catálogo. Sem o texto de proficiências, Maça também falha | **Corrigido:** `rules/combat.ts` reconhece os dez nomes do catálogo na lista do druida; ajuste explícito continua soberano. |
+| A03 · P1 | Componentes simultâneos de dano, PDFs 225, 226, 285 | **Chuva de Meteoros**: 20d6 fogo + 20d6 concussão vira só 20d6; **Coluna de Chamas**: 4d6 fogo + 4d6 radiante vira só 4d6; **Tempestade de Gelo**: 2d8 concussão + 4d6 frio vira só 2d8. Prévia e rolagem herdam o primeiro componente | **Corrigido nos casos citados:** metadados/resolvedor mantêm componentes e tipos; resultado mostra subtotais das mesmas faces, sem nova rolagem. |
+| A04 · P1 | Escalonamento específico, PDFs 218, 251–252, 271 | **Raio de Bruxa** no 3º círculo mantém 1d12 no dano inicial, em vez de 3d12. **Lâmina Flamejante** no 3º/4º mostra 4d6/5d6, em vez de 3d6/4d6. **Arma Espiritual** no 3º/4º mostra 2d8/3d8, em vez de 1d8/2d8, antes do modificador. O algoritmo não distingue dano inicial nem aumentos a cada dois círculos | **Corrigido nos casos citados:** escalonamento inicial e passos de dois círculos, com regressões até o 9º. |
+| A05 · P1 | Modificadores de dano, PDFs 99 e 218 | **Evocação Potencializada**, mago 10/INT 16: Bola de Fogo sai 8d6 em vez de 8d6+3. **Arma Espiritual**, SAB 16: sai 1d8 em vez de 1d8+3 | **Corrigido nos casos citados:** modificador da origem em Arma Espiritual e INT em uma rolagem reconhecida de Evocação; fórmulas próprias preservadas. |
+| A06 · P1 | **Atletismo Extraordinário** arredonda metade da proficiência para cima, PDF 84 | Campeão 7/DES 14: iniciativa sai +3 em vez de +4. Acrobacia sem proficiência sai +2 em vez de +4. A iniciativa usa o arredondamento de Versatilidade e a perícia ignora o benefício | **Corrigido:** `untrainedAbilityBonus` atende iniciativa, perícias e testes diretos dos dois layouts; não acumula com Versatilidade/treino. |
+| A07 · P1 | **Invocar Duplicidade** e **Presença Dracônica** exigem concentração como uma magia, PDFs 67 e 80 | Ativar mantém Bênção/Voo em concentração e deixa o recurso ativo em paralelo. O custo é descontado, mas a característica não participa da troca, dos testes e do encerramento da concentração | **Corrigido:** vínculo `resourceId` na concentração v1, confirmação antes do custo e encerramento sincronizado. |
+| A08 · P1 | Magia Duplicada/Gêmea exige uma magia que tenha uma criatura como alvo elegível, PDF 79; descrições em 248, 250, 255 | **Ilusão Menor**, **Imagem Silenciosa** e **Mãos Mágicas** recebem elegibilidade; Ilusão Menor mostra efetivamente o botão Gêmea. Criar som/imagem/mão não satisfaz essa condição | **Corrigido:** os três efeitos não oferecem Gêmea; a adaptação identificada de Mísseis permanece. |
+| A09 · P1 · fonte | **Onda Destrutiva**, PDF 264 | O próprio PDF, conferido visualmente, imprime **5d5** trovejante, além do componente radiante/necrótico. A extração preserva 5d5 e a fórmula do motor é inválida para o rolador. Conjurar recusa o lançamento, inclusive em OFF, sem gastar o espaço | **Corrigido editorialmente:** extrator registra `sourceNote`, substitui somente o erro 5d5 → 5d6 e preserva o PDF; consulta mostra a divergência. |
+| A10 · P2 | Descrição de **Zona da Verdade** termina antes do apêndice, PDFs 288–289 | O extrator continua a última magia na página de condições. O livrinho/balão inclui **APÊNDICE A: CONDIÇÕES** e regras alheias à magia | **Corrigido:** extrator termina antes do apêndice; outras 359 entradas preservadas, com A09 como segunda alteração explícita. |
+| A11 · P2 | **Raio Solar** cria uma linha de 18 m, PDF 273 | O metadado indica esfera, escolhido pelo raio de iluminação mencionado depois no texto. A área do efeito e a área da luz foram confundidas | **Corrigido:** geometria explícita prevalece no metadado e na apresentação de registros antigos não personalizados. |
+| A12 · P2 | **Asas de Dragão** duram até dissipar por ação bônus, PDF 80 | O descanso curto desativa as asas automaticamente. A limpeza comum apaga um estado sem esse término previsto | **Corrigido:** descanso curto/longo preserva as asas até recolher; não recupera usos ou efeitos encerrados. |
+| A13 · P1 · contrato de uso | OFF registra dados físicos, conforme o contrato do projeto no README | **Retomar o Fôlego** em OFF chama `Math.random`, gasta o uso e cura imediatamente: no teste, 10 → 16 PV, sem perguntar a face física. Intervenção, Presságio e cura da forma também merecem revisar o caminho interno de dados; não foram todos reproduzidos nesta rodada | **Corrigido:** escolha físico/virtual existente em Retomar, cura da Lua, Presságio inicial/no descanso e Intervenção; validação antes do custo. |
+| A14 · P1 · tempo de jogo | Após sucesso em **Intervenção Divina**, esperar sete dias, PDF 65 | O botão grava `Date.now() + 7 dias` e a disponibilidade depende do relógio real. Não há ação para registrar que a semana transcorreu na aventura; o bloqueio não acompanha o tempo ficcional da mesa | **Corrigido:** novos sucessos aguardam confirmação da semana ficcional; prazo legado preservado e aceito pela mesma ação. |
 
 As verificações A03 e A04 conferem os casos citados, não todas as famílias de
 magia. Fome de Hadar tem momentos diferentes para frio/ácido; Escudo de Fogo
@@ -102,6 +156,10 @@ tem alternativas; Rajada/Muralha Prismática têm resultados por cor; Tempestade
 da Vingança tem fases. A busca pelo primeiro dado também é insuficiente nesses
 casos, mas somar todos os dados do texto não seria uma correção válida.
 Sono e Regeneração não têm fórmula automática completa no fluxo atual.
+Evocação Potencializada em Mísseis Mágicos também permanece em R5: a composição
+legada agrega dados por míssil, enquanto a regra específica de uma rolagem
+compartilhada exige revisão própria. A05 fecha Bola de Fogo/Arma Espiritual e
+os danos reconhecidos pelo caminho comum; não certifica essa exceção.
 
 ### Usos e limites que continuam manuais
 
@@ -158,9 +216,9 @@ No ambiente local original, usar
 Ao corrigir cada ID: guardar o comportamento esperado em regressão efetiva,
 exigir prévia/rolagem/uso coerentes, conferir físico/virtual e cancelamento,
 preservar ajustes e dados anteriores, atualizar esta seção e a matriz pertinente.
-Priorizar A01–A09/A13/A14 antes de retomar novas automações de R2. A10–A12 seguem
-na mesma fila para não perder o resultado do check-up. Não declarar R2–R6
-concluídas com a correção desses casos.
+A01–A14 recebem regressões nesta entrega. Depois de validar e integrar a
+correção, retomar os recortes restantes de R2; R3–R6 continuam parciais. Não
+declarar essas famílias concluídas com a correção dos casos conhecidos.
 
 ## Roteiro de implementação
 
@@ -170,7 +228,7 @@ reescrever a ficha nem automatizar toda decisão da mesa.
 
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
-| R1 — bônus nos cálculos | **Quatro passivos entregues; novos achados priorizados** | O recorte original continua implementado. O check-up identificou bônus/modificadores adicionais ausentes e inconsistência de PV em A01/A05/A06; corrigir antes do próximo recorte de R2. Tipos variáveis/efeitos posteriores seguem em R5. |
+| R1 — bônus nos cálculos | **Quatro passivos entregues; achados A01/A05/A06 corrigidos nesta branch** | O recorte original continua implementado. A01/A05/A06 corrigem os bônus/modificadores adicionais e a inconsistência de PV identificados no check-up; regressões nesta entrega. Tipos variáveis/efeitos posteriores seguem em R5. |
 | R2 — rolagens e gastos condicionais | **Segundo recorte implementado; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo implementados na entrega da PR #20. Faltam demais rerrolagens/dados mínimos, -5/+10 e adicionais de talentos/estilos. Integrar escolha/gasto à jogada pertinente, sem duplicar reservas ou aplicar bônus a jogadas inelegíveis. |
 | R3 — condições, defesas e características | Planejada; já há cobertura parcial | Completar efeitos das condições, imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
@@ -454,7 +512,7 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 | Clérigo, 62–69 | Conhecimento; Enganação; Guerra; Luz; Natureza; Tempestade; Vida | Preparação/domínios, Canalizar compartilhado, usos e Intervenção | Efeitos de cada domínio no alvo, cura/dano condicionado e Expulsar/Destruir Mortos-Vivos por ND |
 | Druida, 70–75 | Terra; Lua | Preparação/círculo, Forma Selvagem/PV, cura da Lua, Recuperação Natural e concentração mantida na transformação | Bloco de besta/estatísticas e custo de elemental; CON da forma informada no teste |
 | Feiticeiro, 76–81 | Magia Selvagem; Linhagem Dracônica | Feitiçaria/metamágica, conversão, Marés, CA, resistência e bônus inicial de Afinidade Elemental nos casos reconhecidos | Surto/gatilhos, tipos variáveis/efeitos posteriores e elegibilidade completa de metamagias; adaptações identificadas |
-| Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa parcial de Atletismo Extraordinário | A06: iniciativa arredonda errado e perícias físicas sem treino ignoram o bônus; A13: Retomar em OFF. Rerrolagem de Combate com Armas Grandes; manobras/reações; Sobrevivente |
+| Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa parcial de Atletismo Extraordinário | A06/A13 corrigidos nesta entrega: arredondamento/testes físicos e Retomar físico/virtual. Rerrolagem de Combate com Armas Grandes; manobras/reações; Sobrevivente |
 | Ladino, 88–92 | Ladrão; Assassino; Trapaceiro Arcano | Especialização, composição de Ataque Furtivo, Esquiva/Evasão, usos avançados, magias e Talento Confiável nas perícias da ficha (R2 inicial) | Testes com ferramentas na mesa; surpresa/Assassinar e Ação Ardilosa |
 | Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, Dominar/Assinatura, recuperação, Proteção Arcana inclusive multiclasse, Conjuração Focada, Presságio e usos/estados de escola | Efeitos por alvo, demais bônus de escola, lacaios, pedra e Sobrecarga; fluxo de troca temporal das escolhas |
 | Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi, movimento/CA, curas/usos, Evasão e defesas de Pureza Corporal/Corpo Vazio no dano por tipo | Imunidade a condições, Artes Marciais/dano desarmado em todas as condições, Atordoar/Defletir Projéteis e recuperação ao iniciar combate |

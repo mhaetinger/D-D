@@ -20,8 +20,8 @@ concluídas na `main` `beed393`, no
 | Integração `develop` | `8ce0c0d`, PR #19, com R1 e os dois recortes implementados de R2 |
 | Revisão offline publicada | `8c517c3c837af0c0`; conferida no domínio público |
 | Conferência da entrega | 433 testes Node, tipos/build, banco descartável, auditoria e 32 roteiros Chromium aprovados na CI; mobile, recarga normal e offline conferidos no site |
-| Trabalho atual | Check-up profundo de 23/10, na branch `feature/auditoria-profunda-2014`; revisão documental/diagnósticos, sem mudar o aplicativo publicado |
-| Próxima tarefa | Corrigir os achados A01–A14 da auditoria antes de ampliar R2; não repetir a implementação de Sortudo |
+| Trabalho atual | Correções A01–A14 na branch `feature/auditoria-profunda-2014`, PR #21; validação concluída, integração/publicação pendentes |
+| Próxima tarefa | Revisar/integrar a PR #21 e depois retomar os recortes restantes de R2; não repetir A01–A14 ou Sortudo |
 | Branch encerrada por esta entrega | `feature/talento-sortudo-r2`; criar a próxima a partir de `develop` atualizado |
 | R1 | PR #17, com testes/limites na auditoria |
 | Primeiro recorte de R2 | PR #18, com Talento Confiável e Sortudo racial |
@@ -34,9 +34,16 @@ limites/recuperações verificados passaram em 820 estados das 41 subclasses;
 isso não certifica todos os efeitos. Achados, páginas, reproduções, comandos e
 prioridades ficam somente em
 [Check-up profundo](AUDITORIA-LIVRO-2014.md#check-up-profundo-de-23102026).
-Passaram nesta rodada 433 testes Node, tipos/build e três roteiros Chromium
-existentes; os diagnósticos adicionais registram as pendências, sem mascará-las
-como testes verdes. A versão pública permanece a entrega de 22/10.
+O primeiro commit registrou o diagnóstico. Após autorização para corrigir,
+A01–A14 foram implementados: o diagnóstico puro passou a **zero divergências
+nos 3.321 casos**; passaram **448 testes Node e tipos/build**. O diagnóstico de
+interface foi atualizado com cancelamento, físico/virtual, semana da aventura,
+Presságio/cura da Lua e testes diretos de Atletismo nos dois layouts: **32 casos
+sem divergências**. Passaram os **33 roteiros Chromium**; após o último ajuste,
+repetidos Node/build e cinco roteiros pertinentes, todos aprovados.
+A [PR #21](https://github.com/mhaetinger/D-D/pull/21) reúne diagnóstico, correções
+e regressões. Escopo atual e limites ficam somente na auditoria.
+A versão pública permanece a entrega de 22/10.
 
 A organização documental e **R1 — bônus ausentes nos cálculos** foram integradas
 em `develop`, junto do primeiro recorte de **R2 — rolagens e gastos condicionais**
@@ -147,11 +154,12 @@ Texto para iniciar outra conversa:
 > Continue o CritCall. Leia AGENTS.md, docs/RETOMADA.md, README.md,
 > CHANGELOG.md e docs/ARQUITETURA.md. Confira a branch e o estado do Git.
 > O roteiro atual de regras está em docs/AUDITORIA-LIVRO-2014.md. Confira
-> o check-up de 23/10 e os achados A01–A14 antes de ampliar R2. A revisão está
+> as correções A01–A14 de 23/10 e a PR #21 antes de ampliar R2. O trabalho está
 > em feature/auditoria-profunda-2014; a versão publicada é beed393, PR #20.
 > Confira a branch pendente antes de criar outra. Não repetir Sortudo nem
-> confundir o traço racial com o talento. Esta rodada de auditoria não altera
-> a aplicação publicada; os ajustes dependem da próxima tarefa autorizada.
+> confundir o traço racial com o talento. Confira a validação final das correções.
+> A integração/publicação depende da aprovação do responsável; não repetir os
+> achados já corrigidos nem declarar R2–R6 concluídos.
 
 ## Mapa dos documentos
 

@@ -5,6 +5,7 @@ import {emptyImportedCharacter,matchOption} from '../import/character-review';
 import {active} from '../rules/model';
 import {canEditSheet} from './access';
 import {resourcesFor,used,remaining} from '../rules/resources';
+import {setPermanentAbility} from '../rules/combat';
 
 const abilities=['str','dex','con','int','wis','cha'];
 const textPaths=new Set(['name','playerName','race','background','alignment','size',...['weapons','tools','languages'].map(k=>'proficiencies.'+k),...['age','height','weight','eyes','skin','hair'].map(k=>'physical.'+k),...['traits','ideals','bonds','flaws','backstory','appearance','allies','treasure'].map(k=>'lore.'+k)]);
@@ -28,7 +29,7 @@ export function editSheetField(original:Sheet,path:string,raw:unknown,E:Engine):
     if(path==='name'&&!text.trim())throw new Error('Informe o nome do personagem.');
     const keys=path.split('.'),key=keys.pop()!;let target=c;for(const part of keys)target=target[part];target[key]=text;
     if(path==='race'){c.rules ||= {history:[]};c.rules.raceId=matchOption(text,E.options.races)||'';}
-  }else if((match=path.match(/^abilities\.(str|dex|con|int|wis|cha)\.score$/)))c.abilities[match[1]].score=number(raw,0,30);
+  }else if((match=path.match(/^abilities\.(str|dex|con|int|wis|cha)\.score$/)))setPermanentAbility(c,match[1],number(raw,0,30));
   else if((match=path.match(/^classes\.(\d+)\.(classId|level|subclassId|subclass)$/))) {
     const cls=c.classes[Number(match[1])],key=match[2];if(!cls)throw new Error('Esta classe mudou. Confira a ficha.');
     if(key==='level'){cls.level=number(raw,1,20);cls.hitDiceUsed=Math.min(cls.hitDiceUsed||0,cls.level);}

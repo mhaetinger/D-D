@@ -7,7 +7,7 @@ export function linkedSpell(s:Sheet,E:Engine):Sheet|null {
 }
 export function importSpellReference(s:Sheet,E:Engine):Sheet|null {
   const entry=linkedSpell(s,E);if(!entry?.text)return null;
-  return {text:`Catálogo do Livro do Jogador · regras de 2014\n\n${entry.text}`,page:entry.page,pdfPage:entry.pdfPage};
+  return {text:`Catálogo do Livro do Jogador · regras de 2014\n\n${entry.sourceNote?entry.sourceNote+'\n\n':''}${entry.text}`,page:entry.page,pdfPage:entry.pdfPage};
 }
 export function spellCatalogDetail(entry:Sheet,E:Engine):string {
   const classes=entry.classes.map((id:string)=>E.data.classes[id]?.name).filter(Boolean);

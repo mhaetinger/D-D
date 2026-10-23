@@ -721,7 +721,9 @@ Contratos preservados do plano de refatoração concluído: fórmulas alternativ
 de CA não se somam, e a segunda Defesa sem Armadura não é adquirida por
 multiclasse. Proteção contra Lâminas é resistência; Aparo é redução de dano,
 sem bônus universal de CA. Intervenção Divina bem-sucedida impede nova tentativa
-por sete dias, inclusive após descanso. Olhar Hipnotizante registra a restrição
+por sete dias na aventura, inclusive após descanso. Novos sucessos usam
+`interventionPending`; a confirmação explícita da semana também aceita o prazo
+real legado, preservado até a decisão. Olhar Hipnotizante registra a restrição
 por alvo até descanso longo. Fontes e contextos que a ficha não conhece continuam
 sob decisão explícita da mesa; usos, alvos e estados não substituem seus efeitos.
 
@@ -1179,3 +1181,42 @@ sem usar bônus/arma/racial/inspiração do defensor nem aplicar acerto/dano.
 Declaração de uso por outra criatura e o momento anterior ao resultado continuam
 na mesa. Não há novo estado de turno, alvo ou serviço remoto. Regressões em
 `tests/lucky.test.ts` e `tests/lucky-browser.cjs`; escopo restante na auditoria.
+
+## Correções do check-up de 23/10/2026
+
+`setPermanentAbility` é o contrato comum à digitação e aos botões: aplica a
+variação de CON por nível aos PV já registrados, mantendo déficit, 0 PV e
+exaustão. Não reconstrói máximos manuais. `untrainedAbilityBonus` distingue
+Atletismo Extraordinário (FOR/DES/CON, arredondamento para cima) e Versatilidade
+(para baixo), sem acumular nem afetar testes treinados ou resistências.
+
+`spellMeta.damageComponents` identifica componentes simultâneos nos casos
+auditados; `resolveSpellEffect` compõe a fórmula e o resumo sem confundir fases
+ou alternativas de outras magias. `spellDamageBreakdown` atribui as mesmas faces
+do pool aos componentes para mostrar subtotais, sem nova rolagem ou alteração
+do total. Tempestade de Gelo aumenta só concussão;
+Coluna de Chamas separa os dados adicionais cujo tipo cabe à mesa. Arma
+Espiritual inclui a habilidade da origem; Evocação Potencializada entra uma
+vez na rolagem inicial de dano reconhecida, depois de Gêmea. `customRoll`
+continua tendo precedência. O indicativo de Raio Solar em fichas antigas usa a
+geometria corrigida, sem gravar uma migração ou apagar adaptações.
+
+A concentração v1 aceita `resourceId` opcional somente para Duplicidade e
+Presença Dracônica. Encerrar/substituir/testar limpa o estado ativo associado;
+a ativação valida impedimentos antes do custo e a interface confirma a troca
+com revalidação da ficha. Descansos encerram essas características curtas,
+preservando Asas de Dragão até o jogador recolher.
+
+`resource-roll-ui.ts` reutiliza `dieSourceControls`/`chooseDieSource` para faces
+físicas ou o rolador existente, sem alterar a aparência do dado flutuante.
+Valida ficha/modo/faces antes do resultado e mantém uma escolha pendente por
+ficha. `resource-effects.ts` aplica Retomar/Intervenção depois de validar custo
+e efeito. Presságio admite faces explícitas em `takeRest`, evitando RNG oculto
+em OFF; os consumidores puros antigos ainda podem fornecer o gerador de testes.
+A semana de Intervenção não é inferida por descanso nem pelo relógio da máquina.
+
+O extrator limita magias ao PDF 288 e registra `sourceNote` para a correção
+editorial de Onda Destrutiva. Consulta da importação/ficha mostra a nota; o PDF
+não muda. Regeneração preservou as outras 359 magias e os dois catálogos restantes.
+Escopo e regressões ficam na seção atual de
+[AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md#check-up-profundo-de-23102026).

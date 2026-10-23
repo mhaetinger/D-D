@@ -1,11 +1,12 @@
 import { active, level, norm, state, type Engine, type Sheet } from './model';
 
 export interface ConcentrationCheck { id:string; dc:number; damage:number; shape:boolean }
-export interface Concentration { version:1; id:string; name:string; duration:string; spellKey:string; school:string; checks:ConcentrationCheck[] }
+export interface Concentration { version:1; id:string; name:string; duration:string; spellKey:string; school:string; checks:ConcentrationCheck[]; resourceId?:string }
 const record=(x:any)=>!!x && typeof x==='object' && !Array.isArray(x);
 export function concentration(c:Sheet):Concentration|null {
   const x=c.ruleState?.concentration;
   if(!record(x) || x.version!==1 || typeof x.id!=='string' || typeof x.name!=='string' || typeof x.duration!=='string' || typeof x.spellKey!=='string' || typeof x.school!=='string' || !Array.isArray(x.checks)) return null;
+  if(x.resourceId!==undefined && !['clerigo:duplicate','feiticeiro:presence'].includes(x.resourceId))return null;
   if(!x.checks.every((t:any)=>record(t) && typeof t.id==='string' && Number.isInteger(t.dc) && t.dc>=10 && Number.isInteger(t.damage) && t.damage>0 && typeof t.shape==='boolean')) return null;
   return x;
 }
@@ -25,16 +26,20 @@ export function concentrationBlock(c:Sheet) {
 function next(c:Sheet,key:string) { const s=state(c);s[key]=Math.max(0,Number.isSafeInteger(s[key])?s[key]:0)+1;return String(s[key]); }
 export function endConcentration(c:Sheet) {
   const old=concentration(c);if(!old)return null;
+  if(old.resourceId)state(c).active[old.resourceId]=false;
   state(c).concentration=null;return old;
 }
-export function validateConcentrationStart(c:Sheet,description:{name:string}) {
+export function validateConcentrationStart(c:Sheet,description:{name:string;resourceId?:string}) {
   const blocked=concentrationBlock(c);if(blocked)throw new Error(blocked);
   if(typeof description.name!=='string' || !description.name.trim() || description.name.length>500)throw new Error('Informe o nome do efeito de concentração.');
+  if(description.resourceId!==undefined && !['clerigo:duplicate','feiticeiro:presence'].includes(description.resourceId))throw new Error('Recurso sem vínculo de concentração reconhecido.');
 }
-export function startConcentration(c:Sheet,description:{name:string;duration?:string;spellKey?:string;school?:string}) {
+export function startConcentration(c:Sheet,description:{name:string;duration?:string;spellKey?:string;school?:string;resourceId?:string}) {
   validateConcentrationStart(c,description);
+  endConcentration(c);
   const s=state(c);
   const current:Concentration={version:1,id:next(c,'concentrationSequence'),name:description.name.trim(),duration:String(description.duration || ''),spellKey:String(description.spellKey || ''),school:String(description.school || ''),checks:[]};
+  if(description.resourceId)current.resourceId=description.resourceId;
   s.concentration=current;return current;
 }
 export function spellConcentration(c:Sheet,spell:Sheet,E:Engine,ritual=false) {

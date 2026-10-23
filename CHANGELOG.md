@@ -2,9 +2,43 @@
 
 ## Não lançado
 
+### Correções dos achados A01–A14 — 2026-10-23
+
+- CON digitada compartilha o ajuste dos botões; PV conservam dano sofrido, totais
+  manuais e 0 PV. Druida reconhece Foice Curta, Porrete e Maça pelo catálogo.
+  Atletismo Extraordinário arredonda para cima em iniciativa/testes físicos sem
+  treino, sem acumular Versatilidade ou duplicar proficiência/especialização.
+- Magias preservam os componentes simultâneos dos quatro casos auditados;
+  corrigidos aumentos de Raio de Bruxa, Lâmina Flamejante e Arma Espiritual,
+  modificador de conjuração e Evocação Potencializada nos danos reconhecidos.
+  Fórmula própria continua soberana; escolhas de tipo ficam explícitas na mesa.
+- Duplicidade e Presença Dracônica entram no registro único de concentração:
+  confirmação antes do custo, cancelamento, testes de dano e encerramento
+  sincronizados. Asas de Dragão sobrevivem a descansos até serem recolhidas.
+- Ilusão Menor, Imagem Silenciosa e Mãos Mágicas deixam de oferecer Gêmea;
+  preservada a adaptação de Mísseis. Raio Solar usa a linha explícita, inclusive
+  na apresentação de fichas antigas sem modificar seus dados.
+- Extrator encerra descrições antes do apêndice e registra correção editorial de
+  5d5 → 5d6 de Onda Destrutiva, visível na consulta. PDF intacto; regenerados os
+  catálogos. Somente essa magia e Zona da Verdade mudam; outras 359 preservadas.
+- Retomar o Fôlego, cura da Lua, Presságio inicial/no descanso e Intervenção
+  oferecem o fluxo físico/virtual existente e validam antes do gasto. OFF não
+  sorteia resultados internos. Intervenção no nível 20 não rola d100; sucessos
+  aguardam sete dias na aventura, com confirmação da semana e suporte ao prazo
+  legado. Descanso isolado não remove a espera.
+- Regressões próprias cobrem os achados e o diagnóstico puro passou a zero
+  divergências nos 3.321 casos. Passaram 448 testes Node, tipos/build e os 33
+  roteiros Chromium. Após o ajuste final, repetidos Node/build e cinco roteiros
+  pertinentes, incluindo 32 casos desta correção. Incluídos dados físicos/
+  virtuais, troca com campo inválido, cancelamento, títulos legados, toque,
+  recarga/offline e 320px/GG/três temas/dois layouts. Reextração isolada reproduziu
+  os três catálogos byte a byte; dados reais, dado flutuante e serviços remotos
+  preservados. Entrega preparada na PR #21, sem publicação.
+
 ### Check-up profundo de regras, usos e consultas — 2026-10-23
 
-- Revisão da entrega de 22/10 contra o PDF local de 2014/Patrulheiro Revisado.
+- Primeiro commit, anterior às correções acima: revisão da entrega de 22/10
+  contra o PDF local de 2014/Patrulheiro Revisado.
   Reextração isolada reproduziu os três catálogos byte a byte. Conferidos 820
   estados de 12 classes/41 subclasses, limites/recuperações, Pacto e presença
   das consultas raciais, antecedentes, talentos e magias.

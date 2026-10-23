@@ -2,7 +2,7 @@ import { ability, active, level, norm, proficiency, savingThrowBonus, selections
 import { hitPointMaximum, syncIncapacity, trackDamageAtZero } from './health';
 import { queueConcentrationDamage } from './concentration';
 import { conditionSpeed, hasCondition } from './conditions';
-import { hasFeat, lifedrinkerBonus } from './passives';
+import { hasFeat, lifedrinkerBonus, untrainedAbilityBonus } from './passives';
 import { arcaneWardPoints, previewTypedDamage, type DamagePacket } from './damage';
 import { commitSurvival, previewSurvival, type SurvivalChoice, type SurvivalPlan } from './survival';
 
@@ -21,7 +21,7 @@ export function isProficient(c: Sheet, entry: Sheet, w: Sheet, E: Engine) {
   const key = norm(w.name);
   if (['bardo','ladino'].includes(primary) && ['besta de mao','espada longa','espada curta','rapieira'].includes(key)) return true;
   if (['druida','mago','feiticeiro'].includes(primary)) {
-    const list = primary === 'druida' ? ['adaga','azagaia','bordao','cimitarra','clava','dardo','funda','foice','lança','lanca'] : ['adaga','dardo','funda','bordao','besta leve'];
+    const list = primary === 'druida' ? ['adaga','azagaia','bordao','cimitarra','porrete','dardo','funda','foice curta','maca','lanca'] : ['adaga','dardo','funda','bordao','besta leve'];
     if (list.includes(key)) return true;
   }
   if (ids.includes('monge') && key === 'espada curta') return true;
@@ -150,9 +150,16 @@ function applyBodyDamage(c:Sheet,received:number,critical:boolean,ward:number,su
 /** Ajuste permanente conserva o dano já sofrido, sem reconstruir PV manuais. */
 export function changePermanentAbility(c:Sheet,key:string,delta:number) {
   if (!['str','dex','con','int','wis','cha'].includes(key) || !Number.isInteger(delta)) return;
-  const oldMod=ability(c,key),oldMax=exhaustion(c).hpMax,oldScore=c.abilities[key].score;
+  const oldScore=c.abilities[key].score;
   const adapted=c.rules?.abilityMethod==='adapted';
-  c.abilities[key].score=Math.max(adapted?0:1,Math.min(adapted?30:Math.max(24,oldScore),oldScore+delta));
+  setPermanentAbility(c,key,Math.max(adapted?0:1,Math.min(adapted?30:Math.max(24,oldScore),oldScore+delta)));
+}
+/** Digitação e botões compartilham a variação retroativa de CON, inclusive
+ * quando o máximo foi registrado manualmente; conserva o dano já sofrido. */
+export function setPermanentAbility(c:Sheet,key:string,score:number) {
+  if(!['str','dex','con','int','wis','cha'].includes(key) || !Number.isInteger(score) || score<0 || score>30)throw new Error('Informe um atributo inteiro entre 0 e 30.');
+  const oldMod=ability(c,key),oldMax=exhaustion(c).hpMax;
+  c.abilities[key].score=score;
   if (key!=='con') return;
   const gain=(ability(c,key)-oldMod)*c.classes.reduce((n:number,x:Sheet)=>n+x.level,0);
   c.hpMax=Math.max(1,c.hpMax+gain);
@@ -161,8 +168,7 @@ export function changePermanentAbility(c:Sheet,key:string,delta:number) {
 }
 export function initiativeBonus(c:Sheet,E:Engine) {
   const feats=selections(c,E,'feat').concat(selections(c,E,'racialFeat'));
-  const half=level(c,'bardo')>=2 || level(c,'guerreiro')>=7 && subclass(c,'guerreiro',E)==='campeao';
-  return ability(c,'dex')+(half?Math.floor(proficiency(c)/2):0)+(feats.includes('Alerta')?5:0);
+  return ability(c,'dex')+untrainedAbilityBonus(c,'dex')+(feats.includes('Alerta')?5:0);
 }
 export function savingThrow(c: Sheet, key:string, E:Engine) {
   return savingThrowBonus(c,key);

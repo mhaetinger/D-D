@@ -1,6 +1,6 @@
 import { ability, active, level, norm, selections, state, subclass, type Engine, type Sheet } from './model';
 import { deathStatus, endRage, requireConscious } from './health';
-import { endConcentration } from './concentration';
+import { concentration, endConcentration, startConcentration, validateConcentrationStart } from './concentration';
 import { relentlessDC } from './survival';
 import { hasFeat } from './passives';
 export interface Resource { id:string; classId:string; name:string; max:number; recovery:'short'|'long'|'none'; kind:'counter'|'pool'|'toggle'|'note'|'portent'; note:string; cost?:[string,number]; action?:string }
@@ -175,6 +175,7 @@ export function used(c: Sheet, r: Resource) {
   return Math.max(0,Math.min(r.max,Math.max(Number(c.ruleState?.used?.[r.id] || 0),...arcanumSpells(c,r.id).map((spell:Sheet)=>Number(spell.usesUsed || 0)))));
 }
 export function remaining(c: Sheet, r: Resource) {
+  if(r.id==='clerigo:intervention' && c.ruleState?.interventionPending)return 0;
   if (Number(c.ruleState?.blockedUntil?.[r.id] || 0)>Date.now()) return 0;
   if (r.id==='feiticeiro:sorceryPool') return Math.max(0,Math.min(r.max,c.sorceryPoints.current));
   if (r.kind==='pool') return Math.max(0,Math.min(r.max,Number(c.ruleState?.pools?.[r.id] ?? (r.id==='mago:ward'?0:r.max))));
@@ -201,6 +202,8 @@ export function refund(c:Sheet,r:Resource) {
 export function toggleResource(c: Sheet, r: Resource, E: Engine) {
   const enabled = active(c,r.id);
   if(!enabled) requireConscious(c);
+  const held=['clerigo:duplicate','feiticeiro:presence'].includes(r.id);
+  if(held && !enabled)validateConcentrationStart(c,{name:r.name});
   const s = state(c);
   if(r.id==='barbaro:rage' && enabled) {endRage(c);return;}
   if (r.id==='mago:masterTransmuter' && !enabled) {
@@ -221,6 +224,10 @@ export function toggleResource(c: Sheet, r: Resource, E: Engine) {
   if (r.id==='barbaro:frenzy' && !active(c,'barbaro:rage')) throw new Error('Ative a Fúria antes do Frenesi.');
   if (r.id==='barbaro:frenzy' && !enabled) s.frenzyUsed = true;
   if (r.id==='barbaro:rage' && !enabled) {spend(c,r);endConcentration(c);}
+  if(held){
+    if(!enabled)startConcentration(c,{name:r.name,duration:'Até 1 minuto',resourceId:r.id});
+    else if(concentration(c)?.resourceId===r.id)endConcentration(c);
+  }
   s.active[r.id] = !enabled;
 }
 export function onSpellCast(c: Sheet, spell: Sheet, circle: number, E: Engine) {
@@ -236,7 +243,9 @@ export function onSpellCast(c: Sheet, spell: Sheet, circle: number, E: Engine) {
     for (const entry of arcanumSpells(c,arcanum)) entry.usesUsed = 1;
   }
 }
-export function resetResources(c: Sheet, kind:'short'|'long', E: Engine, random= Math.random) {
+export function resetResources(c: Sheet, kind:'short'|'long', E: Engine, random= Math.random, portent?:number[]) {
+  const count=resourcesFor(c,E).find(r=>r.kind==='portent')?.max;
+  if(kind==='long' && portent && (!count || portent.length!==count || portent.some(n=>!Number.isInteger(n) || n<1 || n>20)))throw new Error('Confira todas as faces de Presságio antes do descanso.');
   const s = state(c);
   // Terminar uma Fúria com Frenesi causa exaustão antes da recuperação do descanso.
   if (active(c,'barbaro:rage')) toggleResource(c,resourcesFor(c,E).find(r=>r.id==='barbaro:rage')!,E);
@@ -246,10 +255,11 @@ export function resetResources(c: Sheet, kind:'short'|'long', E: Engine, random=
   for (const r of resourcesFor(c,E)) if (r.recovery===kind || kind==='long' && r.recovery==='short') {
     s.used[r.id] = 0;
     if (r.kind==='pool') s.pools[r.id] = r.max;
-    if (r.kind==='portent') s.portent = Array.from({length:r.max},()=>({value:1+Math.floor(random()*20),spent:false}));
+    if (r.kind==='portent') s.portent = (portent || Array.from({length:r.max},()=>1+Math.floor(random()*20))).map(value=>({value,spent:false}));
   }
   // Um descanso curto não encerra automaticamente uma transformação de várias horas.
-  for (const key of Object.keys(s.active)) if (key !== 'mago:stone' && !(kind==='short' && ['druida:wildShape','feat:dualWielder'].includes(key))) s.active[key] = false;
+  for (const key of Object.keys(s.active)) if (!['mago:stone','feiticeiro:wings'].includes(key) && !(kind==='short' && ['druida:wildShape','feat:dualWielder'].includes(key))) s.active[key] = false;
+  const held=concentration(c);if(held?.resourceId && !s.active[held.resourceId])endConcentration(c);
   for (const key of Object.keys(s.used)) if (key.startsWith('mago:signature:')) s.used[key]=0;
   if (kind==='long') { s.wardCreated = false; s.pools['mago:ward'] = 0; s.targets = s.active['mago:stone']?{'mago:stone':s.targets['mago:stone']}:{}; s.targetsUsed = {}; c.tidesOfChaosAvailable = true; }
   if (kind==='short' && level(c,'feiticeiro')>=20) c.sorceryPoints.current = Math.min(c.sorceryPoints.max,c.sorceryPoints.current+4);
