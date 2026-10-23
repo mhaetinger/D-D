@@ -383,15 +383,16 @@ atende cadastros pendentes; **Esqueci a senha** inicia a recuperação. Quem já
 entrou pode usar **Enviar link para trocar senha**, sem sair da conta.
 E-mail/senha permitem entrar em outros navegadores e dispositivos. Os links de
 confirmação/recuperação exigem o mesmo navegador/dispositivo que os solicitou;
-o envio de fichas usa a fila própria, com migração aplicada e teste real entre
-dispositivos ainda pendente.
+o envio de fichas usa a fila própria, com migração aplicada e envio entre telefone
+e computador confirmado pelo responsável.
 
 Cada conta abre seu próprio espaço de fichas neste navegador. A cópia do espaço
 sem conta depende do fluxo de entrada descrito acima, com novos identificadores
 e sem substituir fichas existentes. Ao sair, as cópias são preservadas. Isso não
 criptografa o dispositivo. A migração do banco foi aplicada; conferir a
 confirmação de envio no perfil antes de trocar de computador. Login e
-sincronização real entre dispositivos e SMTP próprio ainda precisam de validação/configuração.
+sincronização básica já foram validados pelo responsável; SMTP próprio segue
+pendente de configuração. Cenários adicionais de conflito/offline estão na retomada.
 
 Bônus de regras da etapa R1: Percepção e Investigação mostram o valor passivo
 com Observador, separado da rolagem. Nos ajustes de defesa, Ambidestro oferece

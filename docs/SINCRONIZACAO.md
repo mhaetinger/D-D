@@ -7,8 +7,9 @@ O projeto exclusivo é **`qhrpgkpvwbztubnrdhya`**, URL pública
 `https://qhrpgkpvwbztubnrdhya.supabase.co`, identificado como D-D no painel na
 inspeção de 16/10/2026. Nesse dia foram aplicadas as migrações descritas abaixo,
 sem alterações em outros projetos. A publicação atual e as validações externas
-pendentes estão somente na [RETOMADA.md](RETOMADA.md). Os testes controlados não
-substituem sincronização e isolamento com contas/dispositivos reais.
+pendentes estão somente na [RETOMADA.md](RETOMADA.md). O responsável confirmou
+e-mails e envio imediato entre telefone/computador. Os testes controlados não
+certificam os cenários adicionais de conflito/offline e isolamento com contas reais.
 
 ## Dados e fila
 
@@ -246,7 +247,7 @@ contém dados pessoais ou exclusões e pode ser reaplicado sem apagar registros.
 
 ## Alertas do serviço para revisão
 
-A inspeção de **16/10/2026**, repetida em **22/10/2026**, do projeto real encontrou a função preexistente
+A inspeção de **16/10/2026**, repetida em **22 e 23/10/2026**, do projeto real encontrou a função preexistente
 `public.rls_auto_enable` executável por anon/authenticated. Revisar sua origem,
 necessidade e privilégios antes de alterar; ela não foi criada pela migração
 pessoal. Orientação do [linter de funções expostas](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable).

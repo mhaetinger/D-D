@@ -14,7 +14,8 @@ gravar. A retenção remota já foi reduzida em 23/10 para 5 versões/documento,
 7 dias, 50 versões/2 MiB por conta (migração remota `20261023115335`). Os 45
 documentos atuais mantiveram a assinatura agregada; apenas versões antigas saíram.
 Detalhes, medições e limites em [SINCRONIZACAO.md](SINCRONIZACAO.md#incidente-de-egress-em-23102026).
-A correção do cliente segue por PR para `develop`, com revisão e autorização
+A correção do cliente segue pela [PR #22](https://github.com/mhaetinger/D-D/pull/22)
+para `develop`, com revisão e autorização
 de publicação pendentes. Verificados localmente 438 testes Node, tipos/build,
 PostgreSQL 18 descartável e cinco roteiros Chromium: sincronização, autenticação,
 cópia sem conta, abas da conta e atualização offline. A CI exige os 32 completos.
@@ -197,15 +198,16 @@ Os links de PR/workflow acima registram a entrega compartilhável.
 
 ## Validações externas e trabalho posterior
 
-Estas pendências são separadas do roteiro de mecânicas. Nenhuma delas foi
-marcada como concluída nesta revisão de documentos.
+Estas pendências são separadas do roteiro de mecânicas. O responsável confirmou
+o teste básico de e-mails e envio entre telefone/computador; V2/V3 mantêm somente
+os cenários adicionais e a configuração de SMTP.
 
 | ID | Pendente | Critério para concluir / referência |
 | --- | --- | --- |
 | V1 | Ciclo completo com os PDFs reais de importação solicitados | Importar como cópia, conferir dados/vínculos, salvar/recarregar e evoluir. Leitura/cancelamento e testes sintéticos já feitos não substituem esse ciclo. Arquivos pessoais continuam fora do Git. |
-| V2 | Mesma conta em dispositivos reais e isolamento de outra conta | Conferir fichas, notas, perfil, imagens, offline/reconexão, conflito e restauração, sem pedir credenciais. Contratos em [SINCRONIZACAO.md](SINCRONIZACAO.md). |
-| V3 | SMTP próprio e fluxo real de e-mails | Configurar remetente no serviço e conferir cadastro, confirmação, reenvio e recuperação no site. O sucesso local relatado pelo usuário não certifica todos esses fluxos. [LOGIN.md](LOGIN.md) e [DOMINIO.md](DOMINIO.md). |
-| V4 | Alertas do serviço reinspecionados em 22/10/2026 | Decidir correção da função `public.rls_auto_enable` e da proteção contra senhas vazadas. Alertas anteriores continuam presentes; detalhes em [SINCRONIZACAO.md](SINCRONIZACAO.md#alertas-do-serviço-para-revisão). |
+| V2 | Cenários adicionais de sincronização/isolamento | Envio básico telefone/computador confirmado pelo responsável. Faltam os cenários específicos de outra conta, imagens, offline/reconexão, conflito e restauração, sem pedir credenciais. Contratos em [SINCRONIZACAO.md](SINCRONIZACAO.md). |
+| V3 | SMTP próprio e fluxos adicionais de e-mail | E-mails testados pelo responsável. Configurar remetente próprio e conferir os fluxos de cadastro, confirmação, reenvio e recuperação ainda não identificados individualmente. [LOGIN.md](LOGIN.md) e [DOMINIO.md](DOMINIO.md). |
+| V4 | Alertas do serviço reinspecionados em 23/10/2026 | Decidir correção da função `public.rls_auto_enable` e da proteção contra senhas vazadas. Alertas anteriores continuam presentes; detalhes em [SINCRONIZACAO.md](SINCRONIZACAO.md#alertas-do-serviço-para-revisão). |
 | V5 | Hospedagem Cloudflare | Conectar administração, criar projeto Pages e configurar credenciais/destino; depois validar domínio e offline. O DNS já usa Cloudflare, mas a hospedagem é GitHub Pages. Seguir [CLOUDFLARE.md](CLOUDFLARE.md). |
 | V6 | Remoção voluntária do cache de uma conta em dispositivo compartilhado | Definir exportação/confirmação e comportamento offline; não apagar dados automaticamente. Limites em [LOGIN.md](LOGIN.md#dados-sessão-e-troca-de-conta). |
 | V7 | Ambientes, acompanhamento e proteção do repositório | Preparar separação teste/produção, acompanhamento de uso/erros/custos e proteção de branches/aprovações. Não são garantias da configuração atual. |
