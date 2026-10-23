@@ -6,24 +6,33 @@ projeto sem depender da conversa. Leia também `AGENTS.md`, `README.md`,
 
 ## Onde o trabalho parou
 
-**Prioridade imediata: egress da sincronização.** O responsável confirmou que
-11,78 GB do ciclo vieram do CritCall e autorizou diminuir históricos/versões.
-A branch isolada `fix/sync-egress`, baseada no `develop` público, corrige downloads
-repetidos por índice de revisões. O histórico passa a 10 estados/256 KiB ao
-gravar. A retenção remota já foi reduzida em 23/10 para 5 versões/documento,
-7 dias, 50 versões/2 MiB por conta (migração remota `20261023115335`). Os 45
-documentos atuais mantiveram a assinatura agregada; apenas versões antigas saíram.
-Detalhes, medições e limites em [SINCRONIZACAO.md](SINCRONIZACAO.md#incidente-de-egress-em-23102026).
-A correção do cliente segue pela [PR #22](https://github.com/mhaetinger/D-D/pull/22)
-para `develop`, com revisão e autorização
-de publicação pendentes. Verificados localmente 438 testes Node, tipos/build,
-PostgreSQL 18 descartável e cinco roteiros Chromium: sincronização, autenticação,
-cópia sem conta, abas da conta e atualização offline. A CI exige os 32 completos.
-Não misturar a entrega urgente com a auditoria de regras da **PR #21**, preservada
-em `feature/auditoria-profunda-2014`, commit `9725f92`. Aquela PR contém correções
-A01–A14, sopro de draconato e -5/+10; retomar seus gastos/rerrolagens, magias e
-por último importação após resolver o tráfego. O responsável já confirmou e-mails
-e envio imediato entre telefone/computador; não repetir essa pendência básica.
+**Prioridade imediata: modo econômico de nuvem manual.** O responsável usa
+site e localhost, compartilhou o link com três amigos e escolheu explicitamente:
+**salvamento automático no aparelho; nuvem só pelo botão; desfazer local**.
+A implementação fica em `fix/nuvem-manual`, a partir do develop público.
+Verificados 442 testes Node, tipos/build e cinco roteiros Chromium: nuvem manual,
+autenticação, cópia sem conta, abas e atualização offline; a CI exige os 32.
+Login continua; imagens, fichas, notas e preferências atualizam pelo botão.
+Não contratar plano pago nem voltar a sincronização contínua sem nova decisão.
+
+A correção anterior foi integrada pela [PR #22](https://github.com/mhaetinger/D-D/pull/22)
+e publicada pela [PR #23](https://github.com/mhaetinger/D-D/pull/23), main `69e3213`,
+pacote `04a6bfee62966396`. Main aprovou 438 testes, banco, build/auditoria e os
+32 roteiros; site real teve HTML/worker/bundle iguais ao build, entrada mobile e
+recarga offline, sem erros JS. A retenção remota já está reduzida a 5/documento,
+7 dias e 50 versões/2 MiB por conta (migração remota `20261023115335`).
+São 58 versões/190.636 bytes; nenhuma exclusão extra foi necessária após a
+nova autorização condicional para históricos anteriores. Documentos atuais,
+notas, imagens e recibos permanecem preservados.
+
+Captura de referência: 1,537 GB de PostgREST no dia 23/10, recebida às 10:49 de
+Brasília; painel atualiza por hora. Logs disponíveis após publicação até esse
+horário mostram apenas Auth. Detalhes em
+[SINCRONIZACAO.md](SINCRONIZACAO.md#modo-manual-para-o-plano-gratuito).
+O localhost ainda estava na branch de regras com sincronização antiga; integrar
+o develop com o modo manual após verificar, preservando a auditoria da **PR #21**
+em `feature/auditoria-profunda-2014` (`9725f92`). Não misturar as regras à entrega
+urgente publicada; depois retomar draconatos → rolagens → magias → importação.
 
 A entrega de **22/10/2026** reúne as melhorias da ficha, revisão da importação,
 conta e histórico, além de R1 e dois recortes de R2. Integração pela
@@ -150,9 +159,9 @@ Texto para iniciar outra conversa:
 > Continue o CritCall. Leia AGENTS.md, docs/RETOMADA.md, README.md,
 > CHANGELOG.md e docs/ARQUITETURA.md. Confira a branch e o estado do Git.
 > O roteiro atual de regras está em docs/AUDITORIA-LIVRO-2014.md. Confira
-> a entrega urgente fix/sync-egress e sua publicação antes de retomar a PR #21.
-> A retenção reduzida já está ativa; o cliente precisa ser publicado. Preserve
-> a auditoria em feature/auditoria-profunda-2014; não misture as duas entregas.
+> a entrega de nuvem manual fix/nuvem-manual, a publicação e a atualização do
+> localhost antes de retomar a PR #21. A correção anterior #22/#23 já foi
+> publicada. Preserve a auditoria em feature/auditoria-profunda-2014.
 
 ## Mapa dos documentos
 

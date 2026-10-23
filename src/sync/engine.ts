@@ -1,4 +1,4 @@
-import { canonical, compatibleDocuments, documentKey, validateDocument, type Documents } from "./documents";
+import { canonical, compatibleDocuments, documentKey, validateDocument, type Documents, type DocumentValue } from "./documents";
 import type { JournalPort, Pending, RemoteDocument } from "./journal";
 
 export interface PushResult { document: RemoteDocument; conflict: boolean; server_time: string }
@@ -12,6 +12,10 @@ export interface SyncView {
   apply(documents: Documents): void;
   canApply(): boolean;
 }
+export interface SyncOptions {
+  manual?: boolean;
+  shouldSync?: (document: DocumentValue) => boolean;
+}
 /** A fila é persistida antes da rede. Respostas não removem operações posteriores. */
 export class SyncEngine extends EventTarget {
   status = "Preparando salvamento…";
@@ -23,11 +27,15 @@ export class SyncEngine extends EventTarget {
   private running: Promise<void> | null = null;
   private observed: Documents | null = null;
   private recaptureAfterFailure = false;
-  constructor(readonly scope: string, private journal: JournalPort, private remote: RemotePort, private view: SyncView) { super(); }
+  constructor(readonly scope: string, private journal: JournalPort, private remote: RemotePort, private view: SyncView, private options: SyncOptions = {}) { super(); }
+  private includes = (doc: DocumentValue) => this.options.shouldSync?.(doc) ?? true;
+  private visible(docs: Documents): Documents { return Object.fromEntries(Object.entries(docs).filter(([, doc]) => this.includes(doc))); }
+  private countPending(operations: Pending[]) { return operations.filter(this.includes).length; }
+  private pendingStatus() { return this.options.manual ? "Salvo neste aparelho · há alterações para sincronizar com a nuvem pelo botão." : "Alterações salvas neste dispositivo, aguardando envio."; }
   private emit() { this.dispatchEvent(new Event("change")); }
   capture(initial = false) {
     let snapshot: Documents;
-    try { snapshot = this.view.read(); }
+    try { snapshot = this.visible(this.view.read()); }
     catch { this.status = "Há dados locais ilegíveis. Foram preservados; confira o backup antes de sincronizar."; this.emit(); return Promise.resolve(); }
     const before = this.observed;
     this.observed = snapshot;
@@ -40,6 +48,7 @@ export class SyncEngine extends EventTarget {
       const keys = new Set([...Object.keys(snapshot), ...(!initial ? Object.keys(baseline) : [])]);
       for (const key of keys) {
         const previous = baseline[key];
+        if (previous && !this.includes(previous)) continue;
         const doc = snapshot[key] ?? (previous && { ...previous, value: null });
         if (!doc || canonical(doc) === canonical(previous)) continue;
         const latest = state.pending.filter(op => op.key === key).at(-1);
@@ -51,9 +60,12 @@ export class SyncEngine extends EventTarget {
           // Preserva-o no histórico sem fazê-lo vencer uma versão remota datada.
           editedAt: initial && !previous && !state.remote[key] ? "1970-01-01T00:00:00.000Z" : new Date(capturedAt + state.offset).toISOString() });
       }
-      state.projected = snapshot;
-      this.pending = state.pending.length;
-      if (this.pending) this.status = "Alterações salvas neste dispositivo, aguardando envio.";
+      // A projeção antiga pode conter a única cópia de um histórico. Conservá-la
+      // não o torna elegível para upload nem para substituir o histórico local.
+      state.projected = { ...Object.fromEntries(Object.entries(state.projected).filter(([, doc]) => !this.includes(doc))), ...snapshot };
+      this.pending = this.countPending(state.pending);
+      if (this.pending) this.status = this.pendingStatus();
+      else if (this.options.manual) this.status = "Salvo neste aparelho · nuvem manual. Use o botão para carregar ou enviar suas fichas.";
       this.emit();
     })).then(() => { this.recaptureAfterFailure = false; })
       .catch(() => { this.recaptureAfterFailure = true; this.status = "A fila offline não pôde ser salva. Os dados locais foram mantidos; baixe um backup antes de fechar."; this.emit(); throw new Error("Fila indisponível"); });
@@ -76,13 +88,13 @@ export class SyncEngine extends EventTarget {
         if (!Number.isFinite(clock)) throw new Error("Relógio remoto inválido");
         await this.journal.change(this.scope, state => {
           state.offset = clock - Date.now(); state.clockKnown = true;
-          for (const op of state.pending) if (op.uncalibrated) {
+          for (const op of state.pending) if (op.uncalibrated && this.includes(op)) {
             op.editedAt = new Date(Date.parse(op.editedAt) + state.offset - op.clockOffset).toISOString();
             op.clockOffset = state.offset; op.uncalibrated = false;
           }
         });
       }
-      const operations = await this.journal.change(this.scope, state => structuredClone(state.pending));
+      const operations = await this.journal.change(this.scope, state => structuredClone(state.pending.filter(this.includes)));
       // Consolida somente as operações já capturadas, por documento. Alterações
       // que chegarem durante a requisição continuam na fila, com sua própria data.
       const keys = [...new Set(operations.map(op => op.key))];
@@ -102,7 +114,7 @@ export class SyncEngine extends EventTarget {
             if (!state.remote[key] || state.remote[key].revision <= doc.revision) state.remote[key] = doc;
             const serverNow = Date.parse(response.server_time);
             if (Number.isFinite(serverNow)) state.offset = serverNow - Date.now();
-            this.pending = state.pending.length;
+            this.pending = this.countPending(state.pending);
           });
           if (response.conflict) this.conflicts++;
         } catch (error) {
@@ -116,7 +128,7 @@ export class SyncEngine extends EventTarget {
       // O diário já conserva os conteúdos. Consultas periódicas só precisam
       // baixar valores cuja revisão mudou, inclusive exclusões por tombstone.
       const knownRevisions=await this.journal.change(this.scope,state=>Object.fromEntries(Object.entries(state.remote).map(([key,doc])=>[key,doc.revision])));
-      const received = (await this.remote.pull(knownRevisions)).map(doc => this.checkRemote(doc));
+      const received = (await this.remote.pull(knownRevisions)).filter(this.includes).map(doc => this.checkRemote(doc));
       await this.journal.change(this.scope, state => {
         for (const doc of received) if (!state.remote[doc.key] || state.remote[doc.key].revision <= doc.revision) state.remote[doc.key] = doc;
       });
@@ -124,7 +136,7 @@ export class SyncEngine extends EventTarget {
       await this.applyLatest();
       if (rejected) throw rejected;
       this.status = this.deferred ? "Atualizações recebidas. Termine a edição para carregá-las."
-        : this.pending ? "Alterações salvas neste dispositivo, aguardando envio."
+        : this.pending ? this.pendingStatus()
         : this.conflicts ? "Sincronizado. Versões simultâneas preservadas no histórico da nuvem." : "Salvo no Supabase · atualizado neste dispositivo.";
     } catch (error) {
       const code = (error as { code?: string }).code;
@@ -132,7 +144,7 @@ export class SyncEngine extends EventTarget {
         ? "Nuvem ainda não configurada. Alterações mantidas neste dispositivo, aguardando envio."
         : code === "22008" ? "Confira a data e a hora do dispositivo. A fila local foi preservada."
         : code === "42501" || code === "P0001" ? "Não foi possível autorizar o salvamento. Entre novamente; a fila local foi preservada."
-        : "Sem confirmação do Supabase. Alterações locais preservadas; o envio será tentado novamente.";
+        : this.options.manual ? "Sem confirmação da nuvem. Alterações locais preservadas; tente novamente pelo botão." : "Sem confirmação do Supabase. Alterações locais preservadas; o envio será tentado novamente.";
     }
     this.emit();
   }
@@ -144,17 +156,17 @@ export class SyncEngine extends EventTarget {
   async applyLatest() {
     if (this.stopped) return;
     await this.journal.change(this.scope, state => {
-      const docs: Documents = Object.fromEntries(Object.values(state.remote).map(d => [d.key, { kind: d.kind, id: d.id, value: d.value }]));
-      for (const op of state.pending) docs[op.key] = { kind: op.kind, id: op.id, value: op.value };
+      const docs: Documents = Object.fromEntries(Object.values(state.remote).filter(this.includes).map(d => [d.key, { kind: d.kind, id: d.id, value: d.value }]));
+      for (const op of state.pending.filter(this.includes)) docs[op.key] = { kind: op.kind, id: op.id, value: op.value };
       // Se a interface escreveu enquanto aguardávamos o IndexedDB, primeiro
       // captura essa edição. Nunca projeta uma resposta sobre uma escrita nova.
-      const current = this.view.read();
+      const current = this.visible(this.view.read());
       const visible = Object.fromEntries(Object.entries(compatibleDocuments(docs)).filter(([, doc]) => doc.value !== null));
-      if (canonical(current) !== canonical(state.projected) || canonical(visible) !== canonical(current) && !this.view.canApply()) { this.deferred = true; return; }
+      if (canonical(current) !== canonical(this.visible(state.projected)) || canonical(visible) !== canonical(current) && !this.view.canApply()) { this.deferred = true; return; }
       if (canonical(visible) !== canonical(current)) this.view.apply(docs);
-      state.projected = this.view.read();
-      this.observed = state.projected;
-      this.pending = state.pending.length;
+      state.projected = { ...Object.fromEntries(Object.entries(state.projected).filter(([, doc]) => !this.includes(doc))), ...this.visible(this.view.read()) };
+      this.observed = this.visible(state.projected);
+      this.pending = this.countPending(state.pending);
       this.deferred = false;
     });
   }

@@ -11,11 +11,56 @@ pendentes estão somente na [RETOMADA.md](RETOMADA.md). O responsável confirmou
 e-mails e envio imediato entre telefone/computador. Os testes controlados não
 certificam os cenários adicionais de conflito/offline e isolamento com contas reais.
 
+## Modo manual para o plano gratuito
+
+Em 23/10/2026, após compartilhar o site com amigos e usar também o localhost,
+o responsável escolheu: **salvar automaticamente no aparelho, sincronizar com
+a nuvem só pelo botão e manter desfazer somente no aparelho**. Não contratar
+plano pago ou reativar sincronização contínua sem nova decisão do responsável.
+
+- **Sincronizar com a nuvem** envia as últimas fichas/notas/preferências locais
+  pendentes e recebe alterações elegíveis da conta. Não é apenas upload: usar
+  no aparelho de origem e depois no de destino. Uma instalação nova só carrega
+  fichas da nuvem por esse botão. Login sozinho mantém o cache já disponível.
+- Edições, foco, visibilidade, passagem do tempo e reconexão não iniciam RPC,
+  download de documentos ou envio de imagens. Não há repetição automática após
+  erro. A interface diferencia estado local, pendência e confirmação remota.
+- Desfazer/checkpoints e recuperações ficam locais. Filas/caches antigos e
+  registros de histórico na nuvem são preservados, sem voltar a enviá-los,
+  apagá-los ou projetá-los sobre o histórico local.
+- O índice de chave/tipo/ID/revisão filtra os históricos antes dos downloads de
+  valores, inclusive no primeiro acesso e na consulta da cópia sem conta.
+- Imagens novas são guardadas em IndexedDB e enviadas no clique, antes das
+  referências. O botão de repetir imagens usa a mesma ação manual. As imagens
+  remotas visíveis são liberadas após a sincronização; não há polling/retry por
+  minuto. Arquivos já recebidos continuam no cache privado/offline.
+- Login, confirmação e renovação de sessão continuam usando Auth. A consulta
+  explícita de versões e a oferta de copiar fichas sem conta também usam a rede;
+  suas leituras não incluem os históricos inteiros no fluxo normal.
+- A fila mantém a consolidação existente no momento do envio. Edições surgidas
+  durante a requisição ficam pendentes para outro clique. A confirmação de
+  envio só aparece após resposta validada; o erro não apaga a edição local.
+
+### Referência para comparar o consumo
+
+Captura enviada em 23/10, recebida por volta de **10:49 de Brasília**:
+**1,537 GB de PostgREST no dia 23/10**, Auth 180,13 KB. É acumulado diário,
+atualizado pelo painel por hora; não comparar como se fosse tráfego por hora.
+A publicação anterior, pacote `04a6bfee62966396`, foi confirmada às 09:22 e
+corrigiu downloads repetidos, mas ainda tinha envio/polling automático.
+
+Nos logs consultados de 09:22–10:49, havia 11 requisições de Auth e nenhuma
+requisição PostgREST disponível. Isso não comprova o tráfego em bytes nem uso
+ativo de uma partida. Os logs de respostas de documentos continuam sem tamanhos
+reportados. A captura pode refletir contabilização anterior. O localhost estava
+na branch de regras com sincronização antiga; deve incorporar o modo manual
+antes de continuar os testes. Nenhuma ficha pessoal foi consultada para medir.
+
 ## Dados e fila
 
 Sincronizam-se fichas completas, anotações pessoais separadas, nome, ficha ativa,
-tema/fundo/fonte, preferências de dados/bandeja, histórico/checkpoints e cópias
-de recuperação. A lista de preferências fica em `src/storage/preferences.ts`.
+tema/fundo/fonte e preferências de dados/bandeja. Histórico/checkpoints e
+recuperações são locais no modo manual. A lista de preferências fica em `src/storage/preferences.ts`.
 Nome é salvo ao digitar; falha mantém o texto e não anuncia sucesso. Senhas e
 tokens não são documentos nem backups. Editores ainda não confirmados mantêm
 seu fluxo de salvar/descartar; pool temporário, buscas, animações e painéis
@@ -27,10 +72,11 @@ separa mudanças reais do antigo `dnd_history_v1`, preservando o documento origi
 checkpoints antigos sem autor identificável ficam no original. Os ponteiros de
 desfazer/refazer são independentes. Históricos de fichas excluídas permanecem
 disponíveis para restaurá-las, sem recuperar/substituir as outras fichas ou notas.
-Histórico ilegível não é sobrescrito e vira uma cópia privada de recuperação na
-fila. A RPC aceita esses IDs de preferência.
+Histórico ilegível não é sobrescrito. O formato antigo de recuperação permanece
+compatível, mas históricos/recuperações ficam fora da fila elegível da nuvem.
 Isso separa edições de personagens diferentes; edições simultâneas do mesmo
-histórico continuam sujeitas à resolução de versões/conflitos existente.
+histórico não são sincronizadas no modo manual; as fichas atuais continuam
+sujeitas à resolução de versões/conflitos existente.
 
 Ao gravar um histórico legível, o cliente mantém até **10 estados / 256 KiB**,
 com o ponteiro atual e seus vizinhos. Um único estado maior que esse teto é
@@ -50,14 +96,14 @@ já agendadas, impedindo que a cópia anterior da nuvem substitua a edição loc
 No fluxo normal, a comparação conserva o estado observado no instante da captura
 para não transformar uma projeção remota posterior em uma edição local antiga.
 
-O bootstrap busca dados antes da ficha; há tentativas após edições, reconexão,
-foco/visibilidade e periodicamente com a página visível. Atualizações aguardam
+O bootstrap usa somente o cache/diário local antes da ficha. O botão manual
+envia/carrega dados; não há tentativas periódicas ou por foco/reconexão. Atualizações aguardam
 campos/editores abertos. Troca de conta cancela a projeção anterior e fecha a
 consulta de versões. A RPC compara o dono esperado com `auth.uid()`, impedindo
 enviar uma fila antiga com token que passou a pertencer a outra conta.
 
-**Outro PC só recebe uma edição offline depois que o dispositivo que a fez
-reconectar e confirmar o envio.** Antes, usa a última versão recebida na nuvem.
+**Outro PC só recebe uma edição depois de sincronizar pelo botão no aparelho
+de origem e também no de destino.** Reconectar sozinho não envia alterações. Antes, usa a última versão recebida na nuvem.
 Primeiro login exige rede. O perfil distingue fila, falta de configuração/rede
 e confirmação remota. Quota/armazenamento bloqueado são informados; não existe
 garantia de persistência se o navegador recusa escrever. Manter backups é necessário.
@@ -202,8 +248,9 @@ limites, contas inativas, conflito grande sem perda da operação e repetição.
 
 A retenção menor já está ativa no servidor. O limite de 10 estados/256 KiB se
 aplica a gravações legíveis feitas pelo cliente novo; leituras e o documento
-legado não são truncados. A correção dos downloads depende de integrar/publicar
-`fix/sync-egress`; abas abertas com o build antigo seguem o comportamento antigo.
+legado não são truncados. A correção dos downloads foi publicada por #22/#23 na main `69e3213`,
+pacote `04a6bfee62966396`. Abas antigas seguem seu comportamento até a atualização.
+O modo manual descrito acima é a entrega seguinte, em `fix/nuvem-manual`.
 Até receber a atualização, fechar abas do CritCall sem uso reduz consultas.
 O consumo do ciclo não diminui com a poda: a otimização vale para novas
 transferências. Não forçar reload de uma edição em andamento.
