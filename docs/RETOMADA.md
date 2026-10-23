@@ -1,232 +1,119 @@
 # Retomada do CritCall
 
-Estado atualizado em **23/10/2026**. Este é o ponto de entrada para continuar o
-projeto sem depender da conversa. Leia também `AGENTS.md`, `README.md`,
+Estado consolidado em **23/10/2026**. Leia também `AGENTS.md`, `README.md`,
 `CHANGELOG.md` e [ARQUITETURA.md](ARQUITETURA.md) antes de alterar.
 
 ## Onde o trabalho parou
 
-**Ajuste seguinte solicitado: até 25 registros de histórico local por ficha.**
-Aplicar ao abrir, migrar e gravar, inclusive em memória sem quota; checkpoints
-participam do teto. Preservar ficha atual, ponteiro, notas, dados ilegíveis e
-original coletivo legado. A proteção adicional de 256 KiB continua valendo.
-Implementação em `fix/historico-local-25`, separada das regras da PR #21.
+**Entrega de regras autorizada pelo responsável: concluir a PR #21.** Ela reúne
+as correções A01–A14, Arma de Sopro e –5/+10 de Atirador Aguçado/Mestre de Armas
+Grandes. A branch `feature/auditoria-profunda-2014` incorporou o modo manual e o
+limite local de 25 registros; seu código em `3290de6` passou por **474 testes
+Node, banco, tipos/build e os 36 roteiros completos de navegador** na CI.
+Workflows aprovados:
+[39973130541](https://github.com/mhaetinger/D-D/actions/runs/39973130541) e
+[39973122150](https://github.com/mhaetinger/D-D/actions/runs/39973122150).
+A conferência adicional desta entrega repetiu o diagnóstico puro: **3.321
+verificações, zero divergências**. O estado e as limitações de cada regra ficam
+somente em [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md).
 
-O modo manual foi publicado por #24/#25, main `301f76b`, pacote
-`d611a7aa248a317e`: 442 testes Node, banco, build e 32 roteiros de navegador
-aprovados na CI. Site público, tamanho de celular e recarga offline conferidos.
-O localhost recebeu a integração `1a00ea8`, preservando a auditoria da PR #21.
+A autorização atual é verificar, integrar por PR para `develop` e publicar
+por PR para `main`, preservando o que funciona. O resultado da publicação deve
+ser conferido no [workflow da main](https://github.com/mhaetinger/D-D/actions/workflows/pipeline.yml?query=branch%3Amain)
+e na [PR #21](https://github.com/mhaetinger/D-D/pull/21), com a referência da
+entrega para main. SHA, pacote e conferência pública ficam nas descrições dessas
+PRs; essa ligação evita tratar registros de entregas anteriores como estado atual.
 
-**Decisão mantida: modo econômico de nuvem manual.** O responsável usa
-site e localhost, compartilhou o link com três amigos e escolheu explicitamente:
-**salvamento automático no aparelho; nuvem só pelo botão; desfazer local**.
-A implementação fica em `fix/nuvem-manual`, a partir do develop público.
-Verificados 442 testes Node, tipos/build e cinco roteiros Chromium: nuvem manual,
-autenticação, cópia sem conta, abas e atualização offline; a CI exige os 32.
-Login continua; imagens, fichas, notas e preferências atualizam pelo botão.
-Não contratar plano pago nem voltar a sincronização contínua sem nova decisão.
+A base pública imediatamente anterior à entrega de regras é **#26/#27**, main
+`5d3861c`, pacote `778d8cff1b44f0f6`: 443 testes Node, banco, build e 33 roteiros
+aprovados. Site público conferido com histórico fictício de 80 → 25 registros,
+permanecendo no estado atual, tamanho de celular e recarga offline sem erros.
+O localhost:5174 já recebeu a integração `3290de6`, preservando a auditoria.
 
-A correção anterior foi integrada pela [PR #22](https://github.com/mhaetinger/D-D/pull/22)
-e publicada pela [PR #23](https://github.com/mhaetinger/D-D/pull/23), main `69e3213`,
-pacote `04a6bfee62966396`. Main aprovou 438 testes, banco, build/auditoria e os
-32 roteiros; site real teve HTML/worker/bundle iguais ao build, entrada mobile e
-recarga offline, sem erros JS. A retenção remota já está reduzida a 5/documento,
-7 dias e 50 versões/2 MiB por conta (migração remota `20261023115335`).
-São 58 versões/190.636 bytes; nenhuma exclusão extra foi necessária após a
-nova autorização condicional para históricos anteriores. Documentos atuais,
-notas, imagens e recibos permanecem preservados.
+## Escopo da entrega e próximos avanços
 
-Captura de referência: 1,537 GB de PostgREST no dia 23/10, recebida às 10:49 de
-Brasília; painel atualiza por hora. Logs disponíveis após publicação até esse
-horário mostram apenas Auth. Detalhes em
-[SINCRONIZACAO.md](SINCRONIZACAO.md#modo-manual-para-o-plano-gratuito).
-O localhost ainda estava na branch de regras com sincronização antiga; integrar
-o develop com o modo manual após verificar, preservando a auditoria da **PR #21**
-em `feature/auditoria-profunda-2014` (`9725f92`). Não misturar as regras à entrega
-urgente publicada; depois retomar draconatos → rolagens → magias → importação.
+A entrega atual fecha os casos de correção registrados como A01–A14 e os dois
+controles já implementados. Os critérios e limites estão na auditoria; isso não
+promete automação integral de todas as regras do livro. As demais possibilidades
+registradas são evoluções da ficha individual. Decisões que pertencem à mesa
+podem continuar manuais, com indicação clara, sem bloquear o uso da ficha.
 
-A entrega de **22/10/2026** reúne as melhorias da ficha, revisão da importação,
-conta e histórico, além de R1 e dois recortes de R2. Integração pela
-[PR #19](https://github.com/mhaetinger/D-D/pull/19) e publicação em
-**https://criticall.art/** pela [PR #20](https://github.com/mhaetinger/D-D/pull/20).
-O responsável autorizou a publicação após a conferência. O resultado e o SHA da
-`main` ficam no [workflow de publicação](https://github.com/mhaetinger/D-D/actions/workflows/pipeline.yml?query=branch%3Amain).
+A próxima entrega pequena segue R2 (rerrolagens de dano), conforme a matriz da
+auditoria. Ordem mantida: **draconatos → rolagens → magias → importação**.
+O ciclo com PDF real foi adiado pelo responsável. R3/R4/R6 permanecem no roteiro,
+com a cobertura parcial existente, sem acrescentar controles nesta publicação.
 
-| Referência | Estado da entrega de 22/10/2026 |
-| --- | --- |
-| Produção `main` | Entrega da PR #20; conferir SHA e resultado no workflow acima |
-| Integração `develop` | Entrega da PR #19, com R1 e os dois recortes implementados de R2 |
-| Revisão offline do artefato preparado | `8c517c3c837af0c0`; conferir `offline-manifest.json` no site após a publicação |
-| Conferência da entrega | 433 testes Node, tipos/build e quatro roteiros Chromium do ajuste de abas aprovados localmente; CI exige também banco descartável, auditoria e os 32 roteiros completos |
-| Próxima tarefa | Continuar os gastos/rerrolagens restantes de R2, conforme a auditoria; não repetir a implementação de Sortudo |
-| Branch encerrada por esta entrega | `feature/talento-sortudo-r2`; criar a próxima a partir de `develop` atualizado |
-| R1 | PR #17, com testes/limites na auditoria |
-| Primeiro recorte de R2 | PR #18, com Talento Confiável e Sortudo racial |
-| Segundo recorte de R2 e interface | PR #19, com talento Sortudo e correções descritas abaixo |
+**Interação entre fichas é uma etapa futura.** Os módulos puros e a guarda de
+permissão da interface podem ser reaproveitados. Aplicar dano/cura/efeitos a
+outro personagem exigirá identidade do alvo, consentimento/permissão no servidor,
+regras de conflito e testes próprios. Salas, mestre no servidor e voz/vídeo não
+existem nesta entrega. Um teste de permissão simulado não comprova essas funções.
+Não criar polling, sincronização contínua ou novas consultas de nuvem para
+preparar essa interação durante uma correção da ficha individual.
 
-A organização documental e **R1 — bônus ausentes nos cálculos** foram integradas
-em `develop`, junto do primeiro recorte de **R2 — rolagens e gastos condicionais**
-(Talento Confiável nas perícias e Sortudo racial nos d20 contextuais).
-O segundo recorte implementou o **talento Sortudo**, com uma reserva de três
-pontos e escolha do d20 nos controles existentes. Escopo e limites estão na
-[AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md#roteiro-de-implementação).
-Os próximos recortes de R2 cobrem as demais rerrolagens/dados mínimos,
--5/+10 e adicionais de talentos/estilos. As matrizes e os critérios ficam naquele arquivo. Não
-marcar uma mecânica como concluída por ter descrição, escolha ou contador.
+## Salvamento que deve ser preservado
 
-A PR #19 reúne também as correções de interface desta entrega. O moderno distribui
-origens/níveis pela largura e fonte sem remontar seus controles. A consulta usa
-os parágrafos dos traços raciais e as características dos 13 antecedentes,
-incluindo Ancestral Feérico, Versatilidade em Perícia e Pesquisador.
-
-Abrir a conta pelo nome começa em **Personagens**, a primeira aba. **Perfil**
-fica em segundo; avisos/retornos de senha continuam abrindo o perfil. A troca
-passou por 433 testes Node, tipos/build e pelos roteiros Chromium de abas,
-autenticação, sincronização e cópia sem conta, incluindo mobile/teclado/offline.
-O responsável autorizou publicar a entrega acumulada após conferir a CI.
-
-A revisão de PDF destaca observações e distingue identificação/classes, com
-relevo até Tendência e ancestralidades em quadros separados. Antecedente/tendência
-permitem catálogo ou escrita livre. Idiomas têm um único quadro, separado de
-armas/ferramentas/armaduras, com opções para marcar, treino já reconhecido pela
-ficha e textos desconhecidos preservados. Testes de resistência ficam após os
-atributos, em Combate; suas marcações continuam editáveis e persistentes.
-Moedas são editáveis; personalidade/história começam abertas. `createWeaponFields`
-atende ficha/importação, com dados, ajustes opcionais e leitura validada; a
-proposta permite adicionar/remover ataques. Bônus manual ausente continua não
-informado. Validação alcança rascunhos de outra pessoa do mesmo arquivo. Rótulos,
-legendas e jogador/XP têm hierarquia acima dos valores. A previsão de reservas
-aparece automaticamente, com aplicação explícita que preserva os gastos.
-Draconato e Linhagem Dracônica têm ancestralidades independentes na revisão;
-as dez cores foram conferidas com o livro, sem deduzir pela pele. A consulta
-mostra CD/área/dano do sopro; sua resolução completa continua pendente.
-
-O grimório separa truques/círculos e grupos de classe, mantendo o array salvo.
-Escolher do livro e criar efeito próprio são caminhos explícitos. O editor
-compartilhado conserva preparo contextual e escolha da origem racial com
-habilidade/usos/círculo, agora reversível sem recuperar gastos. Grupos têm
-cor, número e título; efeitos sem círculo oferecem uma única lista visível
-para escolher Truque ou 1º–9º círculo. Raio Místico é associado a Rajada Mística,
-conservando a linha do PDF. A busca local no tema substitui o datalist nativo;
-setas/Enter/Esc/toque não confirmam a revisão inteira. Reagrupamento ocorre ao
-navegar entre setores, fora do foco do editor, sem cancelar cliques. Cópias,
-metadados, textos desconhecidos e usos gastos permanecem preservados.
-
-A recusa **Não quero** de copiar fichas sem conta é lembrada por conta/navegador;
-retomar fica no Perfil. Ajudas por mouse esperam um segundo e se substituem.
-A descrição da magia fica no livrinho, com clique/Enter/toque para fixar consulta
-e acessar o PDF. Essas correções não alteram o dado nem avançam R2–R5.
-
-A última etapa acrescenta divisórias nas características/ferramentas, origem
-imediata e livrinho de catálogo nos cartões de magia. Listas de classe não
-excluem traços raciais. O cabeçalho da ficha oferece sugestões do livro somente
-em edição; trocar raça/antecedente tem prévia e aceite dos valores manuais.
-Escolhas antigas deixam de conceder efeitos e ficam aposentadas no evento.
-Isso não reconstrói automaticamente bônus e escolhas de uma nova raça.
-
-Conferência local anterior ao ajuste das abas: **433 testes Node, tipos/build, PostgreSQL 18 descartável
-e 11 roteiros Chromium**: origens, revisão clara/guiada/setores, PDF/JSON, edição
-em linha, cadeado, ajudas, características, sincronização e aplicativo/offline.
-A suíte completa tem **32 roteiros** e é exigida na CI desta entrega.
-Incluídos 320px/GG/três temas, fonte dos dados e livrinho em modal, nós/rascunhos,
-proposta antiga, recarga e limites de retenção/conflitos em duas contas.
-Após o ajuste visual final, repetidos origens, revisão clara e setores.
-O PDF pessoal foi conferido na etapa anterior, sem alterar o original ou incluir
-dados pessoais no repositório. Conferir a CI do último commit da PR #19 antes
-de publicar; verificações anteriores ficam no changelog.
-
-**Retenção remota ativa:** a política de 22/10 foi substituída pela migração
-local `20261023114717_reduced_sync_retention.sql`, remota `20261023115335`, em
-23/10. Limites atuais: 5 versões/documento, 7 dias, 50 versões/2 MiB por conta.
-A migração também podou versões antigas de contas inativas; documentos atuais,
-notas e imagens não foram alterados. O cliente novo limita gravações legíveis a
-10 estados/256 KiB. Não reaplicar migrações para igualar timestamps. Detalhes em
-[SINCRONIZACAO.md](SINCRONIZACAO.md).
+- Fichas/notas salvam automaticamente **neste aparelho**. Envio e recebimento
+  da conta, inclusive retratos, exigem **Sincronizar com a nuvem**. Ao trocar de
+  aparelho, sincronizar na origem e depois no destino; confirmar o envio no perfil.
+- Histórico de desfazer/checkpoints fica local: **até 25 registros / 256 KiB por
+  ficha**, ao carregar/migrar/gravar e em memória mesmo sem quota. Um estado
+  isolado maior, o original coletivo legado e arquivos ilegíveis são preservados.
+- Não contratar plano pago, voltar a sincronização contínua ou limpar dados/caches
+  sem nova decisão do responsável. Fichas, notas, imagens e filas existentes ficam.
+- Retenção remota já aplicada somente ao CritCall: **5 versões/documento / 7 dias,
+  50 versões / 2 MiB por conta**, remota `20261023115335`. Não reaplicar migrações
+  para acertar timestamps. Contratos e diagnóstico em [SINCRONIZACAO.md](SINCRONIZACAO.md).
+- Referência de consumo recebida às 10:49 de Brasília: **1,537 GB de PostgREST em
+  23/10**. Comparar o acréscimo depois de todos atualizarem; o acumulado anterior
+  não diminui. Não atribuir bytes/percentuais aos logs sem medição de resposta.
 
 ## Como continuar
 
-Em um clone novo, com Node.js 22.12+:
+Em clone novo, Node.js 22.12+ e npm. Em um clone existente, começar por
+`git status` e preservar alterações antes de trocar de branch.
 
 ```sh
-git clone --branch develop https://github.com/mhaetinger/D-D.git CritCall
-cd CritCall
+git switch develop
+git pull --ff-only origin develop
+git switch -c feature/nome-da-proxima-entrega
 npm ci
 npm run dev -- --port 5174 --strictPort
 ```
 
-Abra **http://localhost:5174/**. A configuração pública do CritCall acompanha o
-build; não precisa copiar `.env.local`. A porta 5173 pertence a outro aplicativo
-na máquina original.
-
-Em um clone existente, confira `git status`, preserve trabalho pendente e faça
-`git fetch origin`. Esta entrega encerra
-`feature/talento-sortudo-r2`. Para a próxima tarefa, parta do `develop` público
-atualizado e crie `feature/*` ou `fix/*`. Entregue por PR para
-`develop`; após revisão e aprovação, PR para `main`. Não fazer push direto à
-`main`, enviar tags extras ou mesclar o histórico privado do protótipo.
-
-Texto para iniciar outra conversa:
-
-> Continue o CritCall. Leia AGENTS.md, docs/RETOMADA.md, README.md,
-> CHANGELOG.md e docs/ARQUITETURA.md. Confira a branch e o estado do Git.
-> O roteiro atual de regras está em docs/AUDITORIA-LIVRO-2014.md. Confira
-> a entrega de nuvem manual fix/nuvem-manual, a publicação e a atualização do
-> localhost antes de retomar a PR #21. A correção anterior #22/#23 já foi
-> publicada. Preserve a auditoria em feature/auditoria-profunda-2014.
+Até concluir a PR #21, continuar sua branch quando indicado; depois, novas tarefas
+partem de `develop`. Não publicar fontes: `npm run build` gera `dist/`, entregue
+por Actions após revisão de main. Não enviar tags extras nem histórico privado.
 
 ## Mapa dos documentos
 
 | Arquivo | Responsabilidade |
 | --- | --- |
-| Este `RETOMADA.md` | Estado publicado, próxima etapa, referências e validações externas pendentes |
-| [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md) | Fonte única do progresso e das pendências de mecânicas; etapas R1–R6 e matrizes |
-| [ARQUITETURA.md](ARQUITETURA.md) | Módulos e contratos técnicos existentes |
+| Este `RETOMADA.md` | Estado da entrega, próxima ação e validações externas |
+| [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md) | Fonte única de progresso e limites das mecânicas R1–R6 |
+| [ARQUITETURA.md](ARQUITETURA.md) | Módulos, contratos e fronteira da futura interação entre fichas |
 | [README.md](../README.md) / [CONTRIBUTING.md](../CONTRIBUTING.md) | Uso, execução, verificações e fluxo de contribuição |
-| [CHANGELOG.md](../CHANGELOG.md) | Entregas e verificações históricas; não é uma lista de tarefas atuais |
-| [LOGIN.md](LOGIN.md) / [SINCRONIZACAO.md](SINCRONIZACAO.md) | Configuração, contratos e limites de contas, fila e imagens privadas |
-| [DOMINIO.md](DOMINIO.md) / [CLOUDFLARE.md](CLOUDFLARE.md) | Origem, DNS e procedimento de migração de hospedagem |
+| [CHANGELOG.md](../CHANGELOG.md) | Entregas e verificações históricas |
+| [LOGIN.md](LOGIN.md) / [SINCRONIZACAO.md](SINCRONIZACAO.md) | Contas, fila, imagens e retenção |
+| [DOMINIO.md](DOMINIO.md) / [CLOUDFLARE.md](CLOUDFLARE.md) | DNS, hospedagem e migração opcional |
 
 Os planos concluídos `REFATORACAO-2014.md`, `PLANO-EXPERIENCIA.md` e
-`PRIMEIRA-PUBLICACAO.md` foram retirados nesta consolidação. Seus contratos
-vigentes estão nas referências acima; os registros anteriores permanecem no
-changelog e no Git. Para consultar os arquivos antes da consolidação:
-`git show de3eda0:docs/NOME-DO-ARQUIVO.md`.
-
-Ao concluir uma tarefa, atualize o estado na auditoria se houver mudança de
-regra, registre no changelog o que foi feito e testado e atualize este arquivo
-somente quando mudar a próxima etapa, a publicação ou uma pendência externa.
-Não criar outro plano com uma cópia dessas listas.
-
-## Evidências da entrega anterior — 21/10/2026
-
-- 385 testes Node, tipos/build e 25 roteiros Chromium aprovados. O workflow da
-  `main` também aprovou PostgreSQL descartável/RLS/Storage e a auditoria das
-  dependências de produção. São verificações da entrega publicada anterior;
-  as entregas R1/R2 têm registros próprios na auditoria. Nenhuma das duas certifica
-  todas as regras do livro.
-- Após a publicação, atualização real com cache HTTP nativo, duas abas e rascunho
-  preservado; F5 comum recebeu a versão nova. Conferidos ícones das resistências,
-  foco do dado após teclado/minimizar, 390px/GG e ficha/notas offline.
-- Também foi conferida a atualização de um artefato antigo real em ambiente
-  local, com aba congelada, e o artefato no emulador Cloudflare. Isso não equivale
-  a publicação na Cloudflare nem a teste de sincronização entre contas reais.
-
-Evidências locais adicionais estão em
-`~/.local/state/critcall/releases/2026-10-21-atualizacao/`. Essa pasta é auxiliar,
-fica fora do Git e não é necessária para abrir o projeto em outro computador.
-Os links de PR/workflow acima registram a entrega compartilhável.
+`PRIMEIRA-PUBLICACAO.md` foram retirados; seu histórico permanece no Git.
+Registros de testes/entregas anteriores estão no changelog e na auditoria.
+Artefatos em `~/.local/state/critcall/releases/` são evidência auxiliar local,
+sem fichas privadas, e não substituem as PRs nem este ponto de retomada.
 
 ## Validações externas e trabalho posterior
 
-Estas pendências são separadas do roteiro de mecânicas. O responsável confirmou
-o teste básico de e-mails e envio entre telefone/computador; V2/V3 mantêm somente
-os cenários adicionais e a configuração de SMTP.
+Estas validações são separadas do roteiro de mecânicas. Em 23/10, o responsável
+confirmou e-mails e sincronização básica real; os casos adicionais abaixo
+não foram incluídos automaticamente nesse relato.
 
 | ID | Pendente | Critério para concluir / referência |
 | --- | --- | --- |
-| V1 | Ciclo completo com os PDFs reais de importação solicitados | Importar como cópia, conferir dados/vínculos, salvar/recarregar e evoluir. Leitura/cancelamento e testes sintéticos já feitos não substituem esse ciclo. Arquivos pessoais continuam fora do Git. |
-| V2 | Cenários adicionais de sincronização/isolamento | Envio básico telefone/computador confirmado pelo responsável. Faltam os cenários específicos de outra conta, imagens, offline/reconexão, conflito e restauração, sem pedir credenciais. Contratos em [SINCRONIZACAO.md](SINCRONIZACAO.md). |
-| V3 | SMTP próprio e fluxos adicionais de e-mail | E-mails testados pelo responsável. Configurar remetente próprio e conferir os fluxos de cadastro, confirmação, reenvio e recuperação ainda não identificados individualmente. [LOGIN.md](LOGIN.md) e [DOMINIO.md](DOMINIO.md). |
+| V1 | **Adiado pelo responsável; último na prioridade atual:** ciclo com PDFs reais | Retomar após draconatos, rolagens e magias. Importar como cópia, conferir vínculos, salvar/recarregar e evoluir. Testes sintéticos não substituem o ciclo; arquivos pessoais ficam fora do Git. |
+| V2 | **Uso básico anterior validado pelo responsável em 23/10; modo manual posterior testado automaticamente** | Conferir o botão manual entre aparelhos reais e, depois, os casos adicionais de offline/conflito/restauração/imagens/isolamento. O relato do modo anterior continua válido; não pedir novamente o teste básico como se nunca tivesse ocorrido. Contratos em [SINCRONIZACAO.md](SINCRONIZACAO.md). |
+| V3 | **E-mails validados pelo responsável em 23/10** | SMTP próprio continua uma configuração de infraestrutura opcional, sem confirmação de ativação; não manter o teste funcional de e-mail como bloqueio. [LOGIN.md](LOGIN.md) e [DOMINIO.md](DOMINIO.md). |
 | V4 | Alertas do serviço reinspecionados em 23/10/2026 | Decidir correção da função `public.rls_auto_enable` e da proteção contra senhas vazadas. Alertas anteriores continuam presentes; detalhes em [SINCRONIZACAO.md](SINCRONIZACAO.md#alertas-do-serviço-para-revisão). |
 | V5 | Hospedagem Cloudflare | Conectar administração, criar projeto Pages e configurar credenciais/destino; depois validar domínio e offline. O DNS já usa Cloudflare, mas a hospedagem é GitHub Pages. Seguir [CLOUDFLARE.md](CLOUDFLARE.md). |
 | V6 | Remoção voluntária do cache de uma conta em dispositivo compartilhado | Definir exportação/confirmação e comportamento offline; não apagar dados automaticamente. Limites em [LOGIN.md](LOGIN.md#dados-sessão-e-troca-de-conta). |

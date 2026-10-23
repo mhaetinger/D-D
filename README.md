@@ -122,7 +122,13 @@ A previsão de reservas aparece automaticamente pelas classes e níveis; aplicar
 os máximos continua sendo uma escolha explícita, sem recuperar os usos gastos.
 Draconatos têm escolha das dez ancestralidades de 2014, com consulta de dano,
 área, teste e CD do sopro. A ancestralidade da Linhagem Dracônica do feiticeiro
-fica em outra escolha. A resolução completa do sopro continua na auditoria.
+fica em outra escolha. A característica **Arma de Sopro**
+registra o total físico ou rola seus d6 virtuais, mostra dano integral/metade e
+gasta um uso racial, recuperado em descanso curto ou longo. A área e a CD
+seguem a ancestralidade e o nível total; os testes/defesas dos alvos são
+resolvidos na mesa. Alterar a ancestralidade exige desbloquear a ficha e
+não recupera o uso. Em Forma Selvagem, informe a CON da forma e confirme
+com a mesa sua capacidade física de usar o sopro.
 As dicas de preparo aparecem no balão ao passar o mouse ou focar o controle
 pelo teclado. Marcar uma checkbox continua apenas alterando sua seleção.
 
@@ -133,6 +139,17 @@ dano recebido, a ficha deixa o teste de CON pendente para você resolver. Duraç
 e efeitos nos alvos ficam com a mesa. **Só Pool** deixa a conjuração na mesa;
 **OFF** permite registrá-la sem dados virtuais. **Registrar efeito da mesa**
 acompanha um efeito resolvido fora dos botões, sem gastar espaços ou usos.
+
+Recursos com resultado aleatório, como Retomar o Fôlego, cura da Lua e Presságio,
+usam a escolha de dado físico ou virtual antes de aplicar o resultado. Cancelar
+mantém os usos. Intervenção Divina bem-sucedida aguarda sete dias na aventura;
+**Registrar semana transcorrida** libera após a confirmação da mesa. Um descanso
+isolado não encerra essa espera.
+
+Nos danos mistos auditados, a prévia e o resultado distinguem os componentes e
+seus subtotais; resistências e escolhas de tipo do alvo continuam na mesa.
+A consulta de Onda Destrutiva informa a correção editorial de 5d5 para 5d6 no
+catálogo, mantendo o PDF original.
 
 ## Dado flutuante e retratos
 
@@ -168,7 +185,8 @@ original e seus metadados não são enviados. SVG/GIF não são aceitos.
 
 As imagens usam Storage privado da conta; documentos/histórico guardam somente
 referências. O navegador mantém cópias em IndexedDB por espaço e pode enviar
-imagens escolhidas offline ao reconectar. Confira o envio no perfil. Uma imagem
+imagens escolhidas offline ao clicar em **Sincronizar com a nuvem**. Confira o
+envio no perfil. Uma imagem
 não disponível sem rede mantém o ícone padrão. Fotos locais sem login continuam
 separadas das contas. Os retratos não são embutidos no JSON do backup: as
 referências funcionam na mesma conta, mas não levam os arquivos a outra conta.
@@ -348,8 +366,8 @@ O servidor de desenvolvimento não instala o cache offline.
 O aplicativo guarda seu código, regras, estilos, fontes e ícones. Os PDFs não são
 baixados automaticamente: a consulta aos livros exige conexão, ou você pode abrir
 uma cópia previamente baixada fora do leitor integrado. A fila de sincronização envia
-alterações ao reconectar; o banco real já recebeu a migração. Outro PC só recebe edições
-offline depois de seu envio.
+alterações pelo botão **Sincronizar com a nuvem**, quando houver conexão. Outro
+PC recebe as edições depois do envio e de sincronizar também no destino.
 
 O aplicativo procura atualizações ao abrir/retomar a página e a cada minuto
 enquanto ela estiver visível. Uma versão pronta oferece **Atualizar**; F5 comum
@@ -452,6 +470,12 @@ dados extras do crítico: não lança dados novamente nem dobra o total informad
 Em **Adicionais** no Auto Ficha, **Rolar aqui** usa os dados virtuais. Confirmar desconta um único espaço quando
 escolhido. Cancelar preserva tudo; desfazer devolve o espaço. O dano virtual desse
 controle preserva o pool e a inspiração. O botão **Dano** comum continua direto.
+Atirador Aguçado e Mestre de Armas Grandes oferecem
+**–5 ataque / +10 dano** junto ao Crítico, apenas nas armas proficientes
+elegíveis. Marque antes do ataque; os botões mostram os valores preparados.
+O +10 entra uma vez, inclusive no crítico. Confirmar o dano desmarca; cancelar
+mantém. Se errou, desmarque antes de continuar. OFF/Só Pool registram o total
+já incluindo +10. A preparação não é salva nem transferida a outras armas.
 Armas manuais mantêm a fórmula; seu crítico dobra os dados informados, sem
 adicionais automáticos. Não controla PV do alvo, limite de ataques ou munição.
 

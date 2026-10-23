@@ -5,6 +5,21 @@ e as validações externas estão em [RETOMADA.md](RETOMADA.md); o progresso e o
 roteiro de mecânicas estão em [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md).
 Seções datadas registram a implementação do módulo, sem substituir esses estados.
 
+## Fronteira da futura interação entre fichas
+
+As regras recebem o documento de um personagem e o motor por argumentos. Os
+controles aplicam custos/resultados nesse documento, com prévia e revalidação.
+Essa separação permite reaproveitar cálculo sem acoplar regras a transporte ou
+identidade remota. A guarda `src/sheet-edit/access.ts` é apenas uma fronteira de
+interface para um contexto futuro; não fornece autorização no servidor.
+
+Efeitos recebidos de outro personagem ainda são registrados pelo jogador. Uma
+futura mesa compartilhada precisará identificar origem/alvo, conferir permissão
+no servidor, definir confirmação, idempotência e conflitos, e testar isolamento
+entre participantes. A sincronização pessoal manual não é esse protocolo.
+As entregas da ficha individual não criam polling nem novas chamadas para
+antecipar essa etapa. Estado/limites das mecânicas ficam somente na auditoria.
+
 ## Base implementada
 
 A interface aprovada foi preservada, com migração gradual para Vite e TypeScript.
@@ -748,7 +763,9 @@ Contratos preservados do plano de refatoração concluído: fórmulas alternativ
 de CA não se somam, e a segunda Defesa sem Armadura não é adquirida por
 multiclasse. Proteção contra Lâminas é resistência; Aparo é redução de dano,
 sem bônus universal de CA. Intervenção Divina bem-sucedida impede nova tentativa
-por sete dias, inclusive após descanso. Olhar Hipnotizante registra a restrição
+por sete dias na aventura, inclusive após descanso. Novos sucessos usam
+`interventionPending`; a confirmação explícita da semana também aceita o prazo
+real legado, preservado até a decisão. Olhar Hipnotizante registra a restrição
 por alvo até descanso longo. Fontes e contextos que a ficha não conhece continuam
 sob decisão explícita da mesa; usos, alvos e estados não substituem seus efeitos.
 
@@ -1206,3 +1223,88 @@ sem usar bônus/arma/racial/inspiração do defensor nem aplicar acerto/dano.
 Declaração de uso por outra criatura e o momento anterior ao resultado continuam
 na mesa. Não há novo estado de turno, alvo ou serviço remoto. Regressões em
 `tests/lucky.test.ts` e `tests/lucky-browser.cjs`; escopo restante na auditoria.
+
+## Correções do check-up de 23/10/2026
+
+`setPermanentAbility` é o contrato comum à digitação e aos botões: aplica a
+variação de CON por nível aos PV já registrados, mantendo déficit, 0 PV e
+exaustão. Não reconstrói máximos manuais. `untrainedAbilityBonus` distingue
+Atletismo Extraordinário (FOR/DES/CON, arredondamento para cima) e Versatilidade
+(para baixo), sem acumular nem afetar testes treinados ou resistências.
+
+`spellMeta.damageComponents` identifica componentes simultâneos nos casos
+auditados; `resolveSpellEffect` compõe a fórmula e o resumo sem confundir fases
+ou alternativas de outras magias. `spellDamageBreakdown` atribui as mesmas faces
+do pool aos componentes para mostrar subtotais, sem nova rolagem ou alteração
+do total. Tempestade de Gelo aumenta só concussão;
+Coluna de Chamas separa os dados adicionais cujo tipo cabe à mesa. Arma
+Espiritual inclui a habilidade da origem; Evocação Potencializada entra uma
+vez na rolagem inicial de dano reconhecida, depois de Gêmea. `customRoll`
+continua tendo precedência. O indicativo de Raio Solar em fichas antigas usa a
+geometria corrigida, sem gravar uma migração ou apagar adaptações.
+
+A concentração v1 aceita `resourceId` opcional somente para Duplicidade e
+Presença Dracônica. Encerrar/substituir/testar limpa o estado ativo associado;
+a ativação valida impedimentos antes do custo e a interface confirma a troca
+com revalidação da ficha. Descansos encerram essas características curtas,
+preservando Asas de Dragão até o jogador recolher.
+
+`resource-roll-ui.ts` reutiliza `dieSourceControls`/`chooseDieSource` para faces
+físicas ou o rolador existente, sem alterar a aparência do dado flutuante.
+Valida ficha/modo/faces antes do resultado e mantém uma escolha pendente por
+ficha. `resource-effects.ts` aplica Retomar/Intervenção depois de validar custo
+e efeito. Presságio admite faces explícitas em `takeRest`, evitando RNG oculto
+em OFF; os consumidores puros antigos ainda podem fornecer o gerador de testes.
+A semana de Intervenção não é inferida por descanso nem pelo relógio da máquina.
+
+O extrator limita magias ao PDF 288 e registra `sourceNote` para a correção
+editorial de Onda Destrutiva. Consulta da importação/ficha mostra a nota; o PDF
+não muda. Regeneração preservou as outras 359 magias e os dois catálogos restantes.
+Escopo e regressões ficam na seção atual de
+[AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md#check-up-profundo-de-23102026).
+
+## Arma de Sopro de draconato — 23/10/2026
+
+`draconic-ancestry.ts` mantém a tabela única das dez cores e separa a escolha
+racial `raceDragon` da origem `dragon` de feiticeiro. `dragonborn-breath.ts`
+valida consciência, ancestralidade, nível, CON, uso e total antes de qualquer
+mutação. `race:breath` é um recurso comum de recuperação curta/longa; o vínculo
+em `placement.ts` ocupa a característica racial já existente, sem outro painel.
+
+`dragonborn-breath-ui.ts` reutiliza o diálogo e a seleção físico/virtual de PV,
+e `rollWeaponFormula` para os d6, sem pool manual, inspiração ou modo de d20.
+Confirmação cancelada ou ficha modificada não consome recurso. A edição racial
+exige `canConfigureSheet`, conserva o próprio select/foco e não reseta gastos.
+`ruleState.lastBreath` v1 guarda ancestral, tipo, área, teste, dados, CD, total,
+metade e fonte do dado; é resultado passado, sem estado de turno ou alvo.
+
+Em Forma Selvagem, capacidade física e modificador de CON da forma são entradas
+explícitas, sem preencher estatísticas de criatura nem alterar a CON humana.
+Não se trata de magia: nenhum espaço, afinidade ou concentração é consumido.
+Testes/defesas dos alvos e aplicação a outras criaturas permanecem na mesa.
+Regressões: `tests/dragonborn-breath.test.ts` e `tests/dragonborn-breath-browser.cjs`.
+
+## –5 no ataque / +10 no dano — terceiro recorte de R2, 23/10/2026
+
+`weapon-power-attack.ts` valida talento, categoria/modo da arma e proficiência
+sem alterar `weaponStats` ou os totais do documento. Atirador exige categoria
+à distância (Dardo é elegível; Adaga/Azagaia arremessadas não); Mestre exige
+ataque corpo a corpo com arma pesada. Valores manuais e Forma Selvagem não
+recebem o ajuste automático. Arremesso improvisado de arma pesada é excluído.
+`weaponStats` respeita acuidade do Dardo também ao escolher FOR/DES; overrides
+continuam soberanos. O +10 é uma parcela fixa do tipo da arma em
+`previewWeaponDamage`, inclusive no crítico e com Destruição.
+
+`weapon-damage-ui.ts` mantém a preparação num WeakSet por objeto de arma,
+como o crítico. O checkbox atualiza os próprios textos/nós sem histórico/RNG;
+`sheet.js` usa o bônus transitório no d20, mantendo seu contexto/Sortudo.
+Dimensionadores invisíveis reservam os rótulos com e sem crítico/+10.
+Dano direto e Adicionais usam o mesmo plano; total físico já inclui o bônus e
+não recebe outra soma. Confirmação limpa as marcas; cancelamento mantém.
+Revalida ficha, arma, documento, preparação e autorização antes de rolar/gastar.
+Recarga/novos objetos descartam a preparação; não há migração ou novo contador.
+
+A declaração anterior ao ataque, acerto/erro, turnos, cobertura/alcance e ação
+bônus de Mestre de Armas Grandes permanecem na mesa; o controle permite
+corrigir uma preparação manualmente. Registros/fórmulas existentes ficam
+intactos. Regressões em `weapon-power-attack.test.ts` e no roteiro de navegador.

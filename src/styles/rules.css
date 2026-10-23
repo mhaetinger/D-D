@@ -69,3 +69,9 @@
 .cw-characteristics-box textarea { min-height:2.6rem; max-height:8rem; resize:vertical; }
 .cw-characteristics-box .cw-physical-details .cw-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,9rem),1fr)); gap:.5rem; }
 .cw-characteristics-box input, .cw-characteristics-box select { padding:.4rem .5rem; font-weight:400; }
+
+/* Sopro no traço racial: texto/resultado compactos, com o mesmo padrão dos recursos. */
+.rule-breath-profile,.rule-breath-result { flex-basis:100%; line-height:1.5; }
+.rule-breath-result { font-weight:600; }
+.rule-breath-ancestry { display:flex; flex-wrap:wrap; align-items:center; gap:.35rem; flex-basis:100%; min-width:0; }
+.rule-breath-ancestry select { min-width:0; max-width:100%; }

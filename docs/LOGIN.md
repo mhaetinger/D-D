@@ -40,8 +40,10 @@ O usuário confirmou cadastro/entrada e relatou sucesso na recuperação local e
 16/10/2026, após repetir o fluxo no navegador/dispositivo de origem. As consultas
 automatizadas ao serviço real conferiram conexão e destinos de retorno, sem
 cadastrar usuários, enviar e-mails ou trocar senhas. Isso não comprova todos os
-fluxos de e-mail na produção. Validações reais e SMTP próprio estão em V2/V3 da
-retomada; a publicação do código já foi concluída.
+fluxos de e-mail na produção. Em 23/10/2026, o responsável confirmou os e-mails
+e a atualização imediata entre seu telefone e computador. Esse relato valida
+o uso básico; casos avançados e eventual SMTP próprio estão separados em
+V2/V3 da retomada. A publicação do código já foi concluída.
 
 Fichas/notas mantêm cópia no navegador e fila pessoal de sincronização. As
 migrações foram aplicadas ao projeto real em 16/10/2026; versões remotas,
@@ -134,7 +136,8 @@ perfil do navegador ou janela privada durante a solicitação.
 Essa exigência pertence ao retorno do link. É possível iniciar a recuperação em
 qualquer navegador/dispositivo e concluí-la nele. Entrada normal com e-mail/senha
 funciona em outros navegadores; o compartilhamento das fichas usa a fila descrita
-em SINCRONIZACAO.md, com banco preparado e validação real entre dispositivos pendente.
+em SINCRONIZACAO.md, com banco preparado e sincronização básica real entre
+telefone e computador confirmada pelo responsável em 23/10/2026.
 
 O provedor simulado dos testes passou a conferir o código emitido e o desafio
 PKCE, com prazo e uso único. Antes, aceitava qualquer código e não comprovava
@@ -178,8 +181,9 @@ Informou configurações feitas e DNS em verificação no GitHub. A API real ace
 o retorno `https://criticall.art/` e os dois retornos locais em 5174; um retorno
 não permitido recaiu no domínio novo (303). Usados tokens aleatórios inválidos,
 sem e-mails ou mudanças de senha. DNS/HTTPS foram conferidos em 16/10/2026 e a
-publicação funcional no domínio em 21/10/2026. A conferência completa do login
-e dos e-mails reais em produção segue nas validações da retomada.
+publicação funcional no domínio em 21/10/2026. O responsável confirmou os
+e-mails e o uso entre telefone e computador em 23/10/2026; validações avançadas
+seguem separadas na retomada.
 O mesmo build usa caminhos relativos e é conferido tanto em `/D-D/` quanto em `/`.
 O retorno acompanha a origem/pasta em que o jogador iniciou o fluxo; o Supabase
 precisa autorizar a nova URL antes do teste real no domínio. A troca de origem
@@ -229,8 +233,9 @@ fictícia e usa o SDK real contra respostas HTTP controladas. Não envia cadastr
 senha ou recuperação a um projeto real. Ele complementa os testes existentes;
 não comprova entrega de e-mail, configuração do serviço ou proteção de dados remotos.
 
-A publicação do código já está concluída. A validação completa com contas,
-dispositivos e e-mails reais, o SMTP e a revisão dos alertas do serviço são
-acompanhados na [RETOMADA.md](RETOMADA.md). Os contratos e as inspeções históricas
+A publicação do código já está concluída. E-mails e sincronização básica entre
+telefone e computador foram confirmados pelo responsável em 23/10/2026. Casos
+avançados de conta/offline/conflito/restauração, eventual SMTP próprio e revisão
+dos alertas do serviço são acompanhados na [RETOMADA.md](RETOMADA.md). Os contratos e as inspeções históricas
 de RLS/RPC estão em SINCRONIZACAO.md; não declarar revisão integral de segurança
 a partir dos testes existentes. Alterações seguem PR para develop e main.

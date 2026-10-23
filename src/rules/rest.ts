@@ -3,11 +3,11 @@ import { resetResources } from './resources';
 import type { Engine, Sheet } from './model';
 import { deathStatus, healHitPoints } from './health';
 import { endConcentration } from './concentration';
-export function takeRest(c: Sheet, kind:'short'|'long', E: Engine, options:{foodAndWater:boolean;tableHitDice:boolean;slept?:boolean}={foodAndWater:true,tableHitDice:false}, random=Math.random) {
+export function takeRest(c: Sheet, kind:'short'|'long', E: Engine, options:{foodAndWater:boolean;tableHitDice:boolean;slept?:boolean;portent?:number[]}={foodAndWater:true,tableHitDice:false}, random=Math.random) {
   if (Number(c.exhaustion)>=6) throw new Error('Exaustão 6 significa morte. Um descanso não revive o personagem.');
   if (deathStatus(c).dead) throw new Error('Um descanso não revive o personagem.');
   if (kind==='long' && c.hpCurrent<1) return false; // Requisito do início, sem consumir/recuperar nada.
-  resetResources(c,kind,E,random);
+  resetResources(c,kind,E,random,options.portent);
   if (Number(c.exhaustion)>=6) { c.hpCurrent=0; return false; }
   c.pactMagic.used = 0;
   c.ruleState.songOfRestUsed=false;

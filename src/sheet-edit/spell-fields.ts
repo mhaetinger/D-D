@@ -5,7 +5,7 @@ import {parseDiceFormula} from '../rules/dice-formula';
 import {catalogSearch} from '../app/catalog-search';
 import {preparation} from '../rules/spellcasting';
 import {spellCatalogDetail} from '../rules/spell-reference';
-const damageTypes={utilidade:'Utilidade',cura:'Cura',defesa:'Defesa',fogo:'Fogo',frio:'Frio',eletrico:'Elétrico',acido:'Ácido',veneno:'Veneno',necrotico:'Necrótico',radiante:'Radiante',psiquico:'Psíquico',trovejante:'Trovejante',energia:'Energia',cortante:'Cortante',perfurante:'Perfurante',concussao:'Concussão'};
+const damageTypes={misto:'Dano de tipos diferentes · conferir componentes',utilidade:'Utilidade',cura:'Cura',defesa:'Defesa',fogo:'Fogo',frio:'Frio',eletrico:'Elétrico',acido:'Ácido',veneno:'Veneno',necrotico:'Necrótico',radiante:'Radiante',psiquico:'Psíquico',trovejante:'Trovejante',energia:'Energia',cortante:'Cortante',perfurante:'Perfurante',concussao:'Concussão'};
 const defenses={nenhuma:'Sem ataque/resistência',atq_magico:'Ataque contra CA',auto_hit:'Acerto automático',tr_for:'Resistência de Força',tr_des:'Resistência de Destreza',tr_con:'Resistência de Constituição',tr_int:'Resistência de Inteligência',tr_sab:'Resistência de Sabedoria',tr_car:'Resistência de Carisma'};
 
 /** Campos compartilhados entre o cartão da ficha e a cópia de importação.

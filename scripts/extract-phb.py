@@ -56,7 +56,7 @@ for page in range(207, 213):
 # Metadados e resumos nas duas colunas das descrições. Mantém ligação ao PDF.
 segments=[]
 active=None
-for page in range(213, 290):
+for page in range(213, 289):
     for x in [33, 304]:
         text=crop(page,x,45,263,753)
         lines=text.splitlines()
@@ -83,6 +83,14 @@ for segment in segments:
     if m: spell['duration']=m.group(1).strip()
     spell['concentration']='concentração' in spell.get('duration','').lower()
     spell['text']=text.strip()
+
+# Correção editorial explícita do catálogo, não alteração do PDF nem errata
+# oficial da tradução. Destructive Wave (PHB 2014, p. 231) usa d6; este exemplar
+# imprime 5d5 no componente trovejante. A consulta deve exibir a divergência.
+wave=spells['onda-destrutiva']
+assert wave['text'].count('5d5')==1, 'Revisar a correção editorial de Onda Destrutiva se a fonte mudar.'
+wave['text']=wave['text'].replace('5d5','5d6',1)
+wave['sourceNote']='Correção editorial do CritCall: o PDF local imprime 5d5 trovejante; o catálogo usa 5d6, conforme Destructive Wave de 2014 (PHB, p. 231). O PDF original foi preservado.'
 
 # Seções locais para consulta das características, sem depender de serviços externos.
 # O número do rodapé é o impresso; pdfPage é sempre o índice correto para #page=.

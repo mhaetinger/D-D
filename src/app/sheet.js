@@ -10,8 +10,9 @@ import { spellClassPanels } from '../rules/spell-class-panels';
 import { resourcesAt } from "../rules/placement";
 import { featureGroups } from '../rules/feature-groups';
 import { canCastNormally, canRitual, preparation, wizardPrivilege, castingRestriction, armorProficiencies } from "../rules/spellcasting";
-import { resolveSpellEffect, innateCastLevel, twinEligible } from "../rules/spell-effects";
-import {skillBonus,passiveSkill} from '../rules/passives';
+import { resolveSpellEffect, innateCastLevel, twinEligible, spellDamageBreakdown } from "../rules/spell-effects";
+import {weaponPowerAttackOption} from '../rules/weapon-power-attack';
+import {skillBonus,passiveSkill,untrainedAbilityBonus} from '../rules/passives';
 import { consumeInspiration, deathStatus, healHitPoints, inspirationRollMode } from '../rules/health';
 import { damageDescription, deathControls, hitDiceControls, inspirationControls } from '../rules/health-ui';
 import { offerSurvivalForDamage } from '../rules/damage-ui';
@@ -19,12 +20,13 @@ import { parseDiceFormula } from '../rules/dice-formula';
 import { evaluateDicePool, sheetD20Rules, canRerollHalfling, rerollHalfling, addLuckyDie, chooseLuckyDie, luckyFaces } from '../rules/dice-roll';
 import { luckRemaining } from '../rules/lucky';
 import { askToUseLucky, chooseLuckyFace, payLuckyPoint } from '../rules/lucky-ui';
-import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponDamageLabel } from '../rules/weapon-damage-ui';
+import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponDamageLabel, weaponAttackBonus, weaponPowerAttackPrepared } from '../rules/weapon-damage-ui';
 import { applyCastConcentration, concentration, concentrationBlock, incapacityReason, needsConcentrationConfirmation, spellConcentration, validateConcentrationStart } from '../rules/concentration';
 import { concentrationControls } from '../rules/concentration-ui';
 import { automaticSaveFailure } from '../rules/conditions';
 import { takeRest } from "../rules/rest";
-import { onSpellCast } from "../rules/resources";
+import { onSpellCast, resourcesFor } from "../rules/resources";
+import {chooseResourceDice} from '../rules/resource-roll-ui';
 import { characterSnapshot, historyComparable as characterHistoryComparable, historyKey, HISTORY_PREFIX, HISTORY_MAX_STEPS, isCharacterHistoryKey, migrateCharacterHistories, splitLegacyHistory, validateCharacterHistory, boundedCharacterHistory } from '../storage/character-history';
 import { setupDiceDock } from "./dice-dock";
 import { avatarMarkup } from "../media/avatar";
@@ -40,6 +42,7 @@ import {updateDiceDockAppearance} from './dice-dock-appearance';
 // 1. METADADOS E CATÁLOGOS
 // =========================================================================
 const DAMAGE_TYPES_META = {
+  misto: {label:'Dano de tipos diferentes',icon:'layers',cls:'badge-utilidade'},
   livro: { label: "Efeito no livro", icon: "book-open", cls: "badge-utilidade" },
   fogo: { label: "Fogo", icon: "flame", cls: "badge-fogo" },
   eletrico: { label: "Elétrico", icon: "zap", cls: "badge-eletrico" },
@@ -713,8 +716,9 @@ function getMageArmorAC(char) {
 function resolveSpellMeta(spell) {
   const catalog = CharacterEngine.spell?.(spell?.bookId || spell?.name);
   const catalogMeta = CharacterEngine.spellMeta?.(catalog || spell) || {};
-  const dmgType = spell?.dmgType && spell.dmgType !== "livro" ? spell.dmgType : (catalogMeta.dmgType || "utilidade");
-  const targetType = spell?.targetType || catalogMeta.targetType || null;
+  const automatic=catalog && !spell.customSpell && !spell.customRoll;
+  const dmgType = automatic && catalogMeta.damageComponents ? 'misto' : spell?.dmgType && spell.dmgType !== "livro" ? spell.dmgType : (catalogMeta.dmgType || "utilidade");
+  const targetType = automatic && catalog.id==='raio-solar' && spell.range===catalog.range ? catalogMeta.targetType : spell?.targetType || catalogMeta.targetType || null;
   const defType = spell?.defType && spell.defType !== "nenhuma" ? spell.defType : (catalogMeta.defType || "nenhuma");
   const canTwin = spell?.canTwin !== undefined && spell?.dmgType && spell.dmgType !== "livro" ? !!spell.canTwin : !!(spell?.canTwin || catalogMeta.canTwin);
   const effectSummary = spell?.effectSummary && spell.effectSummary !== "Consultar descrição" && (!catalog || spell.effectSummary !== catalog.duration)
@@ -1101,7 +1105,8 @@ function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligib
   // animação só vale para o próximo lançamento, nunca para o que já foi feito.
   const c=getChar(),inspired=inspirationEligible && !!c && dicePoolCounts[20]===1 && c.heroicInspiration && c.ruleState?.inspirationReady;
   const mode=inspired?inspirationRollMode(c,currentRollMode):currentRollMode;
-  const result = evaluateDicePool(dicePoolCounts, modVal, mode,c?sheetD20Rules(c,context,CharacterEngine):{});
+  let result = evaluateDicePool(dicePoolCounts, modVal, mode,c?sheetD20Rules(c,context,CharacterEngine):{});
+  if(context?.spellComponents)result=spellDamageBreakdown(result,context.spellComponents);
   if(minimumZero)result.total=Math.max(0,result.total);
   if(inspired && consumeInspiration(c)) saveRuleStep('Usou inspiração no d20 · '+(customLabel || 'pool'));
   presentDiceResult(result, customLabel,context?{c,context}:null);
@@ -1878,7 +1883,7 @@ function renderMainClassic2014(char) {
       return `
     <div class="sheet-ability-card t-card-accent p-2.5 text-center flex flex-col items-center justify-center">
       <span class="text-[10px] font-bold uppercase tracking-wider t-text-muted">${meta.name}</span>
-      <button onclick="triggerSheetRoll('1d20${fmtMod(mod)}', 'Teste de ${meta.name}', true, {type:'check'})" class="text-2xl font-extrabold t-text-main my-0.5 hover:scale-110 transition">
+      <button onclick="triggerSheetRoll('1d20${fmtMod(mod+untrainedAbilityBonus(char,key))}', 'Teste de ${meta.name}', true, {type:'check'})" class="text-2xl font-extrabold t-text-main my-0.5 hover:scale-110 transition">
         ${fmtMod(mod)}
       </button>
       <div class="flex items-center gap-1 t-inset px-2 py-0.5 rounded-full text-xs">
@@ -1975,7 +1980,7 @@ function renderMainModern2024(char) {
             <button onclick="changeAbility('${key}', 1)" class="px-1.5 t-inset rounded font-bold">+</button>
           </div>
         </div>
-        <button onclick="triggerSheetRoll('1d20${fmtMod(mod)}', 'Teste de ${meta.name}', true, {type:'check'})" class="t-inset rounded-lg px-3 py-1 text-center hover:scale-105 transition">
+        <button onclick="triggerSheetRoll('1d20${fmtMod(mod+untrainedAbilityBonus(char,key))}', 'Teste de ${meta.name}', true, {type:'check'})" class="t-inset rounded-lg px-3 py-1 text-center hover:scale-105 transition">
           <span class="text-[9px] uppercase t-text-muted block">Mod</span>
           <span class="text-xl font-extrabold t-text-accent">${fmtMod(mod)}</span>
         </button>
@@ -2128,7 +2133,7 @@ function renderAttacksBlock(char) {
       <div class="p-3 space-y-2">
         ${char.weapons
           .map((storedWeapon, idx) => {
-            const w = CharacterEngine.weaponStats(char, storedWeapon);
+            const w = CharacterEngine.weaponStats(char, storedWeapon), attackBonus=weaponAttackBonus(char,storedWeapon,CharacterEngine);
             const validDamage = !!parseDiceFormula(w.damage);
             return `
             <div class="weapon-card t-inset p-2.5 rounded-lg text-xs" data-weapon-card="${idx}">
@@ -2139,12 +2144,13 @@ function renderAttacksBlock(char) {
                 <p class="weapon-description t-text-muted">${escapeHTML(w.notes)}${w.critical?`${w.notes?' · ':''}Crítico ${w.critical===20?'20':`${w.critical}–20`}`:''}</p>
 
               <div class="weapon-rolls">
-                ${w.bonus===''?'<span class="t-text-muted">Ataque não informado</span>':`<button onclick="rollWeapon(${idx}, 'attack')" class="px-2 py-1 badge-feiticeiro rounded font-bold">
-                  Atq ${escapeHTML(w.bonus)}
+                ${attackBonus===''?'<span class="t-text-muted">Ataque não informado</span>':`<button onclick="rollWeapon(${idx}, 'attack')" data-weapon-attack-label="${idx}" class="px-2 py-1 badge-feiticeiro rounded font-bold">
+                  <span data-weapon-attack-text>Atq ${escapeHTML(attackBonus)}</span>
                 </button>`}
                 <button onclick="rollWeapon(${idx}, 'damage')" data-weapon-damage-label="${idx}" class="weapon-damage-button px-2.5 py-1 t-btn-primary rounded font-extrabold shadow-sm">
                   <span aria-hidden="true" class="weapon-damage-sizer">${validDamage?escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine,false)):''}</span>
                   <span aria-hidden="true" class="weapon-damage-sizer">${validDamage?escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine,true)):''}</span>
+                  ${weaponPowerAttackOption(char,storedWeapon,CharacterEngine)?[false,true].map(critical=>`<span aria-hidden="true" class="weapon-damage-sizer">${escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine,critical,true))}</span>`).join(''):''}
                   <span data-weapon-damage-text>${validDamage ? escapeHTML(weaponDamageLabel(char,storedWeapon,CharacterEngine)) : "Corrigir dano"}</span>
                 </button>
               </div>
@@ -2698,7 +2704,7 @@ function rollWeapon(index, kind) {
   const c=getChar(),entry=c.weapons[index];
   const weapon = CharacterEngine.weaponStats(c, entry);
   if (!weapon) return;
-  const bonus = String(weapon.bonus).trim();
+  const bonus = String(weaponAttackBonus(c,entry,CharacterEngine)).trim();
   if(kind==='attack' && bonus==='')return showToast('Ataque não informado. Confira o bônus da origem; efeitos com resistência são resolvidos na mesa.');
   if (kind === "attack" && !/^[+-]?\d+$/.test(bonus)) {
     showToast("Bônus de ataque inválido. Corrija o cadastro.");
@@ -2709,7 +2715,7 @@ function rollWeapon(index, kind) {
     showToast("Fórmula inválida. Corrija o ataque antes de rolar.");
     return;
   }
-  const result=triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}`,kind==='attack',kind==='attack'?{type:'attack',weapon:entry}:null);
+  const result=triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}${kind==='attack' && weaponPowerAttackPrepared(c,entry,CharacterEngine)?' · '+weaponPowerAttackOption(c,entry,CharacterEngine).name+' (–5 ataque / +10 dano)':''}`,kind==='attack',kind==='attack'?{type:'attack',weapon:entry}:null);
   // Usa o resultado resolvido neste clique, nunca o texto da animação ou o
   // total com bônus. Só ataques reais em Auto Ficha atualizam esta preparação.
   if(kind==='attack' && result && c===getChar() && c.weapons[index]===entry)
@@ -2799,6 +2805,7 @@ Alcance: ${spell.range||'Conferir descrição'}`,
     `Duração: ${bookEntry.duration}
 Componentes: ${bookEntry.materialDesc}`,
     scaledEffect?'Efeito atual: '+scaledEffect:'',
+    entry?.sourceNote || '',
     RuleTooltips.formatText(spell.bookId||BOOK_SPELLS_DB[spell.name]?bookEntry.bookDesc:spell.notes||bookEntry.bookDesc),
     BOOK_SPELLS_DB[spell.name]&&spell.notes?'Notas da ficha: '+getSpellNotes(char,spell):'',
     bookEntry.upcastRule?'Escalonamento / Metamágica: '+bookEntry.upcastRule:'',
@@ -3186,7 +3193,7 @@ function castSpellWithUpcast(
       formulaToRoll,
       `${spellName}${effect.perRay?' · dano de um raio/feixe':''}${isTwinned ? " (⚡ Gêmea)" : ""}`,
       false,
-      effect.affinity?{type:'damage'}:null,
+      effect.affinity || effect.evocation || effect.components?.length?{type:'damage',spellComponents:effect.components}:null,
     );
   }
 
@@ -3208,6 +3215,7 @@ function shortRest() {
 async function longRest() {
   // A recuperação integral dos Dados de Vida exige escolha explícita da mesa.
   const char = getChar();
+  const before=JSON.stringify(char);
   if (Number(char.exhaustion)>=6) return showToast('Exaustão 6 significa morte; um descanso não revive o personagem.');
   if (deathStatus(char).dead) return showToast('Um descanso não revive o personagem.');
   if(char.hpCurrent<1) return showToast('O descanso longo exige pelo menos 1 PV no início.');
@@ -3216,7 +3224,11 @@ async function longRest() {
   if(concentration(char))choices.insertAdjacentHTML('beforeend','<br><label><input type="checkbox" data-rest-sleep checked> Dormiu ou ficou inconsciente (encerra concentração)</label><p>Se permaneceu consciente por uma exceção, desmarque e confira a duração do efeito na mesa.</p>');
   if (!await confirmDestructiveAction('Concluir descanso longo?', 'Recupera PV e recursos conforme o livro. Dados de Vida: até metade do nível total; escolha quais recuperar depois. PV temporários serão removidos.', 'Concluir descanso', choices)) return;
   if (getChar() !== char) return;
-  if (!takeRest(char,'long',CharacterEngine,{foodAndWater:choices.querySelector('[data-rest-food]').checked,tableHitDice:choices.querySelector('[data-rest-table]').checked,slept:choices.querySelector('[data-rest-sleep]')?.checked ?? true})) { recordStepAndSave('Frenesi terminou com exaustão 6',true); return showToast('Frenesi levou à exaustão 6. O personagem morreu antes de concluir o descanso.'); }
+  const count=resourcesFor(char,CharacterEngine).find(r=>r.kind==='portent')?.max;
+  const portent=count?await chooseResourceDice(char,'Presságio · descanso longo',20,count):undefined;
+  if(count && !portent)return;
+  if(getChar()!==char || JSON.stringify(char)!==before)return showToast('A ficha mudou. Confira antes de concluir o descanso.');
+  if (!takeRest(char,'long',CharacterEngine,{foodAndWater:choices.querySelector('[data-rest-food]').checked,tableHitDice:choices.querySelector('[data-rest-table]').checked,slept:choices.querySelector('[data-rest-sleep]')?.checked ?? true,portent})) { recordStepAndSave('Frenesi terminou com exaustão 6',true); return showToast('Frenesi levou à exaustão 6. O personagem morreu antes de concluir o descanso.'); }
   recordStepAndSave('Descanso longo · PV, recursos e preparação',true);
   showToast('Descanso concluído. Preparação no grimório; recuperação de Dados de Vida junto aos PV.');
 }

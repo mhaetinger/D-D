@@ -30,6 +30,11 @@ export function resourcesAt(c:Sheet,E:Engine,place:string) {
 export function featureResourceBindings(c:Sheet,E:Engine) {
   const gains:Sheet[] = [...E.features(c)], bindings = new Map<number,Resource[]>();
   for (const r of resourcesAt(c,E,'features')) {
+    if(r.id==='race:breath'){
+      let index=gains.findIndex(g=>!g.classId && norm(g.name)==='arma de sopro');
+      if(index<0){index=gains.length;gains.push({name:'Arma de Sopro',source:E.options.races.draconato.name,level:1,reference:E.reference('Arma de Sopro',null,'draconato','race')});}
+      bindings.set(index,[...(bindings.get(index) || []),r]);continue;
+    }
     if(r.id==='feat:lucky') {
       // O traço racial homônimo não tem classId; não pendurar pontos nele.
       let index=gains.findIndex(g=>g.classId && norm(g.name)==='sortudo');

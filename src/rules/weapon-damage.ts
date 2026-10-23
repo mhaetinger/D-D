@@ -2,9 +2,11 @@ import { weaponStats } from './combat';
 import { active, level, subclass, type Engine, type Sheet } from './model';
 import { incapacityReason } from './concentration';
 import { parseDiceFormula } from './dice-formula';
+import {weaponPowerAttack} from './weapon-power-attack';
 
 export interface WeaponDamageChoice {
   critical?:boolean;
+  powerAttack?:boolean;
   sneak?:'advantage'|'ally';
   colossus?:boolean;
   smiteSlot?:string;
@@ -41,8 +43,9 @@ export function previewWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoic
   if(incapacityReason(c))throw new Error('É preciso poder atacar para registrar este dano de arma.');
   if(active(c,'druida:wildShape'))throw new Error('Resolva os ataques e as estatísticas da Forma Selvagem na mesa.');
   if(!entry || !c.weapons?.includes(entry))throw new Error('O ataque não pertence mais a esta ficha.');
-  if(!choice || ['critical','colossus','smiteFavored'].some(k=>choice[k as keyof WeaponDamageChoice]!==undefined && typeof choice[k as keyof WeaponDamageChoice]!=='boolean') || choice.sneak!==undefined && !['advantage','ally'].includes(choice.sneak) || choice.smiteSlot!==undefined && typeof choice.smiteSlot!=='string')throw new Error('Confira as escolhas de dano deste acerto.');
+  if(!choice || ['critical','powerAttack','colossus','smiteFavored'].some(k=>choice[k as keyof WeaponDamageChoice]!==undefined && typeof choice[k as keyof WeaponDamageChoice]!=='boolean') || choice.sneak!==undefined && !['advantage','ally'].includes(choice.sneak) || choice.smiteSlot!==undefined && typeof choice.smiteSlot!=='string')throw new Error('Confira as escolhas de dano deste acerto.');
   const options=weaponDamageOptions(c,entry,E),{w,automatic}=options,critical=!!choice.critical;
+  const powerAttack=weaponPowerAttack(c,entry,choice.powerAttack ?? false,E);
   if(automatic && w.weaponDie==='0')throw new Error('Esta arma tem efeito especial, sem dano de arma rolável. Consulte sua descrição.');
   if(choice.sneak && !options.sneak || choice.colossus && !options.colossus || choice.smiteSlot && !options.smite)throw new Error('Esta arma, classe ou nível não permite o dano adicional escolhido.');
   if(choice.smiteFavored && !choice.smiteSlot)throw new Error('Escolha um espaço para a Destruição Divina antes de indicar o alvo.');
@@ -60,6 +63,7 @@ export function previewWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoic
   if(choice.sneak)add('Ataque Furtivo',`${Math.ceil(level(c,'ladino')/2)}d6`,w.dmgTypeLabel);
   if(choice.colossus)add('Assassino de Colossos','1d8',w.dmgTypeLabel);
   if(slot)add('Destruição Divina',`${Math.min(5,slot.level+1)+(choice.smiteFavored?1:0)}d8`,'radiante');
+  if(powerAttack)add(powerAttack.name,String(powerAttack.damage),powerAttack.type);
   if(automatic && critical && w.meleeAttack && w.weaponDie!=='0') {
     const weaponDie=String(w.weaponDie).match(/^\d+d(\d+)$/)?.[1];
     if(weaponDie) {
@@ -70,7 +74,7 @@ export function previewWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoic
   }
   const parsed=parseDiceFormula(parts.map(p=>p.formula).join('+').replace(/\+-/g,'-'));
   if(!parsed)throw new Error('A composição ultrapassa os limites do rolador; nenhum recurso foi gasto.');
-  return {name:String(w.name),critical,manual:!automatic,formula:parsed.formula,parts,slot:slot || null,
+  return {name:String(w.name),critical,powerAttack,manual:!automatic,formula:parsed.formula,parts,slot:slot || null,
     summary:parts.map(p=>`${p.name}: ${p.formula} ${p.type}`).join(' · ')};
 }
 /** Valida tudo antes do único desconto. Destruição não é conjuração de magia:
