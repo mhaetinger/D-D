@@ -114,6 +114,44 @@ const concurrent = text => database.concurrent(text);
     sql(as(a,save(a,'note:ultima','Reusar operação atual',0,past(1),lastOperation,'note','ultima')),false);
     sql(retention);
     console.log('PASS retenção: 20 versões/documento, 30 dias, 8MiB/conta, recibos limitados/idempotência, histórico sem snapshots repetidos, estado atual e outra conta preservados; migração reaplicável.');
+    // A redução autorizada posteriormente também alcança versões já salvas,
+    // sem regravar nem remover documentos atuais de nenhuma conta.
+    const fingerprint=()=>sql("select md5(coalesce(string_agg(row_to_json(d)::text,'' order by owner_id,document_key),'')) from public.critcall_documents d;");
+    const currentBefore=fingerprint();
+    sql("update public.critcall_versions set received_at=clock_timestamp()-interval '8 days' where owner_id='"+b+"';");
+    const reduced=fs.readFileSync(path.join(__dirname,'../supabase/migrations/20261023114717_reduced_sync_retention.sql'),'utf8');
+    sql(reduced);
+    assert.equal(fingerprint(),currentBefore,'poda global não muda documentos atuais');
+    assert.deepEqual(JSON.parse(sql(as(a,`select public.critcall_version_policy('${a}');`))),{version:1,per_document:5,days:7,per_account:50,bytes:2097152});
+    sql('set role anon; select public.critcall_version_policy(null);',false);
+    sql(as(a,`select public.critcall_version_policy('${b}');`),false);
+    sql(as(a,`select critcall_private.prune_versions('${a}');`),false);
+    assert.equal(sql("select count(*) from public.critcall_versions where received_at<clock_timestamp()-interval '7 days';"),'0');
+    assert.equal(sql(as(b,"select value #>> '{}' from public.critcall_documents where document_key='note:isolada';")),'Não podar B');
+    assert.equal(sql(as(b,'select count(*) from public.critcall_versions;')),'0','versão vencida de conta inativa também sai');
+    sql(as(a,`do $$begin for i in 1..12 loop for j in 1..8 loop perform public.critcall_save_document('${a}','note:reduzida-'||i,'note','reduzida-'||i,to_jsonb(j::text),j-1,gen_random_uuid(),clock_timestamp()); end loop; end loop; end$$;`));
+    assert.equal(sql(as(a,'select count(*)<=50 from public.critcall_versions;')),'t');
+    assert.equal(sql(as(a,'select max(n) from (select count(*) n from public.critcall_versions group by document_key) s;')),'5');
+    assert.equal(sql(as(a,"select value #>> '{}' from public.critcall_documents where document_key='note:reduzida-12';")),'8');
+    for(let n=1;n<=4;n++)sql(as(a,`select public.critcall_save_document('${a}','note:bytes','note','bytes',to_jsonb(repeat('x',700000)),${n-1},gen_random_uuid(),clock_timestamp())->'document'->>'revision';`));
+    assert.equal(sql(as(a,'select coalesce(sum(octet_length(value::text)),0)<=2097152 from public.critcall_versions;')),'t');
+    assert.equal(sql(as(a,"select count(*) from public.critcall_versions where document_key='note:bytes';")),'2');
+    // Um conflito que perderia conteúdo maior que o teto deve falhar inteiro,
+    // inclusive o recibo: assim a operação segue disponível na fila do cliente.
+    const conflictOperation=randomUUID(),beforeRejected=fingerprint();
+    sql(as(a,`select public.critcall_save_document('${a}','note:bytes','note','bytes',to_jsonb(repeat('z',2097152)),0,'${conflictOperation}','${past(3600)}');`),false);
+    assert.equal(fingerprint(),beforeRejected);
+    assert.equal(sql(`select count(*) from critcall_private.sync_receipts where operation_id='${conflictOperation}';`),'0');
+    sql(as(a,`select public.critcall_save_document('${a}','note:atual-grande','note','atual-grande',to_jsonb(repeat('x',2200000)),0,gen_random_uuid(),clock_timestamp())->'document'->>'revision';`));
+    assert.equal(sql(as(a,"select length(value #>> '{}') from public.critcall_documents where document_key='note:atual-grande';")),'2200000','teto de versões não é teto do documento atual');
+    const retryOperation=randomUUID(),retryDate=past(1);
+    sql(as(a,save(a,'note:repetir-reduzida','Preservar recibo',0,retryDate,retryOperation,'note','repetir-reduzida')));
+    sql("delete from public.critcall_versions where document_key='note:repetir-reduzida';");
+    sql(as(a,save(a,'note:repetir-reduzida','Preservar recibo',0,retryDate,retryOperation,'note','repetir-reduzida')));
+    assert.equal(sql(as(a,"select revision from public.critcall_documents where document_key='note:repetir-reduzida';")),'1');
+    sql(as(a,save(b,'note:invadir','Proibido',0,past(1),randomUUID(),'note','invadir')),false);
+    const beforeReapply=fingerprint();sql(reduced);assert.equal(fingerprint(),beforeReapply);
+    console.log('PASS retenção reduzida: 5 versões/documento, 7 dias, 50 versões/2MiB por conta, poda de contas inativas, documentos atuais intactos, conflito grande recusado sem recibo e repetição idempotente.');
     // Estrutura mínima do serviço Storage para testar as políticas reais em Postgres.
     sql(`create schema storage;
       create table storage.buckets(id text primary key,name text,public boolean,file_size_limit bigint,allowed_mime_types text[]);

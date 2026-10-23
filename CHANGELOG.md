@@ -1,5 +1,31 @@
 # Changelog
 
+## Não lançado — 2026-10-23
+
+### Redução de tráfego e histórico da sincronização
+
+- Consultas periódicas passam a receber somente chaves/revisões; os conteúdos
+  baixam quando novos/alterados, em lotes de até 25 com paginação e filtro do
+  dono. O diário persistido evita repetir o download após salvar/recarregar.
+  Exclusões continuam em tombstones; falhas preservam cache, fila e revisões.
+- Histórico legível passa a 10 estados/256 KiB por personagem ao gravar, com
+  ponteiro atual e estado isolado maior preservados. Leituras não truncam;
+  documentos legados/ilegíveis, notas e imagens permanecem intactos.
+- Retenção menor autorizada pelo responsável: 5 versões/documento por 7 dias,
+  50 versões/2 MiB por conta. Migração remota `20261023115335` aplicada somente
+  ao CritCall; podou também versões anteriores de contas inativas. Os 45
+  documentos atuais mantiveram assinatura agregada antes/depois. Recibos privados
+  de idempotência conservam 2.000 operações/30 dias; conflitos maiores que o
+  teto são recusados sem apagar a operação local. RPCs/grants seguem compatíveis.
+- No teste sintético com histórico de 2 MiB, 100 consultas sem mudança recebem
+  7.300 bytes de JSON, contra 209.756.800 da leitura completa repetida. Isso não
+  estorna consumo acumulado nem representa medição da produção após publicação.
+  Diagnóstico e ativação em [SINCRONIZACAO.md](docs/SINCRONIZACAO.md).
+- Verificados 438 testes Node, tipos/build, PostgreSQL 18 descartável e cinco
+  roteiros Chromium: sincronização (incluindo consultas sem repetir valores),
+  autenticação sob `/D-D/` e `/`, cópia sem conta, abas da conta e atualização
+  offline. A CI continua exigindo os 32 roteiros completos.
+
 ## 2026-10-22
 
 Entrega solicitada pelo responsável, reunindo R1, os dois primeiros recortes de

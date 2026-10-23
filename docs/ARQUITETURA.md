@@ -439,7 +439,7 @@ O adaptador da interface conserva localStorage e o formato legado. A fila nova
 usa transações IndexedDB por projeto/usuário, com IDs de operação idempotentes,
 revisões remotas e projeção que aguarda editores. Histórico/checkpoints passam a
 ser persistidos separadamente e entram na fila; seus snapshots não incluem notas.
-`boundedCharacterHistory` limita gravações legíveis a 100 estados / 2 MiB,
+`boundedCharacterHistory` limita gravações legíveis a 10 estados / 256 KiB,
 conservando o ponteiro e os vizinhos. Um estado isolado maior é preservado.
 A leitura não trunca dados e o original legado/ilegível continua preservado.
 Limites de versões remotas, recibos e ativação ficam em
@@ -495,10 +495,23 @@ a anon, permitem authenticated e têm `search_path` vazio. Teste SQL real com
 identidade sintética, integralmente revertido, confirmou escrita/idempotência
 e isolamento do dono, sem dados pessoais. Cliente e SQL também foram testados
 com HTTP controlado e PostgreSQL 16 descartável, respectivamente. Ainda faltam
-sincronização real entre dispositivos, SMTP próprio e revisão dos alertas
-descritos em SINCRONIZACAO.md. A publicação foi concluída; evidências em
+SMTP próprio e revisão dos alertas descritos em SINCRONIZACAO.md. O responsável
+confirmou envio imediato entre telefone e computador em outubro de 2026; os
+roteiros externos completos continuam discriminados na retomada. A publicação
+foi concluída; evidências em
 [RETOMADA.md](RETOMADA.md). Contratos em [LOGIN.md](LOGIN.md) e
 [SINCRONIZACAO.md](SINCRONIZACAO.md).
+
+O adaptador `SupabaseDocuments.pull(knownRevisions)` pagina um índice de
+`document_key, revision`, sob o filtro do dono, e busca valores apenas das chaves
+novas/alteradas em lotes de até 25. `SyncEngine` fornece as revisões do diário
+IndexedDB, inclusive após recargas e confirmações de envio. Os resultados são
+parciais e mesclados ao cache; ausência não apaga nada e exclusões continuam
+usando tombstones. Falha/validação recusada não avança revisões conhecidas.
+A consulta completa sem argumento continua disponível para bootstrap/cópia sem
+conta. Polls permanecem a cada 30 segundos com a página visível. A mudança evita
+repetir o conteúdo dos históricos; limites e evidências de tráfego estão em
+[SINCRONIZACAO.md](SINCRONIZACAO.md#incidente-de-egress-em-23102026).
 
 Documentos têm revisão crescente e datas de edição/recebimento, com calibração
 do relógio. Se edições simultâneas disputam a mesma revisão, vence a data mais

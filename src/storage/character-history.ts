@@ -7,8 +7,8 @@ export const historyKey=(id:string)=>HISTORY_PREFIX+id;
 export const isCharacterHistoryKey=(key:string)=>key.startsWith(HISTORY_PREFIX) && key.length>HISTORY_PREFIX.length && key.length<HISTORY_PREFIX.length+200;
 export interface HistoryStep {timestamp:string;action:string;isCheckpoint:boolean;stateJson:string}
 export interface CharacterHistory {version:2;characterId:string;stack:HistoryStep[];pointer:number}
-export const HISTORY_MAX_STEPS=100;
-export const HISTORY_MAX_BYTES=2*1024*1024;
+export const HISTORY_MAX_STEPS=10;
+export const HISTORY_MAX_BYTES=256*1024;
 /** Só limita um histórico legível ao gravar. Mantém o estado apontado e os
  * passos mais próximos; se um único passo superar o teto, ele é preservado. */
 export function boundedCharacterHistory(history:CharacterHistory):CharacterHistory {

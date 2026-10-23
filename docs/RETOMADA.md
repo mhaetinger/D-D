@@ -1,10 +1,29 @@
 # Retomada do CritCall
 
-Estado atualizado em **22/10/2026**. Este é o ponto de entrada para continuar o
+Estado atualizado em **23/10/2026**. Este é o ponto de entrada para continuar o
 projeto sem depender da conversa. Leia também `AGENTS.md`, `README.md`,
 `CHANGELOG.md` e [ARQUITETURA.md](ARQUITETURA.md) antes de alterar.
 
 ## Onde o trabalho parou
+
+**Prioridade imediata: egress da sincronização.** O responsável confirmou que
+11,78 GB do ciclo vieram do CritCall e autorizou diminuir históricos/versões.
+A branch isolada `fix/sync-egress`, baseada no `develop` público, corrige downloads
+repetidos por índice de revisões. O histórico passa a 10 estados/256 KiB ao
+gravar. A retenção remota já foi reduzida em 23/10 para 5 versões/documento,
+7 dias, 50 versões/2 MiB por conta (migração remota `20261023115335`). Os 45
+documentos atuais mantiveram a assinatura agregada; apenas versões antigas saíram.
+Detalhes, medições e limites em [SINCRONIZACAO.md](SINCRONIZACAO.md#incidente-de-egress-em-23102026).
+A correção do cliente segue pela [PR #22](https://github.com/mhaetinger/D-D/pull/22)
+para `develop`, com revisão e autorização
+de publicação pendentes. Verificados localmente 438 testes Node, tipos/build,
+PostgreSQL 18 descartável e cinco roteiros Chromium: sincronização, autenticação,
+cópia sem conta, abas da conta e atualização offline. A CI exige os 32 completos.
+Não misturar a entrega urgente com a auditoria de regras da **PR #21**, preservada
+em `feature/auditoria-profunda-2014`, commit `9725f92`. Aquela PR contém correções
+A01–A14, sopro de draconato e -5/+10; retomar seus gastos/rerrolagens, magias e
+por último importação após resolver o tráfego. O responsável já confirmou e-mails
+e envio imediato entre telefone/computador; não repetir essa pendência básica.
 
 A entrega de **22/10/2026** reúne as melhorias da ficha, revisão da importação,
 conta e histórico, além de R1 e dois recortes de R2. Integração pela
@@ -96,14 +115,13 @@ O PDF pessoal foi conferido na etapa anterior, sem alterar o original ou incluir
 dados pessoais no repositório. Conferir a CI do último commit da PR #19 antes
 de publicar; verificações anteriores ficam no changelog.
 
-**Retenção remota ativa:** após aprovação explícita, aplicada ao CritCall a
-migração local `20261022212048_bounded_sync_versions.sql`, versão remota
-`20261022213804`, em 22/10/2026. Não reaplicar para igualar timestamps. A conta
-que sincroniza mantém até 20 versões/documento por 30 dias, 200 versões / 8 MiB
-por conta. Não houve limpeza global; documentos atuais/notas/imagens ficam fora
-da poda. Teste transacional real de escrita/repetição revertido; assinatura
-agregada dos documentos atuais permaneceu igual. O histórico do cliente tem
-100 estados / 2 MiB ao gravar. Detalhes em [SINCRONIZACAO.md](SINCRONIZACAO.md).
+**Retenção remota ativa:** a política de 22/10 foi substituída pela migração
+local `20261023114717_reduced_sync_retention.sql`, remota `20261023115335`, em
+23/10. Limites atuais: 5 versões/documento, 7 dias, 50 versões/2 MiB por conta.
+A migração também podou versões antigas de contas inativas; documentos atuais,
+notas e imagens não foram alterados. O cliente novo limita gravações legíveis a
+10 estados/256 KiB. Não reaplicar migrações para igualar timestamps. Detalhes em
+[SINCRONIZACAO.md](SINCRONIZACAO.md).
 
 ## Como continuar
 
@@ -132,9 +150,9 @@ Texto para iniciar outra conversa:
 > Continue o CritCall. Leia AGENTS.md, docs/RETOMADA.md, README.md,
 > CHANGELOG.md e docs/ARQUITETURA.md. Confira a branch e o estado do Git.
 > O roteiro atual de regras está em docs/AUDITORIA-LIVRO-2014.md. Confira
-> as PRs #19/#20 e o resultado da publicação. Crie uma branch de develop
-> atualizado e continue os gastos/rerrolagens restantes de R2. Não repetir
-> Sortudo nem confundir o traço racial com o talento.
+> a entrega urgente fix/sync-egress e sua publicação antes de retomar a PR #21.
+> A retenção reduzida já está ativa; o cliente precisa ser publicado. Preserve
+> a auditoria em feature/auditoria-profunda-2014; não misture as duas entregas.
 
 ## Mapa dos documentos
 
@@ -180,15 +198,16 @@ Os links de PR/workflow acima registram a entrega compartilhável.
 
 ## Validações externas e trabalho posterior
 
-Estas pendências são separadas do roteiro de mecânicas. Nenhuma delas foi
-marcada como concluída nesta revisão de documentos.
+Estas pendências são separadas do roteiro de mecânicas. O responsável confirmou
+o teste básico de e-mails e envio entre telefone/computador; V2/V3 mantêm somente
+os cenários adicionais e a configuração de SMTP.
 
 | ID | Pendente | Critério para concluir / referência |
 | --- | --- | --- |
 | V1 | Ciclo completo com os PDFs reais de importação solicitados | Importar como cópia, conferir dados/vínculos, salvar/recarregar e evoluir. Leitura/cancelamento e testes sintéticos já feitos não substituem esse ciclo. Arquivos pessoais continuam fora do Git. |
-| V2 | Mesma conta em dispositivos reais e isolamento de outra conta | Conferir fichas, notas, perfil, imagens, offline/reconexão, conflito e restauração, sem pedir credenciais. Contratos em [SINCRONIZACAO.md](SINCRONIZACAO.md). |
-| V3 | SMTP próprio e fluxo real de e-mails | Configurar remetente no serviço e conferir cadastro, confirmação, reenvio e recuperação no site. O sucesso local relatado pelo usuário não certifica todos esses fluxos. [LOGIN.md](LOGIN.md) e [DOMINIO.md](DOMINIO.md). |
-| V4 | Alertas do serviço reinspecionados em 22/10/2026 | Decidir correção da função `public.rls_auto_enable` e da proteção contra senhas vazadas. Alertas anteriores continuam presentes; detalhes em [SINCRONIZACAO.md](SINCRONIZACAO.md#alertas-do-serviço-para-revisão). |
+| V2 | Cenários adicionais de sincronização/isolamento | Envio básico telefone/computador confirmado pelo responsável. Faltam os cenários específicos de outra conta, imagens, offline/reconexão, conflito e restauração, sem pedir credenciais. Contratos em [SINCRONIZACAO.md](SINCRONIZACAO.md). |
+| V3 | SMTP próprio e fluxos adicionais de e-mail | E-mails testados pelo responsável. Configurar remetente próprio e conferir os fluxos de cadastro, confirmação, reenvio e recuperação ainda não identificados individualmente. [LOGIN.md](LOGIN.md) e [DOMINIO.md](DOMINIO.md). |
+| V4 | Alertas do serviço reinspecionados em 23/10/2026 | Decidir correção da função `public.rls_auto_enable` e da proteção contra senhas vazadas. Alertas anteriores continuam presentes; detalhes em [SINCRONIZACAO.md](SINCRONIZACAO.md#alertas-do-serviço-para-revisão). |
 | V5 | Hospedagem Cloudflare | Conectar administração, criar projeto Pages e configurar credenciais/destino; depois validar domínio e offline. O DNS já usa Cloudflare, mas a hospedagem é GitHub Pages. Seguir [CLOUDFLARE.md](CLOUDFLARE.md). |
 | V6 | Remoção voluntária do cache de uma conta em dispositivo compartilhado | Definir exportação/confirmação e comportamento offline; não apagar dados automaticamente. Limites em [LOGIN.md](LOGIN.md#dados-sessão-e-troca-de-conta). |
 | V7 | Ambientes, acompanhamento e proteção do repositório | Preparar separação teste/produção, acompanhamento de uso/erros/custos e proteção de branches/aprovações. Não são garantias da configuração atual. |
