@@ -287,7 +287,7 @@ básico real telefone/computador já foram confirmados pelo responsável.
 | R2 — rolagens e gastos condicionais | **Quarto recorte implementado nesta branch; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo implementados na entrega da PR #20. -5/+10 de Atirador Aguçado/Mestre de Armas Grandes na PR #21. Quarto recorte: Atacante Bestial e Combate com Armas Grandes. Faltam Adepto Elemental e adicionais/manobras dos demais talentos/estilos. Turnos/alvos continuam declarados pela mesa. |
 | R3 — condições, defesas e características | Planejada; já há cobertura parcial | Completar efeitos das condições, imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
-| R5 — famílias de magias | Parcial: fórmulas anteriores e oito curas auditadas | Revisar metadados e exceções do catálogo por família: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
+| R5 — famílias de magias | Parcial: oito curas e quatro invocações auditadas | Revisão delimitada de invocações e magias associadas concluída abaixo; vínculo automático de conjuração/custo ainda manual. Revisar outras famílias: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
 | R6 — equipamento e contexto de combate | Planejada | Munição/recarga/consumíveis, penalidades de equipamento, carga e ações condicionais. Definir antes qualquer acompanhamento opcional de turno; alvos, alcance, cobertura e viagem podem continuar na mesa, com essa limitação clara. |
 
 ### Draconatos — recorte de 23/10/2026
@@ -583,6 +583,56 @@ recarga offline sob `/D-D/`. Diagnóstico puro: **3.321 verificações, zero
 divergências**. CI passa a exigir os 38 roteiros e banco descartável; sem SQL,
 teste de banco local, PDF pessoal ou alteração dos catálogos nesta mudança.
 R2 continua parcial: Adepto Elemental e demais gatilhos/adicionais permanecem.
+
+### Revisão das quatro invocações — 23/10/2026
+
+**Revisão delimitada concluída em desenvolvimento**, a partir das reproduções
+parciais do Claude. A conferência independente usou a base atual e o livro local
+2014; fontes primárias de apoio:
+[SRD 5.1, pp. 48–50](https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf#page=48).
+Não se trata de revisão das 32 invocações ou de sua automação integral.
+
+| Invocação | Livro impresso / PDF | Regra conferida | Resultado do fluxo atual |
+| --- | --- | --- | --- |
+| Armadura de Sombras | 61 / 60 | Armadura Arcana em si, à vontade, sem espaço ou material; base sem armadura 13 + DES, 8h, sem concentração | Descrição/referência corretas; sem contador diário ou magia conhecida automática. Conjuração/condições na mesa. |
+| Vigor Abissal | 62 / 61 | Vitalidade Falsa em si, à vontade, sempre 1º círculo, sem espaço ou material: 1d4+4 PV temporários, 1h | Descrição correta. Corrigida a classificação genérica como cura; resumo agora explicita PV temporários, sem Vida/recuperação de PV. Conjuração e reserva temporária seguem na mesa. |
+| Escultor de Carne | 61 / 60 | Bruxo 7; Metamorfose uma vez/descanso longo, gastando espaço de Pacto; concentração até 1h, 18m, transformação conforme ND/nível do alvo | Pré-requisito e contador único corretos. Descanso curto não libera o uso. Magia, espaço, estatísticas/limites da forma e alvo são resolvidos na mesa. |
+| Sinal de Mau Agouro | 62 / 61 | Bruxo 5; Rogar Maldição uma vez/descanso longo, gastando espaço de Pacto; SAB, toque e efeito escolhido | Pré-requisito/contador corretos. Corrigidos dano imediato indevido e duração/concentração por círculo na magia genérica; conjuração pela invocação/custos seguem manuais. |
+
+Confirmados e corrigidos:
+
+- Característica antiga continuava visível após substituição; reaprender também
+  duplicava a entrada. Agora a lista reflete somente a aquisição atual, preservando
+  histórico, fichas antigas e usos já gastos. Não há migração de dados.
+- Vitalidade Falsa estava rotulada como cura. Apenas os PV temporários são
+  descritos: o resumo genérico aumenta 5 por círculo acima do 1º, mas a exceção
+  de Vigor Abissal continua sempre no 1º. Nenhum PV é aplicado automaticamente.
+- Rogar Maldição oferecia 1d8 como rolagem imediata. Esse dado pertence a uma
+  opção da maldição, em dano posterior; lançamento não rola dano. No 4º círculo,
+  concentração até 10min; no 5º/6º, 8h sem concentração; no 7º/8º, 24h; no 9º,
+  até ser dissipada. Usar 5º+ conserva outra concentração ativa.
+
+Esclarecimento de interface: **Registrar uso** desconta somente o contador
+diário. Pode ser usado depois de registrar o espaço gasto na mesa; rejeitar por
+Pacto já esgotado ou descontá-lo outra vez cobraria duas vezes. Magias concedidas
+por invocação não são automaticamente magias conhecidas. À vontade não cria
+contador diário. O vínculo completo de conjuração e custos permanece manual,
+como já registrado em R5; esta limitação não foi tratada como regressão nova.
+
+A comparação dos 361 metadados identificou alterações somente em Vitalidade
+Falsa e Rogar Maldição; os outros 359 ficaram iguais. Catálogos gerados intactos.
+Cópias salvas com tipos antigos recebem somente leitura corrigida; fórmulas,
+tipos próprios identificáveis e textos preservados.
+
+Verificados **494 testes Node**, tipos/build e **seis roteiros Chromium**:
+invocações, concentração, consulta de características, ajudas, curas auditadas
+e regras/recursos. Incluídos fonte/descrição das quatro entradas, troca e
+reaprendizado, uso diário/Pacto/descansos, cópias salvas/fórmulas próprias,
+ausência de RNG/PV indevido, cancelamento e concentração anterior, notas/outra
+ficha, 320px/GG/três temas/dois layouts e recarga offline sob `/D-D/`.
+Diagnóstico puro: **3.321 verificações, zero divergências**. A suíte da CI passa
+a exigir 39 roteiros. Sem SQL ou teste de banco local, dados pessoais ou
+publicação desta rodada. O teste antigo de curas usa `node --import tsx`.
 
 ## Progresso já entregue
 
