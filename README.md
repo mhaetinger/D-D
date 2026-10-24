@@ -177,6 +177,14 @@ O ponto é gasto ao lançar o adicional. **Usar na mesa** registra o gasto físi
 acerto resolvidos na mesa. Descanso longo recupera os pontos. O Sortudo racial
 do halfling aparece separado e não usa essa reserva.
 
+Depois de rolar dano automático de uma arma elegível, **Combate com Armas
+Grandes** permite repetir cada 1 ou 2 da arma uma vez, usando a nova face.
+**Atacante Bestial** repete o conjunto de dados da arma e permite escolher um
+dos conjuntos completos; confirme que o uso está disponível neste turno.
+O crítico comum participa; bônus fixos e dados de outras características ficam
+iguais. Fechar em **Retomar depois** conserva as faces nesta sessão, sem outro
+gasto de Destruição. OFF/Só Pool registram o total físico final, resolvido na mesa.
+
 O modo selecionado na bandeja também aparece ao redor do dado recolhido:
 **vantagem** tem névoa suave e **↑**; **desvantagem**, pequenas chamas e **↓**.
 **Normal** conserva o desenho original. Os efeitos respeitam movimento reduzido

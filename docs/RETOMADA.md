@@ -5,6 +5,13 @@ Estado consolidado em **23/10/2026**. Leia também `AGENTS.md`, `README.md`,
 
 ## Onde o trabalho parou
 
+**Quarto recorte de R2 em `feature/rerrolagens-dano-2014`:** Atacante Bestial e
+Combate com Armas Grandes usam escolhas após o dano, com conjuntos/faces
+preservados ao retomar e sem repetir gastos. Limites, fontes e verificações
+ficam na seção correspondente da auditoria; R2 segue parcial. Esta mudança não
+antecipa importação nem interação entre fichas. Passaram 486 testes Node,
+build e seis roteiros pertinentes; CI exige 38 e banco. Publicação conforme PRs e CI.
+
 **Revisão paralela de curas integrada em `fix/curas-fixas-gemea`.** Dos oito
 casos conferidos pelo Claude, reproduzidos e corrigidos dois achados delimitados:
 classificação/resumo de Cura Completa/Em Massa e Gêmea indevida em Bom Fruto.
@@ -12,7 +19,7 @@ A integração cobre também fichas antigas já salvas, sem alterar seus campos.
 Passaram 478 testes Node, build e dois roteiros de navegador; a CI exige os 37.
 Fontes, contratos e melhorias opcionais estão somente na auditoria. Publicação
 conforme o workflow da main e a descrição das PRs desta entrega. Próxima entrega
-pequena continua R2 (rerrolagens de dano); o restante da revisão de curas é opcional.
+pequena de R2 está descrita acima; o restante da revisão de curas é opcional.
 
 
 **Entrega de regras autorizada pelo responsável: concluir a PR #21.** Ela reúne
@@ -48,7 +55,7 @@ promete automação integral de todas as regras do livro. As demais possibilidad
 registradas são evoluções da ficha individual. Decisões que pertencem à mesa
 podem continuar manuais, com indicação clara, sem bloquear o uso da ficha.
 
-A próxima entrega pequena segue R2 (rerrolagens de dano), conforme a matriz da
+O recorte atual avança as rerrolagens de R2, conforme a matriz da
 auditoria. Ordem mantida: **draconatos → rolagens → magias → importação**.
 O ciclo com PDF real foi adiado pelo responsável. R3/R4/R6 permanecem no roteiro,
 com a cobertura parcial existente, sem acrescentar controles nesta publicação.

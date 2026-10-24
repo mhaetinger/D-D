@@ -1320,3 +1320,26 @@ o espaço, sem RNG, pool novo ou aplicação automática de PV/condições.
 salvaram Utilidade, apenas quando automáticas do catálogo; não altera os dados
 armazenados e respeita fórmula/tipo próprios. Bom Fruto integra a exclusão de
 Gêmea para efeitos que criam objetos. Referência/cobertura ficam na auditoria.
+
+## Repetições dos dados de arma em R2 — 23/10/2026
+
+`weapon-rerolls.ts` identifica talento/estilo estruturados e arma automática
+corpo a corpo. O estilo exige duas mãos/versátil em duas mãos e não aceita
+escudo. O plano existente mantém a parte Arma antes das demais para cada tamanho
+no pool; a sessão extrai somente essas faces, inclusive sua duplicação crítica.
+Adicionais de características e modificadores não são repetidos. Recompor o
+resultado não lança dados: muda somente as faces elegíveis e recalcula o piso
+zero no total, conservando valores negativos e componentes do pool original.
+
+Cada conjunto guarda quais faces já receberam o estilo. Bestial cria um segundo
+conjunto inteiro; escolher entre eles não usa RNG. A disponibilidade por turno
+é declarada pela mesa. Não há contador diário ou estado de combate novo.
+
+`weapon-rerolls-ui.ts` usa o diálogo e a apresentação de dados existentes. Um
+WeakMap por ficha guarda faces, objeto da arma, snapshot e sequência da jogada.
+Fechar/retomar não cobra outro espaço nem gera faces novas. Antes de cada escolha,
+valida documento, identidade, permissão, Auto Ficha e sequência exposta por
+`ruleDiceSettings`; qualquer outra rolagem invalida a sessão. Gastos já confirmados
+permanecem. Resultados/repetições vão ao histórico local com `redraw=false`,
+mantendo os nós do diálogo. A escolha transitória não integra documento/backup;
+recarga a descarta, sem restaurar recursos. OFF/Só Pool não entram nesse caminho.
