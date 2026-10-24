@@ -26,8 +26,10 @@ export function elementalAdeptTypes(c:Sheet):Element[] {
 
 // O catálogo registra apenas uma parcela/exemplo dessas magias. Não deduzir
 // elemento, rodada, camada ou efeito escolhido a partir desse primeiro valor.
+// Preparar dano no próximo acerto de arma também depende desse vínculo (R5).
 const contextual=new Set(['orbe-cromatica','glifo-de-vigilancia','escudo-de-fogo',
-  'rajada-prismatica','muralha-prismatica','tempestade-da-vinganca','fome-de-hadar']);
+  'rajada-prismatica','muralha-prismatica','tempestade-da-vinganca','fome-de-hadar',
+  'destruicao-lancinante','destruicao-trovejante','flecha-relampejante']);
 export interface ElementalAdept {types:Element[];formula:string}
 export function spellElementalAdept(c:Sheet,s:Sheet,E:Engine,formula:string|null,components?:{type:string}[]):ElementalAdept|null {
   const entry=E.spell(s.bookId || s.name),parsed=parseDiceFormula(formula);

@@ -111,7 +111,7 @@ test('cura, armas/fórmula livre, tipos alheios e adaptações próprias não re
 });
 test('tipo escolhido/aleatório, efeitos em rodadas e parcelas sem vínculo ficam explícitos na mesa',()=>{
   const c=make(['Ácido','Elétrico','Fogo','Frio','Trovejante']);
-  for(const id of ['orbe-cromatica','glifo-de-vigilancia','escudo-de-fogo','rajada-prismatica','muralha-prismatica','tempestade-da-vinganca','fome-de-hadar']){
+  for(const id of ['orbe-cromatica','glifo-de-vigilancia','escudo-de-fogo','rajada-prismatica','muralha-prismatica','tempestade-da-vinganca','fome-de-hadar','destruicao-lancinante','destruicao-trovejante','flecha-relampejante']){
     const s=spell(id),effect=resolveSpellEffect(c,s,s.circle,E);
     assert.equal(effect.elementalAdept,null,id);assert.match(effect.summary,/conferir na mesa/,id);assert.match(effect.elementalAdeptNote!,/não aplica o mínimo automaticamente/);
   }
