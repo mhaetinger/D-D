@@ -18,6 +18,7 @@ import { damageDescription, deathControls, hitDiceControls, inspirationControls 
 import { offerSurvivalForDamage } from '../rules/damage-ui';
 import { parseDiceFormula } from '../rules/dice-formula';
 import {spellDuration} from '../rules/spell-duration';
+import {applyElementalAdept,elementalAdeptDescription} from '../rules/elemental-adept';
 import { evaluateDicePool, sheetD20Rules, canRerollHalfling, rerollHalfling, addLuckyDie, chooseLuckyDie, luckyFaces } from '../rules/dice-roll';
 import { luckRemaining } from '../rules/lucky';
 import { askToUseLucky, chooseLuckyFace, payLuckyPoint } from '../rules/lucky-ui';
@@ -1111,6 +1112,7 @@ function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligib
   const c=getChar(),inspired=inspirationEligible && !!c && dicePoolCounts[20]===1 && c.heroicInspiration && c.ruleState?.inspirationReady;
   const mode=inspired?inspirationRollMode(c,currentRollMode):currentRollMode;
   let result = evaluateDicePool(dicePoolCounts, modVal, mode,c?sheetD20Rules(c,context,CharacterEngine):{});
+  if(context?.elementalAdept)result=applyElementalAdept(result,context.elementalAdept);
   if(context?.spellComponents)result=spellDamageBreakdown(result,context.spellComponents);
   if(minimumZero)result.total=Math.max(0,result.total);
   if(inspired && consumeInspiration(c)) saveRuleStep('Usou inspiração no d20 · '+(customLabel || 'pool'));
@@ -1582,7 +1584,11 @@ function rollSpellRay(index) {
   if(diceMode!=='auto')return;
   const spell=getChar().spells[index];if(!spell) return;
   const detail=getSpellEffectDetails(getChar(),spell,index,false);
-  if(detail.perRay && detail.formula) triggerSheetRoll(detail.formula,`${spell.name} · dano de um raio/feixe que acertou (sem novo lançamento)`);
+  if(detail.perRay && detail.formula) triggerSheetRoll(detail.formula,`${spell.name} · dano de um raio/feixe que acertou (sem novo lançamento)`,false,spellDamageContext(detail));
+}
+function spellDamageContext(effect) {
+  return effect.affinity || effect.evocation || effect.components?.length || effect.elementalAdept
+    ? {type:'damage',spellComponents:effect.components,elementalAdept:effect.elementalAdept}:null;
 }
 // O índice continua sendo o original da ficha, mesmo após filtrar por classe.
 // Repetir ataques (raios/feixes, por exemplo) não conjura nem cobra outro espaço.
@@ -2792,7 +2798,7 @@ function spellTooltipDetails(char, spellName, classId, baseCircle, index) {
   const defense = spell ? getSpellDefenseMeta(char, spell) : null;
   const spellStats = getSpellcastingStats(char, classId, spell);
 
-  return {clsMeta,spell,bookEntry,scaledEffect,defense,spellStats};
+  return {clsMeta,spell,bookEntry,scaledEffect,defense,spellStats,rulesNote:detail?.elementalAdeptNote};
 }
 function spellConsultReference(char,spell,index) {
   if(spell.customSpell)return {text:[
@@ -2803,7 +2809,7 @@ function spellConsultReference(char,spell,index) {
     spell.customRoll?'Fórmula informada: '+spell.customRoll:'',
     spell.notes||'Sem descrição. Abra o lápis para registrar os efeitos combinados na mesa.',
   ].filter(Boolean).join('\n\n')};
-  const {bookEntry,scaledEffect,defense}=spellTooltipDetails(char,spell.name,spell.classId,spell.circle,index);
+  const {bookEntry,scaledEffect,defense,rulesNote}=spellTooltipDetails(char,spell.name,spell.classId,spell.circle,index);
   const entry=CharacterEngine.spell(spell.bookId||spell.name);
   const text=[
     bookEntry.school+(defense?' · '+defense.label:''),
@@ -2812,6 +2818,7 @@ Alcance: ${spell.range||'Conferir descrição'}`,
     `Duração: ${bookEntry.duration}
 Componentes: ${bookEntry.materialDesc}`,
     scaledEffect?'Efeito atual: '+scaledEffect:'',
+    rulesNote || '',
     entry?.sourceNote || '',
     RuleTooltips.formatText(spell.bookId||BOOK_SPELLS_DB[spell.name]?bookEntry.bookDesc:spell.notes||bookEntry.bookDesc),
     BOOK_SPELLS_DB[spell.name]&&spell.notes?'Notas da ficha: '+getSpellNotes(char,spell):'',
@@ -3201,7 +3208,7 @@ function castSpellWithUpcast(
       formulaToRoll,
       `${spellName}${effect.perRay?' · dano de um raio/feixe':''}${isTwinned ? " (⚡ Gêmea)" : ""}`,
       false,
-      effect.affinity || effect.evocation || effect.components?.length?{type:'damage',spellComponents:effect.components}:null,
+      spellDamageContext(effect),
     );
   }
 
@@ -3209,7 +3216,7 @@ function castSpellWithUpcast(
   const source = baseCircle === 0 ? "truque, sem espaço" : spObj.ritual ? "ritual, sem espaço" : spObj.limitedUse ? '-1 uso da habilidade, sem espaço' : spObj.atWill ? 'habilidade, sem espaço' : chosen==='mastery'?'Dominar Magia, sem espaço':chosen==='signature'?'Assinatura Mágica · -1 uso, sem espaço':`-1 espaço de ${chosen === "pact" ? "Pacto" : "Conjuração"} do ${numericCastLvl}º círculo`;
   const actionMsg = `Conjurou ${spellName} (${source})${isTwinned ? ` + Gêmea (-${twinPtCost} pt de feitiçaria)` : ""}`;
   recordStepAndSave(actionMsg);
-  showToast(`✨ ${actionMsg}! ${eff ? `➔ ${eff}` : ""}`);
+  showToast(`✨ ${actionMsg}! ${eff ? `➔ ${eff}` : ""}${effect.elementalAdept && diceMode==='off'?' · '+elementalAdeptDescription(effect.elementalAdept):''}`);
 }
 
 function shortRest() {

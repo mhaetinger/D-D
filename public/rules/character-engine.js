@@ -512,6 +512,10 @@
       !!d.char?.spells?.length
     );
   }
+  function elementalFeatOptions(char) {
+    const chosen=selections(char,null,"featElement").concat(selections(char,null,"racialFeatElement"));
+    return ["Ácido", "Elétrico", "Fogo", "Frio", "Trovejante"].filter(x=>!chosen.includes(x));
+  }
   function legalFeats(d) {
     const a = scores(d),
       owned = selections(d.char, null, "feat").concat(
@@ -521,6 +525,7 @@
       .filter(
         (f) =>
           (f.repeat || !owned.includes(f.name)) &&
+          (f.choice!=="element" || elementalFeatOptions(d.char).length>0) &&
           (!f.casting || hasCasting(d)) &&
           (!f.armor || armorFor(d).includes(f.armor)) &&
           (!f.min || Object.entries(f.min).every(([k, v]) => a[k] >= v)) &&
@@ -1114,12 +1119,7 @@
         add(
           key + "Element",
           "Tipo de dano",
-          ["Ácido", "Elétrico", "Fogo", "Frio", "Trovejante"].filter(
-            (x) =>
-              !selections(d.char, null, "featElement")
-                .concat(selections(d.char, null, "racialFeatElement"))
-                .includes(x),
-          ),
+          elementalFeatOptions(d.char),
         );
       if (f.choice === "maneuvers")
         add(key + "Maneuvers", "Duas manobras do talento", D.maneuvers, 2);

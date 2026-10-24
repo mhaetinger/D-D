@@ -284,7 +284,7 @@ básico real telefone/computador já foram confirmados pelo responsável.
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
 | R1 — bônus nos cálculos | **Quatro passivos entregues; achados A01/A05/A06 corrigidos nesta branch** | O recorte original continua implementado. A01/A05/A06 corrigem os bônus/modificadores adicionais e a inconsistência de PV identificados no check-up; regressões nesta entrega. Tipos variáveis/efeitos posteriores seguem em R5. |
-| R2 — rolagens e gastos condicionais | **Quarto recorte implementado nesta branch; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo implementados na entrega da PR #20. -5/+10 de Atirador Aguçado/Mestre de Armas Grandes na PR #21. Quarto recorte: Atacante Bestial e Combate com Armas Grandes. Faltam Adepto Elemental e adicionais/manobras dos demais talentos/estilos. Turnos/alvos continuam declarados pela mesa. |
+| R2 — rolagens e gastos condicionais | **Quinto recorte em desenvolvimento; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo na PR #20; -5/+10 na PR #21; Atacante Bestial e Combate com Armas Grandes publicados nas PRs #31/#32. Quinto recorte: Adepto Elemental nos danos de magia reconhecidos, com mínimo/indicativos e limites abaixo. Faltam adicionais/manobras dos demais talentos/estilos e contextos de elemento/efeito ainda manuais. Turnos/alvos continuam declarados pela mesa. |
 | R3 — condições, defesas e características | Planejada; já há cobertura parcial | Completar efeitos das condições, imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
 | R5 — famílias de magias | Parcial: oito curas e quatro invocações auditadas | Revisão delimitada de invocações e magias associadas concluída abaixo; vínculo automático de conjuração/custo ainda manual. Revisar outras famílias: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
@@ -582,7 +582,46 @@ notas/outra ficha, limite de 25 registros, 320px/GG/três temas/dois layouts e
 recarga offline sob `/D-D/`. Diagnóstico puro: **3.321 verificações, zero
 divergências**. CI passa a exigir os 38 roteiros e banco descartável; sem SQL,
 teste de banco local, PDF pessoal ou alteração dos catálogos nesta mudança.
-R2 continua parcial: Adepto Elemental e demais gatilhos/adicionais permanecem.
+R2 continuava parcial; Adepto Elemental avança no quinto recorte abaixo.
+Demais gatilhos/adicionais permanecem.
+
+### Quinto recorte de R2: Adepto Elemental — 24/10/2026
+
+**Implementado em desenvolvimento, sem publicação.** Fonte: Livro do Jogador
+2014, p. 167 / PDF 166, consultável pelo livrinho do talento. A
+[listagem oficial de 2014](https://www.dndbeyond.com/feats?filter-name=Elemental&filter-prereq-subtype=)
+também identifica o benefício de ignorar resistência; não usar a versão 2024.
+
+- Talento e elemento vêm do mesmo evento de escolha. Repetir com outro elemento
+  é permitido; o mesmo mínimo não acumula. O criador deixa de oferecer o talento
+  quando os cinco elementos já foram escolhidos, evitando uma escolha impossível.
+- Na prévia aparece **Adepto: 1→2**. Auto Ficha trata cada face 1 do dano elegível
+  como 2, sem repetir dados. O detalhamento conserva faces originais e discrimina
+  o ajuste, o elemento de resistência ignorada e que imunidade continua valendo.
+- Vale em círculo superior, truques, Gêmea e dano por raio; o raio posterior
+  conserva o mínimo sem repetir Afinidade/Evocação ou gastar outro espaço.
+  Bônus fixos não mudam. Leitura literal do parágrafo de 2014: em uma magia
+  elegível de dano misto, o mínimo vale em qualquer dado de dano dessa magia;
+  a resistência ignorada continua restrita ao elemento escolhido. A decomposição
+  de Tempestade de Gelo, Coluna de Chamas e Onda Destrutiva usa os mesmos dados.
+- OFF orienta resolver os dados físicos na mesa, sem RNG. Só Pool bloqueia a
+  conjuração como antes. Cura, armas, sopro, d20 e bandeja livre não herdam o
+  benefício. Não se trata de resistência recebida pelo conjurador, e nenhum PV
+  de alvo é calculado/aplicado automaticamente.
+- Fórmulas próprias e magias personalizadas continuam manuais. Não se deduzem
+  elementos de notas ou nome da magia. Orbe Cromática, Glifo de Vigilância,
+  Escudo de Fogo, Rajada/Muralha Prismática, Tempestade da Vingança e Fome de Hadar
+  recebem **conferir na mesa**: o catálogo ainda não distingue escolha, camada,
+  rodada ou parcela pertinente. Outros efeitos posteriores/tipos não reconhecidos
+  continuam no escopo parcial de R5; isso não certifica as 361 magias.
+
+Verificados **504 testes Node**, tipos/build e **sete roteiros Chromium**:
+Adepto Elemental, ataques de magia, passivos, curas auditadas, invocações, dado
+e ajudas. Cobertos cancelamento/gastos, ausência de RNG extra, fórmulas próprias,
+notas/outra ficha, OFF/Só Pool, 320px/GG/três temas/dois layouts e recarga offline
+sob `/D-D/`. A CI passa a exigir 40 roteiros. Sem SQL, banco local, conta real,
+alteração dos catálogos gerados ou do desenho/gestos do dado.
+Diagnóstico puro: **3.321 verificações, zero divergências**.
 
 ### Revisão das quatro invocações — 23/10/2026
 
@@ -795,7 +834,7 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 
 | Talento | Aplicação identificada | Manual, ausente ou a corrigir |
 | --- | --- | --- |
-| Adepto Elemental | Escolha do elemento | Resistência ignorada e mínimo dos dados |
+| Adepto Elemental | Escolha/repetição por elemento, mínimo 1→2 em dano de magia reconhecido e indicação da resistência ignorada; quinto recorte de R2 | Alvo/resistência/imunidade na mesa; escolhas de elemento, efeitos/rodadas/parcelas sem vínculo e fórmulas próprias continuam manuais |
 | Adepto Marcial | Escolha de duas manobras | Dado extra d6 e interação com a reserva de superioridade |
 | Alerta | +5 na iniciativa | Surpresa/atacante oculto |
 | Ambidestro | +1 CA calculada com duas armas empunhadas confirmadas, sem duplicar CA escrita | Elegibilidade de duas armas, sacar/guardar e contexto da mesa |

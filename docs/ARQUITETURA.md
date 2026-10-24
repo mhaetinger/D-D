@@ -1368,3 +1368,26 @@ real (Conjuração/Pacto) à prévia e aplicação; a consulta usa o mesmo perfi
 Registros próprios de duração/concentração e efeitos personalizados continuam
 manuais. Nenhuma tabela de criaturas ou automação completa de invocações foi
 introduzida; esses limites seguem na matriz da auditoria.
+
+## Adepto Elemental — 24/10/2026
+
+`elemental-adept.ts` lê talento e elemento do mesmo evento estruturado, unifica
+as escolhas repetidas e desconsidera campos órfãos e níveis/classes removidos.
+O perfil usa a fórmula final do resolvedor, depois de Gêmea/Afinidade/Evocação.
+Magias personalizadas/fórmulas próprias não ganham automação; uma lista explícita
+mantém manuais os tipos/camadas/rodadas que o catálogo ainda não distingue.
+O motor compartilha a lista de elementos restantes entre pré-requisito e campo
+de escolha, retirando o talento da oferta quando os cinco já foram adquiridos.
+
+`spellDamageContext` passa o mesmo perfil ao lançamento e aos raios posteriores.
+`applyElementalAdept` confere dados/modificador, conserva faces e soma somente
+o número de faces 1, sem RNG ou mutação. A marca transitória no `DiceResult`
+impede reaplicação. A decomposição usa essas mesmas faces tratadas nos componentes;
+o detalhe mostra os valores originais, o ajuste e quais resistências ignorar.
+No texto de 2014, o mínimo se refere a qualquer dado de dano da magia elegível;
+em dano misto, ignorar resistência continua restrito ao elemento escolhido.
+
+Prévia e livro recebem a nota do perfil. OFF registra o lançamento normal e
+orienta a resolução física; Só Pool, d20, cura, armas, sopro e bandeja livre
+não herdam o contexto de magia. Nenhum alvo/PV remoto, resistência recebida ou
+documento recebe o perfil, que não entra em backup/histórico ou sincronização.

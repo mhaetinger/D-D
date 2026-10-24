@@ -1,5 +1,22 @@
 # Changelog
 
+## Não lançado — Adepto Elemental — 2026-10-24
+
+- Quinto recorte de R2: prévia/livro identificam o benefício e a resistência
+  ignorada; Auto Ficha trata faces 1 como 2 no dano de magia elegível. Mantém
+  faces originais, ajuste explícito, bônus fixos e imunidade, sem nova rolagem.
+- Integra truques, círculos superiores, Gêmea, dano por raio e parcelas mistas
+  reconhecidas. Raios posteriores mantêm o mínimo sem repetir Afinidade/Evocação
+  ou cobrar outro espaço. OFF orienta dados físicos; Só Pool conserva a guarda.
+- Fórmulas próprias/tipos contextuais ficam na mesa. D20, cura, arma, sopro e
+  bandeja livre não recebem o efeito. Não aplica dano em alvos ou fichas remotas.
+- O criador deixa de oferecer o talento após os cinco elementos, evitando uma
+  seleção sem opções. Escolhas, histórico e dados existentes são preservados.
+- Verificados 504 testes Node, tipos/build e sete roteiros Chromium pertinentes:
+  Adepto Elemental, ataques de magia, passivos, curas, invocações, dado e ajudas.
+  Incluídos cancelamento/gastos, compatibilidade, notas/outra ficha, mobile/GG/
+  temas/layouts e offline `/D-D/`. A CI exige 40 roteiros. Sem SQL ou publicação.
+
 ## Não lançado — estabilidade da conferência offline — 2026-10-24
 
 - O roteiro de invocações aguarda a aba do grimório terminar de carregar antes
