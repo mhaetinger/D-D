@@ -1,6 +1,6 @@
 # Retomada do CritCall
 
-Estado consolidado em **23/10/2026**. Leia também `AGENTS.md`, `README.md`,
+Estado consolidado em **24/10/2026**. Leia também `AGENTS.md`, `README.md`,
 `CHANGELOG.md` e [ARQUITETURA.md](ARQUITETURA.md) antes de alterar.
 
 ## Onde o trabalho parou
@@ -14,7 +14,10 @@ A duração/concentração desta última agora segue o círculo escolhido. Regis
 manuais do uso diário têm identificação explícita; a conjuração da invocação e
 seus custos continuam manuais, sem adicionar magia conhecida/contador paralelo.
 Fontes, limites e verificações ficam somente na auditoria. Passaram 494 testes
-Node, build e seis roteiros pertinentes; CI exige 39 e banco. Manter a PR de
+Node, build e seis roteiros pertinentes; CI exige 39 e banco. O roteiro offline
+teve sua espera de inicialização corrigida e conferida com CPU reduzida em 24/10;
+o resultado completo deve ser consultado na [PR #33](https://github.com/mhaetinger/D-D/pull/33).
+Manter a PR de
 desenvolvimento separada da decisão de uma próxima publicação na main.
 
 **Publicação por entregas agrupadas.** O responsável orientou não publicar cada
@@ -88,8 +91,9 @@ npm ci
 npm run dev -- --port 5174 --strictPort
 ```
 
-Até concluir a PR #21, continuar sua branch quando indicado; depois, novas tarefas
-partem de `develop`. Não publicar fontes: `npm run build` gera `dist/`, entregue
+Continuar a branch da PR de desenvolvimento indicada acima ao corrigir sua entrega;
+novas tarefas partem de `develop`. A PR #21 já foi concluída.
+Não publicar fontes: `npm run build` gera `dist/`, entregue
 por Actions após revisão de main. Não enviar tags extras nem histórico privado.
 
 ## Mapa dos documentos

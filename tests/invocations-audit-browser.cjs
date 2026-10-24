@@ -43,7 +43,18 @@ const advance=(c,answers={})=>{const d=E.context({},{},c,'bruxo');choose(d,'corr
   for(const layout of ['classic_2014','modern_2024'])for(const theme of ['pergaminho_claro','pergaminho_escuro','obsidiana']){
    await page.setViewportSize({width:320,height:950});await page.evaluate(({layout,theme})=>{setLayout(layout);setTheme(theme);setFontScale(125);},{layout,theme});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await consult('Vigor Abissal').tap();assert.equal(await pop.evaluate(e=>e.scrollWidth<=e.clientWidth),true);const y=await page.evaluate(()=>scrollY);await pop.hover();await page.mouse.wheel(0,500);assert.equal(await page.evaluate(()=>scrollY),y);await pop.getByRole('button',{name:'Fechar consulta'}).click();
   }
-  await page.evaluate(()=>{switchCharacter(0);setTab('spells');});await page.evaluate(async()=>{await navigator.serviceWorker.ready;if(!navigator.serviceWorker.controller)await new Promise(r=>navigator.serviceWorker.addEventListener('controllerchange',r,{once:true}));});await context.setOffline(true);await page.reload({waitUntil:'domcontentloaded'});await page.evaluate(()=>setTab('spells'));assert.equal(await badge(0).getAttribute('title'),'Defesa/Proteção');assert.equal(await badge(1).getAttribute('title'),'Utilidade');assert.equal(await page.evaluate(()=>readPrivateNotes(getChar().id)),'Nota privada sintética de invocações.');assert.equal(await page.evaluate(()=>getChar().spells[2].customRoll),'1d8+2');assert.deepEqual(errors,[]);
+  await page.evaluate(()=>{switchCharacter(0);setTab('spells');});
+  await page.evaluate(()=>navigator.serviceWorker.ready);await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
+  // DOMContentLoaded não aguarda a inicialização assíncrona da ficha. Esperar a
+  // aba com seu nome renderizado comprova que ela está pronta, sem pausa fixa.
+  // CPU reduzida reproduz a condição de corrida observada na CI e em aparelhos lentos.
+  const cdp=await context.newCDPSession(page);await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});
+  await context.setOffline(true);await page.reload({waitUntil:'domcontentloaded'});
+  await page.getByRole('button',{name:'2. Grimório & Feitiçaria',exact:true}).click();
+  assert.equal(await page.evaluate(()=>navigator.onLine),false);
+  assert.equal(await badge(0).getAttribute('title'),'Defesa/Proteção');assert.equal(await badge(1).getAttribute('title'),'Utilidade');
+  assert.equal(await page.evaluate(()=>readPrivateNotes(getChar().id)),'Nota privada sintética de invocações.');assert.equal(await page.evaluate(()=>getChar().spells[2].customRoll),'1d8+2');assert.deepEqual(errors,[]);
+  await cdp.detach();
   console.log('PASS invocações: quatro referências, registro diário/Pacto/descansos, troca/reaprendizado sem duplicação, PV temporários e maldição sem dano imediato, duração/concentração por círculo, compatibilidade/fórmula própria/notas/outra ficha, mobile/GG/temas/layouts e offline.');
  }finally{await browser.close();await server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});
