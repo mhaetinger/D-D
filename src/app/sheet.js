@@ -1118,7 +1118,7 @@ function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligib
 }
 // Ações com resultado aplicado aos PV usam o mesmo motor/animação, sem alterar
 // o pool manual. OFF sempre exige registrar a face do dado físico.
-function ruleDiceSettings() { return {enabled:diceMode!=='off',automatic:diceMode==='auto',mode:currentRollMode}; }
+function ruleDiceSettings() { return {enabled:diceMode!=='off',automatic:diceMode==='auto',mode:currentRollMode,sequence:diceRollSequence}; }
 function rollRuleDie(sides,label,mode='normal',context=null,repeatOne=false) {
   if(diceMode==='off') throw new Error('Dados virtuais desativados: registre o resultado do dado físico.');
   let result=evaluateDicePool({[sides]:1},0,mode,sheetD20Rules(getChar(),context,CharacterEngine));

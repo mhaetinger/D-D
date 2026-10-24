@@ -1,5 +1,26 @@
 # Changelog
 
+## Não lançado — rerrolagens de dano de arma — 2026-10-23
+
+- Combate com Armas Grandes oferece repetição opcional de cada 1/2 da arma
+  elegível em duas mãos. A nova face é obrigatória e não recebe outra repetição
+  pelo estilo. Atacante Bestial repete o conjunto da arma uma vez por acerto e
+  permite escolher um conjunto inteiro, com disponibilidade por turno confirmada
+  pela mesa. O estilo pode atuar em cada conjunto.
+- Crítico comum mantém os dados da arma duplicados; Furtivo, Destruição e dados
+  extras de características, bônus fixos e –5/+10 conservam sua composição.
+  Arremessos, armas à distância, ataques manuais e Forma Selvagem não herdam as
+  opções. Empunhadura versátil exige duas mãos; estilo não é inferido por notas.
+- Retomar o diálogo mantém faces e repetições nesta sessão, sem novo espaço.
+  Alterar ficha, permissão ou jogada invalida o resultado antigo antes do RNG.
+  OFF/Só Pool recebem somente o total físico final. Dado flutuante, notas,
+  outra ficha, nuvem manual e limite local de histórico preservados.
+- Verificados 486 testes Node, tipos/build e seis roteiros Chromium pertinentes:
+  rerrolagens, crítico/adicionais, –5/+10, dado, ajudas e cadeado. Cobertos
+  retomar/gasto único/concorrência, mobile/GG/temas/layouts e offline /D-D/.
+  Diagnóstico puro: 3.321 verificações sem divergências. CI exige os 38 roteiros
+  completos e banco descartável. Sem SQL ou alteração de catálogos gerados.
+
 ## Curas fixas e elegibilidade de Gêmea — 2026-10-23
 
 - Integrados dois achados confirmados da auditoria independente das oito curas:

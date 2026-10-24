@@ -85,3 +85,4 @@ export function commitWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoice
   else if(plan.slot)c.standardSlots[plan.slot.level].used+=1;
   return plan;
 }
+export type WeaponDamagePlan=ReturnType<typeof previewWeaponDamage>;
