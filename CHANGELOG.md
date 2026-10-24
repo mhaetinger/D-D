@@ -1,5 +1,15 @@
 # Changelog
 
+## Não lançado — estabilidade da conferência offline — 2026-10-24
+
+- O roteiro de invocações aguarda a aba do grimório terminar de carregar antes
+  de interagir após recarga offline. Corrige a corrida do próprio teste observada
+  na CI, sem pausa fixa ou alteração no carregamento da aplicação.
+- Conferido localmente com CPU reduzida a um quarto da velocidade, rede desligada
+  e dados fictícios: classificação de magias, fórmula própria e notas preservadas.
+- Retomada deixa de apontar a PR #21, já concluída, como trabalho em aberto.
+  A revisão permanece na PR de desenvolvimento, sem publicação no site.
+
 ## Não lançado — revisão de quatro invocações — 2026-10-23
 
 - Concluída a revisão delimitada de Armadura de Sombras, Vigor Abissal,
