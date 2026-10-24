@@ -2,6 +2,8 @@ import { commitWeaponDamage, previewWeaponDamage, smiteSlots, weaponDamageOption
 import { escape, type Engine, type Sheet } from './model';
 import {weaponPowerAttack,weaponPowerAttackOption} from './weapon-power-attack';
 import {canEditSheet} from '../sheet-edit/access';
+import {weaponRerollOptions} from './weapon-rerolls';
+import {offerWeaponRerolls,resumeWeaponReroll} from './weapon-rerolls-ui';
 
 const tip=(name:string,text:string)=>`tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name,text}))}"`;
 // Preparação efêmera por objeto de arma: não altera ficha, notas ou histórico,
@@ -50,7 +52,9 @@ export function renderWeaponDamageTools(c:Sheet,entry:Sheet,index:number,E:Engin
  * registro físico existente; em Auto Ficha rola no clique, nunca na marcação. */
 export function rollPreparedWeaponDamage(c:Sheet,index:number,E:Engine,save:(description:string)=>void) {
   const entry=c.weapons[index];if(!entry)return false;
-  const critical=weaponCriticalPrepared(entry),powerAttack=weaponPowerAttackPrepared(c,entry,E);if(!critical && !powerAttack)return false;
+  if(resumeWeaponReroll(c,entry))return true;
+  const critical=weaponCriticalPrepared(entry),powerAttack=weaponPowerAttackPrepared(c,entry,E),rerolls=weaponRerollOptions(c,entry,E);
+  if(!critical && !powerAttack && !rerolls.savage && !rerolls.greatWeapon)return false;
   const host=window as any;
   if(!host.ruleDiceSettings().automatic) {document.querySelector<HTMLButtonElement>(`[data-rule-weapon-damage="${index}"]`)?.click();return true;}
   try {
@@ -58,6 +62,7 @@ export function rollPreparedWeaponDamage(c:Sheet,index:number,E:Engine,save:(des
     const plan=previewWeaponDamage(c,entry,{critical,powerAttack},E),result=host.rollWeaponFormula(plan.formula,(critical?'Crítico: ':'Dano: ')+plan.name);
     commitWeaponDamage(c,entry,{critical,powerAttack},E);preparedCritical.delete(entry);preparedPowerAttack.delete(entry);
     save(`${critical?'Crítico':'Dano'} · ${plan.name} · ${plan.summary} · total ${result.total} (virtual)`);
+    offerWeaponRerolls(c,entry,plan,result,E);
   }catch(error){host.showToast((error as Error).message);}
   return true;
 }
@@ -77,6 +82,7 @@ export function setupWeaponDamageUI(E:Engine,save:(description:string)=>void) {
     if(!trigger || trigger.disabled)return;
     const c:Sheet=host.getChar(),index=Number(trigger.dataset.ruleWeaponDamage),entry=c?.weapons[index];
     if(!entry)return;
+    if(resumeWeaponReroll(c,entry))return;
     try {
       if(!canEditSheet(c))throw new Error('A edição desta ficha está bloqueada pelo mestre.');
       const {w,automatic,sneak,colossus,smite}=weaponDamageOptions(c,entry,E);
@@ -90,6 +96,7 @@ export function setupWeaponDamageUI(E:Engine,save:(description:string)=>void) {
       ${colossus?`<label class="rule-check" ${tip('Assassino de Colossos','Uma vez por turno ao atingir uma criatura que já está abaixo dos PV máximos. Confirme o estado do alvo e o uso disponível. O dado adicional também dobra em crítico.')}><input type="checkbox" data-weapon-colossus> Alvo já ferido · Colossos disponível neste turno</label>`:''}
       ${smite?`<label ${tip('Destruição Divina','Após acertar corpo a corpo com arma, gaste um espaço de qualquer classe: 2d8 no 1º nível, +1d8 por nível até 5d8, e +1d8 contra corruptor ou morto-vivo. Pacto também serve. Não é conjuração nem ação bônus de 2024; não recebe melhorias de uma magia lançada. Arremesso e ataque desarmado não são elegíveis neste controle.')}>Destruição Divina <select data-weapon-smite><option value="">Sem gastar espaço</option>${smiteSlots(c).map(s=>`<option value="${escape(s.value)}" ${s.remaining?'':'disabled'}>${escape(s.label)}</option>`).join('')}</select></label><label class="rule-check" data-weapon-favored-label hidden ${tip('Corruptor ou morto-vivo','Acrescenta mais 1d8 à Destruição Divina, até 6d8 antes do crítico. Confirme o tipo do alvo na mesa; não é um segundo espaço.')}><input type="checkbox" data-weapon-favored> Alvo corruptor ou morto-vivo</label>`:''}
       ${!automatic?'<p>Fórmula personalizada: o crítico dobra os dados informados. Adicionais de classe/raça e exceções do alvo continuam na mesa.</p>':''}
+      ${Object.values(weaponRerollOptions(c,entry,E)).some(Boolean)?'<p class="t-text-muted">Dados físicos: resolva as repetições da arma na mesa e informe o total final. Ao rolar aqui, as opções aparecem depois do resultado.</p>':''}
       <output data-weapon-preview role="status" aria-live="polite"></output>
       ${manualOnly?'':'<label>Dados <select data-weapon-source><option value="physical">Já rolei os dados · registrar total</option><option value="virtual">Rolar aqui</option></select></label>'}
       <div data-weapon-total-label><label ${tip('Dano já rolado','Informe o total dos seus dados físicos ou de outro rolador, incluindo bônus e os dados extras do crítico quando aplicável, antes das defesas do alvo. Não há nova rolagem nem multiplicação desse número. Se escolheu Destruição, registrar desconta um único espaço.')}>Dano que você já rolou <input type="number" min="0" max="1000000" step="1" required data-weapon-total></label><p class="t-text-muted">Inclua bônus e dados do crítico. Este total será registrado sem rolar novamente.</p></div>`;
@@ -143,6 +150,7 @@ export function setupWeaponDamageUI(E:Engine,save:(description:string)=>void) {
       preparedCritical.delete(entry);preparedPowerAttack.delete(entry);
       save(`${plan.critical?'Crítico':'Dano'} · ${plan.name} · ${plan.summary} · total ${result.total} (${virtual?'virtual':'físico'})${plan.slot?` · gastou 1 espaço de ${plan.slot.value==='pact'?'Pacto':'Conjuração'} do ${plan.slot.level}º`:''}${selected.sneak?' · Furtivo: uso deste turno confirmado pela mesa':''}${selected.colossus?' · Colossos: alvo ferido e uso deste turno confirmados':''}`);
       host.showToast(`${plan.critical?'Crítico':'Dano'} · ${result.total} · ${plan.formula}`);
+      if(virtual)offerWeaponRerolls(c,entry,plan,result,E);
     }catch(error){host.showToast(error instanceof Error?error.message:'Não foi possível registrar o dano deste ataque.');}
   });
 }

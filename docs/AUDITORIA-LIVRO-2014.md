@@ -284,7 +284,7 @@ básico real telefone/computador já foram confirmados pelo responsável.
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
 | R1 — bônus nos cálculos | **Quatro passivos entregues; achados A01/A05/A06 corrigidos nesta branch** | O recorte original continua implementado. A01/A05/A06 corrigem os bônus/modificadores adicionais e a inconsistência de PV identificados no check-up; regressões nesta entrega. Tipos variáveis/efeitos posteriores seguem em R5. |
-| R2 — rolagens e gastos condicionais | **Terceiro recorte implementado na PR #21; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo implementados na entrega da PR #20. -5/+10 de Atirador Aguçado/Mestre de Armas Grandes implementado no terceiro recorte da PR #21. Faltam demais rerrolagens/dados mínimos e adicionais de talentos/estilos. Integrar escolha/gasto à jogada pertinente, sem duplicar reservas ou aplicar bônus a jogadas inelegíveis. |
+| R2 — rolagens e gastos condicionais | **Quarto recorte implementado nesta branch; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo implementados na entrega da PR #20. -5/+10 de Atirador Aguçado/Mestre de Armas Grandes na PR #21. Quarto recorte: Atacante Bestial e Combate com Armas Grandes. Faltam Adepto Elemental e adicionais/manobras dos demais talentos/estilos. Turnos/alvos continuam declarados pela mesa. |
 | R3 — condições, defesas e características | Planejada; já há cobertura parcial | Completar efeitos das condições, imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
 | R5 — famílias de magias | Parcial: fórmulas anteriores e oito curas auditadas | Revisar metadados e exceções do catálogo por família: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
@@ -497,7 +497,7 @@ Conferidos 62 links/âncoras locais e auditoria de produção sem vulnerabilidad
 CI completa e banco descartável são exigidos antes da integração. Banco não
 repetido localmente; não houve SQL/RLS/RPC nem validação entre dispositivos reais.
 
-Continuam pendentes em R2: Atacante Bestial, Combate com Armas Grandes,
+Naquele recorte continuavam pendentes em R2: Atacante Bestial, Combate com Armas Grandes,
 Adepto Elemental e adicionais/manobras dos demais talentos/estilos. A cobertura
 de -5/+10 foi acrescentada no terceiro recorte abaixo. **R2 não está concluída.**
 
@@ -531,8 +531,9 @@ e proficiência na arma. Não se trata do estilo Combate com Armas Grandes.
 continuam na mesa. Se errou, desmarcar a preparação antes de continuar. A ficha
 não controla turnos/alvos e permite correção manual da preparação; não impede
 uma declaração tardia na mesa. Armas com totais manuais não recebem +10 inferido
-porque podem já incluí-lo; preservar as fórmulas cadastradas. Atacante Bestial,
-Combate com Armas Grandes, Adepto Elemental e demais gatilhos continuam pendentes.
+porque podem já incluí-lo; preservar as fórmulas cadastradas. Atacante Bestial e
+Combate com Armas Grandes avançam no quarto recorte abaixo; Adepto Elemental
+e demais gatilhos continuam pendentes.
 
 Verificação deste recorte: **464 testes Node**, tipos/build e **nove roteiros
 Chromium pertinentes** aprovados: –5/+10, crítico/adicionais, dado, R2 inicial,
@@ -545,6 +546,43 @@ improvisado, repetidos Node/build, –5/+10, crítico/adicionais e cadeado.
 Diagnóstico puro: **3.321 verificações, zero divergências**. A suíte completa
 agora tem **35 roteiros**, sem repetição integral local nesta rodada; a CI exige
 a execução completa. Sem SQL, teste de banco local ou PDF pessoal nesta mudança.
+
+### Quarto recorte de R2: dados da arma — 23/10/2026
+
+**Implementado nesta branch.** Fontes: Livro do Jogador 2014, Atacante Bestial
+(p. 167 / PDF 166) e Combate com Armas Grandes (p. 85 / PDF 84);
+[Sage Advice Compendium 2.7](https://media.wizards.com/2021/dnd/downloads/SA-Compendium.pdf),
+pp. 4 e 10, limita as repetições aos dados da arma, excluindo dano adicional
+de outras características, como Furtivo e Destruição.
+
+- Estilo: dados 1/2 podem ser repetidos individualmente uma vez; a nova face
+  é obrigatória mesmo se for baixa. Exige estilo escolhido, arma com duas mãos
+  ou versátil empunhada em duas mãos, sem escudo. Não confundir com o talento
+  Mestre de Armas Grandes, cuja preparação –5/+10 permanece independente.
+- Bestial: repete todos os dados da parte Arma e permite escolher um dos dois
+  conjuntos completos, sem combinar melhores faces. A disponibilidade de uma
+  vez por turno é confirmada pela mesa; sem contador diário/turnos automáticos.
+  O estilo pode repetir faces elegíveis em cada conjunto, uma vez por face.
+- Inclui duplicação normal da arma no crítico. Bônus, Furtivo, Destruição,
+  Colossos, Crítico Brutal/Ataques Selvagens e demais parcelas de características
+  permanecem como rolados. Totais negativos são limitados a zero só ao recompor.
+- Somente armas automáticas corpo a corpo; arremessos, distância, desarmados,
+  valores manuais e Forma Selvagem continuam na mesa. OFF/Só Pool registram
+  o total físico já resolvido, sem RNG ou alterações à fórmula cadastrada.
+- Fechar e retomar mantém os conjuntos transitórios e gastos já registrados.
+  Outra jogada, alteração da ficha/arma, troca de ficha ou bloqueio de permissão
+  invalida a repetição antiga antes de lançar dados. Recarga descarta faces
+  transitórias, sem devolver espaço. Pool livre/inspiração/notas ficam intactos.
+
+Verificados **486 testes Node**, tipos/build e **seis roteiros Chromium**:
+rerrolagens, crítico/adicionais, –5/+10, dado, ajudas e cadeado. Cobertos
+retomar/gasto único, invalidação por jogada/documento/ficha/permissão,
+escolha de conjunto sem RNG, físico/OFF/Só Pool, preservação de pool/inspiração,
+notas/outra ficha, limite de 25 registros, 320px/GG/três temas/dois layouts e
+recarga offline sob `/D-D/`. Diagnóstico puro: **3.321 verificações, zero
+divergências**. CI passa a exigir os 38 roteiros e banco descartável; sem SQL,
+teste de banco local, PDF pessoal ou alteração dos catálogos nesta mudança.
+R2 continua parcial: Adepto Elemental e demais gatilhos/adicionais permanecem.
 
 ## Progresso já entregue
 
@@ -649,7 +687,7 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 | Clérigo, 62–69 | Conhecimento; Enganação; Guerra; Luz; Natureza; Tempestade; Vida | Preparação/domínios, Canalizar compartilhado, usos e Intervenção | Efeitos de cada domínio no alvo, cura/dano condicionado e Expulsar/Destruir Mortos-Vivos por ND |
 | Druida, 70–75 | Terra; Lua | Preparação/círculo, Forma Selvagem/PV, cura da Lua, Recuperação Natural e concentração mantida na transformação | Bloco de besta/estatísticas e custo de elemental; CON da forma informada no teste |
 | Feiticeiro, 76–81 | Magia Selvagem; Linhagem Dracônica | Feitiçaria/metamágica, conversão, Marés, CA, resistência e bônus inicial de Afinidade Elemental nos casos reconhecidos | Surto/gatilhos, tipos variáveis/efeitos posteriores e elegibilidade completa de metamagias; adaptações identificadas |
-| Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa parcial de Atletismo Extraordinário | A06/A13 corrigidos nesta entrega: arredondamento/testes físicos e Retomar físico/virtual. Rerrolagem de Combate com Armas Grandes; manobras/reações; Sobrevivente |
+| Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa parcial de Atletismo Extraordinário; repetição de Combate com Armas Grandes no quarto recorte de R2 | A06/A13 corrigidos: arredondamento/testes físicos e Retomar físico/virtual. Manobras/reações; Sobrevivente |
 | Ladino, 88–92 | Ladrão; Assassino; Trapaceiro Arcano | Especialização, composição de Ataque Furtivo, Esquiva/Evasão, usos avançados, magias e Talento Confiável nas perícias da ficha (R2 inicial) | Testes com ferramentas na mesa; surpresa/Assassinar e Ação Ardilosa |
 | Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, Dominar/Assinatura, recuperação, Proteção Arcana inclusive multiclasse, Conjuração Focada, Presságio e usos/estados de escola | Efeitos por alvo, demais bônus de escola, lacaios, pedra e Sobrecarga; fluxo de troca temporal das escolhas |
 | Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi, movimento/CA, curas/usos, Evasão e defesas de Pureza Corporal/Corpo Vazio no dano por tipo | Imunidade a condições, Artes Marciais/dano desarmado em todas as condições, Atordoar/Defletir Projéteis e recuperação ao iniciar combate |
@@ -708,7 +746,7 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 | Adepto Marcial | Escolha de duas manobras | Dado extra d6 e interação com a reserva de superioridade |
 | Alerta | +5 na iniciativa | Surpresa/atacante oculto |
 | Ambidestro | +1 CA calculada com duas armas empunhadas confirmadas, sem duplicar CA escrita | Elegibilidade de duas armas, sacar/guardar e contexto da mesa |
-| Atacante Bestial | Registro | Nova rolagem de dano uma vez por turno |
+| Atacante Bestial | Nova rolagem dos dados da arma e escolha de conjunto completo, no quarto recorte de R2 | Disponibilidade de uma vez por turno confirmada pela mesa; ataques manuais e físicos são resolvidos na mesa |
 | Atirador Aguçado | -5/+10 opcional por ataque com arma à distância proficiente; integrado ao crítico/adicionais no terceiro recorte de R2 | Cobertura e alcance continuam na mesa; valores manuais não recebem bônus automático |
 | Atirador de Magia | Escolha de truque de ataque, incluindo Criar Chamas | Alcance/cobertura |
 | Atleta | +1 FOR/DES | Levantar, escalar e salto |
