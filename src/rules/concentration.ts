@@ -1,4 +1,5 @@
 import { active, level, norm, state, type Engine, type Sheet } from './model';
+import {spellDuration} from './spell-duration';
 
 export interface ConcentrationCheck { id:string; dc:number; damage:number; shape:boolean }
 export interface Concentration { version:1; id:string; name:string; duration:string; spellKey:string; school:string; checks:ConcentrationCheck[]; resourceId?:string }
@@ -42,21 +43,21 @@ export function startConcentration(c:Sheet,description:{name:string;duration?:st
   if(description.resourceId)current.resourceId=description.resourceId;
   s.concentration=current;return current;
 }
-export function spellConcentration(c:Sheet,spell:Sheet,E:Engine,ritual=false) {
-  const entry=E.spell(spell.bookId || spell.name),held=typeof spell.conc==='boolean'?spell.conc:!!entry?.concentration;
+export function spellConcentration(c:Sheet,spell:Sheet,E:Engine,ritual=false,castLevel?:number) {
+  const entry=E.spell(spell.bookId || spell.name),{held,duration}=spellDuration(spell,E,castLevel);
   const time=norm(spell.time || entry?.time);
   const prolonged=ritual || /\b(?:minutos?|min|horas?|hours?|minutes?)\b/.test(time) || /\b(?:[2-9]|\d{2,})\s+(?:acoes|rodadas)\b/.test(time);
   const spellKey=[spell.classId || '',spell.extraSource || '',entry?.id || spell.name].join(':');
-  return {held,prolonged,spellKey,name:spell.name,duration:spell.duration || entry?.duration || '',school:entry?.school || spell.school || ''};
+  return {held,prolonged,spellKey,name:spell.name,duration,school:entry?.school || spell.school || ''};
 }
-export function needsConcentrationConfirmation(c:Sheet,spell:Sheet,E:Engine,ritual=false) {
-  const old=concentration(c),next=spellConcentration(c,spell,E,ritual);
+export function needsConcentrationConfirmation(c:Sheet,spell:Sheet,E:Engine,ritual=false,castLevel?:number) {
+  const old=concentration(c),next=spellConcentration(c,spell,E,ritual,castLevel);
   return !!old && (next.held || next.prolonged) && (!next.held || old.spellKey!==next.spellKey);
 }
 /** A interface registra conjurações concluídas. Tempo, turnos e interrupções
  * durante uma conjuração prolongada permanecem a cargo da mesa. */
-export function applyCastConcentration(c:Sheet,spell:Sheet,E:Engine,ritual=false) {
-  const next=spellConcentration(c,spell,E,ritual);
+export function applyCastConcentration(c:Sheet,spell:Sheet,E:Engine,ritual=false,castLevel?:number) {
+  const next=spellConcentration(c,spell,E,ritual,castLevel);
   if(next.held) return startConcentration(c,next);
   if(next.prolonged) endConcentration(c);
   return concentration(c);

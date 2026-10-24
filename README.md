@@ -137,6 +137,15 @@ pertinentes sem lançar dados; a aplicação e distribuição de PV ficam na mes
 Cópias antigas recebem a apresentação corrigida sem substituir seus campos.
 Bom Fruto não oferece Gêmea; suas reservas/efeitos são resolvidos na mesa.
 
+Invocações substituídas deixam de aparecer nas características; reaprender uma
+delas mostra somente a aquisição atual, preservando histórico e usos já gastos.
+Os botões **Registrar uso** das invocações descontam somente seu contador diário;
+a magia e seus custos são resolvidos separadamente na mesa. Armadura de Sombras
+e Vigor Abissal continuam à vontade, sem criar reserva diária ou magia conhecida.
+Vitalidade Falsa identifica PV temporários, sem cura/aplicação automática.
+Rogar Maldição registra seu efeito sem dano imediato; duração e concentração
+seguem o círculo escolhido, dispensando concentração a partir do 5º.
+
 Concentração acompanha um efeito ativo do personagem, como Bênção. Combate e
 grimório mostram o mesmo registro. Preparar uma magia só a deixa disponível;
 conjurar registra o efeito, e outra concentração pede substituição. Ao registrar

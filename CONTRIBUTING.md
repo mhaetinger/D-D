@@ -12,6 +12,10 @@ O fluxo é `feature/*` ou `fix/*` → pull request para `develop` → verificaç
 entrega → pull request de `develop` para `main`. Não enviar mudanças diretamente
 à `main` nem mesclar uma entrega sem aprovação do responsável pelo projeto.
 Criar a branch `develop` não publica uma nova versão do site.
+O responsável orientou acumular os ajustes em desenvolvimento e publicar ao
+concluir entregas mais importantes. Não abrir/integrar uma PR para `main` a cada
+correção; aguardar a decisão de fechar uma entrega. Uma autorização anterior
+de publicação não deve ser tratada como autorização permanente.
 
 Essa é a convenção de trabalho. Proteção de branches e exigência automática de
 aprovações ainda não foram configuradas no GitHub.

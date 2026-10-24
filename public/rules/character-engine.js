@@ -1851,6 +1851,8 @@
     "misseis-magicos": { dmgType: "energia", dmgLabel: "Energia", targetType: "multi", defType: "auto_hit", canTwin: true, effectSummary: "3 mísseis (3d4+3)", diceFormula: "3d4+3" },
     "nuvem-de-adagas": { dmgType: "cortante", dmgLabel: "Cortante", targetType: "cubo", defType: "auto_hit", canTwin: false, effectSummary: "4d4 Cortante Auto", diceFormula: "4d4" },
     "armadura-arcana": { dmgType: "defesa", dmgLabel: "Defesa", targetType: "pessoal", defType: "nenhuma", canTwin: false, effectSummary: "CA 13 + DES · 8h", diceFormula: null },
+    "vitalidade-falsa": { dmgType:"defesa", dmgLabel:"Defesa", targetType:"pessoal", defType:"nenhuma", canTwin:false, effectSummary:"1d4+4 PV temporários · 1 hora", diceFormula:null },
+    "rogar-maldicao": { dmgType:"utilidade", dmgLabel:"Utilidade", targetType:"toque", defType:"tr_sab", canTwin:true, effectSummary:"Maldição · efeitos na mesa", diceFormula:null },
     "armadura-de-agathys": { dmgType: "frio", dmgLabel: "Frio", targetType: "pessoal", defType: "nenhuma", canTwin: false, effectSummary: "5 PV temp · 5 Frio", diceFormula: null },
     "orbe-cromatica": { dmgType: "energia", dmgLabel: "Elemental", targetType: "mira", defType: "atq_magico", canTwin: true, effectSummary: "3d8 Elemental", diceFormula: "3d8" },
     "bruxaria": { dmgType: "necrotico", dmgLabel: "Necrótico", targetType: "mira", defType: "nenhuma", canTwin: true, effectSummary: "+1d6 Necrótico (1h)", diceFormula: "1d6" },
@@ -2850,6 +2852,16 @@
       if (!c) continue;
       const sid = cls.subclassId || inferSubclass(cls),
         sub = c.subclasses[sid];
+      // O histórico conserva escolhas substituídas. A ficha mostra somente
+      // a aquisição atual de cada invocação, inclusive se foi reaprendida.
+      // Guardar o evento evita manter duas entradas pelo mesmo nome ativo.
+      const invocationGains = new Map();
+      if (cls.classId === "bruxo")
+        for (const event of history.filter(h => h.classId === cls.classId && h.level <= cls.level)) {
+          for (const choice of arr(event.answers.invocationsReplace)) invocationGains.delete(choice);
+          for (const key of ["invocations", "invocationsReplacement"])
+            for (const choice of arr(event.answers[key])) invocationGains.set(choice, {event, key});
+        }
       for (let lv = 1; lv <= cls.level; lv++) {
         const order =
           history.find((e) => e.classId === cls.classId && e.level === lv)
@@ -2903,7 +2915,11 @@
             "stoneEffect",
             "fiendResistance",
           ])
-            for (const choice of arr(event.answers[key]))
+            for (const choice of arr(event.answers[key])) {
+              if (cls.classId === "bruxo" && ["invocations", "invocationsReplacement"].includes(key)) {
+                const current = invocationGains.get(choice);
+                if (current?.event !== event || current.key !== key) continue;
+              }
               out.push({
                 name:
                   key === "pact"
@@ -2959,6 +2975,7 @@
                         )
                       : [],
               });
+            }
         if (event?.answers.companionAsi)
           out.push({
             name: "Incremento do companheiro",
