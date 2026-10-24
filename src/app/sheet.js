@@ -17,6 +17,8 @@ import { consumeInspiration, deathStatus, healHitPoints, inspirationRollMode } f
 import { damageDescription, deathControls, hitDiceControls, inspirationControls } from '../rules/health-ui';
 import { offerSurvivalForDamage } from '../rules/damage-ui';
 import { parseDiceFormula } from '../rules/dice-formula';
+import {spellDuration} from '../rules/spell-duration';
+import {applyElementalAdept,elementalAdeptDescription} from '../rules/elemental-adept';
 import { evaluateDicePool, sheetD20Rules, canRerollHalfling, rerollHalfling, addLuckyDie, chooseLuckyDie, luckyFaces } from '../rules/dice-roll';
 import { luckRemaining } from '../rules/lucky';
 import { askToUseLucky, chooseLuckyFace, payLuckyPoint } from '../rules/lucky-ui';
@@ -720,7 +722,8 @@ function resolveSpellMeta(spell) {
   // Cópias antigas dessas curas guardaram "utilidade". Corrige só a leitura
   // automática reconhecida, sem regravar escolhas ou fórmulas personalizadas.
   const oldFixedHealing=automatic && spell.dmgType==='utilidade' && ['cura-completa','cura-completa-em-massa'].includes(catalog.id);
-  const dmgType = automatic && catalogMeta.damageComponents ? 'misto' : oldFixedHealing ? 'cura' : spell?.dmgType && spell.dmgType !== "livro" ? spell.dmgType : (catalogMeta.dmgType || "utilidade");
+  const oldInvocationSpell=automatic && (catalog.id==='vitalidade-falsa' && spell.dmgType==='cura' || catalog.id==='rogar-maldicao' && spell.dmgType==='necrotico');
+  const dmgType = automatic && catalogMeta.damageComponents ? 'misto' : oldFixedHealing ? 'cura' : oldInvocationSpell ? catalogMeta.dmgType : spell?.dmgType && spell.dmgType !== "livro" ? spell.dmgType : (catalogMeta.dmgType || "utilidade");
   const targetType = automatic && catalog.id==='raio-solar' && spell.range===catalog.range ? catalogMeta.targetType : spell?.targetType || catalogMeta.targetType || null;
   const defType = spell?.defType && spell.defType !== "nenhuma" ? spell.defType : (catalogMeta.defType || "nenhuma");
   const canTwin = spell?.canTwin !== undefined && spell?.dmgType && spell.dmgType !== "livro" ? !!spell.canTwin : !!(spell?.canTwin || catalogMeta.canTwin);
@@ -1109,6 +1112,7 @@ function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligib
   const c=getChar(),inspired=inspirationEligible && !!c && dicePoolCounts[20]===1 && c.heroicInspiration && c.ruleState?.inspirationReady;
   const mode=inspired?inspirationRollMode(c,currentRollMode):currentRollMode;
   let result = evaluateDicePool(dicePoolCounts, modVal, mode,c?sheetD20Rules(c,context,CharacterEngine):{});
+  if(context?.elementalAdept)result=applyElementalAdept(result,context.elementalAdept);
   if(context?.spellComponents)result=spellDamageBreakdown(result,context.spellComponents);
   if(minimumZero)result.total=Math.max(0,result.total);
   if(inspired && consumeInspiration(c)) saveRuleStep('Usou inspiração no d20 · '+(customLabel || 'pool'));
@@ -1580,7 +1584,11 @@ function rollSpellRay(index) {
   if(diceMode!=='auto')return;
   const spell=getChar().spells[index];if(!spell) return;
   const detail=getSpellEffectDetails(getChar(),spell,index,false);
-  if(detail.perRay && detail.formula) triggerSheetRoll(detail.formula,`${spell.name} · dano de um raio/feixe que acertou (sem novo lançamento)`);
+  if(detail.perRay && detail.formula) triggerSheetRoll(detail.formula,`${spell.name} · dano de um raio/feixe que acertou (sem novo lançamento)`,false,spellDamageContext(detail));
+}
+function spellDamageContext(effect) {
+  return effect.affinity || effect.evocation || effect.components?.length || effect.elementalAdept
+    ? {type:'damage',spellComponents:effect.components,elementalAdept:effect.elementalAdept}:null;
 }
 // O índice continua sendo o original da ficha, mesmo após filtrar por classe.
 // Repetir ataques (raios/feixes, por exemplo) não conjura nem cobra outro espaço.
@@ -2766,7 +2774,7 @@ function spellTooltipDetails(char, spellName, classId, baseCircle, index) {
     chosenLvl === "pact" ? char.pactMagic.level : chosenLvl ?? baseCircle;
   const catalogEntry = CharacterEngine.spell(spell?.bookId || spellName);
   const cleanCatalogText = catalogEntry ? RuleTooltips.formatText(catalogEntry.text) : '';
-  const bookEntry = (spell?.bookId && catalogEntry ? {
+  let bookEntry = (spell?.bookId && catalogEntry ? {
     ...BOOK_SPELLS_DB[spellName], school: catalogEntry.school,
     duration: catalogEntry.duration, materialDesc: catalogEntry.components,
     bookDesc: cleanCatalogText, upcastRule: '',
@@ -2782,13 +2790,15 @@ function spellTooltipDetails(char, spellName, classId, baseCircle, index) {
     calcEffect: null,
   });
   const detail = spell ? getSpellEffectDetails(char, spell, spellIndex) : null;
+  if(spell && catalogEntry?.id==='rogar-maldicao' && !spell.customSpell && !spell.customRoll)
+    bookEntry={...bookEntry,duration:spellDuration(spell,CharacterEngine,detail.level).duration};
   const scaledEffect = (detail?.twin ? detail.enhanced : detail?.base) ?? (bookEntry.calcEffect
     ? bookEntry.calcEffect(numericCastLvl, false, char, spell)
     : null);
   const defense = spell ? getSpellDefenseMeta(char, spell) : null;
   const spellStats = getSpellcastingStats(char, classId, spell);
 
-  return {clsMeta,spell,bookEntry,scaledEffect,defense,spellStats};
+  return {clsMeta,spell,bookEntry,scaledEffect,defense,spellStats,rulesNote:detail?.elementalAdeptNote};
 }
 function spellConsultReference(char,spell,index) {
   if(spell.customSpell)return {text:[
@@ -2799,7 +2809,7 @@ function spellConsultReference(char,spell,index) {
     spell.customRoll?'Fórmula informada: '+spell.customRoll:'',
     spell.notes||'Sem descrição. Abra o lápis para registrar os efeitos combinados na mesa.',
   ].filter(Boolean).join('\n\n')};
-  const {bookEntry,scaledEffect,defense}=spellTooltipDetails(char,spell.name,spell.classId,spell.circle,index);
+  const {bookEntry,scaledEffect,defense,rulesNote}=spellTooltipDetails(char,spell.name,spell.classId,spell.circle,index);
   const entry=CharacterEngine.spell(spell.bookId||spell.name);
   const text=[
     bookEntry.school+(defense?' · '+defense.label:''),
@@ -2808,6 +2818,7 @@ Alcance: ${spell.range||'Conferir descrição'}`,
     `Duração: ${bookEntry.duration}
 Componentes: ${bookEntry.materialDesc}`,
     scaledEffect?'Efeito atual: '+scaledEffect:'',
+    rulesNote || '',
     entry?.sourceNote || '',
     RuleTooltips.formatText(spell.bookId||BOOK_SPELLS_DB[spell.name]?bookEntry.bookDesc:spell.notes||bookEntry.bookDesc),
     BOOK_SPELLS_DB[spell.name]&&spell.notes?'Notas da ficha: '+getSpellNotes(char,spell):'',
@@ -3099,12 +3110,13 @@ function setSpellCastLevel(spellName, levelValue) {
 // A recursão após confirmar refaz todas as validações de recursos. O caminho
 // sem troca continua síncrono para preservar os eventos da ficha anterior.
 function deferConcentrationReplacement(char,spell,index,ritual,confirmedId,resume) {
-  const info=spellConcentration(char,spell,CharacterEngine,ritual);
+  const castLevel=ritual?spell.circle:getSpellEffectDetails(char,spell,index).level;
+  const info=spellConcentration(char,spell,CharacterEngine,ritual,castLevel);
   if(!(info.held || info.prolonged))return false;
   const blocked=concentrationBlock(char);if(blocked){showToast(blocked);return true;}
   if(info.held)try{validateConcentrationStart(char,info);}catch(error){showToast(error.message);return true;}
   const old=concentration(char);
-  if(!needsConcentrationConfirmation(char,spell,CharacterEngine,ritual) || old.id===confirmedId)return false;
+  if(!needsConcentrationConfirmation(char,spell,CharacterEngine,ritual,castLevel) || old.id===confirmedId)return false;
   const snapshot=JSON.stringify(spell),choice=getSelectedSpellCastLevel(char,spell,index),twinned=characterHasTwinned(char) && !!twinnedActiveBySpell[spell.name];
   void confirmDestructiveAction('Trocar concentração?',`${spell.name}${ritual?' como ritual':''} exige concentração${!info.held?' durante a conjuração':''} e encerra ${old.name}. Recursos só serão gastos após confirmar.`,'Conjurar e substituir').then(ok=>{
     if(!ok || getChar()!==char || char.spells[index]!==spell || concentration(char)?.id!==old.id)return;
@@ -3187,7 +3199,7 @@ function castSpellWithUpcast(
   if (isTwinned) char.sorceryPoints.current -= twinPtCost;
   if (spObj.limitedUse) spObj.usesUsed = (spObj.usesUsed || 0) + 1;
   if (!spObj.customSpell && spellName === "Armadura Arcana") char.mageArmorActive = true;
-  applyCastConcentration(char,spObj,CharacterEngine);
+  applyCastConcentration(char,spObj,CharacterEngine,false,numericCastLvl);
   onSpellCast(char,spObj,numericCastLvl,CharacterEngine);
 
   const formulaToRoll = effect.formula;
@@ -3196,7 +3208,7 @@ function castSpellWithUpcast(
       formulaToRoll,
       `${spellName}${effect.perRay?' · dano de um raio/feixe':''}${isTwinned ? " (⚡ Gêmea)" : ""}`,
       false,
-      effect.affinity || effect.evocation || effect.components?.length?{type:'damage',spellComponents:effect.components}:null,
+      spellDamageContext(effect),
     );
   }
 
@@ -3204,7 +3216,7 @@ function castSpellWithUpcast(
   const source = baseCircle === 0 ? "truque, sem espaço" : spObj.ritual ? "ritual, sem espaço" : spObj.limitedUse ? '-1 uso da habilidade, sem espaço' : spObj.atWill ? 'habilidade, sem espaço' : chosen==='mastery'?'Dominar Magia, sem espaço':chosen==='signature'?'Assinatura Mágica · -1 uso, sem espaço':`-1 espaço de ${chosen === "pact" ? "Pacto" : "Conjuração"} do ${numericCastLvl}º círculo`;
   const actionMsg = `Conjurou ${spellName} (${source})${isTwinned ? ` + Gêmea (-${twinPtCost} pt de feitiçaria)` : ""}`;
   recordStepAndSave(actionMsg);
-  showToast(`✨ ${actionMsg}! ${eff ? `➔ ${eff}` : ""}`);
+  showToast(`✨ ${actionMsg}! ${eff ? `➔ ${eff}` : ""}${effect.elementalAdept && diceMode==='off'?' · '+elementalAdeptDescription(effect.elementalAdept):''}`);
 }
 
 function shortRest() {

@@ -1343,3 +1343,51 @@ valida documento, identidade, permissão, Auto Ficha e sequência exposta por
 permanecem. Resultados/repetições vão ao histórico local com `redraw=false`,
 mantendo os nós do diálogo. A escolha transitória não integra documento/backup;
 recarga a descarta, sem restaurar recursos. OFF/Só Pool não entram nesse caminho.
+
+## Revisão delimitada de invocações — 23/10/2026
+
+`features` recompõe por evento a aquisição atual das invocações do bruxo antes
+de montar os ganhos visíveis. Substituições retiram a aquisição anterior e
+reaprendizado mantém só o evento novo, sem editar o histórico ou zerar recursos.
+Os demais tipos de escolha mantêm o contrato anterior. Os contadores sem ação
+automática de invocação em `ui.ts` dizem Registrar uso e explicam a resolução
+manual; `useResource` continua descontando apenas o contador, inclusive quando
+o espaço já foi registrado separadamente. Não duplicar o gasto de Pacto.
+
+Dois overrides explícitos em `spellMeta` corrigem apenas Vitalidade Falsa e
+Rogar Maldição. `spell-effects.ts` produz resumos sem RNG ou aplicação de PV:
+PV temporários não recebem Vida; o 1d8 da maldição pertence a um efeito escolhido
+e a eventos posteriores. Fórmulas próprias permanecem no retorno prioritário.
+`resolveSpellMeta` corrige somente os antigos tipos automáticos reconhecidos
+dessas duas magias, sem reescrever seus campos.
+
+`spell-duration.ts` resolve o perfil de duração/concentração da maldição pelo
+círculo usado. `spellConcentration`, confirmação e aplicação aceitam um último
+argumento opcional, preservando chamadas anteriores. A ficha passa o círculo
+real (Conjuração/Pacto) à prévia e aplicação; a consulta usa o mesmo perfil.
+Registros próprios de duração/concentração e efeitos personalizados continuam
+manuais. Nenhuma tabela de criaturas ou automação completa de invocações foi
+introduzida; esses limites seguem na matriz da auditoria.
+
+## Adepto Elemental — 24/10/2026
+
+`elemental-adept.ts` lê talento e elemento do mesmo evento estruturado, unifica
+as escolhas repetidas e desconsidera campos órfãos e níveis/classes removidos.
+O perfil usa a fórmula final do resolvedor, depois de Gêmea/Afinidade/Evocação.
+Magias personalizadas/fórmulas próprias não ganham automação; uma lista explícita
+mantém manuais os tipos/camadas/rodadas que o catálogo ainda não distingue.
+O motor compartilha a lista de elementos restantes entre pré-requisito e campo
+de escolha, retirando o talento da oferta quando os cinco já foram adquiridos.
+
+`spellDamageContext` passa o mesmo perfil ao lançamento e aos raios posteriores.
+`applyElementalAdept` confere dados/modificador, conserva faces e soma somente
+o número de faces 1, sem RNG ou mutação. A marca transitória no `DiceResult`
+impede reaplicação. A decomposição usa essas mesmas faces tratadas nos componentes;
+o detalhe mostra os valores originais, o ajuste e quais resistências ignorar.
+No texto de 2014, o mínimo se refere a qualquer dado de dano da magia elegível;
+em dano misto, ignorar resistência continua restrito ao elemento escolhido.
+
+Prévia e livro recebem a nota do perfil. OFF registra o lançamento normal e
+orienta a resolução física; Só Pool, d20, cura, armas, sopro e bandeja livre
+não herdam o contexto de magia. Nenhum alvo/PV remoto, resistência recebida ou
+documento recebe o perfil, que não entra em backup/histórico ou sincronização.

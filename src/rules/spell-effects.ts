@@ -2,6 +2,8 @@ import {ability, level, selections, subclass, type Engine, type Sheet} from './m
 import {elementalAffinityBonus} from './passives';
 import {parseDiceFormula} from './dice-formula';
 import type {DiceResult} from './dice-roll';
+import {spellDuration} from './spell-duration';
+import {spellElementalAdept,elementalAdeptDescription,elementalAdeptNeedsReview,type ElementalAdept} from './elemental-adept';
 
 const signed = (n:number) => n === 0 ? '' : n > 0 ? `+${n}` : String(n);
 const dice = (n:number, sides:number, modifier=0) => `${n}d${sides}${signed(modifier)}`;
@@ -25,6 +27,8 @@ export interface SpellEffect {
   formula:string|null; summary:string; canTwin:boolean; perRay:boolean; explanation:string; affinity?:number;
   components?:{formula:string;type:string;label:string}[];
   evocation?:number;
+  elementalAdept?:ElementalAdept|null;
+  elementalAdeptNote?:string;
 }
 /** Distribui as faces já roladas na ordem dos componentes, sem sortear de novo
  * nem mudar o total/pool. Tipos e escolhas continuam legíveis para a mesa. */
@@ -36,7 +40,7 @@ export function spellDamageBreakdown(result:DiceResult,components:NonNullable<Sp
     for(const [sides,count]of Object.entries(parsed.counts)){
       const key=Number(sides),start=offsets[key] || 0,faces=result.groups.find(g=>g.sides===key)?.faces.slice(start,start+count);
       if(faces?.length!==count)return result;
-      total+=faces.reduce((a,b)=>a+b,0);offsets[key]=start+count;
+      total+=faces.reduce((a,b)=>a+(result.elementalAdept?Math.max(2,b):b),0);offsets[key]=start+count;
     }
     lines.push(`${part.label}: ${part.formula} = ${total}`);
   }
@@ -69,6 +73,14 @@ export function resolveSpellEffect(c:Sheet, s:Sheet, circle:number, E:Engine, op
   } else if (id==='raio-ardente') {
     formula='2d6';summary=`${3+Math.max(0,circle-base)} raio(s) × 2d6 Fogo`;
     explanation='Cada raio exige seu próprio ataque. Role o dano de um raio que acertou, sem gastar outro espaço.';
+  } else if (!s.customSpell && id==='vitalidade-falsa') {
+    formula=null;
+    summary=`1d4+${4+5*Math.max(0,circle-base)} PV temporários · 1 hora`;
+    explanation='PV temporários não são cura e não se somam a outra reserva de PV temporários. Role e aplique na mesa; Discípulo da Vida não acrescenta pontos. Vigor Abissal usa sempre o 1º círculo, sem espaço.';
+  } else if (!s.customSpell && id==='rogar-maldicao') {
+    formula=null;
+    summary=`Maldição · ${spellDuration(s,E,circle).duration} · efeitos na mesa`;
+    explanation='Escolha o efeito da maldição. O 1d8 necrótico é uma opção de dano adicional de ataques/magias posteriores, sem dano automático ao conjurar. Resolva o efeito no alvo na mesa.';
   } else if (!s.customSpell && (id==='cura-completa' || id==='cura-completa-em-massa')) {
     // Valores fixos, sem rolagem. Discípulo da Vida soma 2 + círculo do espaço
     // a cada criatura curada (Livro do Jogador 2014, p. 70 / PDF 69).
@@ -130,5 +142,15 @@ export function resolveSpellEffect(c:Sheet, s:Sheet, circle:number, E:Engine, op
     summary+=` · Afinidade ${signed(affinity)} em uma rolagem`;
     explanation+=' Afinidade Elemental soma CAR somente à rolagem inicial desta conjuração; os outros raios usam o dano sem esse bônus. Não gasta feitiçaria.';
   }
-  return {formula,summary,canTwin,perRay,explanation,affinity,components,evocation};
+  const elementalAdept=spellElementalAdept(c,s,E,formula,components);
+  let elementalAdeptNote;
+  if(elementalAdept){
+    summary+=' · Adepto: 1→2';
+    elementalAdeptNote=elementalAdeptDescription(elementalAdept);
+  }else if(elementalAdeptNeedsReview(c,s,E)){
+    summary+=' · Adepto: conferir na mesa';
+    elementalAdeptNote='Adepto Elemental: confira o elemento e o efeito desta magia na mesa; esta rolagem não aplica o mínimo automaticamente. Resistência só é ignorada para o elemento escolhido; imunidade continua valendo.';
+  }
+  if(elementalAdeptNote)explanation+=' '+elementalAdeptNote;
+  return {formula,summary,canTwin,perRay,explanation,affinity,components,evocation,elementalAdept,elementalAdeptNote};
 }

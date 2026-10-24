@@ -284,10 +284,10 @@ básico real telefone/computador já foram confirmados pelo responsável.
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
 | R1 — bônus nos cálculos | **Quatro passivos entregues; achados A01/A05/A06 corrigidos nesta branch** | O recorte original continua implementado. A01/A05/A06 corrigem os bônus/modificadores adicionais e a inconsistência de PV identificados no check-up; regressões nesta entrega. Tipos variáveis/efeitos posteriores seguem em R5. |
-| R2 — rolagens e gastos condicionais | **Quarto recorte implementado nesta branch; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo implementados na entrega da PR #20. -5/+10 de Atirador Aguçado/Mestre de Armas Grandes na PR #21. Quarto recorte: Atacante Bestial e Combate com Armas Grandes. Faltam Adepto Elemental e adicionais/manobras dos demais talentos/estilos. Turnos/alvos continuam declarados pela mesa. |
+| R2 — rolagens e gastos condicionais | **Quinto recorte em desenvolvimento; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo na PR #20; -5/+10 na PR #21; Atacante Bestial e Combate com Armas Grandes publicados nas PRs #31/#32. Quinto recorte: Adepto Elemental nos danos de magia reconhecidos, com mínimo/indicativos e limites abaixo. Faltam adicionais/manobras dos demais talentos/estilos e contextos de elemento/efeito ainda manuais. Turnos/alvos continuam declarados pela mesa. |
 | R3 — condições, defesas e características | Planejada; já há cobertura parcial | Completar efeitos das condições, imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
-| R5 — famílias de magias | Parcial: fórmulas anteriores e oito curas auditadas | Revisar metadados e exceções do catálogo por família: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
+| R5 — famílias de magias | Parcial: oito curas e quatro invocações auditadas | Revisão delimitada de invocações e magias associadas concluída abaixo; vínculo automático de conjuração/custo ainda manual. Revisar outras famílias: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
 | R6 — equipamento e contexto de combate | Planejada | Munição/recarga/consumíveis, penalidades de equipamento, carga e ações condicionais. Definir antes qualquer acompanhamento opcional de turno; alvos, alcance, cobertura e viagem podem continuar na mesa, com essa limitação clara. |
 
 ### Draconatos — recorte de 23/10/2026
@@ -582,7 +582,101 @@ notas/outra ficha, limite de 25 registros, 320px/GG/três temas/dois layouts e
 recarga offline sob `/D-D/`. Diagnóstico puro: **3.321 verificações, zero
 divergências**. CI passa a exigir os 38 roteiros e banco descartável; sem SQL,
 teste de banco local, PDF pessoal ou alteração dos catálogos nesta mudança.
-R2 continua parcial: Adepto Elemental e demais gatilhos/adicionais permanecem.
+R2 continuava parcial; Adepto Elemental avança no quinto recorte abaixo.
+Demais gatilhos/adicionais permanecem.
+
+### Quinto recorte de R2: Adepto Elemental — 24/10/2026
+
+**Implementado em desenvolvimento, sem publicação.** Fonte: Livro do Jogador
+2014, p. 167 / PDF 166, consultável pelo livrinho do talento. A
+[listagem oficial de 2014](https://www.dndbeyond.com/feats?filter-name=Elemental&filter-prereq-subtype=)
+também identifica o benefício de ignorar resistência; não usar a versão 2024.
+
+- Talento e elemento vêm do mesmo evento de escolha. Repetir com outro elemento
+  é permitido; o mesmo mínimo não acumula. O criador deixa de oferecer o talento
+  quando os cinco elementos já foram escolhidos, evitando uma escolha impossível.
+- Na prévia aparece **Adepto: 1→2**. Auto Ficha trata cada face 1 do dano elegível
+  como 2, sem repetir dados. O detalhamento conserva faces originais e discrimina
+  o ajuste, o elemento de resistência ignorada e que imunidade continua valendo.
+- Vale em círculo superior, truques, Gêmea e dano por raio; o raio posterior
+  conserva o mínimo sem repetir Afinidade/Evocação ou gastar outro espaço.
+  Bônus fixos não mudam. Leitura literal do parágrafo de 2014: em uma magia
+  elegível de dano misto, o mínimo vale em qualquer dado de dano dessa magia;
+  a resistência ignorada continua restrita ao elemento escolhido. A decomposição
+  de Tempestade de Gelo, Coluna de Chamas e Onda Destrutiva usa os mesmos dados.
+- OFF orienta resolver os dados físicos na mesa, sem RNG. Só Pool bloqueia a
+  conjuração como antes. Cura, armas, sopro, d20 e bandeja livre não herdam o
+  benefício. Não se trata de resistência recebida pelo conjurador, e nenhum PV
+  de alvo é calculado/aplicado automaticamente.
+- Fórmulas próprias e magias personalizadas continuam manuais. Não se deduzem
+  elementos de notas ou nome da magia. Orbe Cromática, Glifo de Vigilância,
+  Escudo de Fogo, Rajada/Muralha Prismática, Tempestade da Vingança e Fome de Hadar
+  recebem **conferir na mesa**: o catálogo ainda não distingue escolha, camada,
+  rodada ou parcela pertinente. Destruição Lancinante/Trovejante e Flecha
+  Relampejante também exigem ligar o dano ao acerto posterior da arma, ainda
+  manual. Outros efeitos posteriores/tipos não reconhecidos
+  continuam no escopo parcial de R5; isso não certifica as 361 magias.
+
+Verificados **504 testes Node**, tipos/build e **sete roteiros Chromium**:
+Adepto Elemental, ataques de magia, passivos, curas auditadas, invocações, dado
+e ajudas. Cobertos cancelamento/gastos, ausência de RNG extra, fórmulas próprias,
+notas/outra ficha, OFF/Só Pool, 320px/GG/três temas/dois layouts e recarga offline
+sob `/D-D/`. A CI passa a exigir 40 roteiros. Sem SQL, banco local, conta real,
+alteração dos catálogos gerados ou do desenho/gestos do dado.
+Diagnóstico puro: **3.321 verificações, zero divergências**.
+
+### Revisão das quatro invocações — 23/10/2026
+
+**Revisão delimitada concluída em desenvolvimento**, a partir das reproduções
+parciais do Claude. A conferência independente usou a base atual e o livro local
+2014; fontes primárias de apoio:
+[SRD 5.1, pp. 48–50](https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf#page=48).
+Não se trata de revisão das 32 invocações ou de sua automação integral.
+
+| Invocação | Livro impresso / PDF | Regra conferida | Resultado do fluxo atual |
+| --- | --- | --- | --- |
+| Armadura de Sombras | 61 / 60 | Armadura Arcana em si, à vontade, sem espaço ou material; base sem armadura 13 + DES, 8h, sem concentração | Descrição/referência corretas; sem contador diário ou magia conhecida automática. Conjuração/condições na mesa. |
+| Vigor Abissal | 62 / 61 | Vitalidade Falsa em si, à vontade, sempre 1º círculo, sem espaço ou material: 1d4+4 PV temporários, 1h | Descrição correta. Corrigida a classificação genérica como cura; resumo agora explicita PV temporários, sem Vida/recuperação de PV. Conjuração e reserva temporária seguem na mesa. |
+| Escultor de Carne | 61 / 60 | Bruxo 7; Metamorfose uma vez/descanso longo, gastando espaço de Pacto; concentração até 1h, 18m, transformação conforme ND/nível do alvo | Pré-requisito e contador único corretos. Descanso curto não libera o uso. Magia, espaço, estatísticas/limites da forma e alvo são resolvidos na mesa. |
+| Sinal de Mau Agouro | 62 / 61 | Bruxo 5; Rogar Maldição uma vez/descanso longo, gastando espaço de Pacto; SAB, toque e efeito escolhido | Pré-requisito/contador corretos. Corrigidos dano imediato indevido e duração/concentração por círculo na magia genérica; conjuração pela invocação/custos seguem manuais. |
+
+Confirmados e corrigidos:
+
+- Característica antiga continuava visível após substituição; reaprender também
+  duplicava a entrada. Agora a lista reflete somente a aquisição atual, preservando
+  histórico, fichas antigas e usos já gastos. Não há migração de dados.
+- Vitalidade Falsa estava rotulada como cura. Apenas os PV temporários são
+  descritos: o resumo genérico aumenta 5 por círculo acima do 1º, mas a exceção
+  de Vigor Abissal continua sempre no 1º. Nenhum PV é aplicado automaticamente.
+- Rogar Maldição oferecia 1d8 como rolagem imediata. Esse dado pertence a uma
+  opção da maldição, em dano posterior; lançamento não rola dano. No 4º círculo,
+  concentração até 10min; no 5º/6º, 8h sem concentração; no 7º/8º, 24h; no 9º,
+  até ser dissipada. Usar 5º+ conserva outra concentração ativa.
+
+Esclarecimento de interface: **Registrar uso** desconta somente o contador
+diário. Pode ser usado depois de registrar o espaço gasto na mesa; rejeitar por
+Pacto já esgotado ou descontá-lo outra vez cobraria duas vezes. Magias concedidas
+por invocação não são automaticamente magias conhecidas. À vontade não cria
+contador diário. O vínculo completo de conjuração e custos permanece manual,
+como já registrado em R5; esta limitação não foi tratada como regressão nova.
+
+A comparação dos 361 metadados identificou alterações somente em Vitalidade
+Falsa e Rogar Maldição; os outros 359 ficaram iguais. Catálogos gerados intactos.
+Cópias salvas com tipos antigos recebem somente leitura corrigida; fórmulas,
+tipos próprios identificáveis e textos preservados.
+
+Verificados **494 testes Node**, tipos/build e **seis roteiros Chromium**:
+invocações, concentração, consulta de características, ajudas, curas auditadas
+e regras/recursos. Incluídos fonte/descrição das quatro entradas, troca e
+reaprendizado, uso diário/Pacto/descansos, cópias salvas/fórmulas próprias,
+ausência de RNG/PV indevido, cancelamento e concentração anterior, notas/outra
+ficha, 320px/GG/três temas/dois layouts e recarga offline sob `/D-D/`.
+Diagnóstico puro: **3.321 verificações, zero divergências**. A suíte da CI passa
+a exigir 39 roteiros. Sem SQL ou teste de banco local, dados pessoais ou
+publicação desta rodada. O teste antigo de curas usa `node --import tsx`.
+Em 24/10, corrigida a espera do teste de recarga offline: `DOMContentLoaded`
+não garante a inicialização assíncrona da ficha. O roteiro aguarda a aba renderizada
+e foi conferido com CPU reduzida a um quarto, sem pausa fixa ou mudança na aplicação.
 
 ## Progresso já entregue
 
@@ -742,7 +836,7 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 
 | Talento | Aplicação identificada | Manual, ausente ou a corrigir |
 | --- | --- | --- |
-| Adepto Elemental | Escolha do elemento | Resistência ignorada e mínimo dos dados |
+| Adepto Elemental | Escolha/repetição por elemento, mínimo 1→2 em dano de magia reconhecido e indicação da resistência ignorada; quinto recorte de R2 | Alvo/resistência/imunidade na mesa; escolhas de elemento, efeitos/rodadas/parcelas sem vínculo e fórmulas próprias continuam manuais |
 | Adepto Marcial | Escolha de duas manobras | Dado extra d6 e interação com a reserva de superioridade |
 | Alerta | +5 na iniciativa | Surpresa/atacante oculto |
 | Ambidestro | +1 CA calculada com duas armas empunhadas confirmadas, sem duplicar CA escrita | Elegibilidade de duas armas, sacar/guardar e contexto da mesa |

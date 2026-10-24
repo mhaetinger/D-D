@@ -10,6 +10,7 @@ type Luck = { extra:number; selected:number; canceled?:false } | { canceled:true
 export interface DiceResult {
   total:number; d20Natural:number|null; breakdown:string[]; appliedMode:RollMode;
   groups:DiceGroup[]; modifier:number; rules:D20Rules; reroll?:Reroll; luck?:Luck;
+  elementalAdept?:{types:string[];adjustment:number};
 }
 const rollDie=(sides:number)=>Math.floor(Math.random()*sides)+1;
 export const hasHalflingLuck=(c:Sheet)=>['halflingLeve','halflingRobusto'].includes(c?.rules?.raceId);

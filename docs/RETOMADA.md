@@ -1,64 +1,61 @@
 # Retomada do CritCall
 
-Estado consolidado em **23/10/2026**. Leia também `AGENTS.md`, `README.md`,
+Estado consolidado em **24/10/2026**. Leia também `AGENTS.md`, `README.md`,
 `CHANGELOG.md` e [ARQUITETURA.md](ARQUITETURA.md) antes de alterar.
 
 ## Onde o trabalho parou
 
-**Quarto recorte de R2 em `feature/rerrolagens-dano-2014`:** Atacante Bestial e
-Combate com Armas Grandes usam escolhas após o dano, com conjuntos/faces
-preservados ao retomar e sem repetir gastos. Limites, fontes e verificações
-ficam na seção correspondente da auditoria; R2 segue parcial. Esta mudança não
-antecipa importação nem interação entre fichas. Passaram 486 testes Node,
-build e seis roteiros pertinentes; CI exige 38 e banco. Publicação conforme PRs e CI.
+**Em desenvolvimento: Adepto Elemental e revisão das quatro invocações**, na
+branch `feature/adepto-elemental`, a partir do develop público `9f676e0`.
+A branch reúne a revisão já validada na PR #33 e o quinto recorte de R2:
+mínimo 1→2, indicação de resistência ignorada e os limites por contexto descritos
+na auditoria. Reproduções parciais do Claude foram conferidas na base atual. Corrigidos:
+invocação substituída que permanecia na lista (incluindo reaprendizado duplicado),
+Vitalidade Falsa apresentada como cura e Rogar Maldição com dano imediato indevido.
+A duração/concentração desta última agora segue o círculo escolhido. Registros
+manuais do uso diário têm identificação explícita; a conjuração da invocação e
+seus custos continuam manuais, sem adicionar magia conhecida/contador paralelo.
+Fontes, limites e verificações ficam somente na auditoria. Passaram 504 testes
+Node, build e sete roteiros pertinentes; CI exige 40 e banco. A revisão anterior
+da [PR #33](https://github.com/mhaetinger/D-D/pull/33) passou integralmente na CI
+antes deste avanço. O resultado da rodada atual deve ser consultado na PR da
+branch `feature/adepto-elemental`. Manter a PR de desenvolvimento separada da
+decisão de uma próxima publicação na main.
 
-**Revisão paralela de curas integrada em `fix/curas-fixas-gemea`.** Dos oito
-casos conferidos pelo Claude, reproduzidos e corrigidos dois achados delimitados:
-classificação/resumo de Cura Completa/Em Massa e Gêmea indevida em Bom Fruto.
-A integração cobre também fichas antigas já salvas, sem alterar seus campos.
-Passaram 478 testes Node, build e dois roteiros de navegador; a CI exige os 37.
-Fontes, contratos e melhorias opcionais estão somente na auditoria. Publicação
-conforme o workflow da main e a descrição das PRs desta entrega. Próxima entrega
-pequena de R2 está descrita acima; o restante da revisão de curas é opcional.
+**Publicação por entregas agrupadas.** O responsável orientou não publicar cada
+correção. Acumular e verificar os ajustes em desenvolvimento; uma PR para `main`
+fica para a decisão de fechar uma entrega mais importante. A autorização de
+publicações anteriores não deve acionar novos deploys rotineiros.
 
+**Última versão publicada:** quarto recorte de R2, PRs
+[#31](https://github.com/mhaetinger/D-D/pull/31) e
+[#32](https://github.com/mhaetinger/D-D/pull/32), main `5f131e1`, pacote
+`e3bb1b535f14cccb`. Atacante Bestial/Combate com Armas Grandes publicados após
+486 testes Node, banco, build e 38 roteiros de navegador; site real conferido
+em tela pequena/offline e no fluxo de rerrolagens. Evidências nas PRs e no
+[workflow da entrega](https://github.com/mhaetinger/D-D/actions/runs/40049671291).
 
-**Entrega de regras autorizada pelo responsável: concluir a PR #21.** Ela reúne
-as correções A01–A14, Arma de Sopro e –5/+10 de Atirador Aguçado/Mestre de Armas
-Grandes. A branch `feature/auditoria-profunda-2014` incorporou o modo manual e o
-limite local de 25 registros; seu código em `3290de6` passou por **474 testes
-Node, banco, tipos/build e os 36 roteiros completos de navegador** na CI.
-Workflows aprovados:
-[39973130541](https://github.com/mhaetinger/D-D/actions/runs/39973130541) e
-[39973122150](https://github.com/mhaetinger/D-D/actions/runs/39973122150).
-A conferência adicional desta entrega repetiu o diagnóstico puro: **3.321
-verificações, zero divergências**. O estado e as limitações de cada regra ficam
-somente em [AUDITORIA-LIVRO-2014.md](AUDITORIA-LIVRO-2014.md).
-
-A autorização atual é verificar, integrar por PR para `develop` e publicar
-por PR para `main`, preservando o que funciona. O resultado da publicação deve
-ser conferido no [workflow da main](https://github.com/mhaetinger/D-D/actions/workflows/pipeline.yml?query=branch%3Amain)
-e na [PR #21](https://github.com/mhaetinger/D-D/pull/21), com a referência da
-entrega para main. SHA, pacote e conferência pública ficam nas descrições dessas
-PRs; essa ligação evita tratar registros de entregas anteriores como estado atual.
-
-A base pública imediatamente anterior à entrega de regras é **#26/#27**, main
-`5d3861c`, pacote `778d8cff1b44f0f6`: 443 testes Node, banco, build e 33 roteiros
-aprovados. Site público conferido com histórico fictício de 80 → 25 registros,
-permanecendo no estado atual, tamanho de celular e recarga offline sem erros.
-O localhost:5174 já recebeu a integração `3290de6`, preservando a auditoria.
+Entregas anteriores já integradas: A01–A14, Arma de Sopro, –5/+10 e oito curas
+auditadas, além de nuvem manual e histórico local de 25 registros. Não reabrir
+essas publicações como tarefas pendentes. A matriz única da auditoria mantém
+os recortes ainda parciais, sem prometer automação integral do livro.
 
 ## Escopo da entrega e próximos avanços
 
-A entrega atual fecha os casos de correção registrados como A01–A14 e os dois
-controles já implementados. Os critérios e limites estão na auditoria; isso não
+A rodada atual reúne a revisão delimitada das quatro invocações e o quinto
+recorte de R2, Adepto Elemental nas rolagens reconhecidas.
+Os critérios e limites estão na auditoria; isso não
 promete automação integral de todas as regras do livro. As demais possibilidades
 registradas são evoluções da ficha individual. Decisões que pertencem à mesa
 podem continuar manuais, com indicação clara, sem bloquear o uso da ficha.
 
-O recorte atual avança as rerrolagens de R2, conforme a matriz da
-auditoria. Ordem mantida: **draconatos → rolagens → magias → importação**.
+O quarto recorte de R2 já foi publicado; o quinto fica em desenvolvimento,
+junto da auditoria paralela de invocações. Outros adicionais/manobras e os
+contextos de magia ainda manuais permanecem na matriz da auditoria. Ordem mantida:
+**draconatos → rolagens → magias → importação**.
 O ciclo com PDF real foi adiado pelo responsável. R3/R4/R6 permanecem no roteiro,
-com a cobertura parcial existente, sem acrescentar controles nesta publicação.
+com a cobertura parcial existente. A integração completa de conjuração por
+invocações continua em R5, sem bloquear as correções delimitadas desta rodada.
 
 **Interação entre fichas é uma etapa futura.** Os módulos puros e a guarda de
 permissão da interface podem ser reaproveitados. Aplicar dano/cura/efeitos a
@@ -98,8 +95,9 @@ npm ci
 npm run dev -- --port 5174 --strictPort
 ```
 
-Até concluir a PR #21, continuar sua branch quando indicado; depois, novas tarefas
-partem de `develop`. Não publicar fontes: `npm run build` gera `dist/`, entregue
+Continuar a branch da PR de desenvolvimento indicada acima ao corrigir sua entrega;
+novas tarefas partem de `develop`. A PR #21 já foi concluída.
+Não publicar fontes: `npm run build` gera `dist/`, entregue
 por Actions após revisão de main. Não enviar tags extras nem histórico privado.
 
 ## Mapa dos documentos

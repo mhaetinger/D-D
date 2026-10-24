@@ -13,6 +13,9 @@
 - Trabalhar em `feature/*` ou `fix/*` a partir de `develop`. Usar pull requests
   para `develop` e, depois de verificar a entrega, para `main`. Não fazer push
   direto à `main` nem mesclar sem aprovação do responsável.
+- O responsável orientou agrupar ajustes em desenvolvimento e publicar somente
+  ao concluir entregas mais importantes. Não levar cada correção à `main`;
+  a autorização de uma publicação anterior não autoriza publicações rotineiras.
 - A base de trabalho é o histórico público. Não mesclar o histórico local com
   fichas pessoais nem enviar outras branches/tags. O usuário autorizou os dois
   livros em `public/books/` e os catálogos completos de consulta em 15/10/2026. Outros
