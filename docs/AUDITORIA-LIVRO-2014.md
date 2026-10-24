@@ -612,7 +612,9 @@ também identifica o benefício de ignorar resistência; não usar a versão 202
   elementos de notas ou nome da magia. Orbe Cromática, Glifo de Vigilância,
   Escudo de Fogo, Rajada/Muralha Prismática, Tempestade da Vingança e Fome de Hadar
   recebem **conferir na mesa**: o catálogo ainda não distingue escolha, camada,
-  rodada ou parcela pertinente. Outros efeitos posteriores/tipos não reconhecidos
+  rodada ou parcela pertinente. Destruição Lancinante/Trovejante e Flecha
+  Relampejante também exigem ligar o dano ao acerto posterior da arma, ainda
+  manual. Outros efeitos posteriores/tipos não reconhecidos
   continuam no escopo parcial de R5; isso não certifica as 361 magias.
 
 Verificados **504 testes Node**, tipos/build e **sete roteiros Chromium**:
