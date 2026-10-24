@@ -513,8 +513,16 @@
     );
   }
   function elementalFeatOptions(char) {
-    const chosen=selections(char,null,"featElement").concat(selections(char,null,"racialFeatElement"));
-    return ["Ácido", "Elétrico", "Fogo", "Frio", "Trovejante"].filter(x=>!chosen.includes(x));
+    const elementKey=value=>({trovao:"trovejante",gelo:"frio"}[norm(value)] || norm(value)),chosen=[];
+    // Um campo dependente antigo só ocupa elemento se o mesmo evento concede
+    // o talento. Conferir nível/classe e os sinônimos usados em fichas antigas.
+    for(const event of char?.rules?.history || [])for(const key of ["feat","racialFeat"]){
+      if(!arr(event.answers?.[key]).some(value=>norm(value)==="adepto-elemental"))continue;
+      const owner=classEntry(char,event.classId);
+      if(key==="feat" && (!owner || event.level>owner.level))continue;
+      chosen.push(...arr(event.answers?.[key+"Element"]).map(elementKey));
+    }
+    return ["Ácido", "Elétrico", "Fogo", "Frio", "Trovejante"].filter(x=>!chosen.includes(elementKey(x)));
   }
   function legalFeats(d) {
     const a = scores(d),

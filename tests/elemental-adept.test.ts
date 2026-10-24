@@ -50,8 +50,12 @@ test('criador permite conjurador, não permite repetir elemento e deixa de ofere
     }
   }
   assert.equal(elementalAdeptTypes(c).length,5);
+  c.rules.history.find((h:any)=>h.answers.featElement==='Trovejante').answers.featElement='Trovão';
   const probe=E.context({},{},c,'feiticeiro');probe.level=19;probe.answers.advancement='feat';
   assert.ok(!E.requirements(probe).find((f:any)=>f.id==='feat').options.some((o:any)=>o.value==='Adepto Elemental'));
+  const orphan=structuredClone(c);orphan.rules.history.find((h:any)=>h.answers.featElement==='Fogo').answers.feat='Alerta';
+  const recover=E.context({},{},orphan,'feiticeiro');recover.level=19;recover.answers.advancement='feat';recover.answers.feat='Adepto Elemental';
+  assert.deepEqual(E.requirements(recover).find((f:any)=>f.id==='featElement').options.map((o:any)=>o.value),['Fogo'],'campo órfão não bloqueia adquirir o elemento');
   const noncaster=E.context({...setup('guerreiro'),allowFeats:true},{},warrior(),'guerreiro');noncaster.level=4;noncaster.answers.advancement='feat';
   assert.ok(!E.requirements(noncaster).find((f:any)=>f.id==='feat').options.some((o:any)=>o.value==='Adepto Elemental'));
 });
