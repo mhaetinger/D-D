@@ -3,6 +3,7 @@ import {elementalAffinityBonus} from './passives';
 import {parseDiceFormula} from './dice-formula';
 import type {DiceResult} from './dice-roll';
 import {spellDuration} from './spell-duration';
+import {spellElementalAdept,elementalAdeptDescription,elementalAdeptNeedsReview,type ElementalAdept} from './elemental-adept';
 
 const signed = (n:number) => n === 0 ? '' : n > 0 ? `+${n}` : String(n);
 const dice = (n:number, sides:number, modifier=0) => `${n}d${sides}${signed(modifier)}`;
@@ -26,6 +27,8 @@ export interface SpellEffect {
   formula:string|null; summary:string; canTwin:boolean; perRay:boolean; explanation:string; affinity?:number;
   components?:{formula:string;type:string;label:string}[];
   evocation?:number;
+  elementalAdept?:ElementalAdept|null;
+  elementalAdeptNote?:string;
 }
 /** Distribui as faces já roladas na ordem dos componentes, sem sortear de novo
  * nem mudar o total/pool. Tipos e escolhas continuam legíveis para a mesa. */
@@ -37,7 +40,7 @@ export function spellDamageBreakdown(result:DiceResult,components:NonNullable<Sp
     for(const [sides,count]of Object.entries(parsed.counts)){
       const key=Number(sides),start=offsets[key] || 0,faces=result.groups.find(g=>g.sides===key)?.faces.slice(start,start+count);
       if(faces?.length!==count)return result;
-      total+=faces.reduce((a,b)=>a+b,0);offsets[key]=start+count;
+      total+=faces.reduce((a,b)=>a+(result.elementalAdept?Math.max(2,b):b),0);offsets[key]=start+count;
     }
     lines.push(`${part.label}: ${part.formula} = ${total}`);
   }
@@ -139,5 +142,15 @@ export function resolveSpellEffect(c:Sheet, s:Sheet, circle:number, E:Engine, op
     summary+=` · Afinidade ${signed(affinity)} em uma rolagem`;
     explanation+=' Afinidade Elemental soma CAR somente à rolagem inicial desta conjuração; os outros raios usam o dano sem esse bônus. Não gasta feitiçaria.';
   }
-  return {formula,summary,canTwin,perRay,explanation,affinity,components,evocation};
+  const elementalAdept=spellElementalAdept(c,s,E,formula,components);
+  let elementalAdeptNote;
+  if(elementalAdept){
+    summary+=' · Adepto: 1→2';
+    elementalAdeptNote=elementalAdeptDescription(elementalAdept);
+  }else if(elementalAdeptNeedsReview(c,s,E)){
+    summary+=' · Adepto: conferir na mesa';
+    elementalAdeptNote='Adepto Elemental: confira o elemento e o efeito desta magia na mesa; esta rolagem não aplica o mínimo automaticamente. Resistência só é ignorada para o elemento escolhido; imunidade continua valendo.';
+  }
+  if(elementalAdeptNote)explanation+=' '+elementalAdeptNote;
+  return {formula,summary,canTwin,perRay,explanation,affinity,components,evocation,elementalAdept,elementalAdeptNote};
 }

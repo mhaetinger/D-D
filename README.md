@@ -194,6 +194,14 @@ O crítico comum participa; bônus fixos e dados de outras características fica
 iguais. Fechar em **Retomar depois** conserva as faces nesta sessão, sem outro
 gasto de Destruição. OFF/Só Pool registram o total físico final, resolvido na mesa.
 
+Em desenvolvimento, **Adepto Elemental** trata faces 1 como 2 no dano automático
+de magias reconhecidas do elemento escolhido. O selo mostra **Adepto: 1→2**;
+o livro explica a resistência ignorada, e o resultado conserva as faces originais
+com o ajuste separado. Imunidade continua valendo e o alvo é resolvido na mesa.
+Inclui círculos superiores, Gêmea, raios e parcelas mistas reconhecidas. Fórmulas
+próprias e escolhas de elemento/efeito ficam na mesa; OFF orienta os dados físicos,
+e o pool livre conserva seu funcionamento. Cobertura precisa na auditoria.
+
 O modo selecionado na bandeja também aparece ao redor do dado recolhido:
 **vantagem** tem névoa suave e **↑**; **desvantagem**, pequenas chamas e **↓**.
 **Normal** conserva o desenho original. Os efeitos respeitam movimento reduzido
