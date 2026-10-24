@@ -1343,3 +1343,28 @@ valida documento, identidade, permissão, Auto Ficha e sequência exposta por
 permanecem. Resultados/repetições vão ao histórico local com `redraw=false`,
 mantendo os nós do diálogo. A escolha transitória não integra documento/backup;
 recarga a descarta, sem restaurar recursos. OFF/Só Pool não entram nesse caminho.
+
+## Revisão delimitada de invocações — 23/10/2026
+
+`features` recompõe por evento a aquisição atual das invocações do bruxo antes
+de montar os ganhos visíveis. Substituições retiram a aquisição anterior e
+reaprendizado mantém só o evento novo, sem editar o histórico ou zerar recursos.
+Os demais tipos de escolha mantêm o contrato anterior. Os contadores sem ação
+automática de invocação em `ui.ts` dizem Registrar uso e explicam a resolução
+manual; `useResource` continua descontando apenas o contador, inclusive quando
+o espaço já foi registrado separadamente. Não duplicar o gasto de Pacto.
+
+Dois overrides explícitos em `spellMeta` corrigem apenas Vitalidade Falsa e
+Rogar Maldição. `spell-effects.ts` produz resumos sem RNG ou aplicação de PV:
+PV temporários não recebem Vida; o 1d8 da maldição pertence a um efeito escolhido
+e a eventos posteriores. Fórmulas próprias permanecem no retorno prioritário.
+`resolveSpellMeta` corrige somente os antigos tipos automáticos reconhecidos
+dessas duas magias, sem reescrever seus campos.
+
+`spell-duration.ts` resolve o perfil de duração/concentração da maldição pelo
+círculo usado. `spellConcentration`, confirmação e aplicação aceitam um último
+argumento opcional, preservando chamadas anteriores. A ficha passa o círculo
+real (Conjuração/Pacto) à prévia e aplicação; a consulta usa o mesmo perfil.
+Registros próprios de duração/concentração e efeitos personalizados continuam
+manuais. Nenhuma tabela de criaturas ou automação completa de invocações foi
+introduzida; esses limites seguem na matriz da auditoria.

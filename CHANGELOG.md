@@ -1,5 +1,28 @@
 # Changelog
 
+## Não lançado — revisão de quatro invocações — 2026-10-23
+
+- Concluída a revisão delimitada de Armadura de Sombras, Vigor Abissal,
+  Escultor de Carne e Sinal de Mau Agouro, a partir das reproduções parciais
+  do Claude, com fontes e resultados consolidados na auditoria.
+- A lista mostra somente a aquisição atual de cada invocação: trocadas saem e
+  reaprendidas não duplicam. Histórico, usos gastos e registros próprios ficam.
+- Contadores manuais dizem Registrar uso e indicam magia/custos na mesa.
+  Não aprendem magias automaticamente nem descontam Pacto pela segunda vez.
+- Vitalidade Falsa identifica PV temporários, com aumento por círculo no resumo,
+  sem cura/Vida ou aplicação automática. Rogar Maldição deixa de rolar 1d8 ao
+  conjurar; duração/concentração seguem o espaço escolhido (sem concentração
+  a partir do 5º). Cópias antigas recebem o indicativo correto sem regravação;
+  fórmulas e efeitos próprios continuam prioritários.
+- Publicações passam a ser agrupadas em entregas mais importantes, conforme
+  orientação do responsável. Esta rodada permanece em desenvolvimento.
+- Verificados 494 testes Node, tipos/build e seis roteiros Chromium pertinentes:
+  invocações, concentração, consulta de características, ajudas, curas auditadas
+  e regras/recursos. Cobertos cópias antigas/fórmulas próprias, gastos/cancelamento,
+  notas/outra ficha, 320px/GG/temas/layouts e offline sob `/D-D/`. Diagnóstico
+  puro: 3.321 verificações sem divergências. CI passa a exigir 39 roteiros.
+  Sem SQL, catálogos gerados, conta real ou alteração no dado flutuante.
+
 ## Não lançado — rerrolagens de dano de arma — 2026-10-23
 
 - Combate com Armas Grandes oferece repetição opcional de cada 1/2 da arma

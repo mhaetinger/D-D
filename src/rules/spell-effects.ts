@@ -2,6 +2,7 @@ import {ability, level, selections, subclass, type Engine, type Sheet} from './m
 import {elementalAffinityBonus} from './passives';
 import {parseDiceFormula} from './dice-formula';
 import type {DiceResult} from './dice-roll';
+import {spellDuration} from './spell-duration';
 
 const signed = (n:number) => n === 0 ? '' : n > 0 ? `+${n}` : String(n);
 const dice = (n:number, sides:number, modifier=0) => `${n}d${sides}${signed(modifier)}`;
@@ -69,6 +70,14 @@ export function resolveSpellEffect(c:Sheet, s:Sheet, circle:number, E:Engine, op
   } else if (id==='raio-ardente') {
     formula='2d6';summary=`${3+Math.max(0,circle-base)} raio(s) × 2d6 Fogo`;
     explanation='Cada raio exige seu próprio ataque. Role o dano de um raio que acertou, sem gastar outro espaço.';
+  } else if (!s.customSpell && id==='vitalidade-falsa') {
+    formula=null;
+    summary=`1d4+${4+5*Math.max(0,circle-base)} PV temporários · 1 hora`;
+    explanation='PV temporários não são cura e não se somam a outra reserva de PV temporários. Role e aplique na mesa; Discípulo da Vida não acrescenta pontos. Vigor Abissal usa sempre o 1º círculo, sem espaço.';
+  } else if (!s.customSpell && id==='rogar-maldicao') {
+    formula=null;
+    summary=`Maldição · ${spellDuration(s,E,circle).duration} · efeitos na mesa`;
+    explanation='Escolha o efeito da maldição. O 1d8 necrótico é uma opção de dano adicional de ataques/magias posteriores, sem dano automático ao conjurar. Resolva o efeito no alvo na mesa.';
   } else if (!s.customSpell && (id==='cura-completa' || id==='cura-completa-em-massa')) {
     // Valores fixos, sem rolagem. Discípulo da Vida soma 2 + círculo do espaço
     // a cada criatura curada (Livro do Jogador 2014, p. 70 / PDF 69).
