@@ -633,6 +633,9 @@ ficha, 320px/GG/três temas/dois layouts e recarga offline sob `/D-D/`.
 Diagnóstico puro: **3.321 verificações, zero divergências**. A suíte da CI passa
 a exigir 39 roteiros. Sem SQL ou teste de banco local, dados pessoais ou
 publicação desta rodada. O teste antigo de curas usa `node --import tsx`.
+Em 24/10, corrigida a espera do teste de recarga offline: `DOMContentLoaded`
+não garante a inicialização assíncrona da ficha. O roteiro aguarda a aba renderizada
+e foi conferido com CPU reduzida a um quarto, sem pausa fixa ou mudança na aplicação.
 
 ## Progresso já entregue
 
