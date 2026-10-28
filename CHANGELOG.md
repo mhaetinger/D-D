@@ -1,5 +1,29 @@
 # Changelog
 
+## Não lançado — Ataque de Precisão — 2026-10-28
+
+- Sétimo recorte de R2: depois do ataque automático da arma, a bandeja oferece
+  Precisão para quem conhece a manobra e tem saldo. Escolhe a origem de
+  superioridade e rola/informa somente seu dado, com gasto único ao confirmar.
+- Conserva d20 natural, modo, bônus, pool e inspiração. Sortudo e o halfling
+  mantêm o mesmo adicional ao escolher/repetir faces, antes ou depois de Precisão.
+  O dado de superioridade não participa da repetição racial; 1/20 naturais e
+  crítico ampliado do Campeão continuam usando o d20, sem decidir CA/acerto.
+- A sessão do ataque impede combinar Desarmante/Derrubar com Precisão, mantendo
+  dano normal, Furtivo e Destruição. Registrar dano encerra as opções do ataque;
+  uma nova jogada da arma inicia outra. Mudanças de arma/ficha/conta/permissão,
+  modo ou jogada invalidam uma confirmação antiga antes do RNG/gasto.
+- Prévia/cancelamento não gastam nem rolam. Saldo e escolhas atualizam seus nós,
+  sem desmontar botões de Sortudo; desfazer devolve o custo. Dados/fórmulas-base
+  manuais e OFF/Só Pool continuam na mesa com Usar na mesa. Não muda o dado
+  flutuante, notas, nuvem manual, limite de 25 registros ou catálogos gerados.
+- Verificados 520 testes Node, tipos/build e nove roteiros Chromium: Precisão,
+  manobras, crítico/adicionais, rerrolagens, Sortudo, R2 inicial, dado, ajudas e
+  cadeado. Cobertos cancelamento/concorrência, físico/virtual, crítico ampliado,
+  inspiração, foco/nós/scroll, 320px/GG/temas/layouts e offline /D-D/.
+  A CI exige 42 roteiros e PostgreSQL descartável. Sem SQL ou publicação;
+  avanço agrupado na PR #35, que já reunia as três entregas anteriores.
+
 ## Não lançado — manobras no acerto — 2026-10-28
 
 - Sexto recorte de R2: Ataque Desarmante/Derrubar conhecidas aparecem em

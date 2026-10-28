@@ -22,6 +22,9 @@ import {applyElementalAdept,elementalAdeptDescription} from '../rules/elemental-
 import { evaluateDicePool, sheetD20Rules, canRerollHalfling, rerollHalfling, addLuckyDie, chooseLuckyDie, luckyFaces } from '../rules/dice-roll';
 import { luckRemaining } from '../rules/lucky';
 import { askToUseLucky, chooseLuckyFace, payLuckyPoint } from '../rules/lucky-ui';
+import {precisionAttackOptions} from '../rules/precision-attack';
+import {choosePrecisionAttack} from '../rules/precision-attack-ui';
+import {beginWeaponAttack,clearWeaponAttacks,finishWeaponAttack,isCurrentWeaponAttack} from '../rules/weapon-attack-session';
 import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponDamageLabel, weaponAttackBonus, weaponPowerAttackPrepared } from '../rules/weapon-damage-ui';
 import { applyCastConcentration, concentration, concentrationBlock, incapacityReason, needsConcentrationConfirmation, spellConcentration, validateConcentrationStart } from '../rules/concentration';
 import { concentrationControls } from '../rules/concentration-ui';
@@ -1111,6 +1114,7 @@ function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligib
   // animação só vale para o próximo lançamento, nunca para o que já foi feito.
   const c=getChar(),inspired=inspirationEligible && !!c && dicePoolCounts[20]===1 && c.heroicInspiration && c.ruleState?.inspirationReady;
   const mode=inspired?inspirationRollMode(c,currentRollMode):currentRollMode;
+  if(context?.type==='attack' && context.weapon && diceMode==='auto')context={...context,weaponAttack:beginWeaponAttack(c,context.weapon)};
   let result = evaluateDicePool(dicePoolCounts, modVal, mode,c?sheetD20Rules(c,context,CharacterEngine):{});
   if(context?.elementalAdept)result=applyElementalAdept(result,context.elementalAdept);
   if(context?.spellComponents)result=spellDamageBreakdown(result,context.spellComponents);
@@ -1198,7 +1202,7 @@ function presentDiceResult(result, customLabel, rerollContext = null, animate = 
   const cube = document.getElementById("dice3dCube");
   const resultBox = document.getElementById("dice3dResultText");
   const rollSequence = ++diceRollSequence;
-  pendingD20Roll = rerollContext && (canRerollHalfling(result) || luckyFaces(result).length || result.rules.luckyFeat && !result.luck && luckRemaining(rerollContext.c,CharacterEngine)>0)?{
+  pendingD20Roll = rerollContext && (precisionAvailable({...rerollContext,result}) || canRerollHalfling(result) || luckyFaces(result).length || result.rules.luckyFeat && !result.luck && luckRemaining(rerollContext.c,CharacterEngine)>0)?{
     c:rerollContext.c,context:rerollContext.context,result,label:customLabel,sequence:rollSequence,busy:false,
     workspace:currentWorkspaceKey(),snapshot:JSON.stringify(rerollContext.c),
   }:null;
@@ -1249,6 +1253,7 @@ function presentDiceResult(result, customLabel, rerollContext = null, animate = 
       ${faces.length?`<div class="dice-context-choices" role="group" aria-label="Escolher d20 de Sortudo"><span>Sortudo · escolha o d20</span>${faces.map((face,i)=>`<button type="button" data-dice-lucky-choice="${i}" onclick="chooseLuckyD20(${i})" aria-pressed="${selected(i)}" ${i===faces.length-1?'title="D20 adicional de Sortudo"':''} aria-label="${i===faces.length-1?'D20 adicional de Sortudo':'D20 inicial'} ${i+1}, usar face ${face}">${faceLabel(face,i)}</button>`).join('')}</div>`:''}`;
         stage.append(actions);
       }
+      syncPrecisionAction(stage.querySelector('[data-dice-context-actions]'),pending);
     }
   };
   if(animate) {
@@ -1262,12 +1267,42 @@ function clearPendingD20() {
   const actions=document.querySelector('[data-dice-context-actions]');
   actions?.parentElement.classList.remove('dice-result-with-actions');actions?.remove();
 }
+function clearPendingWeaponAttack(entry) {
+  if(pendingD20Roll?.context.weapon===entry)clearPendingD20();
+}
 function validPendingD20(pending=pendingD20Roll,allowBusy=false) {
   if(!pending || pending!==pendingD20Roll || pending.busy && !allowBusy)return null;
-  if(diceMode!=='auto' || pending.sequence!==diceRollSequence || currentWorkspaceKey()!==pending.workspace || getChar()!==pending.c || JSON.stringify(pending.c)!==pending.snapshot) {
-    clearPendingD20();showToast('A ficha ou a jogada mudou. Sortudo não foi aplicado ao resultado antigo.');return null;
+  if(diceMode!=='auto' || pending.sequence!==diceRollSequence || currentWorkspaceKey()!==pending.workspace || getChar()!==pending.c || JSON.stringify(pending.c)!==pending.snapshot || pending.context.weaponAttack && !isCurrentWeaponAttack(pending.context.weaponAttack)) {
+    clearPendingD20();showToast('A ficha ou a jogada mudou. A escolha não foi aplicada ao resultado antigo.');return null;
   }
   return pending;
+}
+function precisionAvailable(pending) {
+  const attack=pending?.context?.weaponAttack;
+  return !!attack && isCurrentWeaponAttack(attack) && !attack.precisionUsed && canEditSheet(pending.c) &&
+    precisionAttackOptions(pending.c,attack.entry,pending.result,CharacterEngine).some(s=>s.remaining>0);
+}
+function syncPrecisionAction(actions,pending) {
+  if(!actions)return;
+  const existing=actions.querySelector('[data-dice-precision]');
+  if(!precisionAvailable(pending)){existing?.remove();return;}
+  if(existing)return;
+  const button=document.createElement('button');button.type='button';button.dataset.dicePrecision='';
+  button.className='dice-context-action t-btn-primary px-2 py-1 rounded';button.textContent='Precisão · usar 1 dado';
+  button.setAttribute('onclick','usePrecisionD20()');
+  actions.append(button);
+}
+async function usePrecisionD20() {
+  const pending=validPendingD20();if(!pending || !precisionAvailable(pending))return;
+  pending.busy=true;
+  try{
+    const attack=pending.context.weaponAttack;
+    const result=await choosePrecisionAttack(pending.c,attack.entry,pending.result,attack,CharacterEngine,()=>validPendingD20(pending,true)===pending);
+    if(!result)return;
+    updateContextCritical(pending,result);presentDiceResult(result,pending.label,pending,false);
+    const resultBox=document.getElementById('dice3dResultText');resultBox.tabIndex=-1;resultBox.focus({preventScroll:true});
+  }catch(error){showToast(error.message || 'Não foi possível usar Precisão.');}
+  finally{pending.busy=false;}
 }
 function updateContextCritical(pending,result) {
   const weapon=pending.context.weapon;
@@ -1369,7 +1404,7 @@ function activateAccountWorkspace(identity) {
   document.getElementById('hbModalBody').replaceChildren();
   document.getElementById('historyDrawer').classList.add('translate-x-full');
   diceRollSequence++;
-  clearPendingD20();
+  clearPendingD20();clearWeaponAttacks();
   document.getElementById('dice3dCube').classList.remove('dice-3d-rolling');
   document.getElementById('diceDock').classList.remove('dice-dock-rolling');
   clearDicePool();
@@ -2731,6 +2766,7 @@ function rollWeapon(index, kind) {
   // total com bônus. Só ataques reais em Auto Ficha atualizam esta preparação.
   if(kind==='attack' && result && c===getChar() && c.weapons[index]===entry)
     setWeaponCriticalPrepared(c,index,CharacterEngine,result.d20Natural>=(weapon.critical || 20));
+  if(kind==='damage' && result){finishWeaponAttack(c,entry);clearPendingWeaponAttack(entry);}
 }
 function setWeaponHands(index,value) {
   const entry = getChar().weapons[index]; if (!entry || !['1','2'].includes(String(value))) return;
@@ -2946,7 +2982,7 @@ function setTab(tab) {
 }
 function switchCharacter(idx) {
   hideBookTooltip();
-  clearPendingD20();
+  clearPendingD20();clearWeaponAttacks();
   activeCharIndex = parseInt(idx, 10);
   restoreSavedHistory();
   renderAll();
@@ -3382,6 +3418,8 @@ Object.assign(window, {
   rollCurrentPool,
   rerollHalflingD20,
   useLuckyD20,
+  usePrecisionD20,
+  clearPendingWeaponAttack,
   chooseLuckyD20,
   rollQuickD20,
   triggerSheetRoll,

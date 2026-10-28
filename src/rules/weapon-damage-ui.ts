@@ -5,6 +5,7 @@ import {canEditSheet} from '../sheet-edit/access';
 import {weaponRerollOptions} from './weapon-rerolls';
 import {offerWeaponRerolls,resumeWeaponReroll} from './weapon-rerolls-ui';
 import {maneuverDC,type DamageManeuver} from './maneuvers';
+import {currentWeaponAttack,finishWeaponAttack} from './weapon-attack-session';
 
 const tip=(name:string,text:string)=>`tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name,text}))}"`;
 // Preparação efêmera por objeto de arma: não altera ficha, notas ou histórico,
@@ -61,7 +62,7 @@ export function rollPreparedWeaponDamage(c:Sheet,index:number,E:Engine,save:(des
   try {
     if(!canEditSheet(c))throw new Error('A edição desta ficha está bloqueada pelo mestre.');
     const plan=previewWeaponDamage(c,entry,{critical,powerAttack},E),result=host.rollWeaponFormula(plan.formula,(critical?'Crítico: ':'Dano: ')+plan.name);
-    commitWeaponDamage(c,entry,{critical,powerAttack},E);preparedCritical.delete(entry);preparedPowerAttack.delete(entry);
+    commitWeaponDamage(c,entry,{critical,powerAttack},E);finishWeaponAttack(c,entry);host.clearPendingWeaponAttack?.(entry);preparedCritical.delete(entry);preparedPowerAttack.delete(entry);
     save(`${critical?'Crítico':'Dano'} · ${plan.name} · ${plan.summary} · total ${result.total} (virtual)`);
     offerWeaponRerolls(c,entry,plan,result,E);
   }catch(error){host.showToast((error as Error).message);}
@@ -89,13 +90,15 @@ export function setupWeaponDamageUI(E:Engine,save:(description:string)=>void) {
       const {w,automatic,sneak,colossus,smite,maneuvers,superiority}=weaponDamageOptions(c,entry,E);
       previewWeaponDamage(c,entry,{},E);
       const manualOnly=trigger.hasAttribute('data-weapon-record-only') || !host.ruleDiceSettings().automatic;
+      const attack=currentWeaponAttack(c,entry),precisionUsed=!!attack?.precisionUsed;
       const critical=weaponCriticalPrepared(entry),powerAttack=weaponPowerAttackPrepared(c,entry,E),before=JSON.stringify(c),controls=document.createElement('div');
       controls.className='rule-context rule-dialog-fields';
       controls.innerHTML=`${critical?'<p><strong>Crítico preparado na arma · dados extras já incluídos abaixo.</strong></p>':''}
       ${powerAttack?`<p><strong>${escape(weaponPowerAttackOption(c,entry,E)!.name)} · –5 no ataque / +10 no dano.</strong> Confirme que escolheu antes do ataque e acertou. O total físico já deve incluir +10.</p>`:''}
       ${sneak?`<label ${tip('Ataque Furtivo','Uma vez por turno, não por rodada, com arma de acuidade ou à distância. Ao escolher, confirme que ainda não usou neste turno: houve vantagem ou outro inimigo do alvo a até 1,5 m, não incapacitado, sem desvantagem no ataque. Vantagem e desvantagem se cancelam. A ficha não controla os turnos da mesa.')}>Ataque Furtivo <select data-weapon-sneak><option value="">Não usar</option><option value="advantage">Vantagem · uso disponível neste turno</option><option value="ally">Inimigo próximo elegível · sem desvantagem · uso disponível</option></select></label>`:''}
       ${colossus?`<label class="rule-check" ${tip('Assassino de Colossos','Uma vez por turno ao atingir uma criatura que já está abaixo dos PV máximos. Confirme o estado do alvo e o uso disponível. O dado adicional também dobra em crítico.')}><input type="checkbox" data-weapon-colossus> Alvo já ferido · Colossos disponível neste turno</label>`:''}
-      ${maneuvers.length?`<label ${tip('Manobra no acerto','2014: após acertar uma criatura com arma, escolha uma manobra conhecida. O dado soma ao dano e dobra em crítico, custando um único uso. Apenas uma manobra por ataque: não combine com Precisão ou outra já resolvida. O teste e o efeito no alvo ficam na mesa. Outras manobras continuam em Usar na mesa na característica.')}>Manobra <select data-weapon-maneuver><option value="">Sem manobra</option>${maneuvers.map(m=>`<option value="${m.id}">${escape(m.name)}</option>`).join('')}</select></label>
+      ${maneuvers.length?`<label ${tip('Manobra no acerto','2014: após acertar uma criatura com arma, escolha uma manobra conhecida. O dado soma ao dano e dobra em crítico, custando um único uso. Apenas uma manobra por ataque: não combine com Precisão ou outra já resolvida. O teste e o efeito no alvo ficam na mesa. Precisão é escolhida no resultado do ataque. Demais manobras continuam em Usar na mesa na característica.')}>Manobra <select data-weapon-maneuver ${precisionUsed?'disabled':''}><option value="">Sem manobra</option>${maneuvers.map(m=>`<option value="${m.id}">${escape(m.name)}</option>`).join('')}</select></label>
+      ${precisionUsed?'<p>Precisão já usada neste ataque: não combine outra manobra. O dano da arma continua normal.</p>':''}
       <div data-weapon-maneuver-fields hidden>
       <label>Dado de superioridade <select data-weapon-superiority>${superiority.map(s=>`<option value="${s.id}" ${s.remaining>0?'':'disabled'}>${escape(s.name)} · d${s.die} · ${s.readable?`${s.remaining}/${s.resource.max}`:'conferir registro'}</option>`).join('')}</select></label>
       <label>Habilidade da CD <select data-weapon-maneuver-ability><option value="str">FOR · CD ${maneuverDC(c,'str')}</option><option value="dex">DES · CD ${maneuverDC(c,'dex')}</option></select></label>
@@ -147,7 +150,7 @@ export function setupWeaponDamageUI(E:Engine,save:(description:string)=>void) {
       const form=document.querySelector<HTMLFormElement>('#confirmationDialog form')!;
       const validate=(event:SubmitEvent)=>{
         if((event.submitter as HTMLButtonElement)?.value!=='confirm')return;
-        try {previewWeaponDamage(c,entry,choice(),E);}catch(error){event.preventDefault();host.showToast((error as Error).message);}
+        try {if(choice().maneuver && currentWeaponAttack(c,entry)?.precisionUsed)throw new Error('Precisão já foi usada neste ataque. Não combine outra manobra.');previewWeaponDamage(c,entry,choice(),E);}catch(error){event.preventDefault();host.showToast((error as Error).message);}
       };
       form.addEventListener('submit',validate);
       let confirmed=false;
@@ -155,7 +158,7 @@ export function setupWeaponDamageUI(E:Engine,save:(description:string)=>void) {
       try {confirmed=await host.confirmDestructiveAction('Dano · '+w.name,message,isVirtual()?'Rolar dano':'Registrar dano',controls);}
       finally {form.removeEventListener('submit',validate);}
       if(!confirmed)return;
-      if(host.getChar()!==c || c.weapons[index]!==entry || JSON.stringify(c)!==before || !trigger.isConnected || weaponCriticalPrepared(entry)!==critical || weaponPowerAttackPrepared(c,entry,E)!==powerAttack || !canEditSheet(c))throw new Error('A ficha ou a preparação mudou durante a escolha. Confira o ataque e tente novamente.');
+      if(currentWeaponAttack(c,entry)!==attack || host.getChar()!==c || c.weapons[index]!==entry || JSON.stringify(c)!==before || !trigger.isConnected || weaponCriticalPrepared(entry)!==critical || weaponPowerAttackPrepared(c,entry,E)!==powerAttack || !canEditSheet(c))throw new Error('A ficha ou a preparação mudou durante a escolha. Confira o ataque e tente novamente.');
       const selected=choice(),plan=previewWeaponDamage(c,entry,selected,E),virtual=isVirtual();
       const physical=Number(controls.querySelector<HTMLInputElement>('[data-weapon-total]')!.value);
       if(!virtual && (!Number.isSafeInteger(physical) || physical<0 || physical>1000000))throw new Error('Informe um total inteiro de 0 a 1.000.000; nenhum espaço foi gasto.');
@@ -163,7 +166,7 @@ export function setupWeaponDamageUI(E:Engine,save:(description:string)=>void) {
       // O rolador só apresenta o resultado, sem alterar o documento. Se ele
       // falhar, não houve gasto; não há await entre validar, rolar e descontar.
       const result=virtual?host.rollWeaponFormula(plan.formula,`${plan.critical?'Crítico':'Dano'}: ${plan.name}`):{total:physical};
-      commitWeaponDamage(c,entry,selected,E);
+      commitWeaponDamage(c,entry,selected,E);finishWeaponAttack(c,entry);host.clearPendingWeaponAttack?.(entry);
       preparedCritical.delete(entry);preparedPowerAttack.delete(entry);
       save(`${plan.critical?'Crítico':'Dano'} · ${plan.name} · ${plan.summary} · total ${result.total} (${virtual?'virtual':'físico'})${plan.slot?` · gastou 1 espaço de ${plan.slot.value==='pact'?'Pacto':'Conjuração'} do ${plan.slot.level}º`:''}${plan.maneuver?` · gastou 1 dado de ${plan.maneuver.source.name} (d${plan.maneuver.source.die}) · ${plan.maneuver.note}`:''}${selected.sneak?' · Furtivo: uso deste turno confirmado pela mesa':''}${selected.colossus?' · Colossos: alvo ferido e uso deste turno confirmados':''}`);
       host.showToast(`${plan.critical?'Crítico':'Dano'} · ${result.total} · ${plan.formula}${plan.maneuver?' · '+plan.maneuver.note:''}`);

@@ -200,7 +200,14 @@ Escolha a origem do dado e FOR/DES para a CD, confirmando que não usou outra
 manobra nesse ataque. O acerto inclui o dado no dano/crítico e desconta um uso;
 teste e efeito no alvo ficam na mesa. Adepto Marcial tem seu dado adicional
 identificado, com recuperação em descanso curto/longo. OFF/Só Pool registram
-o total físico. Precisão e as demais manobras continuam em **Usar na mesa**.
+o total físico. Demais manobras continuam em **Usar na mesa**.
+Depois de rolar o ataque no **Auto Ficha**, abra a bandeja do dado e use
+**Precisão · usar 1 dado**. Escolha a origem e role o dado de superioridade
+ou informe sua face física; o d20 natural permanece igual. Sortudo e o halfling
+conservam esse bônus ao escolher/repetir o d20. Precisão impede combinar outra
+manobra no mesmo ataque acompanhado; registrar dano encerra a escolha, e outro
+ataque começa uma nova. Em OFF/Só Pool ou com ataque-base físico/manual,
+resolva a jogada na mesa e registre o uso na característica.
 
 Em desenvolvimento, **Adepto Elemental** trata faces 1 como 2 no dano automático
 de magias reconhecidas do elemento escolhido. O selo mostra **Adepto: 1→2**;

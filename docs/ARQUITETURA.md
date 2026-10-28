@@ -1416,3 +1416,34 @@ pendente antes do RNG. Histórico registra dado/origem/CD e efeito manual do alv
 junto do custo, sem novos campos em armas, nuvem ou histórico de rolagens.
 A consulta do Adepto explica a errata sem modificar o catálogo/PDF gerado.
 Limites e próximos avanços permanecem na matriz única da auditoria.
+
+## Ataque de Precisão — sétimo recorte de R2, 28/10/2026
+
+`superiority.ts` reúne a consulta de origens, saldo e legibilidade já usada
+no dano, sem inventar reservas. `precision-attack.ts` valida arma reconhecida,
+conhecimento vigente, resultado de um ataque, origem/face e as confirmações
+antes de somar o dado e gastar. Rede é válida: dano não é requisito de Precisão.
+O fluxo implementa a decisão posterior ao d20; ataque-base físico/manual e
+uso anterior ao d20 permanecem na mesa, com registro do contador existente.
+
+`DiceResult.precision` guarda a face, tamanho e origem do dado adicional,
+separados de grupos/modificador/d20 natural. `summarize` conserva o mesmo
+adicional ao compor Sortudo/halfling, sem relançar, duplicar ou mudar a face
+natural. Não se aplica mínimo/rerrolagem racial a esse dado de superioridade.
+O resultado continua transitório; o histórico registra uma descrição do custo.
+
+`weapon-attack-session.ts` usa WeakMap por objeto de arma e proprietário. O
+ataque real cria uma identidade, independente de um d20 rápido. Precisão marca
+essa sessão; Adicionais recusa outra manobra nela. Dano confirmado encerra a
+sessão/opções do resultado, inclusive no registro físico sem novo lançamento.
+Outra jogada da arma cria outra identidade. Trocar ficha/conta apaga as sessões.
+Esse vínculo não simula turnos, alvos ou ações resolvidas fora do aplicativo.
+
+`precision-attack-ui.ts` reutiliza diálogo, escolha físico/virtual e avisos.
+Antes do RNG/gasto, revalida sequência, snapshot, modo Auto Ficha, conta, arma,
+identidade do ataque e permissão. Cancelar não cobra. O custo usa o salvamento
+existente sem remontar a ficha; saldo e botões da origem atualizam seus nós.
+`sheet.js` só faz a ponte do evento e mantém a apresentação já usada por
+Sortudo. Ao somar Precisão, os botões de faces existentes são conservados.
+Não muda a aparência/gestos do dado, armazenamento de notas, histórico de
+25 registros ou a sincronização manual, nem cria chamadas de rede.

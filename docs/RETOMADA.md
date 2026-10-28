@@ -5,17 +5,19 @@ Estado consolidado em **28/10/2026**. Leia também `AGENTS.md`, `README.md`,
 
 ## Onde o trabalho parou
 
-**Em desenvolvimento: manobras no acerto, Adepto Elemental e revisão das
-quatro invocações**, na branch `feature/manobras-acerto-2014`, iniciada no
-develop público `9f676e0` e reunindo os commits públicos validados na PR #34.
-O sexto recorte de R2 acrescenta Ataque Desarmante/Derrubar ao dano, com escolha
-da origem de superioridade, CD, crítico, registro físico e gasto único. Inclui
-o dado do Adepto Marcial e mantém o registro antigo de usos do Mestre de Batalha.
-Precisão e as demais manobras continuam manuais, conforme a matriz da auditoria.
-A PR #34 passou integralmente na CI antes deste avanço; resultado desta rodada
-fica na PR da branch atual. Passaram 512 testes Node, tipos/build e sete
-roteiros pertinentes; a CI exige 41 e banco descartável. Nenhuma dessas três
-entregas foi publicada.
+**Em desenvolvimento: Precisão, manobras no acerto, Adepto Elemental e revisão
+das quatro invocações**, na branch `feature/manobras-acerto-2014`, iniciada no
+develop público `9f676e0`. Tudo permanece agrupado na
+[PR #35](https://github.com/mhaetinger/D-D/pull/35), sem mesclar/publicar.
+O sétimo recorte de R2 acrescenta Precisão depois do d20 de ataque da arma,
+conservando natural, vantagem/desvantagem e o adicional ao usar Sortudo/halfling.
+Reutiliza origens/contadores de superioridade, registra um gasto e impede
+combinar outra manobra no ataque acompanhado. Limites ficam na matriz única.
+O sexto recorte (`f84760d`) passou integralmente na CI (512 testes, banco, build
+e 41 roteiros); a execução da nova revisão fica na mesma PR. As PRs #33/#34
+foram substituídas pela entrega agrupada; não são trabalhos paralelos pendentes.
+Nesta rodada passaram 520 testes Node, tipos/build e nove roteiros pertinentes;
+a CI exige os 42 e PostgreSQL descartável.
 
 **Publicação por entregas agrupadas.** O responsável orientou não publicar cada
 correção. Acumular e verificar os ajustes em desenvolvimento; uma PR para `main`
@@ -38,13 +40,14 @@ os recortes ainda parciais, sem prometer automação integral do livro.
 ## Escopo da entrega e próximos avanços
 
 A rodada atual reúne a revisão delimitada das quatro invocações, o quinto
-recorte de R2 (Adepto Elemental) e o sexto (duas manobras no acerto/Adepto Marcial).
+recorte de R2 (Adepto Elemental), o sexto (manobras no acerto/Adepto Marcial)
+e o sétimo (Precisão depois do d20).
 Os critérios e limites estão na auditoria; isso não
 promete automação integral de todas as regras do livro. As demais possibilidades
 registradas são evoluções da ficha individual. Decisões que pertencem à mesa
 podem continuar manuais, com indicação clara, sem bloquear o uso da ficha.
 
-O quarto recorte de R2 já foi publicado; quinto e sexto ficam em desenvolvimento,
+O quarto recorte de R2 já foi publicado; quinto a sétimo ficam em desenvolvimento,
 junto da auditoria de invocações. Outros adicionais/manobras e os
 contextos de magia ainda manuais permanecem na matriz da auditoria. Ordem mantida:
 **draconatos → rolagens → magias → importação**.

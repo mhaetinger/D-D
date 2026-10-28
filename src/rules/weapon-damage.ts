@@ -3,8 +3,9 @@ import { active, level, norm, subclass, type Engine, type Sheet } from './model'
 import { incapacityReason } from './concentration';
 import { parseDiceFormula } from './dice-formula';
 import {weaponPowerAttack} from './weapon-power-attack';
-import {damageManeuvers,maneuverDC,maneuverTraining,superioritySources,type DamageManeuver} from './maneuvers';
-import {remaining,resourcesFor,spend} from './resources';
+import {damageManeuvers,maneuverDC,maneuverTraining,type DamageManeuver} from './maneuvers';
+import {spend} from './resources';
+import {superiorityOptions} from './superiority';
 
 export interface WeaponDamageChoice {
   critical?:boolean;
@@ -33,12 +34,7 @@ export function weaponDamageOptions(c:Sheet,entry:Sheet,E:Engine) {
   const colossus=automatic && hasDamage && level(c,'patrulheiro')>=3 && subclass(c,'patrulheiro',E)==='cacador' && c.rules?.history?.some((h:Sheet)=>h.classId==='patrulheiro' && h.level===3 && [h.answers?.hunter].flat().includes('Assassino de Colossos'));
   const training=maneuverTraining(c,E);
   const maneuvers=automatic && hasDamage?Object.entries(damageManeuvers).filter(([,m])=>training.known.has(norm(m.name))).map(([id,m])=>({id:id as DamageManeuver,...m})):[];
-  const resources=maneuvers.length?resourcesFor(c,E):[];
-  const superiority=maneuvers.length?superioritySources(c,E).map(s=>{
-    const resource=resources.find(r=>r.id===s.id)!,recorded=c.ruleState?.used?.[s.id] ?? 0;
-    const readable=Number.isSafeInteger(recorded) && recorded>=0;
-    return {...s,resource,remaining:readable?remaining(c,resource):0,readable};
-  }):[];
+  const superiority=maneuvers.length?superiorityOptions(c,E):[];
   return {w,automatic,sneak:!!sneak,colossus:!!colossus,smite:automatic && !!hasDamage && w.meleeAttack && level(c,'paladino')>=2,maneuvers,superiority};
 }
 function criticalFormula(formula:string,critical:boolean) {
