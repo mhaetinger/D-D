@@ -216,6 +216,15 @@ manobra no mesmo ataque acompanhado; registrar dano encerra a escolha, e outro
 ataque começa uma nova. Em OFF/Só Pool ou com ataque-base físico/manual,
 resolva a jogada na mesa e registre o uso na característica.
 
+Em desenvolvimento, o botão **Iniciativa** também recupera recursos vazios:
+**Implacável** (Mestre de Batalha 15) devolve um dado de superioridade,
+**Inspiração Superior** (bardo 20) devolve um uso de Inspiração de Bardo e
+**Auto Aperfeiçoamento** (monge 20) devolve quatro Chi. Implacável considera
+também o dado adicional do Adepto Marcial. Em OFF/Só Pool, clique depois de
+rolar uma nova iniciativa física e confirme o registro. Repetir o d20 com
+Sortudo não concede outra recuperação. Usa os máximos ajustados da ficha;
+registros ilegíveis são preservados para conferência.
+
 Em desenvolvimento, **Adepto Elemental** trata faces 1 como 2 no dano automático
 de magias reconhecidas do elemento escolhido. O selo mostra **Adepto: 1→2**;
 o livro explica a resistência ignorada, e o resultado conserva as faces originais

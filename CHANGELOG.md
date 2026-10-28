@@ -1,5 +1,28 @@
 # Changelog
 
+## Não lançado — recuperação na iniciativa — 2026-10-28
+
+- Nono recorte de R2: o botão Iniciativa recupera um dado de superioridade por
+  Implacável (Mestre de Batalha 15), um uso de Inspiração de Bardo por Inspiração
+  Superior (bardo 20) ou quatro Chi por Auto Aperfeiçoamento (monge 20), somente
+  com a reserva vazia. Implacável considera também o dado do Adepto Marcial.
+- Auto Ficha recupera após o lançamento e registra junto da inspiração heroica
+  consumida, em um passo de desfazer. Sortudo racial/talento só recompõe o d20;
+  pool livre, rótulo da jogada e outros testes não disparam nova recuperação.
+  OFF/Só Pool permitem confirmar uma nova iniciativa física pelo mesmo botão,
+  sem rolar dados. Cancelar conserva recursos e resultado anterior.
+- Nível próprio/subclasse e máximos vigentes limitam a recuperação; valores
+  ilegíveis ou acima do máximo permanecem para conferência. Revalida ficha,
+  documento, conta, modo, sequência e permissão antes da confirmação física.
+  Atualiza saldo, ações dependentes de Chi e inspiração sem reconstruir listas
+  ou sobrescrever rascunhos de outras reservas. Preserva nuvem manual e histórico
+  local limitado a 25 registros. Entrega agrupada na PR #35, sem publicação.
+- Verificados 534 testes Node, tipos/build e oito roteiros Chromium: iniciativa,
+  Precisão, Sortudo, R2 inicial, regras, dado, cadeado e manobras. Incluem todas
+  as origens, físico/virtual, cancelamento/concorrência/conta/permissão, erro de
+  RNG, desfazer conjunto, nós/foco/rascunhos, 320px/GG/temas/layouts e offline
+  /D-D/. A CI passa a exigir 43 roteiros e banco descartável.
+
 ## Não lançado — cinco manobras de dano e efeitos — 2026-10-28
 
 - Oitavo recorte de R2: Ameaçador, Encontrão, Provocante, Manobra e Golpe

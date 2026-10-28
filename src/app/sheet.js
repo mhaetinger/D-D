@@ -24,6 +24,8 @@ import { luckRemaining } from '../rules/lucky';
 import { askToUseLucky, chooseLuckyFace, payLuckyPoint } from '../rules/lucky-ui';
 import {precisionAttackOptions} from '../rules/precision-attack';
 import {choosePrecisionAttack} from '../rules/precision-attack-ui';
+import {applyInitiativeRecovery,initiativeRecoveryDescription,initiativeRecoveryFeatures} from '../rules/initiative-recovery';
+import {recoverPhysicalInitiative,refreshInitiativeResources} from '../rules/initiative-recovery-ui';
 import {beginWeaponAttack,clearWeaponAttacks,finishWeaponAttack,isCurrentWeaponAttack} from '../rules/weapon-attack-session';
 import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponDamageLabel, weaponAttackBonus, weaponPowerAttackPrepared } from '../rules/weapon-damage-ui';
 import { applyCastConcentration, concentration, concentrationBlock, incapacityReason, needsConcentrationConfirmation, spellConcentration, validateConcentrationStart } from '../rules/concentration';
@@ -1113,13 +1115,24 @@ function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligib
   // Resolve tudo no clique. Trocar modo, limpar ou editar a bandeja durante a
   // animação só vale para o próximo lançamento, nunca para o que já foi feito.
   const c=getChar(),inspired=inspirationEligible && !!c && dicePoolCounts[20]===1 && c.heroicInspiration && c.ruleState?.inspirationReady;
+  const initiative=context?.initiative===true && context.type==='check';
+  if(initiative && (diceMode!=='auto' || !canEditSheet(c)))return showToast('A iniciativa desta ficha não pode alterar recursos neste contexto.');
   const mode=inspired?inspirationRollMode(c,currentRollMode):currentRollMode;
   if(context?.type==='attack' && context.weapon && diceMode==='auto')context={...context,weaponAttack:beginWeaponAttack(c,context.weapon)};
   let result = evaluateDicePool(dicePoolCounts, modVal, mode,c?sheetD20Rules(c,context,CharacterEngine):{});
   if(context?.elementalAdept)result=applyElementalAdept(result,context.elementalAdept);
   if(context?.spellComponents)result=spellDamageBreakdown(result,context.spellComponents);
   if(minimumZero)result.total=Math.max(0,result.total);
-  if(inspired && consumeInspiration(c)) saveRuleStep('Usou inspiração no d20 · '+(customLabel || 'pool'));
+  // Recupera depois do RNG e antes de capturar o resultado/contexto. Repetições
+  // de Sortudo só recompõem esse resultado; não voltam a este gatilho.
+  const recovery=initiative?applyInitiativeRecovery(c,CharacterEngine):null,inspirationUsed=inspired && consumeInspiration(c);
+  if(recovery?.recoveries.length){
+    const description=initiativeRecoveryDescription(recovery);
+    recordStepAndSave('Iniciativa · '+description+(inspirationUsed?' · usou inspiração no d20':''),true,false);
+    if(inspirationUsed){const control=document.querySelector('[data-inspiration-control]');if(control)control.innerHTML=inspirationControls(c);}
+    refreshInitiativeResources(c,CharacterEngine,recovery.recoveries.map(r=>r.id));showToast(description);
+  }else if(inspirationUsed)saveRuleStep('Usou inspiração no d20 · '+(customLabel || 'pool'));
+  if(recovery?.warnings.length)showToast(recovery.warnings.join(' '));
   presentDiceResult(result, customLabel,context?{c,context}:null);
   if(canRerollHalfling(result) && diceTrayMinimized)showToast('Sortudo racial disponível: abra o dado para repetir um 1.');
   return result;
@@ -1339,6 +1352,14 @@ function chooseLuckyD20(index) {
   document.querySelector(`[data-dice-lucky-choice="${index}"]`)?.focus({preventScroll:true});
 }
 
+function rollInitiative() {
+  const c=getChar();if(!canEditSheet(c))return showToast('A edição desta ficha está bloqueada pelo mestre.');
+  if(diceMode!=='auto'){
+    if(initiativeRecoveryFeatures(c,CharacterEngine).length)return recoverPhysicalInitiative(c,CharacterEngine,document.querySelector('[data-initiative-roll]'));
+    return triggerSheetRoll('1d20'+fmtMod(initiativeBonus(c,CharacterEngine)),'Iniciativa',true,{type:'check'});
+  }
+  return triggerSheetRoll('1d20'+fmtMod(initiativeBonus(c,CharacterEngine)),'Iniciativa',true,{type:'check',initiative:true});
+}
 // Disparo automático vindo da ficha (só executa se diceMode === 'auto'!)
 function triggerSheetRoll(formula, label, inspirationEligible = false, context = null) {
   if(context?.type==='save' && automaticSaveFailure(getChar(),context.ability))return showToast('Falha automática nessa resistência de FOR/DES pela condição atual; não precisa rolar.');
@@ -2084,6 +2105,8 @@ function renderCombatBlock(char) {
   const ac = getCalculatedAC(char);
   const dexMod = initiativeBonus(char,CharacterEngine);
   const effective = exhaustion({...char,speed:CharacterEngine.movementSpeed(char)});
+  const initiativeFeatures=initiativeRecoveryFeatures(char,CharacterEngine);
+  const initiativeHelp='Teste de Destreza para definir a ordem no combate; usa o bônus mostrado e o modo preparado no dado.'+(initiativeFeatures.length?' '+initiativeFeatures.map(f=>`${f.name}: recupera ${f.amount} ${f.id==='monge:ki'?'pontos de Chi':f.id==='bardo:inspiration'?'uso de Inspiração de Bardo':'dado de superioridade'} apenas com a reserva vazia.`).join(' ')+' OFF/Só Pool: clique após rolar uma nova iniciativa física para confirmar a recuperação. Sortudo não concede outra recuperação na mesma jogada.':'');
 
   // Referência sem consumo/cura automática, conforme a campanha do usuário.
 
@@ -2109,7 +2132,7 @@ function renderCombatBlock(char) {
               ${char.mageArmorActive ? `Arcana: CA ${getMageArmorAC(char)}` : "Ativar Arcana"}
             </button>` : ''}
           </div>
-          <button onclick="triggerSheetRoll('1d20${fmtMod(dexMod)}', 'Iniciativa', true, {type:'check'})" class="combat-stat t-inset p-2 rounded-lg hover:scale-105 transition">
+          <button data-initiative-roll onclick="rollInitiative()" ${RuleTooltips.attributes('Iniciativa',{text:initiativeHelp})} class="combat-stat t-inset p-2 rounded-lg hover:scale-105 transition">
             <span class="text-[10px] uppercase t-text-muted block">Iniciativa</span>
             <span class="combat-stat-value">${fmtMod(dexMod)}</span>
           </button>
@@ -3423,6 +3446,7 @@ Object.assign(window, {
   chooseLuckyD20,
   rollQuickD20,
   triggerSheetRoll,
+  rollInitiative,
   openAuthAccountModal,
   closeAuthAccountModal,
   hasOpenAccountEditor,

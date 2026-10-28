@@ -284,7 +284,7 @@ básico real telefone/computador já foram confirmados pelo responsável.
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
 | R1 — bônus nos cálculos | **Quatro passivos entregues; achados A01/A05/A06 corrigidos nesta branch** | O recorte original continua implementado. A01/A05/A06 corrigem os bônus/modificadores adicionais e a inconsistência de PV identificados no check-up; regressões nesta entrega. Tipos variáveis/efeitos posteriores seguem em R5. |
-| R2 — rolagens e gastos condicionais | **Quinto a oitavo recortes em desenvolvimento; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo na PR #20; -5/+10 na PR #21; Atacante Bestial e Combate com Armas Grandes publicados nas PRs #31/#32. Quinto recorte: Adepto Elemental nos danos de magia reconhecidos. Sexto: Ataque Desarmante/Derrubar no dano e reservas do Adepto Marcial. Sétimo: Precisão depois do d20 com Sortudo/halfling. Oitavo: cinco outras manobras de dano, com FOR/SAB ou sem resistência. Critérios e limites abaixo. Faltam oito manobras, adicionais dos demais talentos/estilos e contextos de elemento/efeito ainda manuais. Turnos/alvos continuam declarados pela mesa. |
+| R2 — rolagens e gastos condicionais | **Quinto a nono recortes em desenvolvimento; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo na PR #20; -5/+10 na PR #21; Atacante Bestial e Combate com Armas Grandes publicados nas PRs #31/#32. Quinto recorte: Adepto Elemental nos danos de magia reconhecidos. Sexto: Ataque Desarmante/Derrubar no dano e reservas do Adepto Marcial. Sétimo: Precisão depois do d20 com Sortudo/halfling. Oitavo: cinco outras manobras de dano, com FOR/SAB ou sem resistência. Nono: recuperação de superioridade, Inspiração de Bardo e Chi ao rolar iniciativa com a reserva vazia. Critérios e limites abaixo. Faltam oito manobras, adicionais dos demais talentos/estilos e contextos de elemento/efeito ainda manuais. Turnos/alvos continuam declarados pela mesa. |
 | R3 — condições, defesas e características | Planejada; já há cobertura parcial | Completar efeitos das condições, imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
 | R5 — famílias de magias | Parcial: oito curas e quatro invocações auditadas | Revisão delimitada de invocações e magias associadas concluída abaixo; vínculo automático de conjuração/custo ainda manual. Revisar outras famílias: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
@@ -750,8 +750,9 @@ Cobertura atual: **sete manobras de dano + Precisão = 8/16**. Permanecem na mes
 **Aparar, Ataque Estendido, Ataque de Finta, Ataque Trespassante, Contra-Atacar,
 Golpe do Comandante, Inspirar e Passo Evasivo**. Seus gatilhos de reação,
 ação bônus, decisão antecipada, segundo alvo ou deslocamento não cabem no
-mesmo botão de dano de um acerto. Início de combate/Implacável e os demais
-talentos/estilos continuam pendentes. **R2 permanece parcial.**
+mesmo botão de dano de um acerto. Naquele recorte, início de combate/Implacável
+e os demais talentos/estilos continuavam pendentes; a recuperação na iniciativa
+avança no nono recorte abaixo. **R2 permanece parcial.**
 
 Verificados **525 testes Node**, tipos/build e **nove roteiros Chromium**:
 manobras, Precisão, crítico/adicionais, rerrolagens, R2 inicial, Sortudo, ajudas,
@@ -760,6 +761,49 @@ dado e cadeado. Incluem origem/classe/talento, FOR/SAB/sem CD, crítico/gasto
 nós/foco/scroll, 320px/GG/três temas/dois layouts e offline /D-D/.
 A CI mantém 42 roteiros e banco descartável. Sem SQL, fichas reais, novos
 campos de personagem, alteração dos catálogos ou publicação nesta rodada.
+
+### Nono recorte de R2: recuperação ao rolar iniciativa — 28/10/2026
+
+**Implementado em desenvolvimento, sem publicação.** Fontes locais do Livro
+do Jogador 2014: Inspiração Superior, p. 54 / PDF 53; Implacável, p. 88 / PDF 87;
+Auto Aperfeiçoamento, p. 105 / PDF 104.
+
+| Característica | Requisito e recuperação |
+| --- | --- |
+| Implacável | Guerreiro Mestre de Batalha 15, sem nenhum dado de superioridade restante, incluindo o adicional do Adepto Marcial. Recupera um dado na reserva da classe, preservando o gasto do talento. |
+| Inspiração Superior | Bardo 20, sem uso de Inspiração de Bardo. Recupera um uso; não é a inspiração heroica de 2014. |
+| Auto Aperfeiçoamento | Monge 20, com zero Chi. Recupera quatro pontos. |
+
+- O botão existente **Iniciativa** usa contexto explícito em Auto Ficha. Só
+  recupera depois de lançar os dados; erro do RNG não altera as reservas.
+  Nome da jogada, pool livre, d20 rápido, ataques e outros testes não disparam
+  esse gatilho. Sortudo racial/talento não concede outra recuperação na repetição
+  ou escolha de face do mesmo d20. Os modos preparados e bônus existentes permanecem.
+- Em OFF/Só Pool, o mesmo botão permite registrar uma **nova iniciativa física**
+  já rolada na mesa. Exige a confirmação dessa condição; cancelar conserva os
+  recursos e o último resultado. Não lança dados nem gasta inspiração heroica.
+- Usa nível próprio, subclasse atual e reservas já existentes. Saldo positivo
+  não acumula recuperação. Máximo ajustado limita o valor; máximo zero não concede
+  usos. Valores ilegíveis/negativos/fracionários/acima do máximo ficam preservados
+  com aviso, sem tratar erro como reserva vazia ou zerar o histórico de gastos.
+- Recuperação e inspiração preparada consumida entram no mesmo passo local;
+  desfazer restaura ambos. Saldos/botões, usos dependentes de Chi e inspiração
+  atualizam os trechos afetados sem reconstruir listas/selects. Confirmações
+  físicas revalidam documento, modo, sequência, conta/ficha e permissão.
+
+**R2 permanece parcial.** As outras oito manobras continuam na mesa, assim como
+contextos de vantagem na iniciativa (Instinto Selvagem/Patrulheiro Revisado),
+outras reações, estilos/talentos e Sobrevivente. Não há rastreamento automático
+de combate, turnos ou nova iniciativa: a mesa declara o contexto. Nenhuma
+interação entre fichas ou sincronização contínua foi adicionada.
+
+Verificados **534 testes Node**, tipos/build e **oito roteiros Chromium**:
+iniciativa, Precisão, Sortudo, R2 inicial, regras, dado, cadeado e manobras.
+Incluem todas as origens de superioridade, físico/virtual/OFF/Só Pool,
+cancelamento/concorrência/conta/permissão, erro do RNG, recuperação/inspiração
+no mesmo desfazer, nós/foco/rascunhos, 320px/GG/três temas/dois layouts,
+notas e offline /D-D/. A CI passa a exigir 43 roteiros e banco descartável.
+Sem SQL, dados reais, alteração dos catálogos ou publicação nesta rodada.
 
 ### Revisão das quatro invocações — 23/10/2026
 
@@ -912,15 +956,15 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 | Classe / PDF | Subclasses conferidas | Cobertura operacional existente | Próxima revisão necessária |
 | --- | --- | --- | --- |
 | Bárbaro, 45–49 | Furioso; Guerreiro Totêmico | Fúria, dano com FOR, resistências por tipo, Frenesi/exaustão, CA alternativa, Crítico Brutal e Fúria Implacável | Vantagens situacionais e duração/gatilhos |
-| Bardo, 50–54 | Conhecimento; Bravura | Reserva/dado de inspiração, proficiências/especialização, segredos, conjuração, iniciativa de Versatilidade e Canção do Descanso opcional | Inspiração de Bardo recebida/Palavras de Interrupção na jogada; recuperação ao iniciar combate |
+| Bardo, 50–54 | Conhecimento; Bravura | Reserva/dado de inspiração, proficiências/especialização, segredos, conjuração, iniciativa de Versatilidade, Canção do Descanso opcional e Inspiração Superior na iniciativa (nono recorte de R2) | Inspiração de Bardo recebida/Palavras de Interrupção na jogada |
 | Bruxo, 55–61 | Arquifada; Corruptor; Grande Antigo | Pacto, Arcanum, usos, Bênção do Obscuro, Explosão Agonizante, Sorvedor de Vida na arma vinculada e resistências de patrono registradas | Troca da resistência após descanso e reflexão de psíquico; espaço de invocações não equivale ao contador diário; alvos |
 | Clérigo, 62–69 | Conhecimento; Enganação; Guerra; Luz; Natureza; Tempestade; Vida | Preparação/domínios, Canalizar compartilhado, usos e Intervenção | Efeitos de cada domínio no alvo, cura/dano condicionado e Expulsar/Destruir Mortos-Vivos por ND |
 | Druida, 70–75 | Terra; Lua | Preparação/círculo, Forma Selvagem/PV, cura da Lua, Recuperação Natural e concentração mantida na transformação | Bloco de besta/estatísticas e custo de elemental; CON da forma informada no teste |
 | Feiticeiro, 76–81 | Magia Selvagem; Linhagem Dracônica | Feitiçaria/metamágica, conversão, Marés, CA, resistência e bônus inicial de Afinidade Elemental nos casos reconhecidos | Surto/gatilhos, tipos variáveis/efeitos posteriores e elegibilidade completa de metamagias; adaptações identificadas |
-| Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa parcial de Atletismo Extraordinário; repetição de Combate com Armas Grandes no quarto recorte de R2 | A06/A13 corrigidos: arredondamento/testes físicos e Retomar físico/virtual. Sete manobras no dano e Precisão no ataque (sexto a oitavo recortes); oito manobras/reações, Implacável e Sobrevivente pendentes |
+| Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa parcial de Atletismo Extraordinário; repetição de Combate com Armas Grandes no quarto recorte de R2; Implacável na iniciativa no nono | A06/A13 corrigidos: arredondamento/testes físicos e Retomar físico/virtual. Sete manobras no dano e Precisão no ataque (sexto a oitavo recortes); oito manobras/reações e Sobrevivente pendentes |
 | Ladino, 88–92 | Ladrão; Assassino; Trapaceiro Arcano | Especialização, composição de Ataque Furtivo, Esquiva/Evasão, usos avançados, magias e Talento Confiável nas perícias da ficha (R2 inicial) | Testes com ferramentas na mesa; surpresa/Assassinar e Ação Ardilosa |
 | Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, Dominar/Assinatura, recuperação, Proteção Arcana inclusive multiclasse, Conjuração Focada, Presságio e usos/estados de escola | Efeitos por alvo, demais bônus de escola, lacaios, pedra e Sobrecarga; fluxo de troca temporal das escolhas |
-| Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi, movimento/CA, curas/usos, Evasão e defesas de Pureza Corporal/Corpo Vazio no dano por tipo | Imunidade a condições, Artes Marciais/dano desarmado em todas as condições, Atordoar/Defletir Projéteis e recuperação ao iniciar combate |
+| Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi, movimento/CA, curas/usos, Evasão, defesas de Pureza Corporal/Corpo Vazio no dano por tipo e Auto Aperfeiçoamento na iniciativa (nono recorte de R2) | Imunidade a condições, Artes Marciais/dano desarmado em todas as condições, Atordoar/Defletir Projéteis |
 | Paladino, 107–113 | Devoção; Anciões; Vingança | Cura pelas Mãos, Canalizar, Arma Sagrada, aura própria nos testes, preparação e Destruição com gasto de espaço | Aplicação a aliados/consciência e condições dos juramentos; cura no alvo |
 | Patrulheiro Revisado, 114–120 | Besta; Caçador; Rastreador Subterrâneo | Progressão/seleções da adaptação, conjuração, extras condicionais e PV do companheiro | Inimigo favorito, exploração, iniciativa/primeiro turno e estatísticas/comandos do companheiro; não misturar regras do patrulheiro original |
 

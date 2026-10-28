@@ -1458,3 +1458,30 @@ existente sem remontar a ficha; saldo e botões da origem atualizam seus nós.
 Sortudo. Ao somar Precisão, os botões de faces existentes são conservados.
 Não muda a aparência/gestos do dado, armazenamento de notas, histórico de
 25 registros ou a sincronização manual, nem cria chamadas de rede.
+
+## Recuperação na iniciativa — nono recorte de R2, 28/10/2026
+
+`initiative-recovery.ts` consulta o nível próprio e a subclasse vigente, com
+máximos de `resourcesFor`: Implacável (Mestre de Batalha 15), Inspiração Superior
+(bardo 20) e Auto Aperfeiçoamento (monge 20). Não usa RNG, DOM ou armazenamento.
+Só propõe recuperar quando o saldo é exatamente zero; valores ilegíveis ou
+fora do máximo produzem aviso e permanecem intactos. Ausência de registro usa
+o saldo inicial do app, sem conceder recuperação ou criar estado ao consultar.
+Implacável exige esgotar todas as origens atuais de superioridade e recupera
+um dado na reserva da classe; o dado adicional do Adepto mantém seu gasto.
+O máximo ajustado limita a recuperação; máximo zero não concede recursos.
+
+`rollInitiative` é a ponte do botão existente, com contexto explícito. Em Auto
+Ficha, o gatilho fica depois do RNG bem-sucedido e antes de capturar o snapshot
+de `presentDiceResult`. Recuperação e inspiração heroica consumida entram num
+único passo local. Sortudo/halfling recompõem o mesmo resultado sem passar pelo
+gatilho outra vez. Nome da jogada, pool livre, d20 rápido, testes e ataques não
+declaram uma nova iniciativa. A guarda de permissão antecede RNG/alteração.
+
+`initiative-recovery-ui.ts` confirma uma nova iniciativa física em OFF/Só Pool,
+sem rolar dados. WeakSet evita confirmação concorrente; documento, modo,
+sequência, ficha/conta, botão e permissão são revalidados antes de recuperar.
+Saldo, campo de Chi, botões dependentes de Chi e inspiração heroica atualizam
+somente os trechos afetados. Preserva nós/foco das listas e o desenho do dado.
+Não cria marcador de combate, relógio de turnos, novo contador, chamada remota
+ou envio automático. A mesa declara quando ocorre uma nova iniciativa.
