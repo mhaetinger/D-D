@@ -1,5 +1,26 @@
 # Changelog
 
+## Não lançado — cinco manobras de dano e efeitos — 2026-10-28
+
+- Oitavo recorte de R2: Ameaçador, Encontrão, Provocante, Manobra e Golpe
+  Distrativo conhecidos passam a aparecer em Adicionais da arma. Reutilizam
+  origem de superioridade, dado no dano/crítico e gasto único ao confirmar.
+- Ameaçador/Provocante pedem SAB do alvo; Encontrão pede FOR de alvos Grandes
+  ou menores, sem retirar o dano de alvos maiores. A CD continua formada por
+  FOR/DES do atacante. Manobra/Distrativo não pedem resistência nem mostram CD;
+  alternar as opções preserva controles, foco e escolha anterior.
+- Os textos distinguem duração dos efeitos, reação/movimento do aliado e
+  oportunidade apenas do alvo atingido; Distrativo beneficia só o próximo
+  ataque de outra criatura no prazo. Esses efeitos ficam com a mesa.
+  Precisão bloqueia combinar qualquer uma das sete manobras de dano no mesmo
+  ataque acompanhado. Furtivo/Destruição e as repetições da arma mantêm seus contratos.
+- Verificados 525 testes Node, tipos/build e nove roteiros Chromium: manobras,
+  Precisão, crítico/adicionais, rerrolagens, R2 inicial, Sortudo, ajudas, dado e
+  cadeado. Incluem origens/crítico, cancelamento/gasto único, nós/foco/scroll,
+  320px/GG/três temas/dois layouts e offline /D-D/. A CI exige os 42 roteiros
+  e banco descartável. Avanço agrupado na PR #35, sem publicação.
+  A matriz registra as oito manobras restantes e os demais contextos parciais.
+
 ## Não lançado — Ataque de Precisão — 2026-10-28
 
 - Sétimo recorte de R2: depois do ataque automático da arma, a bandeja oferece

@@ -4,7 +4,7 @@ import {weaponPowerAttack,weaponPowerAttackOption} from './weapon-power-attack';
 import {canEditSheet} from '../sheet-edit/access';
 import {weaponRerollOptions} from './weapon-rerolls';
 import {offerWeaponRerolls,resumeWeaponReroll} from './weapon-rerolls-ui';
-import {maneuverDC,type DamageManeuver} from './maneuvers';
+import {damageManeuverResolution,maneuverDC,type DamageManeuver} from './maneuvers';
 import {currentWeaponAttack,finishWeaponAttack} from './weapon-attack-session';
 
 const tip=(name:string,text:string)=>`tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name,text}))}"`;
@@ -101,7 +101,7 @@ export function setupWeaponDamageUI(E:Engine,save:(description:string)=>void) {
       ${precisionUsed?'<p>Precisão já usada neste ataque: não combine outra manobra. O dano da arma continua normal.</p>':''}
       <div data-weapon-maneuver-fields hidden>
       <label>Dado de superioridade <select data-weapon-superiority>${superiority.map(s=>`<option value="${s.id}" ${s.remaining>0?'':'disabled'}>${escape(s.name)} · d${s.die} · ${s.readable?`${s.remaining}/${s.resource.max}`:'conferir registro'}</option>`).join('')}</select></label>
-      <label>Habilidade da CD <select data-weapon-maneuver-ability><option value="str">FOR · CD ${maneuverDC(c,'str')}</option><option value="dex">DES · CD ${maneuverDC(c,'dex')}</option></select></label>
+      <label data-weapon-maneuver-ability-label>Habilidade da CD <select data-weapon-maneuver-ability><option value="str">FOR · CD ${maneuverDC(c,'str')}</option><option value="dex">DES · CD ${maneuverDC(c,'dex')}</option></select></label>
       <label class="rule-check"><input type="checkbox" data-weapon-no-other-maneuver> Nenhuma outra manobra usada neste ataque, inclusive Precisão</label>
       <p data-weapon-maneuver-effect></p></div>`:''}
       ${smite?`<label ${tip('Destruição Divina','Após acertar corpo a corpo com arma, gaste um espaço de qualquer classe: 2d8 no 1º nível, +1d8 por nível até 5d8, e +1d8 contra corruptor ou morto-vivo. Pacto também serve. Não é conjuração nem ação bônus de 2024; não recebe melhorias de uma magia lançada. Arremesso e ataque desarmado não são elegíveis neste controle.')}>Destruição Divina <select data-weapon-smite><option value="">Sem gastar espaço</option>${smiteSlots(c).map(s=>`<option value="${escape(s.value)}" ${s.remaining?'':'disabled'}>${escape(s.label)}</option>`).join('')}</select></label><label class="rule-check" data-weapon-favored-label hidden ${tip('Corruptor ou morto-vivo','Acrescenta mais 1d8 à Destruição Divina, até 6d8 antes do crítico. Confirme o tipo do alvo na mesa; não é um segundo espaço.')}><input type="checkbox" data-weapon-favored> Alvo corruptor ou morto-vivo</label>`:''}
@@ -122,14 +122,16 @@ export function setupWeaponDamageUI(E:Engine,save:(description:string)=>void) {
         colossus:!!controls.querySelector<HTMLInputElement>('[data-weapon-colossus]')?.checked,
         smiteSlot:controls.querySelector<HTMLSelectElement>('[data-weapon-smite]')?.value || '',
         smiteFavored:!!controls.querySelector<HTMLInputElement>('[data-weapon-favored]')?.checked,
-        ...(maneuver?.value?{maneuver:maneuver.value as DamageManeuver,superiority:superiorityInput!.value,maneuverAbility:abilityInput!.value as 'str'|'dex',noOtherManeuver:!!controls.querySelector<HTMLInputElement>('[data-weapon-no-other-maneuver]')?.checked}:{}),
+        ...(maneuver?.value?{maneuver:maneuver.value as DamageManeuver,superiority:superiorityInput!.value,...(maneuvers.find(m=>m.id===maneuver.value)?.save?{maneuverAbility:abilityInput!.value as 'str'|'dex'}:{}),noOtherManeuver:!!controls.querySelector<HTMLInputElement>('[data-weapon-no-other-maneuver]')?.checked}:{}),
       });
       const update=()=>{
         const maneuverFields=controls.querySelector<HTMLElement>('[data-weapon-maneuver-fields]');
         if(maneuverFields){
           maneuverFields.hidden=!maneuver?.value;
           const selected=maneuvers.find(m=>m.id===maneuver?.value);
-          controls.querySelector<HTMLElement>('[data-weapon-maneuver-effect]')!.textContent=selected?`Resistência de FOR · CD ${maneuverDC(c,abilityInput!.value as 'str'|'dex')}. ${selected.effect} Teste e efeito na mesa.`:'';
+          controls.querySelector<HTMLElement>('[data-weapon-maneuver-ability-label]')!.hidden=!selected?.save;
+          abilityInput!.disabled=!selected?.save;
+          controls.querySelector<HTMLElement>('[data-weapon-maneuver-effect]')!.textContent=selected?damageManeuverResolution(c,selected,selected.save?abilityInput!.value as 'str'|'dex':undefined).note:'';
         }
         const virtual=isVirtual(),total=controls.querySelector<HTMLInputElement>('[data-weapon-total]')!;
         total.required=!virtual;total.disabled=virtual;

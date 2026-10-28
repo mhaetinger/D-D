@@ -284,7 +284,7 @@ básico real telefone/computador já foram confirmados pelo responsável.
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
 | R1 — bônus nos cálculos | **Quatro passivos entregues; achados A01/A05/A06 corrigidos nesta branch** | O recorte original continua implementado. A01/A05/A06 corrigem os bônus/modificadores adicionais e a inconsistência de PV identificados no check-up; regressões nesta entrega. Tipos variáveis/efeitos posteriores seguem em R5. |
-| R2 — rolagens e gastos condicionais | **Quinto a sétimo recortes em desenvolvimento; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo na PR #20; -5/+10 na PR #21; Atacante Bestial e Combate com Armas Grandes publicados nas PRs #31/#32. Quinto recorte: Adepto Elemental nos danos de magia reconhecidos. Sexto: Ataque Desarmante/Derrubar no dano e reservas do Adepto Marcial. Sétimo: Precisão depois do d20 com Sortudo/halfling. Critérios e limites abaixo. Faltam adicionais/manobras dos demais talentos/estilos e contextos de elemento/efeito ainda manuais. Turnos/alvos continuam declarados pela mesa. |
+| R2 — rolagens e gastos condicionais | **Quinto a oitavo recortes em desenvolvimento; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo na PR #20; -5/+10 na PR #21; Atacante Bestial e Combate com Armas Grandes publicados nas PRs #31/#32. Quinto recorte: Adepto Elemental nos danos de magia reconhecidos. Sexto: Ataque Desarmante/Derrubar no dano e reservas do Adepto Marcial. Sétimo: Precisão depois do d20 com Sortudo/halfling. Oitavo: cinco outras manobras de dano, com FOR/SAB ou sem resistência. Critérios e limites abaixo. Faltam oito manobras, adicionais dos demais talentos/estilos e contextos de elemento/efeito ainda manuais. Turnos/alvos continuam declarados pela mesa. |
 | R3 — condições, defesas e características | Planejada; já há cobertura parcial | Completar efeitos das condições, imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
 | R5 — famílias de magias | Parcial: oito curas e quatro invocações auditadas | Revisão delimitada de invocações e magias associadas concluída abaixo; vínculo automático de conjuração/custo ainda manual. Revisar outras famílias: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
@@ -710,8 +710,9 @@ d20** de ataque com arma do catálogo; a decisão antecipada continua na mesa.
   entram no documento/backup; somente custo e descrição do uso entram no passo
   local já existente, limitado a 25 registros e sem envio do histórico à nuvem.
 
-Permanecem manuais as outras **13 manobras** do catálogo, além dos contextos
-pendentes de estilos/talentos e do início de combate. **R2 não está concluída**;
+Naquele recorte, permaneciam manuais as outras **13 manobras** do catálogo;
+cinco avançam no oitavo recorte abaixo. Contextos
+pendentes de estilos/talentos e do início de combate continuam na matriz. **R2 não está concluída**;
 a cobertura parcial de R5 e o ciclo de importação continuam na ordem estabelecida.
 
 Verificados **520 testes Node**, tipos/build e **nove roteiros Chromium**:
@@ -721,6 +722,44 @@ crítico ampliado, inspiração única, dado físico/virtual, manutenção de n�
 notas/outra ficha, 320px/GG/três temas/dois layouts e offline /D-D/.
 A CI passa a exigir 42 roteiros e banco descartável. Sem SQL, conta real,
 catálogos gerados ou publicação nesta rodada.
+
+### Oitavo recorte de R2: cinco manobras de dano e efeitos — 28/10/2026
+
+**Implementado em desenvolvimento, sem publicação.** Fonte local: Manobras,
+Livro do Jogador 2014, p. 88 / PDF 87. Reutiliza Adicionais, confirmação de
+uma única manobra por ataque, origens/saldo, dado crítico, registro físico,
+desfazer e as guardas já existentes. Oferece apenas manobras conhecidas na
+aquisição vigente. Não aplica efeitos na ficha de outra criatura.
+
+| Manobra | Resistência e efeito resolvidos na mesa |
+| --- | --- |
+| Ataque Ameaçador | SAB; na falha, amedrontado pelo atacante até o fim do próximo turno dele. |
+| Ataque de Encontrão | FOR de alvo Grande ou menor; na falha, empurra até 4,5 m para longe. Alvos maiores ainda recebem o dado de dano. |
+| Ataque Provocante | SAB; na falha, desvantagem ao atacar criaturas diferentes do atacante até o fim do próximo turno dele. |
+| Ataque de Manobra | Sem resistência/CD. Aliado que possa ver/ouvir o atacante pode usar a própria reação para mover até metade do deslocamento, sem oportunidade apenas do alvo atingido. |
+| Golpe Distrativo | Sem resistência/CD. Vantagem só no próximo ataque de outra criatura contra o alvo, antes do começo do próximo turno do atacante. |
+
+A CD usa FOR ou DES do **atacante**, mesmo quando o alvo testa SAB. O campo
+fica oculto/desabilitado nas duas manobras sem resistência, preservando nó,
+foco e escolha anterior. A prévia, o resultado e o histórico informam a regra.
+Cada confirmação desconta um dado da origem escolhida; crítico dobra dados,
+sem dobrar custo ou bônus fixos. As repetições da arma não repetem superioridade.
+Precisão no mesmo ataque acompanhado bloqueia todas as sete manobras de dano.
+
+Cobertura atual: **sete manobras de dano + Precisão = 8/16**. Permanecem na mesa
+**Aparar, Ataque Estendido, Ataque de Finta, Ataque Trespassante, Contra-Atacar,
+Golpe do Comandante, Inspirar e Passo Evasivo**. Seus gatilhos de reação,
+ação bônus, decisão antecipada, segundo alvo ou deslocamento não cabem no
+mesmo botão de dano de um acerto. Início de combate/Implacável e os demais
+talentos/estilos continuam pendentes. **R2 permanece parcial.**
+
+Verificados **525 testes Node**, tipos/build e **nove roteiros Chromium**:
+manobras, Precisão, crítico/adicionais, rerrolagens, R2 inicial, Sortudo, ajudas,
+dado e cadeado. Incluem origem/classe/talento, FOR/SAB/sem CD, crítico/gasto
+único, cancelamento/concorrência, bloqueio por Precisão, registro físico,
+nós/foco/scroll, 320px/GG/três temas/dois layouts e offline /D-D/.
+A CI mantém 42 roteiros e banco descartável. Sem SQL, fichas reais, novos
+campos de personagem, alteração dos catálogos ou publicação nesta rodada.
 
 ### Revisão das quatro invocações — 23/10/2026
 
@@ -878,7 +917,7 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 | Clérigo, 62–69 | Conhecimento; Enganação; Guerra; Luz; Natureza; Tempestade; Vida | Preparação/domínios, Canalizar compartilhado, usos e Intervenção | Efeitos de cada domínio no alvo, cura/dano condicionado e Expulsar/Destruir Mortos-Vivos por ND |
 | Druida, 70–75 | Terra; Lua | Preparação/círculo, Forma Selvagem/PV, cura da Lua, Recuperação Natural e concentração mantida na transformação | Bloco de besta/estatísticas e custo de elemental; CON da forma informada no teste |
 | Feiticeiro, 76–81 | Magia Selvagem; Linhagem Dracônica | Feitiçaria/metamágica, conversão, Marés, CA, resistência e bônus inicial de Afinidade Elemental nos casos reconhecidos | Surto/gatilhos, tipos variáveis/efeitos posteriores e elegibilidade completa de metamagias; adaptações identificadas |
-| Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa parcial de Atletismo Extraordinário; repetição de Combate com Armas Grandes no quarto recorte de R2 | A06/A13 corrigidos: arredondamento/testes físicos e Retomar físico/virtual. Desarmante/Derrubar no dano e Precisão no ataque (sexto/sétimo recortes); demais manobras/reações e Sobrevivente pendentes |
+| Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa parcial de Atletismo Extraordinário; repetição de Combate com Armas Grandes no quarto recorte de R2 | A06/A13 corrigidos: arredondamento/testes físicos e Retomar físico/virtual. Sete manobras no dano e Precisão no ataque (sexto a oitavo recortes); oito manobras/reações, Implacável e Sobrevivente pendentes |
 | Ladino, 88–92 | Ladrão; Assassino; Trapaceiro Arcano | Especialização, composição de Ataque Furtivo, Esquiva/Evasão, usos avançados, magias e Talento Confiável nas perícias da ficha (R2 inicial) | Testes com ferramentas na mesa; surpresa/Assassinar e Ação Ardilosa |
 | Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, Dominar/Assinatura, recuperação, Proteção Arcana inclusive multiclasse, Conjuração Focada, Presságio e usos/estados de escola | Efeitos por alvo, demais bônus de escola, lacaios, pedra e Sobrecarga; fluxo de troca temporal das escolhas |
 | Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi, movimento/CA, curas/usos, Evasão e defesas de Pureza Corporal/Corpo Vazio no dano por tipo | Imunidade a condições, Artes Marciais/dano desarmado em todas as condições, Atordoar/Defletir Projéteis e recuperação ao iniciar combate |
@@ -934,7 +973,7 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 | Talento | Aplicação identificada | Manual, ausente ou a corrigir |
 | --- | --- | --- |
 | Adepto Elemental | Escolha/repetição por elemento, mínimo 1→2 em dano de magia reconhecido e indicação da resistência ignorada; quinto recorte de R2 | Alvo/resistência/imunidade na mesa; escolhas de elemento, efeitos/rodadas/parcelas sem vínculo e fórmulas próprias continuam manuais |
-| Adepto Marcial | Duas manobras e dado adicional pela errata 2014; Desarmante/Derrubar no dano e Precisão após d20, com origem/gasto/descanso; sexto/sétimo recortes de R2 | Demais manobras e decisão antecipada continuam manuais; uma manobra por ataque e efeito no alvo confirmados pela mesa |
+| Adepto Marcial | Duas manobras e dado adicional pela errata 2014; sete manobras no dano e Precisão após d20, com origem/gasto/descanso; sexto a oitavo recortes de R2 | Outras oito manobras e decisão antecipada continuam manuais; uma manobra por ataque e efeito no alvo confirmados pela mesa |
 | Alerta | +5 na iniciativa | Surpresa/atacante oculto |
 | Ambidestro | +1 CA calculada com duas armas empunhadas confirmadas, sem duplicar CA escrita | Elegibilidade de duas armas, sacar/guardar e contexto da mesa |
 | Atacante Bestial | Nova rolagem dos dados da arma e escolha de conjunto completo, no quarto recorte de R2 | Disponibilidade de uma vez por turno confirmada pela mesa; ataques manuais e físicos são resolvidos na mesa |

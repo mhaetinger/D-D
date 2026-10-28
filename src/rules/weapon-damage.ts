@@ -3,7 +3,7 @@ import { active, level, norm, subclass, type Engine, type Sheet } from './model'
 import { incapacityReason } from './concentration';
 import { parseDiceFormula } from './dice-formula';
 import {weaponPowerAttack} from './weapon-power-attack';
-import {damageManeuvers,maneuverDC,maneuverTraining,type DamageManeuver} from './maneuvers';
+import {damageManeuvers,damageManeuverResolution,maneuverTraining,type DamageManeuver} from './maneuvers';
 import {spend} from './resources';
 import {superiorityOptions} from './superiority';
 
@@ -68,9 +68,7 @@ export function previewWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoic
     if(!source.readable)throw new Error('Registro de superioridade ilegível preservado. Confira os usos antes de continuar.');
     if(source.remaining<1)throw new Error('A origem de superioridade está esgotada; nenhum recurso foi gasto.');
     if(choice.noOtherManeuver!==true)throw new Error('Confirme que nenhuma outra manobra foi usada neste ataque, inclusive Precisão.');
-    if(choice.maneuverAbility!=='str' && choice.maneuverAbility!=='dex')throw new Error('Escolha FOR ou DES para a CD da manobra.');
-    const dc=maneuverDC(c,choice.maneuverAbility);
-    maneuver={...selected,source,dc,ability:choice.maneuverAbility,note:`Resistência de FOR · CD ${dc} (${choice.maneuverAbility==='str'?'FOR':'DES'}). ${selected.effect} Resolva o teste e o efeito na mesa.`};
+    maneuver={...selected,source,...damageManeuverResolution(c,selected,choice.maneuverAbility)};
   }else if(choice.superiority!==undefined || choice.maneuverAbility!==undefined || choice.noOtherManeuver!==undefined)throw new Error('Escolha a manobra antes de indicar seu dado e sua CD.');
   const parts:{name:string;formula:string;type:string}[]=[];
   const add=(name:string,formula:string,type:string,alreadyCritical=false)=>parts.push({name,formula:criticalFormula(formula,critical && !alreadyCritical),type});

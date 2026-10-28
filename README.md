@@ -194,11 +194,18 @@ O crítico comum participa; bônus fixos e dados de outras características fica
 iguais. Fechar em **Retomar depois** conserva as faces nesta sessão, sem outro
 gasto de Destruição. OFF/Só Pool registram o total físico final, resolvido na mesa.
 
-Em desenvolvimento, **Ataque Desarmante** e **Derrubar** aparecem em
+Em desenvolvimento, **Ataque Desarmante**, **Derrubar**, **Ataque Ameaçador**,
+**Ataque de Encontrão**, **Ataque Provocante**, **Ataque de Manobra** e
+**Golpe Distrativo** aparecem em
 **Adicionais** das armas reconhecidas quando o personagem conhece a manobra.
-Escolha a origem do dado e FOR/DES para a CD, confirmando que não usou outra
-manobra nesse ataque. O acerto inclui o dado no dano/crítico e desconta um uso;
-teste e efeito no alvo ficam na mesa. Adepto Marcial tem seu dado adicional
+Escolha a origem do dado e confirme que não usou outra manobra nesse ataque.
+Quando há resistência, escolha FOR/DES para formar a CD: Ameaçador/Provocante
+pedem SAB do alvo; Desarmante/Derrubar/Encontrão pedem FOR. Manobra/Distrativo
+não pedem resistência nem mostram CD. O acerto inclui o dado no dano/crítico e
+desconta um uso; teste, tamanho, duração e efeito no alvo ficam na mesa.
+Manobra usa a reação do aliado e evita oportunidade só do alvo atingido;
+Distrativo beneficia apenas o próximo ataque de outra criatura no prazo indicado.
+Adepto Marcial tem seu dado adicional
 identificado, com recuperação em descanso curto/longo. OFF/Só Pool registram
 o total físico. Demais manobras continuam em **Usar na mesa**.
 Depois de rolar o ataque no **Auto Ficha**, abra a bandeja do dado e use

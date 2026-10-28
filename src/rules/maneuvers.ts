@@ -1,8 +1,27 @@
 import {ability,level,norm,proficiency,subclass,type Engine,type Sheet} from './model';
 
 const values=(value:unknown):unknown[]=>Array.isArray(value)?value:value===undefined?[]:[value];
-export const damageManeuvers={disarm:{name:'Ataque Desarmante',effect:'O alvo testa FOR; na falha, o item empunhado escolhido cai aos pés dele.'},trip:{name:'Derrubar',effect:'Se o alvo for Grande ou menor, testa FOR; na falha, fica caído. Alvos maiores recebem o dano adicional, sem esse teste.'}} as const;
+export const damageManeuvers={
+  disarm:{name:'Ataque Desarmante',save:'str',effect:'O alvo testa FOR; na falha, o item empunhado escolhido cai aos pés dele.'},
+  trip:{name:'Derrubar',save:'str',effect:'Se o alvo for Grande ou menor, testa FOR; na falha, fica caído. Alvos maiores recebem o dano adicional, sem esse teste.'},
+  menace:{name:'Ataque Ameaçador',save:'wis',effect:'Na falha, o alvo fica amedrontado por você até o fim do seu próximo turno.'},
+  push:{name:'Ataque de Encontrão',save:'str',effect:'Se o alvo for Grande ou menor, testa FOR; na falha, é empurrado até 4,5 m para longe de você. Alvos maiores recebem o dano adicional, sem esse teste.'},
+  goad:{name:'Ataque Provocante',save:'wis',effect:'Na falha, o alvo tem desvantagem nas jogadas de ataque contra criaturas diferentes de você até o fim do seu próximo turno.'},
+  maneuvering:{name:'Ataque de Manobra',save:null,effect:'Escolha um aliado que possa ver ou ouvir você. Ele pode gastar a própria reação para se mover até metade do deslocamento, sem provocar ataque de oportunidade do alvo atingido. Outras criaturas ainda podem reagir normalmente.'},
+  distract:{name:'Golpe Distrativo',save:null,effect:'A próxima jogada de ataque contra o alvo feita por outra criatura tem vantagem, se ocorrer antes do começo do seu próximo turno. Não beneficia um ataque seu nem todos os ataques dos aliados.'},
+} as const;
 export type DamageManeuver=keyof typeof damageManeuvers;
+type DamageManeuverDefinition=(typeof damageManeuvers)[DamageManeuver];
+
+/** A habilidade que forma a CD é FOR/DES do atacante; o atributo testado pelo
+ * alvo depende da manobra. Manobra/Distrativo não inventam teste nem CD. */
+export function damageManeuverResolution(c:Sheet,maneuver:DamageManeuverDefinition,key?:'str'|'dex') {
+  if(maneuver.save && key!=='str' && key!=='dex')throw new Error('Escolha FOR ou DES para a CD da manobra.');
+  if(!maneuver.save && key!==undefined)throw new Error('Esta manobra não pede teste de resistência nem habilidade de CD.');
+  const dc=maneuver.save?maneuverDC(c,key!):null,ability=maneuver.save?key!:null;
+  const test=maneuver.save?`Resistência de ${maneuver.save==='wis'?'SAB':'FOR'} · CD ${dc} (${key==='str'?'FOR':'DES'})`:'Sem teste de resistência';
+  return {dc,ability,note:`${test}. ${maneuver.effect} ${maneuver.save?'Teste e efeito':'Efeito'} na mesa.`};
+}
 
 /** Escolhas antigas continuam salvas, mas só a aquisição vigente concede uso.
  * A troca de uma manobra da classe não remove uma manobra aprendida pelo talento. */
