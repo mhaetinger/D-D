@@ -35,10 +35,15 @@ export function featureResourceBindings(c:Sheet,E:Engine) {
       if(index<0){index=gains.length;gains.push({name:'Arma de Sopro',source:E.options.races.draconato.name,level:1,reference:E.reference('Arma de Sopro',null,'draconato','race')});}
       bindings.set(index,[...(bindings.get(index) || []),r]);continue;
     }
-    if(r.id==='feat:lucky') {
+    if(r.id==='feat:lucky' || r.id==='feat:superiority') {
+      const featName=r.id==='feat:lucky'?'Sortudo':'Adepto Marcial';
       // O traço racial homônimo não tem classId; não pendurar pontos nele.
-      let index=gains.findIndex(g=>g.classId && norm(g.name)==='sortudo');
-      if(index<0) {index=gains.length;gains.push({name:'Sortudo',source:'Talentos',reference:E.reference('Sortudo',null,null,'feat')});}
+      let index=gains.findIndex(g=>g.classId && norm(g.name)===norm(featName));
+      if(index<0) {index=gains.length;gains.push({name:featName,source:'Talentos',reference:E.reference(featName,null,null,'feat')});}
+      if(r.id==='feat:superiority'){
+        const reference=gains[index].reference || E.reference(featName,null,null,'feat');
+        gains[index]={...gains[index],reference:{...reference,text:`Regra aplicada: Adepto Marcial concede um dado d6 adicional pela errata oficial do livro de 2014. Superioridade em Combate Aprimorada melhora seus dados no nível 10/18 de Mestre de Batalha. ${r.note}\n\nTexto do PDF (redação anterior à errata):\n${reference?.text || ''}`}};
+      }
       bindings.set(index,[...(bindings.get(index) || []),r]);continue;
     }
     const arcanum=r.id.startsWith('bruxo:arcanum');

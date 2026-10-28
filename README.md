@@ -194,6 +194,14 @@ O crítico comum participa; bônus fixos e dados de outras características fica
 iguais. Fechar em **Retomar depois** conserva as faces nesta sessão, sem outro
 gasto de Destruição. OFF/Só Pool registram o total físico final, resolvido na mesa.
 
+Em desenvolvimento, **Ataque Desarmante** e **Derrubar** aparecem em
+**Adicionais** das armas reconhecidas quando o personagem conhece a manobra.
+Escolha a origem do dado e FOR/DES para a CD, confirmando que não usou outra
+manobra nesse ataque. O acerto inclui o dado no dano/crítico e desconta um uso;
+teste e efeito no alvo ficam na mesa. Adepto Marcial tem seu dado adicional
+identificado, com recuperação em descanso curto/longo. OFF/Só Pool registram
+o total físico. Precisão e as demais manobras continuam em **Usar na mesa**.
+
 Em desenvolvimento, **Adepto Elemental** trata faces 1 como 2 no dano automático
 de magias reconhecidas do elemento escolhido. O selo mostra **Adepto: 1→2**;
 o livro explica a resistência ignorada, e o resultado conserva as faces originais

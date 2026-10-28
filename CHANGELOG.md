@@ -1,5 +1,28 @@
 # Changelog
 
+## Não lançado — manobras no acerto — 2026-10-28
+
+- Sexto recorte de R2: Ataque Desarmante/Derrubar conhecidas aparecem em
+  Adicionais das armas do catálogo. Escolha origem do dado e FOR/DES para CD;
+  o acerto soma o dado ao dano, dobra no crítico e desconta só a origem escolhida.
+  Furtivo/Destruição coexistem; repetições da arma conservam os dados da manobra.
+- Adepto Marcial recebe o dado adicional da errata 2014, identificado separado
+  dos dados da classe. Superioridade Aprimorada melhora os dados em 10/18 de
+  Mestre de Batalha. Mantém o contador antigo, máximos editados e usos; recupera
+  ambas as origens no descanso existente. Consulta explica a errata do PDF local.
+- Uma manobra por ataque exige confirmação, inclusive quanto a Precisão usada
+  na mesa. Mostra CD, teste de FOR e limite de tamanho de Derrubar; efeitos nos
+  alvos continuam manuais. Precisão e as outras manobras permanecem no roteiro.
+- Cancelamento/prévia não gastam nem rolam. Confirmação virtual revalida Auto
+  Ficha, documento, arma e permissão. OFF/Só Pool registram o total físico final.
+  Uso/custo entram no mesmo passo; desfazer restaura ambos. Fichas, notas, dado
+  flutuante, sincronização manual e limite de 25 registros são preservados.
+- Verificados 512 testes Node, tipos/build e sete roteiros Chromium: manobras,
+  crítico/adicionais, rerrolagens, recursos, ajudas, dado e cadeado. Incluídos
+  esgotamento/concorrência, foco/scroll, 320px/GG/temas/layouts e offline /D-D/.
+  A suíte completa da CI passa a exigir 41 roteiros e banco descartável.
+  Sem SQL, catálogos gerados ou publicação; desenvolvimento agrupado com a PR #34.
+
 ## Não lançado — Adepto Elemental — 2026-10-24
 
 - Quinto recorte de R2: prévia/livro identificam o benefício e a resistência

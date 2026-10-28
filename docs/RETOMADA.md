@@ -1,26 +1,21 @@
 # Retomada do CritCall
 
-Estado consolidado em **24/10/2026**. Leia também `AGENTS.md`, `README.md`,
+Estado consolidado em **28/10/2026**. Leia também `AGENTS.md`, `README.md`,
 `CHANGELOG.md` e [ARQUITETURA.md](ARQUITETURA.md) antes de alterar.
 
 ## Onde o trabalho parou
 
-**Em desenvolvimento: Adepto Elemental e revisão das quatro invocações**, na
-branch `feature/adepto-elemental`, a partir do develop público `9f676e0`.
-A branch reúne a revisão já validada na PR #33 e o quinto recorte de R2:
-mínimo 1→2, indicação de resistência ignorada e os limites por contexto descritos
-na auditoria. Reproduções parciais do Claude foram conferidas na base atual. Corrigidos:
-invocação substituída que permanecia na lista (incluindo reaprendizado duplicado),
-Vitalidade Falsa apresentada como cura e Rogar Maldição com dano imediato indevido.
-A duração/concentração desta última agora segue o círculo escolhido. Registros
-manuais do uso diário têm identificação explícita; a conjuração da invocação e
-seus custos continuam manuais, sem adicionar magia conhecida/contador paralelo.
-Fontes, limites e verificações ficam somente na auditoria. Passaram 504 testes
-Node, build e sete roteiros pertinentes; CI exige 40 e banco. A revisão anterior
-da [PR #33](https://github.com/mhaetinger/D-D/pull/33) passou integralmente na CI
-antes deste avanço. O resultado da rodada atual deve ser consultado na PR da
-branch `feature/adepto-elemental`. Manter a PR de desenvolvimento separada da
-decisão de uma próxima publicação na main.
+**Em desenvolvimento: manobras no acerto, Adepto Elemental e revisão das
+quatro invocações**, na branch `feature/manobras-acerto-2014`, iniciada no
+develop público `9f676e0` e reunindo os commits públicos validados na PR #34.
+O sexto recorte de R2 acrescenta Ataque Desarmante/Derrubar ao dano, com escolha
+da origem de superioridade, CD, crítico, registro físico e gasto único. Inclui
+o dado do Adepto Marcial e mantém o registro antigo de usos do Mestre de Batalha.
+Precisão e as demais manobras continuam manuais, conforme a matriz da auditoria.
+A PR #34 passou integralmente na CI antes deste avanço; resultado desta rodada
+fica na PR da branch atual. Passaram 512 testes Node, tipos/build e sete
+roteiros pertinentes; a CI exige 41 e banco descartável. Nenhuma dessas três
+entregas foi publicada.
 
 **Publicação por entregas agrupadas.** O responsável orientou não publicar cada
 correção. Acumular e verificar os ajustes em desenvolvimento; uma PR para `main`
@@ -42,15 +37,15 @@ os recortes ainda parciais, sem prometer automação integral do livro.
 
 ## Escopo da entrega e próximos avanços
 
-A rodada atual reúne a revisão delimitada das quatro invocações e o quinto
-recorte de R2, Adepto Elemental nas rolagens reconhecidas.
+A rodada atual reúne a revisão delimitada das quatro invocações, o quinto
+recorte de R2 (Adepto Elemental) e o sexto (duas manobras no acerto/Adepto Marcial).
 Os critérios e limites estão na auditoria; isso não
 promete automação integral de todas as regras do livro. As demais possibilidades
 registradas são evoluções da ficha individual. Decisões que pertencem à mesa
 podem continuar manuais, com indicação clara, sem bloquear o uso da ficha.
 
-O quarto recorte de R2 já foi publicado; o quinto fica em desenvolvimento,
-junto da auditoria paralela de invocações. Outros adicionais/manobras e os
+O quarto recorte de R2 já foi publicado; quinto e sexto ficam em desenvolvimento,
+junto da auditoria de invocações. Outros adicionais/manobras e os
 contextos de magia ainda manuais permanecem na matriz da auditoria. Ordem mantida:
 **draconatos → rolagens → magias → importação**.
 O ciclo com PDF real foi adiado pelo responsável. R3/R4/R6 permanecem no roteiro,

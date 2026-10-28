@@ -1,8 +1,10 @@
 import { weaponStats } from './combat';
-import { active, level, subclass, type Engine, type Sheet } from './model';
+import { active, level, norm, subclass, type Engine, type Sheet } from './model';
 import { incapacityReason } from './concentration';
 import { parseDiceFormula } from './dice-formula';
 import {weaponPowerAttack} from './weapon-power-attack';
+import {damageManeuvers,maneuverDC,maneuverTraining,superioritySources,type DamageManeuver} from './maneuvers';
+import {remaining,resourcesFor,spend} from './resources';
 
 export interface WeaponDamageChoice {
   critical?:boolean;
@@ -11,6 +13,10 @@ export interface WeaponDamageChoice {
   colossus?:boolean;
   smiteSlot?:string;
   smiteFavored?:boolean;
+  maneuver?:DamageManeuver;
+  superiority?:string;
+  maneuverAbility?:'str'|'dex';
+  noOtherManeuver?:boolean;
 }
 export interface SmiteSlot {value:string;level:number;remaining:number;label:string}
 const validPool=(p:Sheet)=>p && Number.isSafeInteger(p.total) && p.total>0 && p.total<=100 && Number.isSafeInteger(p.used) && p.used>=0 && p.used<=p.total;
@@ -25,7 +31,15 @@ export function weaponDamageOptions(c:Sheet,entry:Sheet,E:Engine) {
   const w=weaponStats(c,entry,E),automatic=!!w.ruleWeapon && w.calculationMode!=='manual',hasDamage=w.weaponDie && w.weaponDie!=='0';
   const sneak=automatic && hasDamage && level(c,'ladino')>0 && (w.rangedWeapon || /acuidade/i.test(w.properties));
   const colossus=automatic && hasDamage && level(c,'patrulheiro')>=3 && subclass(c,'patrulheiro',E)==='cacador' && c.rules?.history?.some((h:Sheet)=>h.classId==='patrulheiro' && h.level===3 && [h.answers?.hunter].flat().includes('Assassino de Colossos'));
-  return {w,automatic,sneak:!!sneak,colossus:!!colossus,smite:automatic && !!hasDamage && w.meleeAttack && level(c,'paladino')>=2};
+  const training=maneuverTraining(c,E);
+  const maneuvers=automatic && hasDamage?Object.entries(damageManeuvers).filter(([,m])=>training.known.has(norm(m.name))).map(([id,m])=>({id:id as DamageManeuver,...m})):[];
+  const resources=maneuvers.length?resourcesFor(c,E):[];
+  const superiority=maneuvers.length?superioritySources(c,E).map(s=>{
+    const resource=resources.find(r=>r.id===s.id)!,recorded=c.ruleState?.used?.[s.id] ?? 0;
+    const readable=Number.isSafeInteger(recorded) && recorded>=0;
+    return {...s,resource,remaining:readable?remaining(c,resource):0,readable};
+  }):[];
+  return {w,automatic,sneak:!!sneak,colossus:!!colossus,smite:automatic && !!hasDamage && w.meleeAttack && level(c,'paladino')>=2,maneuvers,superiority};
 }
 function criticalFormula(formula:string,critical:boolean) {
   const parsed=parseDiceFormula(formula);if(!parsed)throw new Error('Fórmula de dano inválida. Corrija o ataque; nenhum recurso foi gasto.');
@@ -51,6 +65,17 @@ export function previewWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoic
   if(choice.smiteFavored && !choice.smiteSlot)throw new Error('Escolha um espaço para a Destruição Divina antes de indicar o alvo.');
   const slot=choice.smiteSlot?smiteSlots(c).find(s=>s.value===choice.smiteSlot && s.remaining>0):undefined;
   if(choice.smiteSlot && !slot)throw new Error('O espaço escolhido está indisponível; nenhum recurso foi gasto.');
+  let maneuver=null;
+  if(choice.maneuver!==undefined){
+    const selected=options.maneuvers.find(m=>m.id===choice.maneuver),source=options.superiority.find(s=>s.id===choice.superiority);
+    if(!selected || !source)throw new Error('Escolha uma manobra conhecida e uma origem de superioridade desta ficha.');
+    if(!source.readable)throw new Error('Registro de superioridade ilegível preservado. Confira os usos antes de continuar.');
+    if(source.remaining<1)throw new Error('A origem de superioridade está esgotada; nenhum recurso foi gasto.');
+    if(choice.noOtherManeuver!==true)throw new Error('Confirme que nenhuma outra manobra foi usada neste ataque, inclusive Precisão.');
+    if(choice.maneuverAbility!=='str' && choice.maneuverAbility!=='dex')throw new Error('Escolha FOR ou DES para a CD da manobra.');
+    const dc=maneuverDC(c,choice.maneuverAbility);
+    maneuver={...selected,source,dc,ability:choice.maneuverAbility,note:`Resistência de FOR · CD ${dc} (${choice.maneuverAbility==='str'?'FOR':'DES'}). ${selected.effect} Resolva o teste e o efeito na mesa.`};
+  }else if(choice.superiority!==undefined || choice.maneuverAbility!==undefined || choice.noOtherManeuver!==undefined)throw new Error('Escolha a manobra antes de indicar seu dado e sua CD.');
   const parts:{name:string;formula:string;type:string}[]=[];
   const add=(name:string,formula:string,type:string,alreadyCritical=false)=>parts.push({name,formula:criticalFormula(formula,critical && !alreadyCritical),type});
   if(!automatic)add('Dano personalizado',w.damage,w.dmgTypeLabel || 'tipo da mesa');
@@ -64,6 +89,7 @@ export function previewWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoic
   if(choice.colossus)add('Assassino de Colossos','1d8',w.dmgTypeLabel);
   if(slot)add('Destruição Divina',`${Math.min(5,slot.level+1)+(choice.smiteFavored?1:0)}d8`,'radiante');
   if(powerAttack)add(powerAttack.name,String(powerAttack.damage),powerAttack.type);
+  if(maneuver)add(maneuver.name,`1d${maneuver.source.die}`,w.dmgTypeLabel);
   if(automatic && critical && w.meleeAttack && w.weaponDie!=='0') {
     const weaponDie=String(w.weaponDie).match(/^\d+d(\d+)$/)?.[1];
     if(weaponDie) {
@@ -74,13 +100,14 @@ export function previewWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoic
   }
   const parsed=parseDiceFormula(parts.map(p=>p.formula).join('+').replace(/\+-/g,'-'));
   if(!parsed)throw new Error('A composição ultrapassa os limites do rolador; nenhum recurso foi gasto.');
-  return {name:String(w.name),critical,powerAttack,manual:!automatic,formula:parsed.formula,parts,slot:slot || null,
+  return {name:String(w.name),critical,powerAttack,manual:!automatic,formula:parsed.formula,parts,slot:slot || null,maneuver,
     summary:parts.map(p=>`${p.name}: ${p.formula} ${p.type}`).join(' · ')};
 }
-/** Valida tudo antes do único desconto. Destruição não é conjuração de magia:
+/** Valida todos os custos antes de descontar. Destruição não é conjuração de magia:
  * não cria proteção, troca concentração nem recebe bônus de uma magia lançada. */
 export function commitWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoice,E:Engine) {
   const plan=previewWeaponDamage(c,entry,choice,E);
+  if(plan.maneuver)spend(c,plan.maneuver.source.resource);
   if(plan.slot?.value==='pact')c.pactMagic.used+=1;
   else if(plan.slot)c.standardSlots[plan.slot.level].used+=1;
   return plan;

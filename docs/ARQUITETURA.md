@@ -1391,3 +1391,28 @@ Prévia e livro recebem a nota do perfil. OFF registra o lançamento normal e
 orienta a resolução física; Só Pool, d20, cura, armas, sopro e bandeja livre
 não herdam o contexto de magia. Nenhum alvo/PV remoto, resistência recebida ou
 documento recebe o perfil, que não entra em backup/histórico ou sincronização.
+
+## Manobras de dano — sexto recorte de R2, 28/10/2026
+
+`maneuvers.ts` resolve aquisições vigentes por classe/nível e as duas escolhas
+no mesmo evento do Adepto Marcial. Trocar manobra da classe não apaga aquela
+aprendida pelo talento. Define Desarmante/Derrubar, DC e origens de superioridade;
+não depende de DOM, recursos, RNG ou armazenamento. `resourcesFor` usa essas
+origens mantendo o id antigo de classe e acrescentando só o id do talento,
+recuperáveis pelo descanso existente. Overrides de máximo continuam explícitos.
+Gastos ilegíveis não são corrigidos por um clique de usar/devolver.
+
+`weapon-damage.ts` cruza as manobras conhecidas com arma automática, recurso
+válido e escolha de habilidade. Exige confirmar a ausência de outra manobra no
+ataque: não deduz esse fato pelo último d20 ou por turno inexistente. A parcela
+da manobra entra depois da Arma; o crítico dobra seus dados, e o resolvedor de
+rerrolagens conserva essa parcela mesmo quando ambos usam d8. Todos os custos
+são validados antes do desconto síncrono de superioridade/Destruição.
+
+A interface reutiliza Adicionais, diálogo, ajudas e registro físico/virtual.
+Campos ocultos são revelados sem recriar select/foco; não prepara/gasta manobra
+por marcar a opção. Mudança para OFF/Só Pool invalida uma confirmação virtual
+pendente antes do RNG. Histórico registra dado/origem/CD e efeito manual do alvo
+junto do custo, sem novos campos em armas, nuvem ou histórico de rolagens.
+A consulta do Adepto explica a errata sem modificar o catálogo/PDF gerado.
+Limites e próximos avanços permanecem na matriz única da auditoria.
