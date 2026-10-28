@@ -12,7 +12,8 @@
 - A sessão do ataque impede combinar Desarmante/Derrubar com Precisão, mantendo
   dano normal, Furtivo e Destruição. Registrar dano encerra as opções do ataque;
   uma nova jogada da arma inicia outra. Mudanças de arma/ficha/conta/permissão,
-  modo ou jogada invalidam uma confirmação antiga antes do RNG/gasto.
+  modo ou jogada invalidam uma confirmação antiga antes do RNG/gasto. Sair de
+  Auto Ficha encerra o vínculo automático, liberando a próxima jogada física.
 - Prévia/cancelamento não gastam nem rolam. Saldo e escolhas atualizam seus nós,
   sem desmontar botões de Sortudo; desfazer devolve o custo. Dados/fórmulas-base
   manuais e OFF/Só Pool continuam na mesa com Usar na mesa. Não muda o dado

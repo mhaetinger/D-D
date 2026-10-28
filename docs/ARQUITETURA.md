@@ -1436,7 +1436,8 @@ O resultado continua transitório; o histórico registra uma descrição do cust
 ataque real cria uma identidade, independente de um d20 rápido. Precisão marca
 essa sessão; Adicionais recusa outra manobra nela. Dano confirmado encerra a
 sessão/opções do resultado, inclusive no registro físico sem novo lançamento.
-Outra jogada da arma cria outra identidade. Trocar ficha/conta apaga as sessões.
+Outra jogada da arma cria outra identidade. Trocar ficha/conta ou modo de dados
+apaga as sessões, sem bloquear o próximo ataque-base físico/manual.
 Esse vínculo não simula turnos, alvos ou ações resolvidas fora do aplicativo.
 
 `precision-attack-ui.ts` reutiliza diálogo, escolha físico/virtual e avisos.

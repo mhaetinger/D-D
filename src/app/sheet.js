@@ -941,7 +941,7 @@ function restoreDeletedCharacter(index) {
 // 5. MOTOR DOS 3 MODOS DE DADOS & POOL COMBINADO (1d20 + 1d4 + Bônus)
 // =========================================================================
 function setDiceMode(mode) {
-  if(mode!==diceMode)clearPendingD20();
+  if(mode!==diceMode){clearPendingD20();clearWeaponAttacks();}
   diceMode = mode;
   writePreference("dnd_dice_mode", mode);
   renderAll();

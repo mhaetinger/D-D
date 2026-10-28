@@ -702,7 +702,9 @@ d20** de ataque com arma do catálogo; a decisão antecipada continua na mesa.
   o d20 e os usos; desfazer devolve o custo, invalidando a escolha antiga.
 - OFF/Só Pool e ataques-base físicos, fórmulas manuais, ataques próprios e
   desarmados seguem na mesa com **Usar na mesa**; não há correção automática
-  de total nesses modos. Armas do catálogo à distância, arremesso e Rede são
+  de total nesses modos. Sair de Auto Ficha encerra o vínculo automático do ataque
+  anterior; o próximo ataque físico usa a confirmação da mesa. Armas do catálogo
+  à distância, arremesso e Rede são
   elegíveis para o fluxo automático mesmo que não tenham dano rolável.
 - Não cria turno, alvo remoto ou aplicação de dano. Sessões/resultados não
   entram no documento/backup; somente custo e descrição do uso entram no passo

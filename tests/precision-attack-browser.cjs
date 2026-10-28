@@ -65,6 +65,8 @@ const {confirmationActions}=require('./confirmation.cjs');
   await roll([12],'normal',3);assert.equal(await button.count(),0);await stub([.5]);await page.evaluate(()=>rollQuickD20());await settled();assert.equal(await button.count(),0);
   // Registra dano físico sem outro custo e encerra a opção de Precisão daquele ataque.
   await roll([12]);await page.locator('[data-rule-weapon-damage="0"]').click();await dialog.locator('[data-weapon-source]').selectOption('physical');await dialog.locator('[data-weapon-total]').fill('11');await accept();assert.equal(await button.count(),0);
+  // Sair de Auto Ficha encerra o vínculo automático; a próxima jogada física usa a confirmação da mesa.
+  await roll([12]);await stub([]);await open();await confirm(1);await page.evaluate(()=>setDiceMode('off'));await page.locator('[data-rule-weapon-damage="0"]').click();assert.equal(await dialog.locator('[data-weapon-maneuver]').isDisabled(),false);await dialog.locator('[data-weapon-total]').fill('11');await accept();assert.equal(await page.evaluate(()=>window.precisionCalls),0);
   // OFF/Só Pool: jogadas físicas e usos permanecem na mesa, sem RNG de Precisão.
   for(const mode of ['off','manual']){await page.evaluate(mode=>setDiceMode(mode),mode);await stub([]);await page.evaluate(()=>rollWeapon(0,'attack'));assert.equal(await button.count(),0);const prior=await page.evaluate(()=>getChar().ruleState.used['guerreiro:superiority']||0);await page.locator('[data-rule-control="guerreiro:superiority"] button[data-rule-action="use"]').click();assert.equal(await page.evaluate(()=>getChar().ruleState.used['guerreiro:superiority']),prior+1);assert.equal(await page.evaluate(()=>window.precisionCalls),0);}
   // Telas pequenas/GG/temas/layouts: mesmos nós, foco e scroll contido.
