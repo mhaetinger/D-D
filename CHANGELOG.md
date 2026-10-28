@@ -17,11 +17,13 @@
   Atualiza saldo, ações dependentes de Chi e inspiração sem reconstruir listas
   ou sobrescrever rascunhos de outras reservas. Preserva nuvem manual e histórico
   local limitado a 25 registros. Entrega agrupada na PR #35, sem publicação.
-- Verificados 534 testes Node, tipos/build e oito roteiros Chromium: iniciativa,
-  Precisão, Sortudo, R2 inicial, regras, dado, cadeado e manobras. Incluem todas
+- Verificados 534 testes Node, tipos/build e nove roteiros Chromium: iniciativa,
+  Precisão, Sortudo, R2 inicial, regras/cenários auditados, dado, cadeado e manobras. Incluem todas
   as origens, físico/virtual, cancelamento/concorrência/conta/permissão, erro de
   RNG, desfazer conjunto, nós/foco/rascunhos, 320px/GG/temas/layouts e offline
   /D-D/. A CI passa a exigir 43 roteiros e banco descartável.
+  O cenário auditado do bardo agora confere a fórmula enviada ao rolador pelo
+  clique no botão, preservando a verificação de Versatilidade sem depender do HTML.
 
 ## Não lançado — cinco manobras de dano e efeitos — 2026-10-28
 

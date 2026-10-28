@@ -111,7 +111,10 @@ async function auditScenarios() {
       const h = JSON.parse(localStorage.getItem('dnd_character_history_v2:' + c.id)), action = h.stack.at(-1).action;
       record('historico-absorcao-real', 0, Number(action.match(/\((\d+) absorvidos/)?.[1]));
       c = use(fixtures.bard); c.abilities.dex.score = 14;
-      record('iniciativa-bardo', true, renderCombatBlock(c).includes('1d20+3'));
+      // Confere a fórmula realmente enviada ao rolador pelo botão, sem exigir
+      // que o HTML contenha a implementação do cálculo no onclick.
+      setTab('main');setDiceMode('auto');setRollMode('normal');document.querySelector('[data-initiative-roll]').click();
+      record('iniciativa-bardo','1d20+3',document.getElementById('dicePoolDisplay').textContent.replace(/\s+/g,''));
       record('raio-ardente-gemea', false, E.spellMeta(E.spell('Raio Ardente')).canTwin);
       record('chicote-ataque-magico', 'atq_magico', E.spellMeta(E.spell('Chicote de Espinhos')).defType);
       c = use(fixtures.fighter); for (const k of Object.keys(c.coins)) c.coins[k] = 0;

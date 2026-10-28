@@ -797,8 +797,9 @@ outras reações, estilos/talentos e Sobrevivente. Não há rastreamento automá
 de combate, turnos ou nova iniciativa: a mesa declara o contexto. Nenhuma
 interação entre fichas ou sincronização contínua foi adicionada.
 
-Verificados **534 testes Node**, tipos/build e **oito roteiros Chromium**:
-iniciativa, Precisão, Sortudo, R2 inicial, regras, dado, cadeado e manobras.
+Verificados **534 testes Node**, tipos/build e **nove roteiros Chromium**:
+iniciativa, Precisão, Sortudo, R2 inicial, regras/cenários auditados, dado,
+cadeado e manobras.
 Incluem todas as origens de superioridade, físico/virtual/OFF/Só Pool,
 cancelamento/concorrência/conta/permissão, erro do RNG, recuperação/inspiração
 no mesmo desfazer, nós/foco/rascunhos, 320px/GG/três temas/dois layouts,
