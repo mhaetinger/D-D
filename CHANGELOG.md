@@ -1,5 +1,36 @@
 # Changelog
 
+## Não lançado — Ataque Trespassante — 2026-10-29
+
+- Décimo sétimo recorte de R2: Trespassante em Adicionais da arma corpo a corpo
+  reconhecida. Confirma acerto original, segunda criatura até 1,5 m da primeira
+  e dentro do alcance; um seletor informa se a mesma jogada atingiria a segunda
+  CA. Não rola outro ataque nem exige turno próprio, ação bônus ou reação.
+- Dano secundário separado: somente um dado de superioridade do tipo da arma,
+  sem bônus/dados extras de crítico, Furtivo, Destruição ou –5/+10. Dano principal
+  preservado. Tentativa gasta um uso da origem mesmo quando não atingiria a
+  segunda criatura; nesse caso registra zero sem RNG secundário.
+- Auto Ficha oferece virtual/físico; OFF/Só Pool registram total principal e
+  face secundária distintos. Bandeja mantém o total principal com o secundário
+  identificado na legenda/histórico. Repetições mudam apenas dados da arma no
+  alvo original; explicação e título do total distinguem esse ajuste.
+- Mantém a escolha de uma manobra por ataque, bloqueia combinação com Precisão/
+  Estendido/Finta, revalida contexto/conta/permissão/modo/sequência antes do RNG
+  e preserva nós/foco. Origem, saldo/registro ilegível, crítico e campos físicos
+  são conferidos antes de gastar. Textos do alvo são dados e quebram linha.
+- Ataques próprios/Forma Selvagem e aplicação de dano no outro personagem
+  continuam na mesa. Sem campo persistido novo, SQL, consulta de nuvem, edição
+  de catálogo ou publicação. Auditoria atualizada: **14/16** manobras; faltam
+  **Contra-Atacar e Golpe do Comandante**, sem concluir as demais etapas.
+- Verificados **624 testes Node**, tipos/build e **dez roteiros Chromium**:
+  Trespassante, Finta, Estendido, Precisão, manobras, dano de arma, –5/+10,
+  repetições, dado e regras. Incluem dois alvos, crítico/Destruição, origens/
+  tentativa sem atingir, OFF/Só Pool/físico/virtual, validação antes do RNG/
+  gasto, conta/permissão/contexto, desfazer/notas/histórico, XSS/nós/foco,
+  toque/320px/GG/três temas/dois layouts/scroll e offline real sob `/D-D/`.
+  CI completa exige agora 51 roteiros e PostgreSQL descartável; resultados na PR #35.
+
+
 ## Não lançado — Ataque de Finta — 2026-10-29
 
 - Décimo sexto recorte de R2: Fintar junto da reserva confirma ação bônus no

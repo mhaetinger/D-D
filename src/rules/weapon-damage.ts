@@ -7,6 +7,7 @@ import {damageManeuvers,damageManeuverResolution,maneuverTraining,type DamageMan
 import {spend} from './resources';
 import {superiorityOptions} from './superiority';
 import {attackHasManeuver,currentWeaponAttack} from './weapon-attack-session';
+import {previewSweepingAttack,sweepingAttackDefinition,sweepingAttackOption,type SweepingChoice} from './sweeping-attack';
 
 export interface WeaponDamageChoice {
   critical?:boolean;
@@ -15,10 +16,11 @@ export interface WeaponDamageChoice {
   colossus?:boolean;
   smiteSlot?:string;
   smiteFavored?:boolean;
-  maneuver?:DamageManeuver;
+  maneuver?:DamageManeuver|'sweeping';
   superiority?:string;
   maneuverAbility?:'str'|'dex';
   noOtherManeuver?:boolean;
+  sweeping?:SweepingChoice;
 }
 export interface SmiteSlot {value:string;level:number;remaining:number;label:string}
 const validPool=(p:Sheet)=>p && Number.isSafeInteger(p.total) && p.total>0 && p.total<=100 && Number.isSafeInteger(p.used) && p.used>=0 && p.used<=p.total;
@@ -34,7 +36,8 @@ export function weaponDamageOptions(c:Sheet,entry:Sheet,E:Engine) {
   const sneak=automatic && hasDamage && level(c,'ladino')>0 && (w.rangedWeapon || /acuidade/i.test(w.properties));
   const colossus=automatic && hasDamage && level(c,'patrulheiro')>=3 && subclass(c,'patrulheiro',E)==='cacador' && c.rules?.history?.some((h:Sheet)=>h.classId==='patrulheiro' && h.level===3 && [h.answers?.hunter].flat().includes('Assassino de Colossos'));
   const training=maneuverTraining(c,E);
-  const maneuvers=automatic && hasDamage?Object.entries(damageManeuvers).filter(([,m])=>training.known.has(norm(m.name))).map(([id,m])=>({id:id as DamageManeuver,...m})):[];
+  const maneuvers:(typeof sweepingAttackDefinition|({id:DamageManeuver}&(typeof damageManeuvers)[DamageManeuver]))[]=automatic && hasDamage?Object.entries(damageManeuvers).filter(([,m])=>training.known.has(norm(m.name))).map(([id,m])=>({id:id as DamageManeuver,...m})):[];
+  if(sweepingAttackOption(c,entry,E))maneuvers.push(sweepingAttackDefinition);
   const superiority=maneuvers.length?superiorityOptions(c,E):[];
   return {w,automatic,sneak:!!sneak,colossus:!!colossus,smite:automatic && !!hasDamage && w.meleeAttack && level(c,'paladino')>=2,maneuvers,superiority};
 }
@@ -65,7 +68,8 @@ export function previewWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoic
   if(choice.smiteFavored && !choice.smiteSlot)throw new Error('Escolha um espaço para a Destruição Divina antes de indicar o alvo.');
   const slot=choice.smiteSlot?smiteSlots(c).find(s=>s.value===choice.smiteSlot && s.remaining>0):undefined;
   if(choice.smiteSlot && !slot)throw new Error('O espaço escolhido está indisponível; nenhum recurso foi gasto.');
-  let maneuver=null;
+  let maneuver=null,sweeping;
+  if(choice.sweeping!==undefined && choice.maneuver!=='sweeping')throw new Error('Escolha Ataque Trespassante antes de indicar a segunda criatura.');
   if(choice.maneuver!==undefined){
     if(attackHasManeuver(attack))throw new Error('Este ataque já usou uma manobra; não combine outra.');
     const selected=options.maneuvers.find(m=>m.id===choice.maneuver),source=options.superiority.find(s=>s.id===choice.superiority);
@@ -73,7 +77,11 @@ export function previewWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoic
     if(!source.readable)throw new Error('Registro de superioridade ilegível preservado. Confira os usos antes de continuar.');
     if(source.remaining<1)throw new Error('A origem de superioridade está esgotada; nenhum recurso foi gasto.');
     if(choice.noOtherManeuver!==true)throw new Error('Confirme que nenhuma outra manobra foi usada neste ataque, inclusive Precisão.');
-    maneuver={...selected,source,...damageManeuverResolution(c,selected,choice.maneuverAbility)};
+    if(selected.id==='sweeping'){
+      if(choice.maneuverAbility!==undefined)throw new Error('Trespassante não exige teste de resistência nem habilidade de CD.');
+      sweeping=previewSweepingAttack(c,entry,source.id,choice.sweeping!,E);
+      maneuver={...selected,source,dc:null,ability:null,note:sweeping.note};
+    }else maneuver={...selected,source,...damageManeuverResolution(c,selected,choice.maneuverAbility)};
   }else if(choice.superiority!==undefined || choice.maneuverAbility!==undefined || choice.noOtherManeuver!==undefined)throw new Error('Escolha a manobra antes de indicar seu dado e sua CD.');
   const parts:{name:string;formula:string;type:string}[]=[];
   const add=(name:string,formula:string,type:string,alreadyCritical=false)=>parts.push({name,formula:criticalFormula(formula,critical && !alreadyCritical),type});
@@ -88,7 +96,7 @@ export function previewWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoic
   if(choice.colossus)add('Assassino de Colossos','1d8',w.dmgTypeLabel);
   if(slot)add('Destruição Divina',`${Math.min(5,slot.level+1)+(choice.smiteFavored?1:0)}d8`,'radiante');
   if(powerAttack)add(powerAttack.name,String(powerAttack.damage),powerAttack.type);
-  if(maneuver)add(maneuver.name,`1d${maneuver.source.die}`,w.dmgTypeLabel);
+  if(maneuver && !sweeping)add(maneuver.name,`1d${maneuver.source.die}`,w.dmgTypeLabel);
   if(lunging)add('Ataque Estendido',`1d${lunging.die}`,w.dmgTypeLabel);
   if(feinting)add('Ataque de Finta',`1d${feinting.die}`,w.dmgTypeLabel);
   if(automatic && critical && w.meleeAttack && w.weaponDie!=='0') {
@@ -101,7 +109,7 @@ export function previewWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoic
   }
   const parsed=parseDiceFormula(parts.map(p=>p.formula).join('+').replace(/\+-/g,'-'));
   if(!parsed)throw new Error('A composição ultrapassa os limites do rolador; nenhum recurso foi gasto.');
-  return {name:String(w.name),critical,powerAttack,manual:!automatic,formula:parsed.formula,parts,slot:slot || null,maneuver,...(lunging?{lunging}:{}),...(feinting?{feinting}:{}),
+  return {name:String(w.name),critical,powerAttack,manual:!automatic,formula:parsed.formula,parts,slot:slot || null,maneuver,...(sweeping?{sweeping}:{}),...(lunging?{lunging}:{}),...(feinting?{feinting}:{}),
     summary:parts.map(p=>`${p.name}: ${p.formula} ${p.type}`).join(' · ')};
 }
 /** Valida todos os custos antes de descontar. Destruição não é conjuração de magia:

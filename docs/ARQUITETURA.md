@@ -1698,3 +1698,35 @@ Descanso limpa antes da recuperação normal; troca de ficha/conta/modo, recarga
 e objetos substituídos por desfazer também descartam o contexto. Desfazer/refazer
 restaura somente o contador do documento. Não persiste alvo/face/crédito, não
 muda outra ficha, não cria relógio/SQL/consulta de nuvem.
+
+## Ataque Trespassante — décimo sétimo recorte de R2, 29/10/2026
+
+`sweeping-attack.ts` verifica a aquisição vigente, arma reconhecida corpo a
+corpo com dano, origem/legibilidade/saldo e a ausência de outra manobra na
+sessão. A mesa declara o acerto original, outra criatura, distância até 1,5 m,
+alcance e se a mesma jogada atingiria a segunda CA. Não inventa outro ataque,
+CD, turno próprio, ação bônus ou reação. Personalizado/Forma Selvagem são
+limites do controle integrado, com resolução manual indicada.
+
+`weapon-damage.ts` inclui Trespassante na escolha única de manobra em Adicionais.
+O plano secundário fica em `sweeping`; **não entra em `parts`, `formula` ou no
+total principal**. Pela quantidade de dano expressa no texto de 2014, recebe
+somente um dado, inclusive se o alvo original sofreu crítico, sem bônus fixos,
+Furtivo, Destruição, dados raciais ou –5/+10. O commit paga um único uso da
+origem, mesmo quando a jogada não atingiria a segunda criatura.
+
+`weapon-damage-ui.ts` mantém os nós do formulário ao alternar a escolha e
+reutiliza a confirmação nativa. Revalida ficha, conta, permissão, arma,
+preparação/sessão, botão e configurações/sequência do dado antes do RNG/gasto.
+O registro físico pede total principal e face secundária separadamente; não
+pede face nem usa RNG secundário em uma tentativa que não atingiria. No virtual,
+o motor normal avalia o dado secundário fora da composição da arma; a bandeja
+mostra o total principal e a legenda informa o dano secundário e seu alvo.
+Um único passo local guarda o custo e os dois resultados.
+
+Repetições recebem apenas o resultado principal e suas partes originais. O
+diálogo identifica o total como dano do alvo original e explica que o secundário
+já foi registrado. Textos do alvo usam textContent/escape e quebram linha; não
+há alvo/face/efeito persistido na ficha. Desfazer/refazer restaura o contador e
+descanso segue a recuperação normal. Não altera outro jogador, catálogos,
+contratos antigos de dano, SQL ou consultas/sincronização de nuvem.

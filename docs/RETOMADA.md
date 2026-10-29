@@ -5,32 +5,32 @@ Estado consolidado em **29/10/2026**. Leia também `AGENTS.md`, `README.md`,
 
 ## Onde o trabalho parou
 
-**Em desenvolvimento: Ataque de Finta e os avanços individuais de combate,
+**Em desenvolvimento: Ataque Trespassante e os avanços individuais de combate,
 recursos e magias de 2014**, na branch `feature/manobras-acerto-2014`, iniciada
 no develop público `9f676e0`. Tudo permanece agrupado na
 [PR #35](https://github.com/mhaetinger/D-D/pull/35), sem mesclar/publicar.
 
-O décimo sexto recorte de R2 integra **Ataque de Finta**: Fintar junto da reserva
-confirma ação bônus no próprio turno, alvo até 1,5 m e gasto antecipado de um dado.
-Depois, marque Finta na arma e confirme o próximo ataque contra esse alvo neste
-turno. Dá vantagem, anulada por desvantagem mesmo com inspiração. No acerto, Dano
-inclui o dado já pago, dobrado em crítico, sem cobrar novamente. Ataques contra
-outras criaturas não usam a escolha. Fim do turno/erro são declarados no controle
-junto das armas; encerrar não devolve o dado. Magia, ataque próprio ou sem dano
-usam **Resolver na mesa**, sem outro gasto/conjuração; Forma Selvagem segue manual.
-Só o contador é salvo: recarga/troca de contexto/desfazer não recriam Finta.
-Desfazer/refazer restaura o contador, e descanso segue a recuperação normal.
+O décimo sétimo recorte de R2 integra **Ataque Trespassante** em Adicionais:
+segunda criatura a até 1,5 m da primeira e dentro do alcance, com confirmação de
+que a mesma jogada atingiria sua CA. O dano secundário é somente um dado de
+superioridade, separado do total principal, sem bônus/dados extras de crítico.
+A tentativa gasta um dado mesmo se a jogada não atingiria a segunda criatura;
+nesse caso registra zero, sem RNG secundário. Virtual e físico distinguem os
+dois resultados; repetições mudam apenas os dados da arma do alvo original.
+Não combina outra manobra no ataque. Ataques próprios/Forma Selvagem ficam na
+mesa. Não altera outra ficha nem acrescenta campos persistidos/consultas de nuvem.
 
 Cobertura de manobras: **sete no dano + Precisão + Aparar + Inspirar + Passo
-Evasivo + Estendido + Finta = 13/16**. Faltam três, listadas na auditoria única. Alvos,
-movimento, reação e turnos continuam com a mesa; a contagem não conclui o livro.
-A mesma PR reúne Adepto Elemental, recuperação/modo contextual na iniciativa,
-Sobrevivente e a revisão delimitada das quatro invocações. Detalhes, limites e
-verificações históricas ficam em `docs/AUDITORIA-LIVRO-2014.md`.
+Evasivo + Estendido + Finta + Trespassante = 14/16**. Faltam duas: **Contra-Atacar
+e Golpe do Comandante**. Alvos, alcance, movimento, reação e turnos continuam
+com a mesa; a contagem não conclui o livro. A mesma PR reúne Adepto Elemental,
+recuperação/modo contextual na iniciativa, Sobrevivente e a revisão delimitada
+das quatro invocações. Critérios, limites e verificações históricas ficam em
+`docs/AUDITORIA-LIVRO-2014.md`.
 
-A base anterior (`0eb3781`, Estendido) passou integralmente na CI: 597 testes,
-banco, build e 49 roteiros. As verificações deste avanço ficam na auditoria;
-a CI exige agora 50 roteiros e PostgreSQL descartável. Resultados atuais na PR #35.
+A base anterior (`5b0d48b`, Finta) passou integralmente na CI: 613 testes,
+banco, build e 50 roteiros. As verificações deste avanço ficam na auditoria;
+a CI exige agora 51 roteiros e PostgreSQL descartável. Resultados atuais na PR #35.
 As PRs #33/#34 foram substituídas pela entrega agrupada; não são trabalhos
 paralelos pendentes.
 
@@ -54,7 +54,7 @@ os recortes ainda parciais, sem prometer automação integral do livro.
 
 ## Escopo da entrega e próximos avanços
 
-O quarto recorte de R2 já foi publicado; quinto a décimo sexto ficam em
+O quarto recorte de R2 já foi publicado; quinto a décimo sétimo ficam em
 desenvolvimento, junto da revisão delimitada das invocações. A auditoria é a
 fonte única de critérios e pendências; as decisões da mesa podem continuar
 manuais, com indicação clara. A ordem permanece **draconatos → rolagens →

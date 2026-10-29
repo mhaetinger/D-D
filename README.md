@@ -208,6 +208,19 @@ Distrativo beneficia apenas o próximo ataque de outra criatura no prazo indicad
 Adepto Marcial tem seu dado adicional
 identificado, com recuperação em descanso curto/longo. OFF/Só Pool registram
 o total físico. Manobras sem controle próprio continuam em **Usar na mesa**.
+Também em desenvolvimento, **Ataque Trespassante** aparece em **Adicionais** de
+uma arma reconhecida usada corpo a corpo. Identifique a segunda criatura e
+confirme: o ataque acertou a primeira, a segunda está a até 1,5 m dela e dentro
+do seu alcance. Informe se **a mesma jogada** atingiria a segunda CA. Não role
+outro ataque. O dano principal fica como estava; a segunda recebe somente
+**um dado de superioridade**, do tipo da arma, sem bônus ou dados extras de
+crítico. Se não atingiria, recebe zero, mas a tentativa gasta o dado escolhido.
+No Auto Ficha, role aqui ou registre o total principal e a face secundária
+físicos; OFF/Só Pool usam apenas esse registro. A legenda/histórico distinguem
+os dois danos; repetições da arma alteram só o alvo original. Não usa outra
+manobra no mesmo ataque, nem aplica dano automaticamente a outra ficha.
+Ataques personalizados e Forma Selvagem continuam na mesa.
+
 Também em desenvolvimento, **Aparar** aparece em **Dano detalhado → Calcular
 por tipo** para quem conhece a manobra. Confirme ataque corpo a corpo de outra
 criatura, reação disponível e nenhuma outra manobra sua no ataque. Escolha a
