@@ -2,6 +2,7 @@ import { active, level, norm, selections, subclass, type Engine, type Sheet } fr
 import { incapacityReason } from './concentration';
 import { automaticSaveFailure, hasCondition } from './conditions';
 import {dragonAncestry} from './draconic-ancestry';
+import {previewParry,type ParryChoice} from './parry';
 
 export const DAMAGE_TYPES = [
   ['acid','Ácido'],['bludgeoning','Concussão'],['slashing','Cortante'],['lightning','Elétrico'],
@@ -18,7 +19,7 @@ export const DAMAGE_SOURCES = [
 export type DamageSource=typeof DAMAGE_SOURCES[number][0];
 export type DamageDefense='auto'|'normal'|'resistance'|'immunity';
 export interface DamagePart { type:DamageType; amount:number; defense?:DamageDefense; vulnerable?:boolean; reduction?:number }
-export interface DamagePacket { source:DamageSource; parts:DamagePart[]; critical?:boolean; silvered?:boolean; uncannyDodge?:boolean; dexteritySave?:'success'|'failure'; modifierOrder?:'reduceFirst'|'halveFirst' }
+export interface DamagePacket { source:DamageSource; parts:DamagePart[]; critical?:boolean; silvered?:boolean; uncannyDodge?:boolean; dexteritySave?:'success'|'failure'; modifierOrder?:'reduceFirst'|'halveFirst'; parry?:ParryChoice; parryOrder?:'armorFirst'|'parryFirst' }
 export const damageTypeName=(type:string)=>DAMAGE_TYPES.find(x=>x[0]===type)?.[1] || '';
 const typeFromText=(text:unknown)=>DAMAGE_TYPES.find(([id,name])=>norm(text)===id || norm(text)===norm(name))?.[0];
 const lastChoice=(c:Sheet,E:Engine,cls:string|null,key:string)=>E.selections(c,cls,key)?.at(-1);
@@ -85,9 +86,15 @@ export function previewTypedDamage(c:Sheet,packet:DamagePacket,E:Engine) {
   if(packet.uncannyDodge && !canUncannyDodge(c,E,packet.source))throw new Error('Esquiva Sobrenatural exige a característica, um ataque, visão do atacante e capacidade de usar a reação.');
   if(packet.dexteritySave && isDamageAttack(packet.source))throw new Error('Separe o dano do ataque e o efeito com resistência de DES para metade.');
   if(packet.dexteritySave==='success' && automaticSaveFailure(c,'dex'))throw new Error('A condição atual causa falha automática na resistência de DES.');
+  if(packet.parryOrder!==undefined && !['armorFirst','parryFirst'].includes(packet.parryOrder))throw new Error('Confira a ordem de Aparar e da redução de armadura.');
+  if(packet.parry && (!isDamageAttack(packet.source) || packet.uncannyDodge))throw new Error('Aparar exige um ataque corpo a corpo e sua reação: não combine com Esquiva Sobrenatural na mesma ocorrência.');
+  const parry=packet.parry?previewParry(c,packet.parry,E):null;
+  if(parry && previewTypedDamage(c,{...packet,parry:undefined},E).received===0)throw new Error('Este dano já é zero após proteção e defesas; Aparar não se aplica.');
   const evasion=!!packet.dexteritySave && hasEvasion(c,E),zero=evasion && packet.dexteritySave==='success';
   const saveHalf=packet.dexteritySave==='success' || evasion && packet.dexteritySave==='failure';
-  let heavyRemaining=heavyArmorReduction(c,E,packet.source);
+  const heavyAvailable=heavyArmorReduction(c,E,packet.source);
+  let heavyRemaining=heavyAvailable;
+  let parryRemaining=parry?.reduction || 0;
   let wardRemaining=arcaneWardPoints(c);
   if(!Number.isSafeInteger(wardRemaining) || wardRemaining<0)throw new Error('Reserva de Proteção Arcana inválida preservada; confira a ficha.');
   const seen=new Set<string>();
@@ -108,18 +115,23 @@ export function previewTypedDamage(c:Sheet,packet:DamagePacket,E:Engine) {
     // Um ataque misto recebe 3 pontos de redução no total, alocados pela ordem
     // dos tipos físicos. A mesa pode ordenar as linhas antes de confirmar.
     const beforeReduction=packet.uncannyDodge && packet.modifierOrder==='halveFirst'?Math.floor(afterWard/2):afterWard;
-    const heavyReduction=immunity.length || !['bludgeoning','piercing','slashing'].includes(part.type)?0:Math.min(heavyRemaining,Math.max(0,beforeReduction-reduction));heavyRemaining-=heavyReduction;
-    const reduced=immunity.length?0:Math.max(0,beforeReduction-reduction-heavyReduction);
+    const available=immunity.length?0:Math.max(0,beforeReduction-reduction),parryFirst=packet.parryOrder==='parryFirst';
+    const earlyParry=parryFirst?Math.min(parryRemaining,available):0;
+    const heavyReduction=!['bludgeoning','piercing','slashing'].includes(part.type)?0:Math.min(heavyRemaining,available-earlyParry);heavyRemaining-=heavyReduction;
+    const parryReduction=parryFirst?earlyParry:Math.min(parryRemaining,available-heavyReduction);parryRemaining-=parryReduction;
+    const reduced=Math.max(0,available-heavyReduction-parryReduction);
     const afterReduction=packet.uncannyDodge && packet.modifierOrder!=='halveFirst'?Math.floor(reduced/2):reduced;
     const afterResistance=resistance.length?Math.floor(afterReduction/2):afterReduction;
-    return {...part,defense,reduction,heavyReduction,ward,immunity,resistance,afterSave,afterWard,afterReduction,received:afterResistance*(part.vulnerable?2:1)};
+    return {...part,defense,reduction,heavyReduction,ward,immunity,resistance,afterSave,afterWard,afterReduction,received:afterResistance*(part.vulnerable?2:1),...(parry?{parryReduction}:{})};
   });
   return {source:packet.source,critical:!!packet.critical,silvered:!!packet.silvered,uncannyDodge:!!packet.uncannyDodge,dexteritySave:packet.dexteritySave,evasion,modifierOrder:packet.modifierOrder || 'reduceFirst',parts,
-    raw:parts.reduce((n,p)=>n+p.amount,0),ward:parts.reduce((n,p)=>n+p.ward,0),received:parts.reduce((n,p)=>n+p.received,0)};
+    raw:parts.reduce((n,p)=>n+p.amount,0),ward:parts.reduce((n,p)=>n+p.ward,0),received:parts.reduce((n,p)=>n+p.received,0),...(parry?{parry,parryOrder:heavyAvailable?packet.parryOrder || 'armorFirst':undefined}:{})};
 }
 export type DamagePlan=ReturnType<typeof previewTypedDamage>;
 export function typedDamageSummary(plan:DamagePlan) {
   const reaction=plan.uncannyDodge?`Esquiva Sobrenatural · usa reação · ${plan.modifierOrder==='halveFirst'?'metade antes das reduções':'reduções antes da metade'}; `:'';
   const save=plan.dexteritySave?`DES para metade · ${plan.dexteritySave==='success'?'sucesso':'falha'}${plan.evasion?' · Evasão':''}; `:'';
-  return reaction+save+plan.parts.map(p=>`${p.amount} ${damageTypeName(p.type)}${plan.dexteritySave?` → teste ${p.afterSave}`:''}${p.ward?` − proteção ${p.ward}`:''}${p.immunity.length?` · ${p.immunity.join(', ')} = 0`:`${p.reduction?` − redução ${p.reduction}`:''}${p.heavyReduction?` − Maestria em Armadura Pesada ${p.heavyReduction}`:''}${p.resistance.length?` · resistência (${p.resistance.join(', ')}) ÷2`:p.defense==='normal'?' · sem defesa (mesa)':''}${p.vulnerable?' · vulnerabilidade ×2 (mesa)':''} = ${p.received}`}`).join('; ');
+  const parry=plan.parry?`Aparar · reação · ${plan.parry.source.name} d${plan.parry.source.die}[${plan.parry.face}] + DES (${plan.parry.dex}) = até ${plan.parry.reduction} de redução · gasta 1 dado${plan.parryOrder?` · ${plan.parryOrder==='parryFirst'?'Aparar antes da armadura':'armadura antes de Aparar'}`:''}; `:'';
+  const fixed=(p:DamagePlan['parts'][number])=>{const armor=p.heavyReduction?` − Maestria em Armadura Pesada ${p.heavyReduction}`:'',parry=p.parryReduction?` − Aparar ${p.parryReduction}`:'';return plan.parryOrder==='parryFirst'?parry+armor:armor+parry;};
+  return reaction+save+parry+plan.parts.map(p=>`${p.amount} ${damageTypeName(p.type)}${plan.dexteritySave?` → teste ${p.afterSave}`:''}${p.ward?` − proteção ${p.ward}`:''}${p.immunity.length?` · ${p.immunity.join(', ')} = 0`:`${p.reduction?` − redução ${p.reduction}`:''}${fixed(p)}${p.resistance.length?` · resistência (${p.resistance.join(', ')}) ÷2`:p.defense==='normal'?' · sem defesa (mesa)':''}${p.vulnerable?' · vulnerabilidade ×2 (mesa)':''} = ${p.received}`}`).join('; ');
 }

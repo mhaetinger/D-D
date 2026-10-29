@@ -1535,3 +1535,40 @@ O controle funciona em OFF/Só Pool/Auto Ficha; não gasta inspiração, Dados d
 ou Retomar o Fôlego. Iniciativa, descanso e recarga não chamam esse gatilho.
 O início de cada turno pertence à mesa, e a ficha não detecta declarações
 repetidas deliberadamente. Estatísticas da besta continuam para R4.
+
+## Aparar — décimo segundo recorte de R2, 29/10/2026
+
+`parry.ts` consulta conhecimento vigente e origens de `superiorityOptions`,
+validando saldo, máximo, registro, face e DES. Aceita Aparar da classe ou do
+Adepto Marcial; dados aprimorados usam o nível próprio do Mestre de Batalha.
+Exige declaração de ataque corpo a corpo de outra criatura, reação disponível
+e nenhuma outra manobra do jogador no ataque. Incapacitação e Forma Selvagem
+impedem o controle; cegueira sozinha não impede Aparar. Não requer arma própria.
+
+`DamagePacket.parry` é opcional. `previewTypedDamage` exige origem de ataque e
+rejeita combinar duas reações com Esquiva Sobrenatural. Calcula a redução
+`max(0, face + DES)` e um orçamento único para toda a ocorrência, alocado pela
+ordem dos tipos após proteção externa/imunidade e antes de resistência e
+vulnerabilidade. Tipos imunes não consomem o orçamento. Um plano sem Aparar
+confere se as defesas já zeram o dano; nesse caso não há uso. Crítico não dobra
+redução nem custo. `parryOrder` declara a ordem entre Aparar e Maestria em
+Armadura Pesada, pois os orçamentos afetam tipos diferentes. Redução adicional
+manual permanece por linha, antes desses dois orçamentos.
+
+`applyTypedDamage` valida plano completo e sobrevivência antes de gastar um dado
+da origem selecionada, descontar proteção e aplicar um único dano final ao corpo.
+Temporários, concentração e morte usam o mesmo fluxo anterior. Custo e dano são
+salvos juntos pelo controle existente; desfazer restaura ambos. Prévia não altera
+ficha, gasto, notas ou máximo. O modo já resolvido mantém seu contrato.
+
+`parry-ui.ts` ocupa um disclosure compacto dentro do dano por tipo, visível só
+para quem conhece Aparar e selecionou ataque. Fonte/face/ordem conservam seus nós.
+O jogador informa a face ou usa `chooseResourceDice`; novas opções opcionais
+desse assistente personalizam texto e validam o contexto antes do RNG, mantendo
+os quatro argumentos antigos. Essa etapa só prepara a face, sem custo ou PV.
+Revalida documento, campos, conta, formulário e permissão; cancelar conserva o
+rascunho. OFF usa face física; virtual preserva pool, modo global e inspiração.
+O envio bloqueia concorrência no mesmo formulário e revalida os campos de Aparar
+e a permissão após eventual teste de sobrevivência. Aplicar inicia outra ocorrência
+com novo formulário. A mesa acompanha ataque, reação e turnos; não há identidade
+de alvo, relógio, novos campos persistidos ou chamadas de nuvem.

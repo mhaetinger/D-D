@@ -7,6 +7,7 @@ import { ability, active, escape, state, type Engine, type Sheet } from './model
 import { hasHalflingLuck } from './dice-roll';
 import { luckyResource, luckRemaining } from './lucky';
 import {survivorControls,useSurvivor} from './survivor-ui';
+import {canEditSheet} from '../sheet-edit/access';
 
 const tip=(name:string,text:string)=>`tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name,text}))}"`;
 const action=(id:string,label:string,disabled=false,attrs='')=>`<button type="button" data-health-action="${id}" ${disabled?'disabled':''} ${attrs}>${label}</button>`;
@@ -90,6 +91,7 @@ async function chooseDamageSurvival(c:Sheet,received:number,form:HTMLElement,E:E
   }
   return {choice,description:previewSurvival(c,received,choice)!.description,inspired:d.inspired && !(virtual && (optionsD20.lucky || optionsD20.askLucky))};
 }
+const pendingDamage=new WeakSet<HTMLElement>();
 export function setupHealthUI(E:Engine,save:(description:string)=>void) {
   const host=window as any;
   setupDamageUI(E);
@@ -103,20 +105,25 @@ export function setupHealthUI(E:Engine,save:(description:string)=>void) {
       if(id==='survivor'){await useSurvivor(c,E,button,save);return;}
       if(id==='damage') {
         const controls=button.closest<HTMLElement>('[data-damage-controls]')!;
-        const typed=controls.querySelector<HTMLSelectElement>('[data-damage-mode]')!.value==='typed';
-        const input=controls.querySelector<HTMLInputElement>('[data-health-damage]')!,n=Number(input.value),critical=controls.querySelector<HTMLInputElement>('[data-health-critical]')!.checked;
-        if(!typed && (!Number.isInteger(n) || n<=0)) throw new Error('Informe um dano inteiro maior que zero.');
-        const packet=typed?readDamagePacket(controls):null,received=packet?previewTypedDamage(c,packet,E).received:Math.max(0,n-arcaneWardPoints(c));
-        const survival=await chooseDamageSurvival(c,received,controls,E);if(!survival)return;
-        if(host.getChar()!==c || !controls.isConnected)return;
-        let description:string;
-        if(packet) {
-          const result=applyTypedDamage(c,packet,E,survival.choice);
-          description=`Dano por tipo · ${typedDamageSummary(result)} · ${damageDescription(c,result.absorption,result.received,result.critical)}`;
-        }else description=damageDescription(c,applyDamage(c,n,{critical,survival:survival.choice}),n,critical);
-        if(!c.hpTemp)c.hpTempSource='';
-        if(survival.inspired)consumeInspiration(c);
-        save(description+(survival.description?' · '+survival.description:'')+(survival.inspired?' · usou inspiração':''));return;
+        if(pendingDamage.has(controls))return;
+        pendingDamage.add(controls);
+        try{
+          const typed=controls.querySelector<HTMLSelectElement>('[data-damage-mode]')!.value==='typed';
+          const input=controls.querySelector<HTMLInputElement>('[data-health-damage]')!,n=Number(input.value),critical=controls.querySelector<HTMLInputElement>('[data-health-critical]')!.checked;
+          if(!typed && (!Number.isInteger(n) || n<=0)) throw new Error('Informe um dano inteiro maior que zero.');
+          const packet=typed?readDamagePacket(controls):null,received=packet?previewTypedDamage(c,packet,E).received:Math.max(0,n-arcaneWardPoints(c));
+          const survival=await chooseDamageSurvival(c,received,controls,E);if(!survival)return;
+          if(host.getChar()!==c || !controls.isConnected)return;
+          if(packet?.parry && (!canEditSheet(c) || controls.querySelector<HTMLSelectElement>('[data-damage-mode]')!.value!=='typed' || JSON.stringify(readDamagePacket(controls))!==JSON.stringify(packet)))throw new Error('A permissão ou o dano mudou. Aparar não foi aplicado; nenhum dado foi gasto.');
+          let description:string;
+          if(packet) {
+            const result=applyTypedDamage(c,packet,E,survival.choice);
+            description=`Dano por tipo · ${typedDamageSummary(result)} · ${damageDescription(c,result.absorption,result.received,result.critical)}`;
+          }else description=damageDescription(c,applyDamage(c,n,{critical,survival:survival.choice}),n,critical);
+          if(!c.hpTemp)c.hpTempSource='';
+          if(survival.inspired)consumeInspiration(c);
+          save(description+(survival.description?' · '+survival.description:'')+(survival.inspired?' · usou inspiração':''));return;
+        }finally{pendingDamage.delete(controls);}
       }
       if(id==='inspirationReceive') { c.heroicInspiration=true;save('Recebeu inspiração · 2014');return; }
       if(id==='inspirationUse') {

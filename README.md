@@ -208,6 +208,14 @@ Distrativo beneficia apenas o próximo ataque de outra criatura no prazo indicad
 Adepto Marcial tem seu dado adicional
 identificado, com recuperação em descanso curto/longo. OFF/Só Pool registram
 o total físico. Demais manobras continuam em **Usar na mesa**.
+Também em desenvolvimento, **Aparar** aparece em **Dano detalhado → Calcular
+por tipo** para quem conhece a manobra. Confirme ataque corpo a corpo de outra
+criatura, reação disponível e nenhuma outra manobra sua no ataque. Escolha a
+origem e informe ou role a face; a prévia reduz **face + DES** antes das
+resistências, uma vez para todo o ataque. Preparar a face não gasta: **Aplicar
+dano** desconta um dado e os PV na mesma etapa de desfazer. Aparar e Esquiva
+Sobrenatural são alternativas de reação. Confira a ordem das linhas no dano
+misto e a ordem das reduções quando usar Maestria em Armadura Pesada.
 Depois de rolar o ataque no **Auto Ficha**, abra a bandeja do dado e use
 **Precisão · usar 1 dado**. Escolha a origem e role o dado de superioridade
 ou informe sua face física; o d20 natural permanece igual. Sortudo e o halfling

@@ -5,6 +5,7 @@ import { conditionSpeed, hasCondition } from './conditions';
 import { hasFeat, lifedrinkerBonus, untrainedAbilityBonus } from './passives';
 import { arcaneWardPoints, previewTypedDamage, type DamagePacket } from './damage';
 import { commitSurvival, previewSurvival, type SurvivalChoice, type SurvivalPlan } from './survival';
+import {spend} from './resources';
 
 const aliases: Record<string,string> = { warhammer:'Martelo de guerra', longsword:'Espada longa', shortsword:'Espada curta', dagger:'Adaga', quarterstaff:'Bordão', rapier:'Rapieira', handaxe:'Machadinha', greataxe:'Machado grande', longbow:'Arco longo', shortbow:'Arco curto', 'light crossbow':'Besta leve', 'heavy crossbow':'Besta pesada' };
 export function catalogueWeapon(entry: Sheet, E: Engine) {
@@ -126,6 +127,7 @@ export function applyDamage(c: Sheet, amount: number, options:{critical?:boolean
 export function applyTypedDamage(c:Sheet,packet:DamagePacket,E:Engine,choice?:SurvivalChoice) {
   const plan=previewTypedDamage(c,packet,E);
   const survival=previewSurvival(c,plan.received,choice);
+  if(plan.parry)spend(c,plan.parry.source.resource);
   if(plan.ward)c.ruleState.pools['mago:ward']-=plan.ward;
   return {...plan,absorption:applyBodyDamage(c,plan.received,plan.critical,plan.ward,survival),survival};
 }

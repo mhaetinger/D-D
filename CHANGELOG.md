@@ -1,5 +1,32 @@
 # Changelog
 
+## Não lançado — Aparar — 2026-10-29
+
+- Décimo segundo recorte de R2: Dano detalhado por tipo oferece Aparar a quem
+  conhece a manobra pela classe ou Adepto Marcial. Confirma ataque corpo a corpo
+  de outra criatura, reação disponível e nenhuma outra manobra sua no ataque.
+  Reduz face + DES, com dado da origem escolhida, incluindo os aprimorados.
+- A face pode ser física ou virtual; sua preparação não gasta nem altera PV,
+  pool ou inspiração. Aplicar dano valida o plano completo e desconta um dado
+  junto dos PV, em uma etapa de desfazer. Evita envio concorrente no formulário;
+  revalida campos/conta/documento/permissão antes de RNG ou aplicação.
+- Um orçamento de redução por ataque misto, alocado pela ordem dos tipos;
+  proteção/imunidade antes e resistência/vulnerabilidade depois. A ordem entre
+  Aparar e Maestria em Armadura Pesada é explícita. Não combina duas reações com
+  Esquiva Sobrenatural. Crítico não dobra redução/custo; concentração/morte usam
+  um único dano final. Forma Selvagem continua manual.
+- Mantém contratos dos quatro argumentos do assistente de dados e do dano já
+  resolvido. Conhecimento, registros ilegíveis, saldo e máximo são revalidados;
+  campos mantêm seus nós/foco. Sem novo contador de reação, alvo ou turno,
+  migração, chamadas de nuvem ou alteração de catálogo. Entrega na PR #35,
+  sem publicação; histórico local de 25 registros e nuvem manual preservados.
+- Verificados 564 testes Node, tipos/build e sete roteiros Chromium: Aparar,
+  dano, PV, Precisão, manobras, correções auditadas e Sobrevivente. Incluem
+  origens/dados/ordem, prévia sem gasto, físico/virtual/OFF, cancelamento,
+  revalidação antes do RNG, clique duplo, custo/dano/desfazer, CON único,
+  nós/foco/scroll, 320px/GG/temas/layouts, notas e offline /D-D/.
+  A CI exige 46 roteiros e banco descartável; resultados na PR.
+
 ## Não lançado — Sobrevivente — 2026-10-29
 
 - Décimo primeiro recorte de R2: Campeão de nível próprio 18 recebe controle
