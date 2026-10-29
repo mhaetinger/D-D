@@ -1,11 +1,11 @@
 # Retomada do CritCall
 
-Estado consolidado em **28/10/2026**. Leia também `AGENTS.md`, `README.md`,
+Estado consolidado em **29/10/2026**. Leia também `AGENTS.md`, `README.md`,
 `CHANGELOG.md` e [ARQUITETURA.md](ARQUITETURA.md) antes de alterar.
 
 ## Onde o trabalho parou
 
-**Em desenvolvimento: modo/recuperação na iniciativa, Precisão, manobras no acerto,
+**Em desenvolvimento: Sobrevivente, modo/recuperação na iniciativa, Precisão, manobras no acerto,
 Adepto Elemental e revisão das quatro invocações**, na branch `feature/manobras-acerto-2014`, iniciada no
 develop público `9f676e0`. Tudo permanece agrupado na
 [PR #35](https://github.com/mhaetinger/D-D/pull/35), sem mesclar/publicar.
@@ -22,11 +22,17 @@ cancelar: Instinto Selvagem (bárbaro 7), Explorador Natural (Patrulheiro Revisa
 explica as fontes, preservadas em Sortudo/halfling; OFF/Só Pool orientam o dado
 físico sem gastar inspiração. Medo/visibilidade, DES/equipamento da Forma
 Selvagem, surpresa/Fúria e alvos do primeiro turno continuam na mesa.
-O nono recorte (`fa7e970`) passou integralmente na CI (534 testes, banco, build
-e 43 roteiros); a execução da nova revisão fica na mesma PR. As PRs #33/#34
+O décimo primeiro recorte acrescenta Sobrevivente do Campeão 18 junto aos PV:
+5 + CON no começo de um turno declarado, com PV positivos até metade do máximo
+vigente. A cura pode ultrapassar a metade; usa máximo reduzido por exaustão.
+Passivo funciona em sono/incapacitação com PV positivos, não a 0 PV ou morto;
+PV/CON da besta continuam na mesa. Confirmação revalida contexto/permissão e
+registra um passo de desfazer. A mesa acompanha os turnos, sem relógio automático.
+O décimo recorte (`b82398b`) passou integralmente na CI (543 testes, banco, build
+e 44 roteiros); a execução da nova revisão fica na mesma PR. As PRs #33/#34
 foram substituídas pela entrega agrupada; não são trabalhos paralelos pendentes.
-Nesta rodada passaram 543 testes Node, tipos/build e sete roteiros Chromium;
-os detalhes ficam no décimo recorte da auditoria. A CI exige os 44 roteiros e
+Nesta rodada passaram 552 testes Node, tipos/build e sete roteiros Chromium;
+os detalhes ficam no décimo primeiro recorte da auditoria. A CI exige os 45 roteiros e
 PostgreSQL descartável; resultado da revisão atual na PR #35.
 
 **Publicação por entregas agrupadas.** O responsável orientou não publicar cada
@@ -52,13 +58,14 @@ os recortes ainda parciais, sem prometer automação integral do livro.
 A rodada atual reúne a revisão delimitada das quatro invocações, o quinto
 recorte de R2 (Adepto Elemental), o sexto (manobras no acerto/Adepto Marcial),
 o sétimo (Precisão depois do d20), o oitavo (cinco outras manobras de dano),
-o nono (recuperação na iniciativa) e o décimo (modo da iniciativa).
+o nono (recuperação na iniciativa), o décimo (modo da iniciativa) e o décimo
+primeiro (Sobrevivente no começo do turno declarado).
 Os critérios e limites estão na auditoria; isso não
 promete automação integral de todas as regras do livro. As demais possibilidades
 registradas são evoluções da ficha individual. Decisões que pertencem à mesa
 podem continuar manuais, com indicação clara, sem bloquear o uso da ficha.
 
-O quarto recorte de R2 já foi publicado; quinto a décimo ficam em desenvolvimento,
+O quarto recorte de R2 já foi publicado; quinto a décimo primeiro ficam em desenvolvimento,
 junto da auditoria de invocações. Outros adicionais/manobras e os
 contextos de magia ainda manuais permanecem na matriz da auditoria. Ordem mantida:
 **draconatos → rolagens → magias → importação**.

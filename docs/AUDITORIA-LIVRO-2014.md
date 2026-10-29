@@ -284,7 +284,7 @@ básico real telefone/computador já foram confirmados pelo responsável.
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
 | R1 — bônus nos cálculos | **Quatro passivos entregues; achados A01/A05/A06 corrigidos nesta branch** | O recorte original continua implementado. A01/A05/A06 corrigem os bônus/modificadores adicionais e a inconsistência de PV identificados no check-up; regressões nesta entrega. Tipos variáveis/efeitos posteriores seguem em R5. |
-| R2 — rolagens e gastos condicionais | **Quinto a décimo recortes em desenvolvimento; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo na PR #20; -5/+10 na PR #21; Atacante Bestial e Combate com Armas Grandes publicados nas PRs #31/#32. Quinto recorte: Adepto Elemental nos danos de magia reconhecidos. Sexto: Ataque Desarmante/Derrubar no dano e reservas do Adepto Marcial. Sétimo: Precisão depois do d20 com Sortudo/halfling. Oitavo: cinco outras manobras de dano, com FOR/SAB ou sem resistência. Nono: recuperação de superioridade, Inspiração de Bardo e Chi ao rolar iniciativa com a reserva vazia. Décimo: vantagem/desvantagem contextual na iniciativa. Critérios e limites abaixo. Faltam oito manobras, adicionais dos demais talentos/estilos e contextos de elemento/efeito ainda manuais. Turnos/alvos continuam declarados pela mesa. |
+| R2 — rolagens e gastos condicionais | **Quinto a décimo primeiro recortes em desenvolvimento; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo na PR #20; -5/+10 na PR #21; Atacante Bestial e Combate com Armas Grandes publicados nas PRs #31/#32. Quinto recorte: Adepto Elemental nos danos de magia reconhecidos. Sexto: Ataque Desarmante/Derrubar no dano e reservas do Adepto Marcial. Sétimo: Precisão depois do d20 com Sortudo/halfling. Oitavo: cinco outras manobras de dano, com FOR/SAB ou sem resistência. Nono: recuperação de superioridade, Inspiração de Bardo e Chi ao rolar iniciativa com a reserva vazia. Décimo: vantagem/desvantagem contextual na iniciativa. Décimo primeiro: Sobrevivente no início do turno declarado pela mesa. Critérios e limites abaixo. Faltam oito manobras, adicionais dos demais talentos/estilos e contextos de elemento/efeito ainda manuais. Turnos/alvos continuam declarados pela mesa. |
 | R3 — condições, defesas e características | Planejada; já há cobertura parcial | Completar efeitos das condições, imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
 | R5 — famílias de magias | Parcial: oito curas e quatro invocações auditadas | Revisão delimitada de invocações e magias associadas concluída abaixo; vínculo automático de conjuração/custo ainda manual. Revisar outras famílias: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
@@ -793,7 +793,8 @@ Auto Aperfeiçoamento, p. 105 / PDF 104.
 
 **R2 permanece parcial.** Naquele recorte, os contextos de vantagem na iniciativa
 ainda eram manuais; avançam no décimo recorte abaixo. As outras oito manobras,
-outras reações, estilos/talentos e Sobrevivente continuam na mesa. Não há rastreamento automático
+outras reações e estilos/talentos continuam na mesa. Sobrevivente avança no
+décimo primeiro recorte abaixo. Não há rastreamento automático
 de combate, turnos ou nova iniciativa: a mesa declara o contexto. Nenhuma
 interação entre fichas ou sincronização contínua foi adicionada.
 
@@ -835,8 +836,9 @@ p. 146 / PDF 145; envenenado/exaustão, p. 292 / PDF 290.
   primeiro turno. Explorador Natural não aplica vantagem automática a ataques:
   a mesa confere se o alvo ainda não agiu. Sem acompanhamento de turnos/alvos.
 
-**R2 permanece parcial.** Outras oito manobras, reações, estilos/talentos,
-Sobrevivente e demais contextos condicionais continuam na matriz. Este recorte
+**R2 permanece parcial.** Outras oito manobras, reações, estilos/talentos e
+demais contextos condicionais continuam na matriz. Sobrevivente avança no décimo
+primeiro recorte abaixo. Este recorte
 não promete aplicar as mesmas condições automaticamente em toda jogada da ficha.
 Sem SQL, dados reais, alteração dos catálogos ou publicação.
 
@@ -846,6 +848,40 @@ auditados, dado e ajudas. Incluem cancelamento único, preservação do perfil n
 repetições, inspiração/desfazer, RNG/permissão, OFF/Só Pool/recuperação, notas,
 320px/GG/três temas/dois layouts e offline /D-D/. A CI exige 44 roteiros e
 PostgreSQL descartável. Evidência da CI atual permanece na PR #35.
+
+### Décimo primeiro recorte de R2: Sobrevivente — 29/10/2026
+
+**Implementado em desenvolvimento, sem publicação.** Livro local do Jogador
+2014, Sobrevivente do Campeão, p. 86 / PDF 85. Exige Guerreiro Campeão 18
+próprio, não nível total de multiclasse.
+
+- No começo de cada turno, recupera **5 + modificador de CON** se tiver PV
+  positivos até metade do máximo vigente. A metade é requisito anterior, não
+  teto da cura; a recuperação pode ultrapassá-la, limitada ao máximo. Exaustão
+  4/5 considera o máximo reduzido. CON negativa reduz o valor, e CON 1 dá zero.
+- Não exige ação nem consciência: sono/incapacitação com PV positivos não
+  bloqueiam. Zero PV, mesmo estável, não recebe o benefício; não revive mortos.
+- Controle compacto junto aos PV confirma **início de um novo turno, sem
+  repetir o benefício no mesmo turno**. Não deduz turnos de iniciativa, descanso,
+  recarga ou lançamentos. A mesa acompanha essa frequência; a ficha não detecta
+  uma declaração deliberadamente repetida. Não cria reserva nem cronômetro.
+- Usa a cura existente e um passo local de desfazer. Temporários, inspiração,
+  Dados de Vida e Retomar o Fôlego não são gastos. OFF/Só Pool/Auto funcionam sem
+  RNG. Cancelamento preserva tudo; documento, ficha/conta, botão e permissão são
+  revalidados antes da cura. Valores ilegíveis são preservados para conferência.
+- Na Forma Selvagem, PV/CON e retenção do benefício na besta ficam na mesa;
+  a ficha não aplica estatísticas humanas nem cura a reserva errada.
+
+**R2 continua parcial.** As oito manobras restantes, outras reações,
+estilos/talentos e contextos de magia seguem nas matrizes; não são implementados
+por este passivo. Sem SQL, dados reais, catálogos modificados ou publicação.
+
+Verificados **552 testes Node**, tipos/build e **sete roteiros Chromium**:
+Sobrevivente, PV, dano, cadeado, modo/recuperação na iniciativa e ajudas.
+Incluem limites, passivo durante sono/incapacitação, cancelamento/concorrência,
+revalidação de documento/ficha/conta/permissão, desfazer, condições/nós/foco/scroll,
+320px/GG/três temas/dois layouts, notas e offline /D-D/. A CI exige 45 roteiros e
+PostgreSQL descartável. Evidência da revisão atual permanece na PR #35.
 
 ### Revisão das quatro invocações — 23/10/2026
 
@@ -1003,7 +1039,7 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 | Clérigo, 62–69 | Conhecimento; Enganação; Guerra; Luz; Natureza; Tempestade; Vida | Preparação/domínios, Canalizar compartilhado, usos e Intervenção | Efeitos de cada domínio no alvo, cura/dano condicionado e Expulsar/Destruir Mortos-Vivos por ND |
 | Druida, 70–75 | Terra; Lua | Preparação/círculo, Forma Selvagem/PV, cura da Lua, Recuperação Natural e concentração mantida na transformação | Bloco de besta/estatísticas e custo de elemental; CON da forma informada no teste |
 | Feiticeiro, 76–81 | Magia Selvagem; Linhagem Dracônica | Feitiçaria/metamágica, conversão, Marés, CA, resistência e bônus inicial de Afinidade Elemental nos casos reconhecidos | Surto/gatilhos, tipos variáveis/efeitos posteriores e elegibilidade completa de metamagias; adaptações identificadas |
-| Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa parcial de Atletismo Extraordinário; repetição de Combate com Armas Grandes no quarto recorte de R2; Implacável na iniciativa no nono | A06/A13 corrigidos: arredondamento/testes físicos e Retomar físico/virtual. Sete manobras no dano e Precisão no ataque (sexto a oitavo recortes); oito manobras/reações e Sobrevivente pendentes |
+| Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa parcial de Atletismo Extraordinário; repetição de Combate com Armas Grandes no quarto recorte de R2; Implacável na iniciativa no nono e Sobrevivente do Campeão no décimo primeiro | A06/A13 corrigidos: arredondamento/testes físicos e Retomar físico/virtual. Sete manobras no dano e Precisão no ataque (sexto a oitavo recortes); oito manobras/reações pendentes; início dos turnos continua declarado pela mesa |
 | Ladino, 88–92 | Ladrão; Assassino; Trapaceiro Arcano | Especialização, composição de Ataque Furtivo, Esquiva/Evasão, usos avançados, magias e Talento Confiável nas perícias da ficha (R2 inicial) | Testes com ferramentas na mesa; surpresa/Assassinar e Ação Ardilosa |
 | Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, Dominar/Assinatura, recuperação, Proteção Arcana inclusive multiclasse, Conjuração Focada, Presságio e usos/estados de escola | Efeitos por alvo, demais bônus de escola, lacaios, pedra e Sobrecarga; fluxo de troca temporal das escolhas |
 | Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi, movimento/CA, curas/usos, Evasão, defesas de Pureza Corporal/Corpo Vazio no dano por tipo e Auto Aperfeiçoamento na iniciativa (nono recorte de R2) | Imunidade a condições, Artes Marciais/dano desarmado em todas as condições, Atordoar/Defletir Projéteis |

@@ -1,5 +1,27 @@
 # Changelog
 
+## Não lançado — Sobrevivente — 2026-10-29
+
+- Décimo primeiro recorte de R2: Campeão de nível próprio 18 recebe controle
+  compacto junto aos PV para Sobrevivente. No começo de um turno declarado,
+  recupera 5 + CON com PV positivos até metade do máximo vigente. A cura pode
+  ultrapassar a metade, até o máximo; exaustão considera o máximo reduzido.
+- Não exige ação ou consciência, não funciona a 0 PV e não revive. Forma
+  Selvagem continua com PV/CON resolvidos na mesa. Reutiliza a cura existente,
+  sem gastar inspiração, Retomar o Fôlego, Dados de Vida ou temporários.
+- Checkbox obrigatório confirma novo turno sem repetir o benefício. Cancela
+  sem alterações; revalida documento, ficha/conta, botão e permissão. Evita
+  confirmações concorrentes e registra cura/desfazer numa etapa local. Funciona
+  em OFF/Só Pool/Auto, sem RNG. A mesa acompanha os turnos: não há relógio ou
+  cura automática na iniciativa, descanso ou recarga.
+- Verificados 552 testes Node, tipos/build e sete roteiros Chromium:
+  Sobrevivente, PV, dano, cadeado, modo/recuperação na iniciativa e ajudas.
+  Incluem limites, passivo em sono/incapacitação, cancelamento/concorrência,
+  mudanças de contexto/permissão, desfazer, condições/nós/foco/scroll,
+  320px/GG/três temas/dois layouts, notas e offline /D-D/. CI exige 45 roteiros.
+  Entrega agrupada na PR #35, sem publicação; nuvem manual e histórico de
+  25 registros preservados.
+
 ## Não lançado — modo da iniciativa — 2026-10-28
 
 - Décimo recorte de R2: Auto Ficha aplica vantagem por Instinto Selvagem

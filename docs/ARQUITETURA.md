@@ -1509,3 +1509,29 @@ quando necessária. Medo exige visibilidade que o documento não contém; a ajud
 pede informar o modo na mesa. Forma Selvagem não presume que equipamento humano
 esteja vestido, e pede conferir DES/equipamento. Surpresa/Fúria e alvos que ainda
 não agiram permanecem na mesa, sem simular turnos ou gastar recursos.
+
+## Sobrevivente — décimo primeiro recorte de R2, 29/10/2026
+
+`survivor.ts` verifica Guerreiro de nível próprio 18 e subclasse Campeão vigente,
+incluindo identificação legada. A prévia pura usa `hitPointMaximum` para o limite
+reduzido por exaustão e aceita somente PV positivos até metade do máximo. Essa
+metade é requisito anterior à cura: `5 + CON` pode ultrapassá-la, até o máximo.
+Morte, PV/CON ilegíveis e Forma Selvagem são recusados sem alterar o documento.
+Sono/incapacitação com PV positivos não bloqueiam o passivo. CON 1 produz zero
+de cura; não cria alteração inútil. Aplicação exige declaração de começo de turno
+e reutiliza `healHitPoints`, preservando os contratos de cura e temporários.
+
+`survivor-ui.ts` acrescenta uma linha compacta junto aos PV, com razão de
+indisponibilidade e ajuda. `health-ui.ts` reutiliza o mesmo controle nos dois
+layouts e encaminha a ação ao diálogo existente. Checkbox obrigatório confirma
+um novo turno, sem repetir o benefício no mesmo turno. WeakSet evita confirmações
+concorrentes. Ficha/identidade, snapshot, conta, botão conectado e permissão são
+revalidados antes da cura; cancelar não altera PV ou histórico. O salvamento
+existente registra uma etapa; desfazer restaura os PV. Se o botão ficar
+indisponível após curar, o foco retorna à linha que explica a condição.
+
+Não há relógio de turnos, contador de usos, dados rolados ou chamadas remotas.
+O controle funciona em OFF/Só Pool/Auto Ficha; não gasta inspiração, Dados de Vida
+ou Retomar o Fôlego. Iniciativa, descanso e recarga não chamam esse gatilho.
+O início de cada turno pertence à mesa, e a ficha não detecta declarações
+repetidas deliberadamente. Estatísticas da besta continuam para R4.

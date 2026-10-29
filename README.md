@@ -234,6 +234,14 @@ foi escolhido. OFF/Só Pool orientam a rolagem física, sem gastar inspiração.
 Medo com fonte à vista, equipamento/DES da Forma Selvagem, surpresa e alvos do
 primeiro turno continuam declarados pela mesa.
 
+Em desenvolvimento, **Sobrevivente** (Campeão 18) aparece junto aos PV. No
+início de um novo turno, confirme o uso para recuperar **5 + CON**, se estiver
+com PV positivos e até metade do máximo vigente. A cura pode ultrapassar a
+metade, respeitando o máximo; exaustão usa o máximo reduzido. Não exige ação ou
+consciência, não funciona a 0 PV e não revive. A mesa acompanha os turnos;
+iniciativa, descanso e recarga não disparam o benefício. Na Forma Selvagem,
+PV/CON da besta continuam resolvidos na mesa.
+
 Em desenvolvimento, **Adepto Elemental** trata faces 1 como 2 no dano automático
 de magias reconhecidas do elemento escolhido. O selo mostra **Adepto: 1→2**;
 o livro explica a resistência ignorada, e o resultado conserva as faces originais

@@ -6,6 +6,7 @@ import { consumeInspiration, deathSaveBonus, deathStatus, hitDiceRemaining, hitP
 import { ability, active, escape, state, type Engine, type Sheet } from './model';
 import { hasHalflingLuck } from './dice-roll';
 import { luckyResource, luckRemaining } from './lucky';
+import {survivorControls,useSurvivor} from './survivor-ui';
 
 const tip=(name:string,text:string)=>`tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name,text}))}"`;
 const action=(id:string,label:string,disabled=false,attrs='')=>`<button type="button" data-health-action="${id}" ${disabled?'disabled':''} ${attrs}>${label}</button>`;
@@ -17,7 +18,7 @@ export function deathControls(c:Sheet,E:Engine) {
   const d=deathStatus(c),shape=active(c,'druida:wildShape');
   const help=tip('Caindo a 0 PV','Três sucessos estabilizam e zeram as contagens; três falhas matam. 1 natural vale duas falhas; 20 natural recupera 1 PV. Dano a 0 PV causa uma falha, duas se crítico, mesmo quando absorvido por temporários. Proteção externa impede esse dano. Cura comum não revive. Estabilize somente após o efeito ou Medicina CD 10 resolvido na mesa.');
   const controls=d.dead?`<strong role="status" ${help}>Morto</strong>${action('revive','Registrar retorno à vida')}`:c.hpCurrent===0 && !shape?`<div role="status"><strong ${help}>${d.stable?'Estável · inconsciente':'Inconsciente · 0 PV'}</strong>${!d.stable?`<span> · Sucessos ${d.successes}/3 · Falhas ${d.failures}/3</span>`:''}</div>${!d.stable?`${action('deathSave','Teste contra a morte')}${action('stabilize','Registrar estabilização')}`:'<span>Não realiza testes contra a morte. Cura ou 1 PV após 1d4 horas encerra a inconsciência; registre a recuperação nos PV.</span>'}`:'';
-  return `${controls?`<div class="rule-context rule-controls" data-health-status>${controls}</div>`:''}${!d.dead?damageControls(c,E):''}`;
+  return `${survivorControls(c,E)}${controls?`<div class="rule-context rule-controls" data-health-status>${controls}</div>`:''}${!d.dead?damageControls(c,E):''}`;
 }
 export function hitDiceControls(c:Sheet,E:Engine) {
   return `<div class="rule-context space-y-1.5"><p class="font-bold t-text-muted" ${tip('Dados de Vida · descanso curto','No fim de um descanso curto de ao menos 1 hora, gaste um Dado de Vida por vez e some Constituição, mínimo 0 de cura. Você pode decidir gastar outro depois do resultado. A 0 PV, resolva a estabilização antes de registrar esse descanso. Em multiclasse, escolha a classe. Resistente aplica o mínimo do talento. Canção do Descanso exige ouvir a atuação e só acrescenta uma vez no descanso. Não conclui outro descanso nem recupera recursos de classe.')}>Dados de Vida · descanso curto</p><div class="rule-hit-dice">${c.classes.map((cls:Sheet)=>`<div class="t-inset rule-controls"><span><strong>${hitDiceRemaining(cls)}/${cls.level}d${Number(cls.hitDie)||'?'}</strong> · ${escape(E.data.classes[cls.classId]?.name || cls.classId)}</span>${action('hitDieSpend','Gastar',!hitDiceRemaining(cls) || deathStatus(c).dead || c.hpCurrent<=0 && !active(c,'druida:wildShape') && !deathStatus(c).stable,`data-class="${escape(cls.classId)}" aria-label="Gastar Dado de Vida de ${escape(E.data.classes[cls.classId]?.name || cls.classId)}"`)}</div>`).join('')}</div></div>`;
@@ -99,6 +100,7 @@ export function setupHealthUI(E:Engine,save:(description:string)=>void) {
     const c=host.getChar();if(!c) return;
     const id=button.dataset.healthAction;
     try {
+      if(id==='survivor'){await useSurvivor(c,E,button,save);return;}
       if(id==='damage') {
         const controls=button.closest<HTMLElement>('[data-damage-controls]')!;
         const typed=controls.querySelector<HTMLSelectElement>('[data-damage-mode]')!.value==='typed';
