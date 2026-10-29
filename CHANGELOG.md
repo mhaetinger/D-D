@@ -1,5 +1,31 @@
 # Changelog
 
+## Não lançado — Golpe do Comandante — 2026-10-29
+
+- Décimo nono recorte de R2: **Comandar ataque** junto da superioridade confirma
+  ação Atacar no próprio turno, um ataque cedido, ação bônus e criatura amigável
+  que pode ver ou ouvir você. Gasta um dado antes de ela decidir a reação imediata
+  para um ataque com arma, corpo a corpo ou à distância. Não exige Ataque Extra.
+- O ataque do aliado permanece na mesa. Registrar resultado informa somente o
+  dado adicional já pago, físico ou virtual, dobrado em crítico. Erro, recusa ou
+  encerramento mantêm o gasto; não usa arma/bônus/preparações do comandante nem
+  altera outra ficha. Não gaste novamente em Usar na mesa.
+- Uma ordem pendente por ficha, entre as origens. Campos conservam nós/foco;
+  contexto/conta/permissão/modo/sequência são conferidos antes do custo ou RNG.
+  Descanso, troca de contexto, desfazer e recarga descartam a ordem; só o contador
+  é salvo/restaurado. A reação imediata é declarada na mesa, sem relógio de turno.
+- As **16/16 manobras** têm controles dentro dos limites registrados na auditoria;
+  R2 e as demais frentes do livro continuam parciais. Sem novo campo persistido,
+  SQL, consulta de nuvem, edição de catálogo ou publicação.
+- Verificados **650 testes Node**, tipos/build e **doze roteiros Chromium**:
+  Comandante, Inspirar, Passo Evasivo, Aparar, manobras, Precisão, Estendido,
+  Finta, Contra-Atacar, Trespassante, dado e regras. Incluem custo antecipado,
+  acerto/crítico/erro/recusa, origens, físico/virtual/OFF/Só Pool, isolamento das
+  preparações do comandante, validação/contexto/conta/permissão, descanso/
+  desfazer/recarga, notas/histórico/XSS/nós/foco, toque/320px/GG/três temas/dois
+  layouts/scroll e offline real sob `/D-D/`. CI completa exige agora 53 roteiros
+  e banco descartável; resultado remoto na PR #35.
+
 ## Não lançado — Contra-Atacar — 2026-10-29
 
 - Décimo oitavo recorte de R2: botão Contra-atacar junto da arma corpo a corpo

@@ -234,6 +234,20 @@ Reação/gatilho/alcance ficam com a mesa; ataques próprios/desarmados e Forma
 Selvagem continuam manuais. Recarregar/desfazer/trocar contexto não recriam o
 ataque: se necessário, resolva na mesa um dado ainda pago.
 
+Também em desenvolvimento, **Comandar ataque** junto da superioridade usa
+**Golpe do Comandante**. Confirme a ação Atacar no seu turno, um ataque ainda
+não realizado que você cede, ação bônus disponível e criatura amigável que pode
+ver ou ouvir você. Paga um dado agora, mesmo se ela não reagir ou errar. O aliado
+pode usar sua reação imediatamente para um ataque com arma corpo a corpo ou à
+distância, com os próprios valores; não precisa de Ataque Extra. Resolva esse
+ataque na mesa e use **Registrar ataque do aliado** somente para o dado adicional
+já pago: uma face no acerto, duas em crítico, físico ou virtual. Não usa os bônus
+ou preparações do comandante e não altera outra ficha. **Já resolvido na mesa /
+encerrar** termina sem outra rolagem ou reembolso. Não gaste novamente em Usar
+na mesa. Uma ordem por vez; recarga/desfazer/troca de contexto não a recriam,
+embora o contador permaneça salvo. Turno, reação imediata e demais valores do
+aliado continuam com a mesa.
+
 Também em desenvolvimento, **Aparar** aparece em **Dano detalhado → Calcular
 por tipo** para quem conhece a manobra. Confirme ataque corpo a corpo de outra
 criatura, reação disponível e nenhuma outra manobra sua no ataque. Escolha a

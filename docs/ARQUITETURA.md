@@ -1772,3 +1772,32 @@ se ainda precisa resolver o dado já pago, use a mesa. Desfazer/refazer restaura
 somente o contador; descanso segue a recuperação normal. Não há contador de
 reação/rodada inventado, alvo persistido novo, outra ficha alterada, SQL ou
 consulta/sincronização de nuvem.
+
+
+## Golpe do Comandante — décimo nono recorte de R2, 29/10/2026
+
+`src/rules/commanders-strike.ts` valida conhecimento/origem/saldo legível,
+capacidade e as declarações da ação Atacar no próprio turno, um ataque cedido,
+ação bônus e criatura amigável que possa ver ou ouvir o comandante. A emissão
+gasta um dado antes de qualquer ataque; não exige arma do comandante, Ataque
+Extra ou reação dele. O aliado pode recusar ou errar sem devolver o recurso.
+
+`commanders-strike-state.ts` mantém uma única ordem em `WeakMap<Sheet, …>`, com
+origem/tipo do dado capturados e identificação textual do aliado. Não persiste
+turno, alvo, sessão ou faces no documento. Descanso e o descarte global de contexto
+por `clearWeaponAttacks` encerram a ordem; recarga/desfazer substituem o documento
+e não a recriam. Contador salvo e recuperação normal permanecem. Ataques/preparações
+próprios são independentes: dar/resolver a ordem não consome Finta. A reação é
+imediata na mesa; outras rolagens da interface não permitem inferir a cronologia
+desse ataque, e não há relógio automático de turnos.
+
+`commanders-strike-ui.ts` reutiliza diálogo nativo, dado físico/virtual e rolador
+existentes. O aliado resolve o ataque com seus valores na mesa; o módulo registra
+somente `1dN` no acerto ou `2dN` no crítico, uma vez, sem novo custo. Erro/recusa/
+encerramento não rolam. OFF usa físico; Só Pool começa em físico e permite escolher
+explicitamente o dado virtual normal, sem usar pool/modo/inspiração/preparações.
+Uma trava por ficha e guarda de identidade/documento/conta/permissão/nó/ordem/
+modo/sequência antecedem custo/RNG; campos mudam sem substituir nós. Nomes são
+dados escapados e quebram linha no celular. Registrar uma ordem já emitida não
+exige consciência contínua nem cobra a reserva de novo. Não há identidade de
+outro documento, alteração de outra ficha, campo persistido ou consulta de nuvem.
