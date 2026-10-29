@@ -6,6 +6,7 @@ import { hasFeat, lifedrinkerBonus, untrainedAbilityBonus } from './passives';
 import { arcaneWardPoints, previewTypedDamage, type DamagePacket } from './damage';
 import { commitSurvival, previewSurvival, type SurvivalChoice, type SurvivalPlan } from './survival';
 import {spend} from './resources';
+import {evasiveFootworkBonus} from './evasive-footwork';
 
 const aliases: Record<string,string> = { warhammer:'Martelo de guerra', longsword:'Espada longa', shortsword:'Espada curta', dagger:'Adaga', quarterstaff:'Bordão', rapier:'Rapieira', handaxe:'Machadinha', greataxe:'Machado grande', longbow:'Arco longo', shortbow:'Arco curto', 'light crossbow':'Besta leve', 'heavy crossbow':'Besta pesada' };
 export function catalogueWeapon(entry: Sheet, E: Engine) {
@@ -101,12 +102,13 @@ export function armorClass(c: Sheet, E: Engine) {
   const styles = selections(c,E,'fighting').concat(selections(c,E,'championFighting'));
   const defense = wearing && styles.includes('Defesa') && !(c.rules?.manualMode&&c.acFormula==='legacy') && c.acFormula!=='written' ? 1 : 0;
   const spellBonuses = (active(c,'spell:shieldOfFaith') ? 2 : 0) + (active(c,'spell:shield') ? 5 : 0);
-  const flat = defense + spellBonuses + Number(c.acAdjustment || 0);
+  const evasive=evasiveFootworkBonus(c,E);
+  const flat = defense + spellBonuses + Number(c.acAdjustment || 0) + evasive;
   const dual=hasFeat(c,E,'Ambidestro') && active(c,'feat:dualWielder') && !c.shieldEquipped && !active(c,'druida:wildShape') && !hasCondition(c,'inconsciente');
   // A CA escrita já pode conter o talento. Só acrescenta às fórmulas calculadas.
   const options = choices.map(x => ({...x, dualWielder:dual && !['legacy','written'].includes(x.id)?1:0, total:x.base + (x.shield ? shield : 0) + flat+(dual && !['legacy','written'].includes(x.id)?1:0)}));
   const chosen = options.find(x => x.id === c.acFormula) || options.reduce((a,b) => a.total >= b.total ? a : b);
-  return { total:chosen.total, chosen:chosen.id, options, explanation:`${chosen.label}: ${chosen.formula} + escudo ${chosen.shield ? shield : 0} + Defesa ${defense} + magias ${spellBonuses}${chosen.dualWielder?' + Ambidestro 1':''} + ajustes ${Number(c.acAdjustment || 0)} = ${chosen.total}. Fórmulas alternativas não se somam. Escudo Arcano: até seu próximo turno; Escudo da Fé exige concentração.` };
+  return { total:chosen.total, chosen:chosen.id, options, explanation:`${chosen.label}: ${chosen.formula} + escudo ${chosen.shield ? shield : 0} + Defesa ${defense} + magias ${spellBonuses}${chosen.dualWielder?' + Ambidestro 1':''} + ajustes ${Number(c.acAdjustment || 0)}${evasive?` + Passo Evasivo ${evasive} (até parar de se mover)`:''} = ${chosen.total}. Fórmulas alternativas não se somam. Escudo Arcano: até seu próximo turno; Escudo da Fé exige concentração.` };
 }
 export function exhaustion(c: Sheet) {
   const value = Math.max(0,Math.min(6,Math.floor(Number(c.exhaustion) || 0)));

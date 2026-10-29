@@ -17,6 +17,8 @@ import {chooseResourceDice} from './resource-roll-ui';
 import {applyRolledResource,finishInterventionWeek,interventionWaiting} from './resource-effects';
 import {dragonbornBreathControls,setupDragonbornBreathUI} from './dragonborn-breath-ui';
 import {rallyControls,useRally} from './rally-ui';
+import {endEvasiveMovement,evasiveDefenseControls,evasiveStartControl,useEvasiveFootwork} from './evasive-footwork-ui';
+import {endEvasiveFootworkIfStopped} from './evasive-footwork-state';
 
 export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
   const number = (n:number) => Number.isFinite(n)?n:'∞';
@@ -39,7 +41,7 @@ export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],sho
     else if (r.kind==='pool') control = `<label>Reserva <input type="number" min="0" max="${r.max}" step="1" data-rule-pool="${r.id}" value="${value}" aria-label="${escape(r.name)} atuais"></label><span>/ ${maxInput}</span>`;
     else if (r.kind==='counter') control = `<span>${r.cost?`Custo ${r.cost[1]} ${r.cost[0]==='monge:ki'?'Chi':r.cost[0]==='feiticeiro:sorceryPool'?'pt':'uso'}`:`<span data-resource-balance="${r.id}"${r.id.endsWith(':superiority')?` data-superiority-balance="${r.id}"`:''}>${number(value)}</span>/${maxInput} usos`}</span><button type="button" data-rule-action="use" data-resource="${r.id}" ${manualInvocation(r)?`aria-label="Registrar uso diário de ${escape(r.name)}"`:''} ${value<1 || !affordable?'disabled':''}>${r.id.endsWith(':superiority')?'Usar na mesa':manualInvocation(r)?'Registrar uso':'Usar'}</button>${!r.cost?`<button type="button" data-rule-action="refund" data-resource="${r.id}" ${value===r.max?'disabled':''} aria-label="Devolver um uso de ${escape(r.name)}">↶</button>`:''}${manualInvocation(r)?'<span class="t-text-muted">Magia e custos na mesa</span>':''}`;
     if (r.action==='wildShape') control += `<label>PV da forma <input type="number" min="0" data-rule-beast-hp value="${Number(c.ruleState?.pools?.[r.id] || 0)}"></label><label>PV máximos <input type="number" min="1" data-rule-beast-max value="${Number(c.ruleState?.beastMax || 1)}"></label>${enabled?`<button type="button" data-rule-action="toggle" data-resource="${r.id}">Encerrar forma</button>`:''}`;
-    if(r.id.endsWith(':superiority'))control+=rallyControls(c,E,r.id);
+    if(r.id.endsWith(':superiority'))control+=rallyControls(c,E,r.id)+evasiveStartControl(c,E,r.id);
     if(r.action==='intervention' && interventionWaiting(c))control+='<span>7 dias na aventura</span><button type="button" data-rule-action="interventionWeek" data-resource="clerigo:intervention">Registrar semana transcorrida</button>';
     const needsTarget = ['paladino:sacredWeapon','paladino:enmity','mago:hypnotic'].includes(r.id);
     const target = needsTarget ? r.id==='paladino:sacredWeapon' ? `<label>Arma<select data-rule-target="${r.id}"><option value="">Escolha a arma</option>${c.weapons.map((w:Sheet)=>`<option ${c.ruleState?.targets?.[r.id]===w.name?'selected':''}>${escape(w.name)}</option>`).join('')}</select></label>` : `<input data-rule-target="${r.id}" value="${escape(c.ruleState?.targets?.[r.id] || '')}" placeholder="Alvo" aria-label="Alvo de ${escape(r.name)}">` : '';
@@ -73,7 +75,7 @@ export function defenseControls(c:Sheet,E:Engine) {
     ['spell:shield','Escudo Arcano +5','Marque após usar a reação da magia Escudo Arcano: soma +5 à CA até o início do seu próximo turno, inclusive contra o ataque que a desencadeou, e impede dano de Mísseis Mágicos. Desmarque ao terminar; o espaço e a reação são controlados separadamente.'],
     ['spell:bladeWard','Proteção contra Lâminas · resistência','Até o fim do seu próximo turno, esta magia dá resistência a dano de concussão, cortante e perfurante causado por ataques com armas. Não aumenta a CA. Em Dano detalhado → Calcular por tipo, escolha ataque de arma para aplicar a resistência. No modo já resolvido, aplique-a na mesa.'],
   ];
-  return `<details class="rule-context" data-rule-disclosure="defense"><summary>Ajustes de defesa e efeitos recebidos</summary>
+  return `${evasiveDefenseControls(c,E)}<details class="rule-context" data-rule-disclosure="defense"><summary>Ajustes de defesa e efeitos recebidos</summary>
     <div class="rule-defense-field"><label for="ruleAcFormula" ${help('Fórmula de CA','CA é a Classe de Armadura, o valor que um ataque precisa alcançar para acertar. Automática escolhe a maior fórmula válida; você pode escolher outra das disponíveis. Fórmulas alternativas não se somam. Os bônus abaixo são adicionados à fórmula escolhida.')}>Fórmula de CA</label><select id="ruleAcFormula" data-rule-ac>${ac.options.map(o=>`<option value="${o.id}" ${c.acFormula===o.id?'selected':''}>${escape(o.label)} · ${o.total}</option>`).join('')}<option value="auto" ${!ac.options.some(o=>o.id===c.acFormula)?'selected':''}>Automática · maior válida</option></select></div>
     <div class="rule-defense-grid">${adjustments.map(([id,label,text])=>`<div class="rule-defense-field"><label for="ruleDefense-${id}" ${help(label,text)}>${label}</label><input id="ruleDefense-${id}" type="number" min="-100" max="100" step="1" data-rule-defense="${id}" placeholder="Auto" value="${c[id]===undefined?'':Number(c[id])}"></div>`).join('')}</div>
     <div class="rule-defense-effects">${effects.map(([id,label,text])=>`<div class="rule-effect-row"><label ${help(label,text)}><input type="checkbox" data-rule-effect="${id}" ${active(c,id)?'checked':''}><span>${label}</span></label></div>`).join('')}</div></details>`;
@@ -134,6 +136,7 @@ export function setupRuleUI(E: Engine) {
       try {const result=setCondition(c,input.dataset.ruleCondition,input.checked);save(`Condição · ${CONDITIONS.find(x=>x.id===input.dataset.ruleCondition)?.name || ''}${input.checked?' ativada':' encerrada'}${result.ended?' · encerrou concentração em '+result.ended.name:''}`);}
       catch(error){host.showToast((error as Error).message);input.checked=hasCondition(c,input.dataset.ruleCondition);}return;
     }
+    if(input.hasAttribute('data-rule-exhaustion'))endEvasiveFootworkIfStopped(c);
     const s = state(c);
     if (input.hasAttribute('data-rule-exhaustion')) { c.exhaustion = Math.max(0,Math.min(6,Number(input.value))); c.hpCurrent = c.exhaustion===6?0:Math.min(c.hpCurrent,exhaustion(c).hpMax); if(c.exhaustion===6) markDead(c);else syncIncapacity(c); }
     else if (input.hasAttribute('data-rule-ac')) c.acFormula = input.value;
@@ -163,6 +166,8 @@ export function setupRuleUI(E: Engine) {
     try {
       const action = button.dataset.ruleAction;
       if(action==='rally'){await useRally(c,E,button,save);return;}
+      if(action==='evasiveStart'){await useEvasiveFootwork(c,E,button,save);return;}
+      if(action==='evasiveEnd'){endEvasiveMovement(c,save);return;}
       const oldConcentration=concentration(c);
       if(r && action==='toggle' && !active(c,r.id) && ['clerigo:duplicate','feiticeiro:presence'].includes(r.id) && oldConcentration){
         const before=JSON.stringify(c);
@@ -228,7 +233,7 @@ export function setupRuleUI(E: Engine) {
           } else useResource(c,r,E);
           if (r.action==='wholeness') healHitPoints(c,3*level(c,'monge'));
           if (r.action==='pactRecovery') c.pactMagic.used = 0;
-          if (r.action==='wildShape') { s.active[r.id] = true; host.showToast('Forma ativa. Elemental exige 2 usos no nível 10+; confira a forma no livro.'); }
+          if (r.action==='wildShape') { s.active[r.id] = true; endEvasiveFootworkIfStopped(c); host.showToast('Forma ativa. Elemental exige 2 usos no nível 10+; confira a forma no livro.'); }
         }
       }
       save('Atualizou '+(r?.name || 'recurso')+(oldConcentration && !concentration(c)?' · encerrou concentração em '+oldConcentration.name:''));

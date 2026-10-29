@@ -225,6 +225,13 @@ temporários** para comunicar ao aliado. Ele aplica na mesa, escolhendo entre os
 temporários atuais e os novos; não se somam nem curam. Cancelar não gasta;
 desfazer devolve o dado. O resultado fica no histórico, sem alterar outra ficha.
 
+**Passo Evasivo**, em desenvolvimento, usa um dado da reserva escolhida e soma
+sua face à CA enquanto você se move. Não exige ação bônus ou reação. Quando parar,
+use **Terminei de me mover** junto à CA, mesmo que vá continuar o turno; encerrar
+não devolve o dado. A mesa acompanha o movimento e as pausas. Condições que
+impedem movimento, queda a 0 PV, exaustão 5 e descanso encerram o bônus. Recarga
+offline conserva o movimento declarado; forma de besta continua manual.
+
 Depois de rolar o ataque no **Auto Ficha**, abra a bandeja do dado e use
 **Precisão · usar 1 dado**. Escolha a origem e role o dado de superioridade
 ou informe sua face física; o d20 natural permanece igual. Sortudo e o halfling

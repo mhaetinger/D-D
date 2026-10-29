@@ -1596,3 +1596,33 @@ e desfazer devolve o dado. O resultado usa texto seguro e quebra nomes longos.
 `refreshSuperiorityControls` também mantém a disponibilidade de Inspirar após
 Precisão. Não existe envio para aliado, relógio de ações, novo dado persistido,
 SQL, consulta ou sincronização automática.
+
+
+## Passo Evasivo — décimo quarto recorte de R2, 29/10/2026
+
+`evasive-footwork.ts` consulta conhecimento atual e origens de superioridade,
+valida face/saldo/máximo/declaração antes de gastar um dado e grava um registro
+opcional `ruleState.evasiveFootwork` com `{version:1, source, die, face}`. Só uma
+ativação entre as origens; encerrar elimina apenas um efeito válido, sem reembolso.
+`armorClass` soma sua face a cada fórmula, inclusive escrita, uma vez; o texto
+explica o bônus e o prazo. Não requer ação/reação nem consciência por uma regra
+genérica: incapacitação isolada não impede movimento. Forma Selvagem fica manual.
+
+`evasive-footwork-state.ts` isola leitura e ciclo sem importar o cálculo de CA
+ou recursos, evitando um ciclo de inicialização. Ler não altera dados; registro
+ilegível/futuro não fornece bônus e continua preservado. Condições impeditivas,
+queda/morte, exaustão 5 e descanso limpam somente o efeito válido. O fluxo de
+condições confere também o estado anterior ao remover uma causa, e cura/retorno
+à vida não retomam um movimento que já terminou. Edição de vida/deslocamento/
+classe trata indisponibilidade na proposta clonada antes/depois da alteração.
+Ao escrever CA atual, subtrai também Passo Evasivo da base, além das magias/ajustes,
+para que encerrar retire o bônus sem duplicação. Erros de edição preservam original.
+
+`evasive-footwork-ui.ts` reutiliza o seletor físico/virtual e diálogo existentes.
+Revalida documento/conta/botão/permissão antes do RNG e da aplicação, com uma trava
+por ficha para cliques concorrentes. Um passo de histórico inclui gasto e efeito;
+outro encerra, e ambos podem ser desfeitos. Controle ativo fica junto à CA;
+**Terminei de me mover** declara a parada. Trocar tema/layout ou recarregar não
+inventa uma parada na aventura; o registro permanece inclusive offline. Distância,
+pausas, ataques de oportunidade e turnos são acompanhados pela mesa. Sem novo
+relógio, sessão compartilhada, SQL ou consultas de nuvem.

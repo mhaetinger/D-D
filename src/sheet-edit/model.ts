@@ -6,6 +6,8 @@ import {active} from '../rules/model';
 import {canEditSheet} from './access';
 import {resourcesFor,used,remaining} from '../rules/resources';
 import {setPermanentAbility} from '../rules/combat';
+import {evasiveFootworkBonus} from '../rules/evasive-footwork';
+import {clearEvasiveFootwork,readEvasiveFootwork} from '../rules/evasive-footwork-state';
 
 const abilities=['str','dex','con','int','wis','cha'];
 const textPaths=new Set(['name','playerName','race','background','alignment','size',...['weapons','tools','languages'].map(k=>'proficiencies.'+k),...['age','height','weight','eyes','skin','hair'].map(k=>'physical.'+k),...['traits','ideals','bonds','flaws','backstory','appearance','allies','treasure'].map(k=>'lore.'+k)]);
@@ -18,12 +20,17 @@ export function fieldOverride(c:Sheet,key:string):void {
   c.rules ||= {version:1,history:[]};c.rules.fieldOverrides ||= {};c.rules.fieldOverrides[key]=true;
 }
 export function validateSheet(c:Sheet):Sheet {return validateCharacters([c])[0] as Sheet;}
+function endUnavailableEvasion(c:Sheet,E:Engine) {
+  if(readEvasiveFootwork(c) && evasiveFootworkBonus(c,E)===0)clearEvasiveFootwork(c);
+}
 
 /** Cada alteração é uma proposta validada. Não recalcula nem concede escolhas
  * ao corrigir um nível; a evolução guiada continua sendo uma ação explícita. */
 export function editSheetField(original:Sheet,path:string,raw:unknown,E:Engine):Sheet {
   if(!canEditSheet(original))throw new Error('A edição desta ficha está bloqueada pelo mestre.');
   const c=structuredClone(original);let match:RegExpMatchArray|null;
+  // Corrigir deslocamento/vida/classe não retoma um movimento já impedido.
+  endUnavailableEvasion(c,E);
   if(textPaths.has(path)) {
     const text=String(raw);if(text.length>16000)throw new Error('Use até 16.000 caracteres neste campo.');
     if(path==='name'&&!text.trim())throw new Error('Informe o nome do personagem.');
@@ -51,7 +58,7 @@ export function editSheetField(original:Sheet,path:string,raw:unknown,E:Engine):
     if(path==='armorTotal') {
       // O número digitado é a CA atual. Equipamento/escudo não são somados de
       // novo; efeitos temporários continuam podendo entrar e sair normalmente.
-      c.baseAcArmor=value-Number(c.acAdjustment||0)-(active(c,'spell:shieldOfFaith')?2:0)-(active(c,'spell:shield')?5:0);c.acFormula='written';fieldOverride(c,'armor');
+      c.baseAcArmor=value-Number(c.acAdjustment||0)-(active(c,'spell:shieldOfFaith')?2:0)-(active(c,'spell:shield')?5:0)-evasiveFootworkBonus(c,E);c.acFormula='written';fieldOverride(c,'armor');
     }else {c[path]=value;if(['hpMax','speed'].includes(path))fieldOverride(c,path);}
   }else if((match=path.match(/^standardSlots\.([1-9])\.(total|used|remaining)$/))) {
     const slot=c.standardSlots[match[1]] ||= {total:0,used:0},n=number(raw,0,100);slot[match[2]==='remaining'?'used':match[2]]=match[2]==='remaining'?slot.total-n:n;
@@ -75,14 +82,16 @@ export function editSheetField(original:Sheet,path:string,raw:unknown,E:Engine):
     const item=c.inventoryItems[Number(match[1])];if(!item)throw new Error('Este item mudou.');
     const key=match[2];item[key]=['qty','weightKg'].includes(key)?number(raw,0,1e9,key==='qty'):String(raw);if(key==='weightKg')item.weightUnreviewed=false;
   }else throw new Error('Este campo não está disponível para edição.');
+  endUnavailableEvasion(c,E);
   return validateSheet(c);
 }
 
 export function changeClassList(original:Sheet,index:number|null,E:Engine,resolution?:ClassRemoval):Sheet {
   if(!canEditSheet(original))throw new Error('A edição desta ficha está bloqueada pelo mestre.');
   const c=structuredClone(original);
+  endUnavailableEvasion(c,E);
   if(index===null){const id=Object.keys(E.data.classes).find(id=>!c.classes.some((x:Sheet)=>x.classId===id));if(!id)throw new Error('Todas as classes já estão na ficha.');c.classes.push({classId:id,level:1,subclass:'',subclassId:'',hitDie:E.data.classes[id].die,hitDiceUsed:0});}
-  else return validateSheet(removeClass(c,index,E,resolution));
+  else {const next=removeClass(c,index,E,resolution);endUnavailableEvasion(next,E);return validateSheet(next);}
   return validateSheet(c);
 }
 export function blankCharacter(playerName='Jogador',layout='classic_2014'):Sheet {

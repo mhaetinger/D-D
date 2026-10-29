@@ -5,6 +5,7 @@ import { relentlessDC } from './survival';
 import { hasFeat } from './passives';
 import {isDragonborn,racialBreathProfile} from './draconic-ancestry';
 import {superioritySources} from './maneuvers';
+import {clearEvasiveFootwork} from './evasive-footwork-state';
 export interface Resource { id:string; classId:string; name:string; max:number; recovery:'short'|'long'|'none'; kind:'counter'|'pool'|'toggle'|'note'|'portent'; note:string; cost?:[string,number]; action?:string }
 
 /** Cada definição usa nível da própria classe, nunca nível total. Sem ficha-modelo. */
@@ -167,7 +168,7 @@ export function resourcesFor(c: Sheet, E: Engine): Resource[] {
   if (wizard>=6 && sub('mago')==='encantamento') add('mago','instinctive','Encanto Instintivo',1,'none','Reação: escolha atacante e outra criatura ao alcance; após sucesso dele, não pode usar nesse atacante até descanso longo.','toggle');
   if (wizard>=10 && sub('mago')==='transmutacao') add('mago','shapechanger','Metamorfo',1,'short','Conjure Metamorfose em si mesmo sem espaço, virando besta ND 1 ou menor.');
   if (wizard>=14 && sub('mago')==='transmutacao') add('mago','masterTransmuter','Mestre Transmutador',1,'none','Consuma a pedra e escolha a transformação; exige ação e tocar o alvo. Recriar a pedra exige 8 horas.','toggle');
-  for(const source of superioritySources(c,E))add(source.classId,'superiority',source.classId==='feat'?'Adepto Marcial':'Dados de Superioridade',source.max,'short',`d${source.die} · ${source.name}. Recupera em descanso curto ou longo. Auto Ficha: Precisão no resultado do ataque; manobras de dano conhecidas em Adicionais da arma. Aparar em Dano detalhado → Calcular por tipo gasta ao Aplicar dano. Inspirar junto desta reserva usa face + CAR para informar PV temporários a um aliado. Esses controles incluem o dado e descontam esta origem ao confirmar. Não gaste de novo em Usar na mesa: esse botão registra outras manobras já resolvidas; apenas uma manobra por ataque.`);
+  for(const source of superioritySources(c,E))add(source.classId,'superiority',source.classId==='feat'?'Adepto Marcial':'Dados de Superioridade',source.max,'short',`d${source.die} · ${source.name}. Recupera em descanso curto ou longo. Auto Ficha: Precisão no resultado do ataque; manobras de dano conhecidas em Adicionais da arma. Aparar em Dano detalhado → Calcular por tipo gasta ao Aplicar dano. Inspirar junto desta reserva usa face + CAR para informar PV temporários a um aliado. Passo Evasivo soma a face à CA até parar de se mover; encerre junto da CA. Esses controles incluem o dado e descontam esta origem ao confirmar. Não gaste de novo em Usar na mesa: esse botão registra outras manobras já resolvidas; apenas uma manobra por ataque.`);
   if(hasFeat(c,E,'Sortudo'))add('feat','lucky','Sortudo',3,'long','3 pontos por descanso longo. Gaste 1 antes de resolver um ataque, teste de habilidade ou resistência: role um d20 adicional e escolha a face, mesmo com vantagem/desvantagem. Pode afetar um ataque contra você; pontos de criaturas diferentes se cancelam, sem dado adicional. O Sortudo racial não gasta esta reserva.','counter',{action:'lucky'});
   for(const r of list){const value=c.rules?.resourceMaxOverrides?.[r.id];if(Number.isInteger(value)&&value>=0&&value<=100&&!r.cost)r.max=value;}
   return list;
@@ -262,6 +263,7 @@ export function resetResources(c: Sheet, kind:'short'|'long', E: Engine, random=
   if(kind==='long' && portent && (!count || portent.length!==count || portent.some(n=>!Number.isInteger(n) || n<1 || n>20)))throw new Error('Confira todas as faces de Presságio antes do descanso.');
   const s = state(c);
   // Terminar uma Fúria com Frenesi causa exaustão antes da recuperação do descanso.
+  clearEvasiveFootwork(c);
   if (active(c,'barbaro:rage')) toggleResource(c,resourcesFor(c,E).find(r=>r.id==='barbaro:rage')!,E);
   if(deathStatus(c).dead)return;
   s.used['barbaro:relentless']=0;

@@ -1,5 +1,6 @@
 import { ability, active, level, proficiency, selections, state, type Engine, type Sheet } from './model';
 import { endConcentration, incapacityReason } from './concentration';
+import {clearEvasiveFootwork,endEvasiveFootworkIfStopped} from './evasive-footwork-state';
 
 export const hitPointMaximum = (c:Sheet):number => Number(c.exhaustion)>=4 ? Math.floor(c.hpMax/2) : c.hpMax;
 const counter = (n:unknown) => Math.max(0,Math.min(3,Math.floor(Number(n)||0)));
@@ -28,12 +29,14 @@ function markProne(c:Sheet) {
   const s=state(c);s.conditions ||= {};if(typeof s.conditions==='object' && !Array.isArray(s.conditions))s.conditions.caido=true;
 }
 export function becameUnconscious(c:Sheet) {
+  clearEvasiveFootwork(c);
   markProne(c);const s=state(c);
   s.active['druida:wildShape']=false;
   if(active(c,'feat:dualWielder'))s.active['feat:dualWielder']=false; // Larga as armas; cura não as empunha novamente.
   endConcentration(c);endRage(c);
 }
 export function syncIncapacity(c:Sheet) {
+  endEvasiveFootworkIfStopped(c);
   const reason=incapacityReason(c);if(!reason)return null;
   const ended=endConcentration(c);
   if(reason==='Morto' || reason.startsWith('Inconsciente'))becameUnconscious(c);
@@ -52,6 +55,7 @@ export function healHitPoints(c:Sheet,amount:number) {
     markProne(c);
     if(active(c,'feat:dualWielder'))state(c).active['feat:dualWielder']=false;
   }
+  endEvasiveFootworkIfStopped(c);
   const before=c.hpCurrent;c.hpCurrent=Math.min(hitPointMaximum(c),c.hpCurrent+amount);
   if (c.hpCurrent>before) state(c).death={successes:0,failures:0,stable:false,dead:false};
   return Math.max(0,c.hpCurrent-before);
@@ -96,6 +100,7 @@ export function stabilize(c:Sheet) {
 export function returnToLife(c:Sheet,hp:number) {
   if (!deathStatus(c).dead || !Number.isInteger(hp) || hp<1 || hp>hitPointMaximum(c)) throw new Error('Confira o estado e os PV recebidos ao retornar à vida.');
   if (Number(c.exhaustion)>=6) throw new Error('Resolva também a exaustão fatal na mesa antes de registrar o retorno à vida.');
+  clearEvasiveFootwork(c);
   state(c).death={successes:0,failures:0,stable:false,dead:false};c.hpCurrent=hp;
 }
 

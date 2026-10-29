@@ -1,5 +1,33 @@
 # Changelog
 
+## Não lançado — Passo Evasivo — 2026-10-29
+
+- Décimo quarto recorte de R2: Passo Evasivo usa um dado da reserva escolhida
+  e soma a face à CA até parar de se mover, conforme 2014. Não exige ação bônus
+  ou reação. Botão junto da reserva; controle ativo e **Terminei de me mover**
+  junto à CA. A mesa declara o movimento e as pausas, mesmo dentro do turno.
+- Face física em OFF/Só Pool/Auto ou um dado virtual normal, com dados aprimorados
+  pelo nível próprio do Mestre de Batalha. Um gasto/efeito por confirmação;
+  encerrar não devolve o dado, recomeçar paga outro. Cancelar não gasta; revalida
+  documento/conta/permissão e contexto antes do RNG. Desfazer inclui gasto/efeito.
+- Aplica a face uma vez a cada fórmula de CA, inclusive escrita. Corrigir o total
+  atual desconta o bônus da base, evitando torná-lo permanente. Condições que
+  impedem movimento, queda/morte, exaustão 5, descanso e correções impeditivas da
+  ficha encerram, sem retomar após remover a causa. Incapacitação isolada não
+  impede movimento. Forma Selvagem permanece manual.
+- Registro opcional pequeno mantém o movimento declarado por recarga/offline.
+  Valores ilegíveis/futuros ficam preservados, sem bônus. Sem relógio automático,
+  novos contadores, SQL ou chamadas de nuvem. Preserva pool, inspiração, notas,
+  nuvem manual e histórico local de 25 registros. Retomada ficou mais compacta;
+  os detalhes históricos continuam no changelog e na auditoria única.
+- Verificados 586 testes Node, tipos/build e oito roteiros Chromium: Passo Evasivo,
+  regras, edição na ficha, Precisão, PV, dano, Aparar e Inspirar. Incluem físico/
+  virtual/OFF, cancelar/concorrência/contexto antes do RNG, conta/permissão,
+  CA/gasto/encerrar/desfazer, condições/queda/exaustão/descanso sem retomada,
+  CA escrita/deslocamento, pool/inspiração, nós/scroll, 320px/GG/temas/layouts
+  e notas/histórico/offline /D-D/. CI exige 48 roteiros e banco descartável;
+  resultados na PR #35. Cobertura de manobras: 11/16. Sem publicação.
+
 ## Não lançado — Inspirar — 2026-10-29
 
 - Décimo terceiro recorte de R2: quem conhece Inspirar recebe um botão compacto

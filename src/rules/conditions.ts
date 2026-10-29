@@ -1,6 +1,7 @@
 import { active, state, type Sheet } from './model';
 import { incapacityReason } from './concentration';
 import { syncIncapacity } from './health';
+import {endEvasiveFootworkIfStopped} from './evasive-footwork-state';
 
 export const CONDITIONS = [
   {id:'agarrado',name:'Agarrado',text:'Deslocamento 0. Termina se quem agarra ficar incapacitado ou se um efeito separar vocês do alcance. Não impede por si só conjurar ou manter concentração.'},
@@ -32,6 +33,7 @@ export function setCondition(c:Sheet,id:string,enabled:boolean) {
   if(!CONDITIONS.some(x=>x.id===id))throw new Error('Condição desconhecida.');
   const s=state(c);
   if(s.conditions!=null && (typeof s.conditions!=='object' || Array.isArray(s.conditions)))throw new Error('Registro de condições ilegível preservado; confira o backup.');
+  endEvasiveFootworkIfStopped(c);
   s.conditions ||= {};
   if(enabled)s.conditions[id]=true;else delete s.conditions[id];
   if(id==='inconsciente' && !enabled && c.conscious===false)c.conscious=true;

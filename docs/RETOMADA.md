@@ -5,46 +5,34 @@ Estado consolidado em **29/10/2026**. Leia também `AGENTS.md`, `README.md`,
 
 ## Onde o trabalho parou
 
-**Em desenvolvimento: Inspirar, Aparar, Sobrevivente, modo/recuperação na iniciativa, Precisão, manobras no acerto,
-Adepto Elemental e revisão das quatro invocações**, na branch `feature/manobras-acerto-2014`, iniciada no
-develop público `9f676e0`. Tudo permanece agrupado na
+**Em desenvolvimento: Passo Evasivo e os avanços individuais de combate,
+recursos e magias de 2014**, na branch `feature/manobras-acerto-2014`, iniciada
+no develop público `9f676e0`. Tudo permanece agrupado na
 [PR #35](https://github.com/mhaetinger/D-D/pull/35), sem mesclar/publicar.
-O nono recorte de R2 acrescenta recuperação de reservas vazias na iniciativa:
-Implacável (Mestre de Batalha 15), Inspiração Superior (bardo 20) e Auto
-Aperfeiçoamento (monge 20). Auto Ficha usa contexto explícito; OFF/Só Pool
-permitem confirmar uma nova iniciativa já rolada na mesa. Sortudo/halfling não
-recuperam outra vez ao repetir o mesmo d20. Preserva máximos ajustados, valores
-ilegíveis, outros recursos/rascunhos e nós/foco. Cobertura de manobras agora está
-em sete de dano + Precisão + Aparar + Inspirar, **10/16**; efeitos/alvos/turnos ficam com a mesa.
-O décimo recorte reúne fontes de vantagem/desvantagem na iniciativa antes de
-cancelar: Instinto Selvagem (bárbaro 7), Explorador Natural (Patrulheiro Revisado
-1), inspiração preparada, modo informado e desvantagens verificadas. Resultado
-explica as fontes, preservadas em Sortudo/halfling; OFF/Só Pool orientam o dado
-físico sem gastar inspiração. Medo/visibilidade, DES/equipamento da Forma
-Selvagem, surpresa/Fúria e alvos do primeiro turno continuam na mesa.
-O décimo primeiro recorte acrescenta Sobrevivente do Campeão 18 junto aos PV:
-5 + CON no começo de um turno declarado, com PV positivos até metade do máximo
-vigente. A cura pode ultrapassar a metade; usa máximo reduzido por exaustão.
-Passivo funciona em sono/incapacitação com PV positivos, não a 0 PV ou morto;
-PV/CON da besta continuam na mesa. Confirmação revalida contexto/permissão e
-registra um passo de desfazer. A mesa acompanha os turnos, sem relógio automático.
-O décimo segundo recorte integra Aparar ao Dano detalhado por tipo: face + DES,
-orçamento único por ataque misto e gasto de um dado junto do dano aplicado.
-Preparar a face física/virtual não gasta; cancelar preserva tudo. Confirma corpo
-a corpo/reação, revalida contexto, mantém campos e bloqueia envio concorrente.
-Aparar e Esquiva são alternativas; a mesa declara a ordem com redução de armadura.
-O décimo terceiro recorte acrescenta Inspirar junto de cada reserva vigente:
-confirma aliado/percepção/ação bônus no próprio turno e calcula face + CAR em PV
-temporários, com dado físico ou virtual normal. Gasta uma vez ao confirmar e
-registra o resultado no histórico; o aliado aplica na mesa, sem somar temporários.
-Não altera PV próprios ou outra ficha. Revalida documento, conta e permissão antes
-de RNG/gasto; Forma Selvagem continua manual.
-O décimo segundo recorte (`60b94c8`) passou integralmente na CI (564 testes, banco, build
-e 46 roteiros); a execução da nova revisão fica na mesma PR. As PRs #33/#34
-foram substituídas pela entrega agrupada; não são trabalhos paralelos pendentes.
-Nesta rodada passaram 573 testes Node, tipos/build e seis roteiros Chromium.
-A CI exige 47 roteiros e PostgreSQL descartável; resultados
-desta revisão ficam na PR #35 e no décimo terceiro recorte da auditoria.
+
+O décimo quarto recorte de R2 integra **Passo Evasivo**: um dado da reserva
+escolhida soma sua face à CA até parar de se mover. Não exige ação bônus ou
+reação. O botão **Terminei de me mover**, junto à CA, encerra sem devolver o dado;
+iniciar/gastar e encerrar são passos locais de desfazer. A mesa declara o
+movimento e as pausas. Condições impeditivas, queda/morte, exaustão 5, descanso
+e correções de vida/deslocamento/classe encerram o efeito sem retomá-lo depois.
+CA editada desconta o bônus temporário ao guardar o valor base. Registro opcional
+conserva o efeito por recarga/offline; valores ilegíveis/futuros ficam preservados,
+sem bônus. Forma Selvagem continua manual.
+
+Cobertura de manobras: **sete no dano + Precisão + Aparar + Inspirar + Passo
+Evasivo = 11/16**. Faltam cinco, listadas na auditoria única. Alvos, movimento,
+reação e turnos continuam com a mesa; a contagem não conclui o livro.
+A mesma PR reúne Adepto Elemental, recuperação/modo contextual na iniciativa,
+Sobrevivente e a revisão delimitada das quatro invocações. Detalhes, limites e
+verificações históricas ficam em `docs/AUDITORIA-LIVRO-2014.md`.
+
+A base anterior (`0af4f6d`, Inspirar) passou integralmente na CI: 573 testes,
+banco, build e 47 roteiros. Nesta revisão passaram 586 testes Node, tipos/build
+e oito roteiros Chromium. A CI exige 48 roteiros e PostgreSQL descartável;
+resultados atuais na PR #35.
+As PRs #33/#34 foram substituídas pela entrega agrupada; não são trabalhos
+paralelos pendentes.
 
 **Publicação por entregas agrupadas.** O responsável orientou não publicar cada
 correção. Acumular e verificar os ajustes em desenvolvimento; uma PR para `main`
@@ -66,24 +54,17 @@ os recortes ainda parciais, sem prometer automação integral do livro.
 
 ## Escopo da entrega e próximos avanços
 
-A rodada atual reúne a revisão delimitada das quatro invocações, o quinto
-recorte de R2 (Adepto Elemental), o sexto (manobras no acerto/Adepto Marcial),
-o sétimo (Precisão depois do d20), o oitavo (cinco outras manobras de dano),
-o nono (recuperação na iniciativa), o décimo (modo da iniciativa) e o décimo
-primeiro (Sobrevivente no começo do turno declarado) e o décimo segundo (Aparar
-no dano recebido), além do décimo terceiro (Inspirar com PV temporários para aliado).
-Os critérios e limites estão na auditoria; isso não
-promete automação integral de todas as regras do livro. As demais possibilidades
-registradas são evoluções da ficha individual. Decisões que pertencem à mesa
-podem continuar manuais, com indicação clara, sem bloquear o uso da ficha.
+O quarto recorte de R2 já foi publicado; quinto a décimo quarto ficam em
+desenvolvimento, junto da revisão delimitada das invocações. A auditoria é a
+fonte única de critérios e pendências; as decisões da mesa podem continuar
+manuais, com indicação clara. A ordem permanece **draconatos → rolagens →
+magias → importação**.
 
-O quarto recorte de R2 já foi publicado; quinto a décimo terceiro ficam em desenvolvimento,
-junto da auditoria de invocações. Outros adicionais/manobras e os
-contextos de magia ainda manuais permanecem na matriz da auditoria. Ordem mantida:
-**draconatos → rolagens → magias → importação**.
-O ciclo com PDF real foi adiado pelo responsável. R3/R4/R6 permanecem no roteiro,
-com a cobertura parcial existente. A integração completa de conjuração por
-invocações continua em R5, sem bloquear as correções delimitadas desta rodada.
+Outros adicionais de talentos/estilos e contextos de magia ainda manuais seguem
+nas matrizes. R2/R3/R4/R5/R6 permanecem parciais; não há promessa de automação
+integral do livro. O ciclo com PDF real foi adiado pelo responsável, para o fim
+da prioridade atual. A integração completa de conjuração por invocações continua
+em R5, sem bloquear os avanços delimitados da ficha individual.
 
 **Interação entre fichas é uma etapa futura.** Os módulos puros e a guarda de
 permissão da interface podem ser reaproveitados. Aplicar dano/cura/efeitos a

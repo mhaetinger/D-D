@@ -5,13 +5,16 @@ import {commitPrecisionAttack,precisionAttackOptions,previewPrecisionAttack,type
 import {superiorityOptions} from './superiority';
 import {canEditSheet} from '../sheet-edit/access';
 import {canUseRally} from './rally';
+import {canStartEvasiveFootwork} from './evasive-footwork';
 import {isCurrentWeaponAttack,markAttackPrecision,type WeaponAttackSession} from './weapon-attack-session';
 
 export function refreshSuperiorityControls(c:Sheet,E:Engine) {
   for(const source of superiorityOptions(c,E)){
     document.querySelectorAll(`[data-superiority-balance="${source.id}"]`).forEach(el=>el.textContent=String(source.remaining));
     document.querySelectorAll<HTMLButtonElement>(`[data-rule-action][data-resource="${source.id}"]`).forEach(button=>{
-      button.disabled=button.dataset.ruleAction==='rally'?!canEditSheet(c) || !canUseRally(c,E,source.id):button.dataset.ruleAction==='refund'?!source.readable || source.remaining===source.resource.max:source.remaining<1;
+      if(button.dataset.ruleAction==='rally')button.disabled=!canEditSheet(c) || !canUseRally(c,E,source.id);
+      else if(button.dataset.ruleAction==='evasiveStart')button.disabled=!canEditSheet(c) || !canStartEvasiveFootwork(c,E,source.id);
+      else button.disabled=button.dataset.ruleAction==='refund'?!source.readable || source.remaining===source.resource.max:source.remaining<1;
     });
   }
 }
