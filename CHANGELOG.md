@@ -1,5 +1,25 @@
 # Changelog
 
+## Não lançado — modo da iniciativa — 2026-10-28
+
+- Décimo recorte de R2: Auto Ficha aplica vantagem por Instinto Selvagem
+  (bárbaro 7) e Explorador Natural (Patrulheiro Revisado 1, adaptação).
+  Reúne classe, inspiração preparada, modo informado e desvantagens verificadas
+  por exaustão, envenenamento e armadura/escudo sem proficiência antes de cancelar
+  uma única vez, independentemente da quantidade de fontes.
+- O resultado explica as fontes e mantém o perfil ao usar Sortudo/halfling;
+  preserva bônus, natural do d20 e modo global escolhido. OFF/Só Pool orientam
+  o dado físico, sem gastar inspiração, junto da recuperação quando aplicável.
+  Medo depende de visibilidade informada; DES/equipamento da Forma Selvagem,
+  surpresa/Fúria e alvos do primeiro turno continuam na mesa.
+- Verificados 543 testes Node, tipos/build e sete roteiros Chromium: modo da
+  iniciativa, recuperação na iniciativa, Sortudo, R2 inicial, 32 cenários
+  auditados, dado e ajudas. Incluem cancelamento único, fontes capturadas,
+  inspiração/desfazer, RNG/permissão, físico/virtual, recuperação, notas,
+  320px/GG/três temas/dois layouts e offline /D-D/. A CI exige 44 roteiros.
+  Nuvem manual, histórico de 25 registros e aparência/gestos do dado preservados.
+  Entrega agrupada na PR #35, sem publicação.
+
 ## Não lançado — recuperação na iniciativa — 2026-10-28
 
 - Nono recorte de R2: o botão Iniciativa recupera um dado de superioridade por

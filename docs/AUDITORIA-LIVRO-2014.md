@@ -284,7 +284,7 @@ básico real telefone/computador já foram confirmados pelo responsável.
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
 | R1 — bônus nos cálculos | **Quatro passivos entregues; achados A01/A05/A06 corrigidos nesta branch** | O recorte original continua implementado. A01/A05/A06 corrigem os bônus/modificadores adicionais e a inconsistência de PV identificados no check-up; regressões nesta entrega. Tipos variáveis/efeitos posteriores seguem em R5. |
-| R2 — rolagens e gastos condicionais | **Quinto a nono recortes em desenvolvimento; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo na PR #20; -5/+10 na PR #21; Atacante Bestial e Combate com Armas Grandes publicados nas PRs #31/#32. Quinto recorte: Adepto Elemental nos danos de magia reconhecidos. Sexto: Ataque Desarmante/Derrubar no dano e reservas do Adepto Marcial. Sétimo: Precisão depois do d20 com Sortudo/halfling. Oitavo: cinco outras manobras de dano, com FOR/SAB ou sem resistência. Nono: recuperação de superioridade, Inspiração de Bardo e Chi ao rolar iniciativa com a reserva vazia. Critérios e limites abaixo. Faltam oito manobras, adicionais dos demais talentos/estilos e contextos de elemento/efeito ainda manuais. Turnos/alvos continuam declarados pela mesa. |
+| R2 — rolagens e gastos condicionais | **Quinto a décimo recortes em desenvolvimento; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo na PR #20; -5/+10 na PR #21; Atacante Bestial e Combate com Armas Grandes publicados nas PRs #31/#32. Quinto recorte: Adepto Elemental nos danos de magia reconhecidos. Sexto: Ataque Desarmante/Derrubar no dano e reservas do Adepto Marcial. Sétimo: Precisão depois do d20 com Sortudo/halfling. Oitavo: cinco outras manobras de dano, com FOR/SAB ou sem resistência. Nono: recuperação de superioridade, Inspiração de Bardo e Chi ao rolar iniciativa com a reserva vazia. Décimo: vantagem/desvantagem contextual na iniciativa. Critérios e limites abaixo. Faltam oito manobras, adicionais dos demais talentos/estilos e contextos de elemento/efeito ainda manuais. Turnos/alvos continuam declarados pela mesa. |
 | R3 — condições, defesas e características | Planejada; já há cobertura parcial | Completar efeitos das condições, imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
 | R5 — famílias de magias | Parcial: oito curas e quatro invocações auditadas | Revisão delimitada de invocações e magias associadas concluída abaixo; vínculo automático de conjuração/custo ainda manual. Revisar outras famílias: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
@@ -791,9 +791,9 @@ Auto Aperfeiçoamento, p. 105 / PDF 104.
   atualizam os trechos afetados sem reconstruir listas/selects. Confirmações
   físicas revalidam documento, modo, sequência, conta/ficha e permissão.
 
-**R2 permanece parcial.** As outras oito manobras continuam na mesa, assim como
-contextos de vantagem na iniciativa (Instinto Selvagem/Patrulheiro Revisado),
-outras reações, estilos/talentos e Sobrevivente. Não há rastreamento automático
+**R2 permanece parcial.** Naquele recorte, os contextos de vantagem na iniciativa
+ainda eram manuais; avançam no décimo recorte abaixo. As outras oito manobras,
+outras reações, estilos/talentos e Sobrevivente continuam na mesa. Não há rastreamento automático
 de combate, turnos ou nova iniciativa: a mesa declara o contexto. Nenhuma
 interação entre fichas ou sincronização contínua foi adicionada.
 
@@ -805,6 +805,47 @@ cancelamento/concorrência/conta/permissão, erro do RNG, recuperação/inspira�
 no mesmo desfazer, nós/foco/rascunhos, 320px/GG/três temas/dois layouts,
 notas e offline /D-D/. A CI passa a exigir 43 roteiros e banco descartável.
 Sem SQL, dados reais, alteração dos catálogos ou publicação nesta rodada.
+
+### Décimo recorte de R2: vantagem/desvantagem na iniciativa — 28/10/2026
+
+**Implementado em desenvolvimento, sem publicação.** Livro local: Instinto
+Selvagem, p. 49 / PDF 48; Explorador Natural do **Patrulheiro Revisado**, p. 117 /
+PDF 116 (adaptação já usada no projeto); vantagem/desvantagem, p. 175 / PDF 174;
+iniciativa como teste de DES, p. 191 / PDF 189; proficiência em armaduras,
+p. 146 / PDF 145; envenenado/exaustão, p. 292 / PDF 290.
+
+- Auto Ficha aplica vantagem por bárbaro de nível próprio 7 ou Patrulheiro
+  Revisado 1, independentemente da subclasse. Instinto não exige Fúria ativa;
+  o benefício de iniciativa não tem a restrição de armadura pesada da Fúria.
+- Reúne classe, modo informado no dado, inspiração preparada, exaustão ≥1,
+  envenenamento e armadura/escudo sem proficiência. Fontes não acumulam dados;
+  qualquer vantagem + qualquer desvantagem resulta em **um d20**, mesmo com
+  duas vantagens e uma desvantagem. Bônus numéricos permanecem iguais.
+- Resultado identifica as fontes. Sortudo/halfling preservam modo e explicação
+  capturados, sem reavaliar inspiração já gasta nem aplicar outra recuperação.
+  Seletor global, pool e d20 rápido continuam independentes desse contexto.
+- OFF/Só Pool orientam quantidade/escolha do dado físico e bônus. Não presumem
+  gasto de inspiração; a orientação avisa quando ela está preparada. Recuperação
+  física mantém a confirmação existente. Erro de RNG/permissão não gasta recursos.
+- Medo: a mesa informa desvantagem quando a fonte está à vista. Caído/impedido/
+  cego não impõem automaticamente desvantagem em iniciativa. Na Forma Selvagem,
+  DES e uso/incorporação do equipamento continuam conferidos na mesa.
+- Instinto não remove surpresa automaticamente nem ativa Fúria. A exceção exige
+  não estar incapacitado e entrar em Fúria antes de qualquer outra coisa no
+  primeiro turno. Explorador Natural não aplica vantagem automática a ataques:
+  a mesa confere se o alvo ainda não agiu. Sem acompanhamento de turnos/alvos.
+
+**R2 permanece parcial.** Outras oito manobras, reações, estilos/talentos,
+Sobrevivente e demais contextos condicionais continuam na matriz. Este recorte
+não promete aplicar as mesmas condições automaticamente em toda jogada da ficha.
+Sem SQL, dados reais, alteração dos catálogos ou publicação.
+
+Verificados **543 testes Node**, tipos/build e **sete roteiros Chromium**:
+modo da iniciativa, recuperação na iniciativa, Sortudo, R2 inicial, 32 cenários
+auditados, dado e ajudas. Incluem cancelamento único, preservação do perfil nas
+repetições, inspiração/desfazer, RNG/permissão, OFF/Só Pool/recuperação, notas,
+320px/GG/três temas/dois layouts e offline /D-D/. A CI exige 44 roteiros e
+PostgreSQL descartável. Evidência da CI atual permanece na PR #35.
 
 ### Revisão das quatro invocações — 23/10/2026
 
@@ -887,7 +928,7 @@ corrigidos não devem voltar à lista de ausências.
 
 | Entrega | Cobertura existente | Limite ainda relevante |
 | --- | --- | --- |
-| Fórmulas e cálculos auditados | Prévia/rolador unificados nos casos de truques, cura, aprimoramento, Discípulo da Vida e Explosão Agonizante; nível racial do tiefling; Dominar/Assinatura; iniciativa com Versatilidade/Atleta/Alerta; componentes longos regenerados | Outros passivos; classificação integral do catálogo; troca temporal de escolhas do mago fora da evolução; contexto de vantagem na iniciativa |
+| Fórmulas e cálculos auditados | Prévia/rolador unificados nos casos de truques, cura, aprimoramento, Discípulo da Vida e Explosão Agonizante; nível racial do tiefling; Dominar/Assinatura; iniciativa com Versatilidade/Atleta/Alerta; componentes longos regenerados | Outros passivos; classificação integral do catálogo; troca temporal de escolhas do mago fora da evolução; outros contextos condicionais além da iniciativa delimitada no décimo recorte |
 | PV e inspiração | Ordem de Proteção Arcana/temporários/besta/PV e absorção real; CON permanente; Dados de Vida por classe e Canção do Descanso opcional; morte/estabilidade; inspiração de 2014 | Ressurreição, passagem do tempo, requisitos/limites temporais de descanso e outros gatilhos dependem da mesa |
 | Concentração e condições | Registro único nas duas abas, substituição confirmada, fila de testes por dano, físico/virtual, incapacidade e encerramentos; 14 condições, movimento e falhas de FOR/DES pertinentes | Outros modos de rolagem, sentidos, fontes/alvos e imunidades; sem relógio de duração/turnos |
 | Dano por tipo | Uma ocorrência com tipos/origem, prévia, proteção externa, imunidade/redução/resistência/vulnerabilidade; fontes raciais, Fúria e outras fontes explicitamente verificadas | Não abrange todas as fontes; formas usam o modo já resolvido; ajustes da mesa não viram bônus permanentes |
@@ -936,7 +977,7 @@ casos corrigidos como se toda a funcionalidade estivesse ausente.
 | Cap. 4, personalidade/antecedentes, 122–142 | 13 antecedentes, tendências, sugestões editáveis, campos narrativos e inspiração de 2014 | Personalização completa de antecedente ainda exige adaptação manual |
 | Cap. 5, equipamento, 144–160 | Compras em cobre, quantidades/peso, armadura/escudo, armas e propriedades consultáveis | Penalidades por falta de proficiência, munição, recarga, consumíveis e detalhes de carga; ver itens abaixo |
 | Cap. 6, personalização, 164–171 | Pré-requisitos/escolhas de multiclasse/talentos, espaços combinados e Pacto separado | Vários talentos só registram a escolha; o efeito numérico não está aplicado |
-| Cap. 7, habilidades, 174–180 | Modificadores, proficiência, especialização, perícias, resistências, modo vantagem/desvantagem e bônus auditados de iniciativa | Testes passivos/condicionais, vantagem na iniciativa e rolagens mínimas ainda incompletos |
+| Cap. 7, habilidades, 174–180 | Modificadores, proficiência, especialização, perícias, resistências, modo vantagem/desvantagem e bônus auditados de iniciativa | Testes passivos/condicionais e rolagens mínimas ainda incompletos; iniciativa contextual delimitada no décimo recorte |
 | Cap. 8, aventuras, 182–188 | Deslocamento, inventário, descansos, exaustão e gasto/recuperação de Dados de Vida por classe | Tempo de descanso, viagem, luz, sufocamento, alimento/água e atividades entre aventuras são manuais |
 | Cap. 9, combate, 189–198 | Ataques/dano, CA, PV, reservas, morte/estabilidade e dano por tipo com fontes verificadas, prévia e ajuste da mesa | Outras defesas/reações, adicionais de ataque, cobertura, alvos e exceções de classe ainda exigem controle manual |
 | Cap. 10, conjuração, 201–205 | Preparação, rituais elegíveis, espaços por classe/Pacto, CDs, custos de feitiçaria e concentração com fila por dano | Componentes, duração, interrupções durante conjuração prolongada e economia de ações seguem manuais |
@@ -956,7 +997,7 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 
 | Classe / PDF | Subclasses conferidas | Cobertura operacional existente | Próxima revisão necessária |
 | --- | --- | --- | --- |
-| Bárbaro, 45–49 | Furioso; Guerreiro Totêmico | Fúria, dano com FOR, resistências por tipo, Frenesi/exaustão, CA alternativa, Crítico Brutal e Fúria Implacável | Vantagens situacionais e duração/gatilhos |
+| Bárbaro, 45–49 | Furioso; Guerreiro Totêmico | Fúria, dano com FOR, resistências por tipo, Frenesi/exaustão, CA alternativa, Crítico Brutal, Fúria Implacável e vantagem de Instinto Selvagem na iniciativa (décimo recorte de R2) | Vantagens situacionais e duração/gatilhos |
 | Bardo, 50–54 | Conhecimento; Bravura | Reserva/dado de inspiração, proficiências/especialização, segredos, conjuração, iniciativa de Versatilidade, Canção do Descanso opcional e Inspiração Superior na iniciativa (nono recorte de R2) | Inspiração de Bardo recebida/Palavras de Interrupção na jogada |
 | Bruxo, 55–61 | Arquifada; Corruptor; Grande Antigo | Pacto, Arcanum, usos, Bênção do Obscuro, Explosão Agonizante, Sorvedor de Vida na arma vinculada e resistências de patrono registradas | Troca da resistência após descanso e reflexão de psíquico; espaço de invocações não equivale ao contador diário; alvos |
 | Clérigo, 62–69 | Conhecimento; Enganação; Guerra; Luz; Natureza; Tempestade; Vida | Preparação/domínios, Canalizar compartilhado, usos e Intervenção | Efeitos de cada domínio no alvo, cura/dano condicionado e Expulsar/Destruir Mortos-Vivos por ND |
@@ -967,7 +1008,7 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 | Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, Dominar/Assinatura, recuperação, Proteção Arcana inclusive multiclasse, Conjuração Focada, Presságio e usos/estados de escola | Efeitos por alvo, demais bônus de escola, lacaios, pedra e Sobrecarga; fluxo de troca temporal das escolhas |
 | Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi, movimento/CA, curas/usos, Evasão, defesas de Pureza Corporal/Corpo Vazio no dano por tipo e Auto Aperfeiçoamento na iniciativa (nono recorte de R2) | Imunidade a condições, Artes Marciais/dano desarmado em todas as condições, Atordoar/Defletir Projéteis |
 | Paladino, 107–113 | Devoção; Anciões; Vingança | Cura pelas Mãos, Canalizar, Arma Sagrada, aura própria nos testes, preparação e Destruição com gasto de espaço | Aplicação a aliados/consciência e condições dos juramentos; cura no alvo |
-| Patrulheiro Revisado, 114–120 | Besta; Caçador; Rastreador Subterrâneo | Progressão/seleções da adaptação, conjuração, extras condicionais e PV do companheiro | Inimigo favorito, exploração, iniciativa/primeiro turno e estatísticas/comandos do companheiro; não misturar regras do patrulheiro original |
+| Patrulheiro Revisado, 114–120 | Besta; Caçador; Rastreador Subterrâneo | Progressão/seleções da adaptação, conjuração, extras condicionais, PV do companheiro e vantagem de Explorador Natural na iniciativa (décimo recorte de R2) | Inimigo favorito, exploração, alvos do primeiro turno e estatísticas/comandos do companheiro; não misturar regras do patrulheiro original |
 
 ## Raças e antecedentes
 

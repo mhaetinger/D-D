@@ -225,6 +225,15 @@ rolar uma nova iniciativa física e confirme o registro. Repetir o d20 com
 Sortudo não concede outra recuperação. Usa os máximos ajustados da ficha;
 registros ilegíveis são preservados para conferência.
 
+Também em desenvolvimento, Auto Ficha aplica vantagem na iniciativa por
+**Instinto Selvagem** (bárbaro 7) e **Explorador Natural** (Patrulheiro Revisado 1).
+Reúne essas fontes, inspiração preparada, modo informado no dado e desvantagens
+verificadas (exaustão, veneno, armadura/escudo sem proficiência) antes de cancelar
+uma única vez. O resultado explica as fontes; o seletor do dado permanece como
+foi escolhido. OFF/Só Pool orientam a rolagem física, sem gastar inspiração.
+Medo com fonte à vista, equipamento/DES da Forma Selvagem, surpresa e alvos do
+primeiro turno continuam declarados pela mesa.
+
 Em desenvolvimento, **Adepto Elemental** trata faces 1 como 2 no dano automático
 de magias reconhecidas do elemento escolhido. O selo mostra **Adepto: 1→2**;
 o livro explica a resistência ignorada, e o resultado conserva as faces originais

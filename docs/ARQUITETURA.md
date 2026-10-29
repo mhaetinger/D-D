@@ -1485,3 +1485,27 @@ Saldo, campo de Chi, botões dependentes de Chi e inspiração heroica atualizam
 somente os trechos afetados. Preserva nós/foco das listas e o desenho do dado.
 Não cria marcador de combate, relógio de turnos, novo contador, chamada remota
 ou envio automático. A mesa declara quando ocorre uma nova iniciativa.
+
+## Modo da iniciativa — décimo recorte de R2, 28/10/2026
+
+`initiative-mode.ts` consulta nível próprio (bárbaro 7/Patrulheiro Revisado 1),
+exaustão, envenenamento e as proficiências vigentes de `armorProficiencies`.
+Não altera dados. Reúne fontes da ficha, modo selecionado e inspiração preparada
+antes de calcular o modo: a presença dos dois tipos sempre resulta em normal,
+independentemente da quantidade de fontes. Não encadeia cancelamentos de pares,
+nem modifica `inspirationRollMode` dos demais contextos.
+
+`rollCurrentPool` só usa esse cálculo com o contexto explícito da iniciativa.
+Captura o perfil em `context.initiativeRoll`, junto ao resultado transitório,
+antes de consumir inspiração e recuperar recursos. `presentDiceResult` explica
+as fontes com texto escapado. Sortudo/halfling conservam esse perfil e modo;
+não recalculam com inspiração já gasta ou com um seletor alterado após lançar.
+O perfil não entra em ficha, histórico ou backup. Bônus numérico, natural do
+d20, aparência/gestos do dado e os demais lançamentos mantêm seus contratos.
+
+OFF/Só Pool excluem inspiração do cálculo, pois o botão não a gasta. Orientam
+quantidade/escolha do dado físico e bônus, junto da confirmação de recuperação
+quando necessária. Medo exige visibilidade que o documento não contém; a ajuda
+pede informar o modo na mesa. Forma Selvagem não presume que equipamento humano
+esteja vestido, e pede conferir DES/equipamento. Surpresa/Fúria e alvos que ainda
+não agiram permanecem na mesa, sem simular turnos ou gastar recursos.

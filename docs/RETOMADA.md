@@ -5,7 +5,7 @@ Estado consolidado em **28/10/2026**. Leia também `AGENTS.md`, `README.md`,
 
 ## Onde o trabalho parou
 
-**Em desenvolvimento: recuperação na iniciativa, Precisão, manobras no acerto,
+**Em desenvolvimento: modo/recuperação na iniciativa, Precisão, manobras no acerto,
 Adepto Elemental e revisão das quatro invocações**, na branch `feature/manobras-acerto-2014`, iniciada no
 develop público `9f676e0`. Tudo permanece agrupado na
 [PR #35](https://github.com/mhaetinger/D-D/pull/35), sem mesclar/publicar.
@@ -16,12 +16,18 @@ permitem confirmar uma nova iniciativa já rolada na mesa. Sortudo/halfling não
 recuperam outra vez ao repetir o mesmo d20. Preserva máximos ajustados, valores
 ilegíveis, outros recursos/rascunhos e nós/foco. Cobertura de manobras permanece
 em sete de dano + Precisão, **8/16**; efeitos/alvos/turnos ficam com a mesa.
-O oitavo recorte (`d768de8`) passou integralmente na CI (525 testes, banco, build
-e 42 roteiros); a execução da nova revisão fica na mesma PR. As PRs #33/#34
+O décimo recorte reúne fontes de vantagem/desvantagem na iniciativa antes de
+cancelar: Instinto Selvagem (bárbaro 7), Explorador Natural (Patrulheiro Revisado
+1), inspiração preparada, modo informado e desvantagens verificadas. Resultado
+explica as fontes, preservadas em Sortudo/halfling; OFF/Só Pool orientam o dado
+físico sem gastar inspiração. Medo/visibilidade, DES/equipamento da Forma
+Selvagem, surpresa/Fúria e alvos do primeiro turno continuam na mesa.
+O nono recorte (`fa7e970`) passou integralmente na CI (534 testes, banco, build
+e 43 roteiros); a execução da nova revisão fica na mesma PR. As PRs #33/#34
 foram substituídas pela entrega agrupada; não são trabalhos paralelos pendentes.
-Nesta rodada passaram 534 testes Node e tipos/build; a verificação de navegador
-da revisão atual fica registrada no nono recorte da auditoria.
-A CI exige os 43 roteiros e PostgreSQL descartável.
+Nesta rodada passaram 543 testes Node, tipos/build e sete roteiros Chromium;
+os detalhes ficam no décimo recorte da auditoria. A CI exige os 44 roteiros e
+PostgreSQL descartável; resultado da revisão atual na PR #35.
 
 **Publicação por entregas agrupadas.** O responsável orientou não publicar cada
 correção. Acumular e verificar os ajustes em desenvolvimento; uma PR para `main`
@@ -45,14 +51,14 @@ os recortes ainda parciais, sem prometer automação integral do livro.
 
 A rodada atual reúne a revisão delimitada das quatro invocações, o quinto
 recorte de R2 (Adepto Elemental), o sexto (manobras no acerto/Adepto Marcial),
-o sétimo (Precisão depois do d20), o oitavo (cinco outras manobras de dano)
-e o nono (recuperação na iniciativa).
+o sétimo (Precisão depois do d20), o oitavo (cinco outras manobras de dano),
+o nono (recuperação na iniciativa) e o décimo (modo da iniciativa).
 Os critérios e limites estão na auditoria; isso não
 promete automação integral de todas as regras do livro. As demais possibilidades
 registradas são evoluções da ficha individual. Decisões que pertencem à mesa
 podem continuar manuais, com indicação clara, sem bloquear o uso da ficha.
 
-O quarto recorte de R2 já foi publicado; quinto a nono ficam em desenvolvimento,
+O quarto recorte de R2 já foi publicado; quinto a décimo ficam em desenvolvimento,
 junto da auditoria de invocações. Outros adicionais/manobras e os
 contextos de magia ainda manuais permanecem na matriz da auditoria. Ordem mantida:
 **draconatos → rolagens → magias → importação**.

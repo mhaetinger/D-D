@@ -26,6 +26,7 @@ import {precisionAttackOptions} from '../rules/precision-attack';
 import {choosePrecisionAttack} from '../rules/precision-attack-ui';
 import {applyInitiativeRecovery,initiativeRecoveryDescription,initiativeRecoveryFeatures} from '../rules/initiative-recovery';
 import {recoverPhysicalInitiative,refreshInitiativeResources} from '../rules/initiative-recovery-ui';
+import {initiativeTraits,initiativeRollDetails,initiativeRollDescription} from '../rules/initiative-mode';
 import {beginWeaponAttack,clearWeaponAttacks,finishWeaponAttack,isCurrentWeaponAttack} from '../rules/weapon-attack-session';
 import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponDamageLabel, weaponAttackBonus, weaponPowerAttackPrepared } from '../rules/weapon-damage-ui';
 import { applyCastConcentration, concentration, concentrationBlock, incapacityReason, needsConcentrationConfirmation, spellConcentration, validateConcentrationStart } from '../rules/concentration';
@@ -1117,7 +1118,9 @@ function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligib
   const c=getChar(),inspired=inspirationEligible && !!c && dicePoolCounts[20]===1 && c.heroicInspiration && c.ruleState?.inspirationReady;
   const initiative=context?.initiative===true && context.type==='check';
   if(initiative && (diceMode!=='auto' || !canEditSheet(c)))return showToast('A iniciativa desta ficha não pode alterar recursos neste contexto.');
-  const mode=inspired?inspirationRollMode(c,currentRollMode):currentRollMode;
+  const initiativeDetails=initiative?initiativeRollDetails(c,currentRollMode,CharacterEngine,!!inspired):null;
+  const mode=initiativeDetails?.mode ?? (inspired?inspirationRollMode(c,currentRollMode):currentRollMode);
+  if(initiativeDetails)context={...context,initiativeRoll:initiativeDetails};
   if(context?.type==='attack' && context.weapon && diceMode==='auto')context={...context,weaponAttack:beginWeaponAttack(c,context.weapon)};
   let result = evaluateDicePool(dicePoolCounts, modVal, mode,c?sheetD20Rules(c,context,CharacterEngine):{});
   if(context?.elementalAdept)result=applyElementalAdept(result,context.elementalAdept);
@@ -1240,6 +1243,7 @@ function presentDiceResult(result, customLabel, rerollContext = null, animate = 
     resultBox.innerHTML = `
     ${customLabel ? `<div class="font-bold text-xs t-text-main">${escapeHTML(customLabel)}</div>` : ""}
     <div class="text-[11px] font-bold t-text-muted">${modeLabel}</div>
+    ${rerollContext?.context?.initiativeRoll?`<div data-initiative-mode class="text-[11px] t-text-muted leading-tight">${escapeHTML(initiativeRollDescription(rerollContext.context.initiativeRoll))}</div>`:''}
     <div class="text-xl font-extrabold t-text-main">
       Total: <span class="t-text-accent">${result.total}</span>
       ${isCrit ? '<span class="ml-1 px-1.5 py-0.5 rounded badge-fogo text-[10px]">20 NATURAL!</span>' : ""}
@@ -1355,8 +1359,9 @@ function chooseLuckyD20(index) {
 function rollInitiative() {
   const c=getChar();if(!canEditSheet(c))return showToast('A edição desta ficha está bloqueada pelo mestre.');
   if(diceMode!=='auto'){
-    if(initiativeRecoveryFeatures(c,CharacterEngine).length)return recoverPhysicalInitiative(c,CharacterEngine,document.querySelector('[data-initiative-roll]'));
-    return triggerSheetRoll('1d20'+fmtMod(initiativeBonus(c,CharacterEngine)),'Iniciativa',true,{type:'check'});
+    const physical=initiativeRollDescription(initiativeRollDetails(c,currentRollMode,CharacterEngine,false))+' Some '+fmtMod(initiativeBonus(c,CharacterEngine))+'.'+(c.heroicInspiration && c.ruleState?.inspirationReady?' Inspiração preparada não foi gasta: declare seu uso e registre o gasto na ficha.':'');
+    if(initiativeRecoveryFeatures(c,CharacterEngine).length)return recoverPhysicalInitiative(c,CharacterEngine,document.querySelector('[data-initiative-roll]'),physical);
+    return showToast('Iniciativa na mesa: '+physical);
   }
   return triggerSheetRoll('1d20'+fmtMod(initiativeBonus(c,CharacterEngine)),'Iniciativa',true,{type:'check',initiative:true});
 }
@@ -2106,7 +2111,8 @@ function renderCombatBlock(char) {
   const dexMod = initiativeBonus(char,CharacterEngine);
   const effective = exhaustion({...char,speed:CharacterEngine.movementSpeed(char)});
   const initiativeFeatures=initiativeRecoveryFeatures(char,CharacterEngine);
-  const initiativeHelp='Teste de Destreza para definir a ordem no combate; usa o bônus mostrado e o modo preparado no dado.'+(initiativeFeatures.length?' '+initiativeFeatures.map(f=>`${f.name}: recupera ${f.amount} ${f.id==='monge:ki'?'pontos de Chi':f.id==='bardo:inspiration'?'uso de Inspiração de Bardo':'dado de superioridade'} apenas com a reserva vazia.`).join(' ')+' OFF/Só Pool: clique após rolar uma nova iniciativa física para confirmar a recuperação. Sortudo não concede outra recuperação na mesma jogada.':'');
+  const initiativeSources=initiativeTraits(char,CharacterEngine);
+  const initiativeHelp='Teste de Destreza para definir a ordem no combate; usa o bônus mostrado. Auto Ficha reúne benefícios da classe, condições verificadas, modo preparado no dado e inspiração antes de cancelar vantagem/desvantagem uma única vez. OFF/Só Pool: orienta o dado físico, sem gastar inspiração.'+(initiativeSources.advantage.length?' Vantagem da ficha: '+initiativeSources.advantage.join(', ')+'.':'')+(initiativeSources.disadvantage.length?' Desvantagem da ficha: '+initiativeSources.disadvantage.join(', ')+'.':'')+' '+initiativeSources.notes.join(' ')+(initiativeFeatures.length?' '+initiativeFeatures.map(f=>`${f.name}: recupera ${f.amount} ${f.id==='monge:ki'?'pontos de Chi':f.id==='bardo:inspiration'?'uso de Inspiração de Bardo':'dado de superioridade'} apenas com a reserva vazia.`).join(' ')+' OFF/Só Pool: clique após rolar uma nova iniciativa física para confirmar a recuperação. Sortudo não concede outra recuperação na mesma jogada.':'');
 
   // Referência sem consumo/cura automática, conforme a campanha do usuário.
 
