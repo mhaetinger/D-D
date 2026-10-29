@@ -244,6 +244,22 @@ restaura o contador salvo, sem recriar o ataque. Se perder o contexto de um dado
 ainda pago, resolva-o na mesa. Este
 controle não cobre ataques próprios, desarmados ou em Forma Selvagem.
 
+**Ataque de Finta**, em desenvolvimento, começa em **Fintar**, junto da reserva.
+Confirme ação bônus no próprio turno e uma criatura a até 1,5 m ao fintar; paga
+um dado mesmo se errar ou não atacar. Marque **Finta · contra [alvo]** na arma
+somente para o próximo ataque contra ela, ainda nesse turno. Atq confirma antes
+de usar a vantagem, sem novo gasto. Informe desvantagem no seletor se houver:
+ela anula as fontes de vantagem, inclusive Finta com inspiração. O seletor das
+próximas jogadas não muda. No acerto, Dano inclui o dado já pago e dobra-o no
+crítico. Ataques contra outras criaturas não consomem a escolha; não combine
+outra manobra naquele ataque. OFF/Só Pool permitem total físico.
+Encerre ao terminar o turno ou errar. Magias com jogada de ataque, ataques
+próprios/desarmados e sem jogada de dano usam **Resolver na mesa**, sem outro
+gasto ou conjuração; Rede não ganha dano extra. Forma Selvagem continua manual.
+Recarga/troca de contexto
+ou desfazer descartam a Finta transitória; o contador salvo segue o histórico
+normal. Se perder o contexto de um dado ainda pago, resolva-o na mesa.
+
 Depois de rolar o ataque no **Auto Ficha**, abra a bandeja do dado e use
 **Precisão · usar 1 dado**. Escolha a origem e role o dado de superioridade
 ou informe sua face física; o d20 natural permanece igual. Sortudo e o halfling

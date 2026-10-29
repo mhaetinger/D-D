@@ -1660,3 +1660,41 @@ restaura o contador do documento; descanso segue a recuperação normal. Se ele 
 precisa ser resolvido, a interface orienta usar a mesa com o dado já pago.
 Não há medição de alcance, relógio de ações/turnos, modificação de outro jogador,
 novo campo persistido, SQL ou consulta de nuvem.
+
+
+## Ataque de Finta — décimo sexto recorte de R2, 29/10/2026
+
+`feinting-attack.ts` valida conhecimento vigente, ação bônus/turno/distância
+inicial declarados, alvo, legibilidade e saldo antes de gastar um dado. Não rola
+a face ao fintar. `feinting-state.ts` guarda origem/tamanho/alvo num `WeakMap`
+por ficha: crédito para o próximo ataque contra esse alvo no mesmo turno. Ataque
+contra outra criatura não o consome; alvo/turno são declarações, sem rastreamento
+ou medição. Origem do talento mantém d6 até Superioridade Aprimorada.
+
+`feinting-attack-ui.ts` monta Fintar nas reservas e um estado compacto junto das
+armas. Marcação por arma aponta para a identidade exata do crédito; nova Finta
+não herda marca antiga. Confirmar Atq consome o crédito sem novo gasto e o liga
+à sessão de `weapon-attack-session.ts`. Revalida conta/documento/objeto/botão,
+permissão, preparação, contexto e sequência/modo do dado, com trava por ficha.
+Marcar mantém nós/foco; aceitar atualiza estado e rótulos dos botões existentes,
+inclusive liberando dano virtual quando Finta é o único adicional.
+
+`feintingRollDetails` reúne Finta, modo informado e inspiração antes de cancelar:
+duas vantagens não superam uma desvantagem. Aplica só à jogada elegível, sem mudar
+o seletor global. O resultado explica o modo; Sortudo/halfling preservam a sessão.
+Não deduz sentidos, proximidade de inimigos ou cobertura. Desvantagens continuam
+informadas pela mesa, inclusive ataque à distância perto de inimigo elegível.
+
+`weapon-damage.ts` inclui o dado do tipo da arma, dobrado em crítico; o diálogo
+pede acerto e bloqueia Precisão/outra manobra. Furtivo, Destruição, –5/+10 e
+repetições restritas à arma conservam os contratos. OFF/Só Pool usam registro
+físico e não gastam inspiração preparada. Magia com jogada de ataque, ataque
+próprio/desarmado ou sem jogada de dano são resolvidos na mesa com o crédito já pago; o controle não
+conjura, altera espaços ou inventa dano para Rede. Forma Selvagem fica manual.
+
+Encerrar/errar/fim do turno descarta crédito/sessão sem reembolso. Outro ataque
+após aquele que usou Finta termina a sessão anterior, sem herdar vantagem/dano.
+Descanso limpa antes da recuperação normal; troca de ficha/conta/modo, recarga
+e objetos substituídos por desfazer também descartam o contexto. Desfazer/refazer
+restaura somente o contador do documento. Não persiste alvo/face/crédito, não
+muda outra ficha, não cria relógio/SQL/consulta de nuvem.

@@ -27,8 +27,10 @@ import {choosePrecisionAttack} from '../rules/precision-attack-ui';
 import {applyInitiativeRecovery,initiativeRecoveryDescription,initiativeRecoveryFeatures} from '../rules/initiative-recovery';
 import {recoverPhysicalInitiative,refreshInitiativeResources} from '../rules/initiative-recovery-ui';
 import {initiativeTraits,initiativeRollDetails,initiativeRollDescription} from '../rules/initiative-mode';
-import {beginWeaponAttack,clearWeaponAttacks,finishLungingAttack,finishWeaponAttack,isCurrentWeaponAttack} from '../rules/weapon-attack-session';
+import {beginWeaponAttack,clearWeaponAttacks,finishFeintingAttack,finishLungingAttack,finishWeaponAttack,isCurrentWeaponAttack} from '../rules/weapon-attack-session';
 import {chooseLungingAttack,lungingPrepared,refreshLungingTools} from '../rules/lunging-attack-ui';
+import {feintingPrepared,chooseFeintingWeaponAttack,feintingStatus,refreshFeintingUI} from '../rules/feinting-attack-ui';
+import {feintingRollDetails,feintingRollDescription} from '../rules/feinting-attack';
 import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponCriticalPrepared, weaponDamageLabel, weaponAttackBonus, weaponPowerAttackPrepared, refreshWeaponDamageLabel } from '../rules/weapon-damage-ui';
 import { applyCastConcentration, concentration, concentrationBlock, incapacityReason, needsConcentrationConfirmation, spellConcentration, validateConcentrationStart } from '../rules/concentration';
 import { concentrationControls } from '../rules/concentration-ui';
@@ -1120,10 +1122,12 @@ function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligib
   const initiative=context?.initiative===true && context.type==='check';
   if(initiative && (diceMode!=='auto' || !canEditSheet(c)))return showToast('A iniciativa desta ficha não pode alterar recursos neste contexto.');
   const initiativeDetails=initiative?initiativeRollDetails(c,currentRollMode,CharacterEngine,!!inspired):null;
-  const mode=initiativeDetails?.mode ?? (inspired?inspirationRollMode(c,currentRollMode):currentRollMode);
+  const feintingDetails=context?.weaponAttack?.feinting?feintingRollDetails(currentRollMode,!!inspired):null;
+  const mode=initiativeDetails?.mode ?? feintingDetails?.mode ?? (inspired?inspirationRollMode(c,currentRollMode):currentRollMode);
+  if(feintingDetails)context={...context,feintingRoll:feintingDetails};
   if(initiativeDetails)context={...context,initiativeRoll:initiativeDetails};
   if(context?.type==='attack' && context.weapon && diceMode==='auto'){
-    if(context.weaponAttack && !isCurrentWeaponAttack(context.weaponAttack))return showToast('O ataque estendido mudou. Resolva na mesa o dado já pago.');
+    if(context.weaponAttack && !isCurrentWeaponAttack(context.weaponAttack))return showToast('O ataque mudou. Resolva na mesa o dado já pago.');
     context={...context,weaponAttack:context.weaponAttack || beginWeaponAttack(c,context.weapon)};
   }
   let result = evaluateDicePool(dicePoolCounts, modVal, mode,c?sheetD20Rules(c,context,CharacterEngine):{});
@@ -1247,6 +1251,7 @@ function presentDiceResult(result, customLabel, rerollContext = null, animate = 
     resultBox.innerHTML = `
     ${customLabel ? `<div class="font-bold text-xs t-text-main">${escapeHTML(customLabel)}</div>` : ""}
     <div class="text-[11px] font-bold t-text-muted">${modeLabel}</div>
+    ${rerollContext?.context?.feintingRoll?`<div data-feinting-mode class="text-[11px] t-text-muted leading-tight">${escapeHTML(feintingRollDescription(rerollContext.context.feintingRoll))}</div>`:''}
     ${rerollContext?.context?.initiativeRoll?`<div data-initiative-mode class="text-[11px] t-text-muted leading-tight">${escapeHTML(initiativeRollDescription(rerollContext.context.initiativeRoll))}</div>`:''}
     <div class="text-xl font-extrabold t-text-main">
       Total: <span class="t-text-accent">${result.total}</span>
@@ -2206,6 +2211,7 @@ function renderAttacksBlock(char) {
       </div>
       <button onclick="event.stopPropagation(); openHomebrewModal('weapon')" class="text-[11px] font-bold t-text-accent hover:underline">+ Nova Arma</button>
     </div>
+    ${feintingStatus(char)}
     ${
       !isCollapsed
         ? `
@@ -2796,16 +2802,26 @@ async function rollWeapon(index, kind) {
   }
   let attack;
   if(kind==='attack'){
-    if(lungingPrepared(entry)){
+    if(lungingPrepared(entry) && feintingPrepared(c,entry))return showToast('Escolha uma única manobra neste ataque: Finta ou Estendido.');
+    if(feintingPrepared(c,entry)){
       const critical=weaponCriticalPrepared(entry),powerAttack=weaponPowerAttackPrepared(c,entry,CharacterEngine);
-      try{attack=await chooseLungingAttack(c,entry,index,CharacterEngine,saveRuleStep,()=>weaponCriticalPrepared(entry)===critical && weaponPowerAttackPrepared(c,entry,CharacterEngine)===powerAttack && String(weaponAttackBonus(c,entry,CharacterEngine)).trim()===bonus);}
+      try{attack=await chooseFeintingWeaponAttack(c,entry,index,CharacterEngine,()=>!lungingPrepared(entry) && weaponCriticalPrepared(entry)===critical && weaponPowerAttackPrepared(c,entry,CharacterEngine)===powerAttack && String(weaponAttackBonus(c,entry,CharacterEngine)).trim()===bonus);}
+      catch(error){showToast(error.message || 'Não foi possível usar a Finta.');return;}
+      if(!attack)return;
+      if(getChar()!==c || c.weapons[index]!==entry || !isCurrentWeaponAttack(attack))return showToast('O ataque mudou. Resolva na mesa o dado já pago.');
+      refreshLungingTools(c,CharacterEngine);
+    }else if(lungingPrepared(entry)){
+      const critical=weaponCriticalPrepared(entry),powerAttack=weaponPowerAttackPrepared(c,entry,CharacterEngine);
+      try{attack=await chooseLungingAttack(c,entry,index,CharacterEngine,saveRuleStep,()=>!feintingPrepared(c,entry) && weaponCriticalPrepared(entry)===critical && weaponPowerAttackPrepared(c,entry,CharacterEngine)===powerAttack && String(weaponAttackBonus(c,entry,CharacterEngine)).trim()===bonus);}
       catch(error){showToast(error.message || 'Não foi possível usar Ataque Estendido.');return;}
       if(!attack)return;
       if(getChar()!==c || c.weapons[index]!==entry || !isCurrentWeaponAttack(attack))return showToast('O ataque mudou. Resolva na mesa o dado já pago.');
-    }else {const old=finishLungingAttack(c);if(old)refreshWeaponDamageLabel(c,c.weapons.indexOf(old.entry),CharacterEngine);refreshLungingTools(c,CharacterEngine);}
+    }else {const old=finishLungingAttack(c),oldFeint=finishFeintingAttack(c);for(const paid of [old,oldFeint])if(paid)refreshWeaponDamageLabel(c,c.weapons.indexOf(paid.entry),CharacterEngine);refreshLungingTools(c,CharacterEngine);}
+    refreshFeintingUI(c,CharacterEngine,(c,i)=>refreshWeaponDamageLabel(c,i,CharacterEngine));
   }
-  const result=triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}${attack?.lunging?' · Estendido +1,5 m (dado já pago)':''}${kind==='attack' && weaponPowerAttackPrepared(c,entry,CharacterEngine)?' · '+weaponPowerAttackOption(c,entry,CharacterEngine).name+' (–5 ataque / +10 dano)':''}`,kind==='attack',kind==='attack'?{type:'attack',weapon:entry,...(attack?{weaponAttack:attack}: {})}:null);
+  const result=triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}${attack?.lunging?' · Estendido +1,5 m (dado já pago)':''}${attack?.feinting?' · Finta contra '+attack.feinting.target+' (dado já pago)':''}${kind==='attack' && weaponPowerAttackPrepared(c,entry,CharacterEngine)?' · '+weaponPowerAttackOption(c,entry,CharacterEngine).name+' (–5 ataque / +10 dano)':''}`,kind==='attack',kind==='attack'?{type:'attack',weapon:entry,...(attack?{weaponAttack:attack}: {})}:null);
   if(attack?.lunging && !result)showToast('Estendido: alcance +1,5 m neste ataque; dado já pago. Role o ataque na mesa; se acertar, registre em Dano. Se errar, use Errou / encerrar ataque.');
+  if(attack?.feinting && !result)showToast(feintingRollDescription(feintingRollDetails(currentRollMode))+' Role o ataque contra '+attack.feinting.target+' na mesa; no acerto registre em Dano. O dado já foi pago; inspiração preparada não foi gasta.');
   // Usa o resultado resolvido neste clique, nunca o texto da animação ou o
   // total com bônus. Só ataques reais em Auto Ficha atualizam esta preparação.
   if(kind==='attack' && result && c===getChar() && c.weapons[index]===entry)

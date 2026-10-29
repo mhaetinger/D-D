@@ -1,5 +1,37 @@
 # Changelog
 
+## Não lançado — Ataque de Finta — 2026-10-29
+
+- Décimo sexto recorte de R2: Fintar junto da reserva confirma ação bônus no
+  próprio turno e alvo até 1,5 m, gastando um dado sem rolar a face antecipada.
+  Marque Finta na arma só para o próximo ataque contra aquele alvo neste turno;
+  Atq confirma antes de usar. Ataques contra outras criaturas não usam a escolha.
+- Vantagem da Finta, modo informado e inspiração são reunidos antes de cancelar:
+  duas vantagens não superam desvantagem. Não altera o seletor global. Dano pede
+  acerto, inclui o dado já pago e dobra-o no crítico, sem novo gasto. Bloqueia
+  Precisão/outra manobra; conserva Sortudos, Furtivo, Destruição, –5/+10 e
+  repetições restritas à arma. Finta sozinha também permite dano virtual.
+- OFF/Só Pool registram total físico sem RNG ou gasto da inspiração preparada.
+  Resolver na mesa usa o crédito para magia com ataque, ataque próprio/desarmado
+  ou sem jogada de dano, sem conjurar/cobrar espaço ou inventar dano para Rede.
+  Forma Selvagem continua manual. O livro e a errata estão referenciados na auditoria.
+- Controle compacto junto das armas distingue crédito de ataque já feito.
+  Encerrar/errar/fim do turno não reembolsam. Descanso recupera normalmente;
+  troca de contexto, outro ataque após aquele da Finta, recarga ou desfazer não
+  recriam a vantagem. Apenas o contador é salvo/restaurado. Revalida contexto,
+  conta, permissão, arma, nó e dado, com trava para confirmações concorrentes.
+- Marcação e rótulos atualizam os nós existentes. Nomes longos quebram linha
+  no celular e textos do alvo são tratados como dados. Sem campo persistido,
+  SQL, nova consulta de nuvem ou mudança em fichas/notas existentes.
+- Verificados 613 testes Node, tipos/build e dez roteiros Chromium: Finta,
+  Estendido, Precisão, manobras, dano de arma, –5/+10, rerrolagens, dado, modo da
+  iniciativa e regras. Incluem origens/dados/erro/crítico, vantagem/inspiração/
+  desvantagem, escolha por alvo, manual/OFF/Só Pool, cancelamento/concorrência/
+  contexto/conta/permissão, descanso/desfazer/recarga, texto não confiável, nós/
+  foco/scroll, toque emulado/320px/GG/temas/layouts, notas/histórico/offline /D-D/.
+  CI exige 50 roteiros e banco descartável; resultados na PR #35.
+  Cobertura: 13/16 manobras; três pendentes. Sem publicação.
+
 ## Não lançado — Ataque Estendido — 2026-10-29
 
 - Décimo quinto recorte de R2: Estendido é preparado na arma corpo a corpo

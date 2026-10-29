@@ -5,32 +5,32 @@ Estado consolidado em **29/10/2026**. Leia também `AGENTS.md`, `README.md`,
 
 ## Onde o trabalho parou
 
-**Em desenvolvimento: Ataque Estendido e os avanços individuais de combate,
+**Em desenvolvimento: Ataque de Finta e os avanços individuais de combate,
 recursos e magias de 2014**, na branch `feature/manobras-acerto-2014`, iniciada
 no develop público `9f676e0`. Tudo permanece agrupado na
 [PR #35](https://github.com/mhaetinger/D-D/pull/35), sem mesclar/publicar.
 
-O décimo quinto recorte de R2 integra **Ataque Estendido**: marque na arma
-corpo a corpo reconhecida e clique em Atq. Confirme um novo ataque no próprio
-turno, ainda não rolado/resolvido e sem outra manobra; gasta um dado e aumenta
-o alcance apenas desse ataque em 1,5 m. O custo permanece se errar. Dano pede
-confirmar acerto, soma o dado (dobrado no crítico), sem cobrar outra vez.
-**Errou / encerrar ataque**, outro ataque, descanso ou troca de contexto encerram
-a sessão; recarga/desfazer não a restauram. Desfazer/refazer restaura o contador
-do documento, sem recriar o ataque; recarga conserva o gasto salvo.
-OFF/Só Pool permitem ataque físico e registro do total do dano, sem RNG.
-Armas próprias, ataque desarmado e Forma Selvagem continuam manuais neste controle.
+O décimo sexto recorte de R2 integra **Ataque de Finta**: Fintar junto da reserva
+confirma ação bônus no próprio turno, alvo até 1,5 m e gasto antecipado de um dado.
+Depois, marque Finta na arma e confirme o próximo ataque contra esse alvo neste
+turno. Dá vantagem, anulada por desvantagem mesmo com inspiração. No acerto, Dano
+inclui o dado já pago, dobrado em crítico, sem cobrar novamente. Ataques contra
+outras criaturas não usam a escolha. Fim do turno/erro são declarados no controle
+junto das armas; encerrar não devolve o dado. Magia, ataque próprio ou sem dano
+usam **Resolver na mesa**, sem outro gasto/conjuração; Forma Selvagem segue manual.
+Só o contador é salvo: recarga/troca de contexto/desfazer não recriam Finta.
+Desfazer/refazer restaura o contador, e descanso segue a recuperação normal.
 
 Cobertura de manobras: **sete no dano + Precisão + Aparar + Inspirar + Passo
-Evasivo + Estendido = 12/16**. Faltam quatro, listadas na auditoria única. Alvos,
+Evasivo + Estendido + Finta = 13/16**. Faltam três, listadas na auditoria única. Alvos,
 movimento, reação e turnos continuam com a mesa; a contagem não conclui o livro.
 A mesma PR reúne Adepto Elemental, recuperação/modo contextual na iniciativa,
 Sobrevivente e a revisão delimitada das quatro invocações. Detalhes, limites e
 verificações históricas ficam em `docs/AUDITORIA-LIVRO-2014.md`.
 
-A base anterior (`439c7cd`, Passo Evasivo) passou integralmente na CI: 586 testes,
-banco, build e 48 roteiros. As verificações deste avanço ficam na auditoria;
-a CI exige agora 49 roteiros e PostgreSQL descartável. Resultados atuais na PR #35.
+A base anterior (`0eb3781`, Estendido) passou integralmente na CI: 597 testes,
+banco, build e 49 roteiros. As verificações deste avanço ficam na auditoria;
+a CI exige agora 50 roteiros e PostgreSQL descartável. Resultados atuais na PR #35.
 As PRs #33/#34 foram substituídas pela entrega agrupada; não são trabalhos
 paralelos pendentes.
 
@@ -54,7 +54,7 @@ os recortes ainda parciais, sem prometer automação integral do livro.
 
 ## Escopo da entrega e próximos avanços
 
-O quarto recorte de R2 já foi publicado; quinto a décimo quinto ficam em
+O quarto recorte de R2 já foi publicado; quinto a décimo sexto ficam em
 desenvolvimento, junto da revisão delimitada das invocações. A auditoria é a
 fonte única de critérios e pendências; as decisões da mesa podem continuar
 manuais, com indicação clara. A ordem permanece **draconatos → rolagens →
