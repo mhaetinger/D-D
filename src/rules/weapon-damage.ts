@@ -59,7 +59,8 @@ export function previewWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoic
   if(!entry || !c.weapons?.includes(entry))throw new Error('O ataque não pertence mais a esta ficha.');
   if(!choice || ['critical','powerAttack','colossus','smiteFavored'].some(k=>choice[k as keyof WeaponDamageChoice]!==undefined && typeof choice[k as keyof WeaponDamageChoice]!=='boolean') || choice.sneak!==undefined && !['advantage','ally'].includes(choice.sneak) || choice.smiteSlot!==undefined && typeof choice.smiteSlot!=='string')throw new Error('Confira as escolhas de dano deste acerto.');
   const options=weaponDamageOptions(c,entry,E),{w,automatic}=options,critical=!!choice.critical;
-  const attack=currentWeaponAttack(c,entry),lunging=attack?.lunging,feinting=attack?.feinting;
+  const attack=currentWeaponAttack(c,entry),lunging=attack?.lunging,feinting=attack?.feinting,riposte=attack?.riposte;
+  if(riposte && (!automatic || !w.meleeAttack || entry.attackMode==='thrown'))throw new Error('O contra-ataque mudou. Resolva na mesa o dado já pago.');
   if(feinting && !automatic)throw new Error('O ataque da Finta mudou. Resolva na mesa o dado já pago.');
   if(lunging && (!automatic || !w.meleeAttack || entry.attackMode==='thrown'))throw new Error('O ataque estendido mudou. Resolva este ataque na mesa com o dado já gasto.');
   const powerAttack=weaponPowerAttack(c,entry,choice.powerAttack ?? false,E);
@@ -99,6 +100,7 @@ export function previewWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoic
   if(maneuver && !sweeping)add(maneuver.name,`1d${maneuver.source.die}`,w.dmgTypeLabel);
   if(lunging)add('Ataque Estendido',`1d${lunging.die}`,w.dmgTypeLabel);
   if(feinting)add('Ataque de Finta',`1d${feinting.die}`,w.dmgTypeLabel);
+  if(riposte)add('Contra-Atacar',`1d${riposte.die}`,w.dmgTypeLabel);
   if(automatic && critical && w.meleeAttack && w.weaponDie!=='0') {
     const weaponDie=String(w.weaponDie).match(/^\d+d(\d+)$/)?.[1];
     if(weaponDie) {
@@ -109,7 +111,7 @@ export function previewWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoic
   }
   const parsed=parseDiceFormula(parts.map(p=>p.formula).join('+').replace(/\+-/g,'-'));
   if(!parsed)throw new Error('A composição ultrapassa os limites do rolador; nenhum recurso foi gasto.');
-  return {name:String(w.name),critical,powerAttack,manual:!automatic,formula:parsed.formula,parts,slot:slot || null,maneuver,...(sweeping?{sweeping}:{}),...(lunging?{lunging}:{}),...(feinting?{feinting}:{}),
+  return {name:String(w.name),critical,powerAttack,manual:!automatic,formula:parsed.formula,parts,slot:slot || null,maneuver,...(sweeping?{sweeping}:{}),...(lunging?{lunging}:{}),...(feinting?{feinting}:{}),...(riposte?{riposte}:{}),
     summary:parts.map(p=>`${p.name}: ${p.formula} ${p.type}`).join(' · ')};
 }
 /** Valida todos os custos antes de descontar. Destruição não é conjuração de magia:

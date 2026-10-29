@@ -1,5 +1,37 @@
 # Changelog
 
+## Não lançado — Contra-Atacar — 2026-10-29
+
+- Décimo oitavo recorte de R2: botão Contra-atacar junto da arma corpo a corpo
+  reconhecida. Identifica a criatura que errou sua jogada corpo a corpo contra
+  você e confirma reação disponível, alcance e um ataque novo contra ela.
+  Paga um dado antes do ataque, mesmo se errar; no acerto, Dano inclui o dado
+  já pago e dobra-o no crítico, sem outro gasto. Regra/limites na auditoria.
+- Uma reação não é ação Atacar nem ataque de oportunidade; não dispara Ataque
+  Extra nem concede vantagem por si. Preserva modo/inspiração, Sortudo/halfling,
+  Furtivo por turno, Destruição, –5/+10 e repetições só dos dados da arma.
+  Não combina Precisão/Trespassante/outra manobra no mesmo ataque. Finta pendente
+  com a mesma identificação textual é recusada; outra criatura não a consome.
+- Uma sessão paga pendente evita cobrança duplicada entre armas/origens.
+  Errou/encerrar, outro ataque, descanso, troca de contexto, recarga e desfazer
+  descartam o contexto sem reembolso. Somente o contador é salvo/restaurado;
+  descanso recupera normalmente. Arma removida/substituída não trava novo uso.
+- OFF/Só Pool usam ataque e dano físicos, sem RNG ou consumo de inspiração.
+  Origem/legibilidade/saldo e contexto/conta/permissão/arma/nó/preparação/modo/
+  sequência são revalidados antes do gasto. Campos conservam nós/foco.
+  Ataques próprios/desarmados e Forma Selvagem continuam na mesa.
+- Sem campo persistido novo, efeito em outra ficha, SQL, consulta de nuvem,
+  catálogo alterado ou publicação. Cobertura de manobras **15/16**; falta
+  **Golpe do Comandante**, sem concluir as demais etapas do livro.
+- Verificados **637 testes Node**, tipos/build e **onze roteiros Chromium**:
+  Contra-Atacar, Trespassante, Finta, Estendido, Precisão, manobras, dano de arma,
+  –5/+10, repetições, dado e regras. Incluem custo antecipado/erro/crítico,
+  origens/Sortudos/modos/inspiração, físico/virtual/OFF/Só Pool, validação antes
+  do RNG/gasto, contexto/conta/permissão, descanso/desfazer/recarga, notas/
+  histórico/XSS/nós/foco, toque/320px/GG/três temas/dois layouts/scroll e offline
+  real sob `/D-D/`. CI completa exige agora 52 roteiros e banco descartável.
+
+
 ## Não lançado — Ataque Trespassante — 2026-10-29
 
 - Décimo sétimo recorte de R2: Trespassante em Adicionais da arma corpo a corpo

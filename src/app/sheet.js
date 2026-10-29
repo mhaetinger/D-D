@@ -27,8 +27,9 @@ import {choosePrecisionAttack} from '../rules/precision-attack-ui';
 import {applyInitiativeRecovery,initiativeRecoveryDescription,initiativeRecoveryFeatures} from '../rules/initiative-recovery';
 import {recoverPhysicalInitiative,refreshInitiativeResources} from '../rules/initiative-recovery-ui';
 import {initiativeTraits,initiativeRollDetails,initiativeRollDescription} from '../rules/initiative-mode';
-import {beginWeaponAttack,clearWeaponAttacks,finishFeintingAttack,finishLungingAttack,finishWeaponAttack,isCurrentWeaponAttack} from '../rules/weapon-attack-session';
+import {beginWeaponAttack,clearWeaponAttacks,finishFeintingAttack,finishLungingAttack,finishRiposte,finishWeaponAttack,isCurrentWeaponAttack} from '../rules/weapon-attack-session';
 import {chooseLungingAttack,lungingPrepared,refreshLungingTools} from '../rules/lunging-attack-ui';
+import {chooseRiposte,refreshRiposteTools} from '../rules/riposte-ui';
 import {feintingPrepared,chooseFeintingWeaponAttack,feintingStatus,refreshFeintingUI} from '../rules/feinting-attack-ui';
 import {feintingRollDetails,feintingRollDescription} from '../rules/feinting-attack';
 import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponCriticalPrepared, weaponDamageLabel, weaponAttackBonus, weaponPowerAttackPrepared, refreshWeaponDamageLabel } from '../rules/weapon-damage-ui';
@@ -2785,6 +2786,7 @@ async function closeHomebrewModal(force = false) {
 }
 
 async function rollWeapon(index, kind) {
+  const riposte=kind==='riposte';if(riposte)kind='attack';
   if(kind==='damage' && rollPreparedWeaponDamage(getChar(),index,CharacterEngine,saveRuleStep))return;
   const c=getChar(),entry=c.weapons[index];
   const weapon = CharacterEngine.weaponStats(c, entry);
@@ -2803,7 +2805,15 @@ async function rollWeapon(index, kind) {
   let attack;
   if(kind==='attack'){
     if(lungingPrepared(entry) && feintingPrepared(c,entry))return showToast('Escolha uma única manobra neste ataque: Finta ou Estendido.');
-    if(feintingPrepared(c,entry)){
+    if(riposte){
+      if(lungingPrepared(entry) || feintingPrepared(c,entry))return showToast('Contra-Atacar não combina Estendido ou Finta no mesmo ataque. Desmarque a outra manobra.');
+      const critical=weaponCriticalPrepared(entry),powerAttack=weaponPowerAttackPrepared(c,entry,CharacterEngine);
+      try{attack=await chooseRiposte(c,entry,index,CharacterEngine,saveRuleStep,()=>!lungingPrepared(entry) && !feintingPrepared(c,entry) && weaponCriticalPrepared(entry)===critical && weaponPowerAttackPrepared(c,entry,CharacterEngine)===powerAttack && String(weaponAttackBonus(c,entry,CharacterEngine)).trim()===bonus);}
+      catch(error){showToast(error.message || 'Não foi possível contra-atacar.');return;}
+      if(!attack)return;
+      if(getChar()!==c || c.weapons[index]!==entry || !isCurrentWeaponAttack(attack))return showToast('O ataque mudou. Resolva na mesa o dado já pago.');
+      refreshLungingTools(c,CharacterEngine);
+    }else if(feintingPrepared(c,entry)){
       const critical=weaponCriticalPrepared(entry),powerAttack=weaponPowerAttackPrepared(c,entry,CharacterEngine);
       try{attack=await chooseFeintingWeaponAttack(c,entry,index,CharacterEngine,()=>!lungingPrepared(entry) && weaponCriticalPrepared(entry)===critical && weaponPowerAttackPrepared(c,entry,CharacterEngine)===powerAttack && String(weaponAttackBonus(c,entry,CharacterEngine)).trim()===bonus);}
       catch(error){showToast(error.message || 'Não foi possível usar a Finta.');return;}
@@ -2816,10 +2826,13 @@ async function rollWeapon(index, kind) {
       catch(error){showToast(error.message || 'Não foi possível usar Ataque Estendido.');return;}
       if(!attack)return;
       if(getChar()!==c || c.weapons[index]!==entry || !isCurrentWeaponAttack(attack))return showToast('O ataque mudou. Resolva na mesa o dado já pago.');
-    }else {const old=finishLungingAttack(c),oldFeint=finishFeintingAttack(c);for(const paid of [old,oldFeint])if(paid)refreshWeaponDamageLabel(c,c.weapons.indexOf(paid.entry),CharacterEngine);refreshLungingTools(c,CharacterEngine);}
+    }else {const old=finishLungingAttack(c),oldFeint=finishFeintingAttack(c),oldRiposte=finishRiposte(c);for(const paid of [old,oldFeint,oldRiposte])if(paid)refreshWeaponDamageLabel(c,c.weapons.indexOf(paid.entry),CharacterEngine);refreshLungingTools(c,CharacterEngine);}
     refreshFeintingUI(c,CharacterEngine,(c,i)=>refreshWeaponDamageLabel(c,i,CharacterEngine));
+    refreshRiposteTools(c,CharacterEngine);
+    if(attack?.riposte)refreshWeaponDamageLabel(c,index,CharacterEngine);
   }
-  const result=triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}${attack?.lunging?' · Estendido +1,5 m (dado já pago)':''}${attack?.feinting?' · Finta contra '+attack.feinting.target+' (dado já pago)':''}${kind==='attack' && weaponPowerAttackPrepared(c,entry,CharacterEngine)?' · '+weaponPowerAttackOption(c,entry,CharacterEngine).name+' (–5 ataque / +10 dano)':''}`,kind==='attack',kind==='attack'?{type:'attack',weapon:entry,...(attack?{weaponAttack:attack}: {})}:null);
+  const result=triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}${attack?.lunging?' · Estendido +1,5 m (dado já pago)':''}${attack?.feinting?' · Finta contra '+attack.feinting.target+' (dado já pago)':''}${attack?.riposte?' · Contra-Atacar contra '+attack.riposte.target+' (dado já pago)':''}${kind==='attack' && weaponPowerAttackPrepared(c,entry,CharacterEngine)?' · '+weaponPowerAttackOption(c,entry,CharacterEngine).name+' (–5 ataque / +10 dano)':''}`,kind==='attack',kind==='attack'?{type:'attack',weapon:entry,...(attack?{weaponAttack:attack}: {})}:null);
+  if(attack?.riposte && !result)showToast('Contra-Atacar: reação e dado já pagos. Role o ataque na mesa; no acerto, registre em Dano; se errar, encerre o contra-ataque. Inspiração preparada não foi gasta.');
   if(attack?.lunging && !result)showToast('Estendido: alcance +1,5 m neste ataque; dado já pago. Role o ataque na mesa; se acertar, registre em Dano. Se errar, use Errou / encerrar ataque.');
   if(attack?.feinting && !result)showToast(feintingRollDescription(feintingRollDetails(currentRollMode))+' Role o ataque contra '+attack.feinting.target+' na mesa; no acerto registre em Dano. O dado já foi pago; inspiração preparada não foi gasta.');
   // Usa o resultado resolvido neste clique, nunca o texto da animação ou o

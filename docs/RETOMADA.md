@@ -5,32 +5,31 @@ Estado consolidado em **29/10/2026**. Leia também `AGENTS.md`, `README.md`,
 
 ## Onde o trabalho parou
 
-**Em desenvolvimento: Ataque Trespassante e os avanços individuais de combate,
+**Em desenvolvimento: Contra-Atacar e os avanços individuais de combate,
 recursos e magias de 2014**, na branch `feature/manobras-acerto-2014`, iniciada
 no develop público `9f676e0`. Tudo permanece agrupado na
 [PR #35](https://github.com/mhaetinger/D-D/pull/35), sem mesclar/publicar.
 
-O décimo sétimo recorte de R2 integra **Ataque Trespassante** em Adicionais:
-segunda criatura a até 1,5 m da primeira e dentro do alcance, com confirmação de
-que a mesma jogada atingiria sua CA. O dano secundário é somente um dado de
-superioridade, separado do total principal, sem bônus/dados extras de crítico.
-A tentativa gasta um dado mesmo se a jogada não atingiria a segunda criatura;
-nesse caso registra zero, sem RNG secundário. Virtual e físico distinguem os
-dois resultados; repetições mudam apenas os dados da arma do alvo original.
-Não combina outra manobra no ataque. Ataques próprios/Forma Selvagem ficam na
-mesa. Não altera outra ficha nem acrescenta campos persistidos/consultas de nuvem.
+O décimo oitavo recorte de R2 integra **Contra-Atacar** junto da arma: identifica
+a criatura que errou uma jogada corpo a corpo contra você e confirma reação,
+alcance e um novo ataque contra ela, sem outra manobra. Paga um dado antes do
+ataque, mesmo se errar. No acerto, Dano inclui o dado já pago e dobra em crítico,
+sem novo gasto. Encerrar/errar/outro ataque ou perder o contexto não reembolsam;
+só o contador é salvo. OFF/Só Pool usam ataque/dano físicos; inspiração/modos/
+Sortudos e adicionais seguem os contratos existentes. Não é ação Atacar ou
+ataque de oportunidade, nem dispara Ataque Extra. Gatilho/reação/alvo/alcance
+ficam com a mesa; ataque próprio/desarmado e Forma Selvagem continuam manuais.
 
 Cobertura de manobras: **sete no dano + Precisão + Aparar + Inspirar + Passo
-Evasivo + Estendido + Finta + Trespassante = 14/16**. Faltam duas: **Contra-Atacar
-e Golpe do Comandante**. Alvos, alcance, movimento, reação e turnos continuam
-com a mesa; a contagem não conclui o livro. A mesma PR reúne Adepto Elemental,
-recuperação/modo contextual na iniciativa, Sobrevivente e a revisão delimitada
-das quatro invocações. Critérios, limites e verificações históricas ficam em
-`docs/AUDITORIA-LIVRO-2014.md`.
+Evasivo + Estendido + Finta + Trespassante + Contra-Atacar = 15/16**. Falta
+**Golpe do Comandante**. A contagem não conclui o livro. A mesma PR reúne Adepto
+Elemental, recuperação/modo contextual na iniciativa, Sobrevivente e a revisão
+delimitada das quatro invocações. Critérios, limites e verificações históricas
+ficam em `docs/AUDITORIA-LIVRO-2014.md`.
 
-A base anterior (`5b0d48b`, Finta) passou integralmente na CI: 613 testes,
-banco, build e 50 roteiros. As verificações deste avanço ficam na auditoria;
-a CI exige agora 51 roteiros e PostgreSQL descartável. Resultados atuais na PR #35.
+A base anterior (`a6d118a`, Trespassante) passou integralmente na CI: 624 testes,
+banco, build e 51 roteiros. As verificações deste avanço ficam na auditoria;
+a CI exige agora 52 roteiros e PostgreSQL descartável. Resultados atuais na PR #35.
 As PRs #33/#34 foram substituídas pela entrega agrupada; não são trabalhos
 paralelos pendentes.
 
@@ -54,7 +53,7 @@ os recortes ainda parciais, sem prometer automação integral do livro.
 
 ## Escopo da entrega e próximos avanços
 
-O quarto recorte de R2 já foi publicado; quinto a décimo sétimo ficam em
+O quarto recorte de R2 já foi publicado; quinto a décimo oitavo ficam em
 desenvolvimento, junto da revisão delimitada das invocações. A auditoria é a
 fonte única de critérios e pendências; as decisões da mesa podem continuar
 manuais, com indicação clara. A ordem permanece **draconatos → rolagens →

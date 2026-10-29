@@ -20,6 +20,7 @@ import {rallyControls,useRally} from './rally-ui';
 import {endEvasiveMovement,evasiveDefenseControls,evasiveStartControl,useEvasiveFootwork} from './evasive-footwork-ui';
 import {endEvasiveFootworkIfStopped} from './evasive-footwork-state';
 import {setupLungingAttackUI} from './lunging-attack-ui';
+import {setupRiposteUI} from './riposte-ui';
 import {feintingStartControl,setupFeintingAttackUI,useFeintingAttack,useFeintingAtTable,endFeintingUI} from './feinting-attack-ui';
 
 export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
@@ -129,6 +130,7 @@ export function setupRuleUI(E: Engine) {
   setupConcentrationUI(E,save);
   setupWeaponDamageUI(E,save);
   setupLungingAttackUI(E,(c,index)=>refreshWeaponDamageLabel(c,index,E));
+  setupRiposteUI(E,(c,index)=>refreshWeaponDamageLabel(c,index,E));
   setupFeintingAttackUI(E);
   setupLuckyUI(E,save);
   setupDragonbornBreathUI(E,save);

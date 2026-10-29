@@ -221,6 +221,19 @@ os dois danos; repetições da arma alteram só o alvo original. Não usa outra
 manobra no mesmo ataque, nem aplica dano automaticamente a outra ficha.
 Ataques personalizados e Forma Selvagem continuam na mesa.
 
+Em desenvolvimento, **Contra-atacar**, junto da arma corpo a corpo reconhecida,
+confirma uma criatura que errou uma jogada corpo a corpo contra você, reação
+disponível e alcance da arma. Identifique essa criatura, escolha a origem do
+dado e confirme um único ataque contra ela. Gasta o dado antes do ataque,
+mesmo se errar; no acerto, Dano inclui o dado já pago e dobra-o em crítico.
+**Errou / encerrar contra-ataque** descarta o contexto sem devolver o uso.
+Não combina Precisão/outra manobra nem concede vantagem por si. Não é ação
+Atacar ou ataque de oportunidade: Ataque Extra não concede outros ataques aqui.
+OFF/Só Pool usam ataque e total de dano físicos, sem gastar inspiração preparada.
+Reação/gatilho/alcance ficam com a mesa; ataques próprios/desarmados e Forma
+Selvagem continuam manuais. Recarregar/desfazer/trocar contexto não recriam o
+ataque: se necessário, resolva na mesa um dado ainda pago.
+
 Também em desenvolvimento, **Aparar** aparece em **Dano detalhado → Calcular
 por tipo** para quem conhece a manobra. Confirme ataque corpo a corpo de outra
 criatura, reação disponível e nenhuma outra manobra sua no ataque. Escolha a

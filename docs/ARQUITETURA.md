@@ -1733,3 +1733,42 @@ aviso global também tem largura máxima e quebra para esses nomes. Não
 há alvo/face/efeito persistido na ficha. Desfazer/refazer restaura o contador e
 descanso segue a recuperação normal. Não altera outro jogador, catálogos,
 contratos antigos de dano, SQL ou consultas/sincronização de nuvem.
+
+## Contra-Atacar — décimo oitavo recorte de R2, 29/10/2026
+
+`riposte.ts` valida aquisição vigente, arma reconhecida corpo a corpo com dano,
+capacidade de atacar, fórmula/bônus e origem/legibilidade/saldo antes de gastar.
+O usuário identifica a criatura e declara que ela errou uma jogada corpo a corpo
+contra ele, reação disponível, alcance e novo ataque contra ela sem outra manobra.
+Não exige proficiência, turno próprio ou falha de resistência; agarrão/empurrão
+não têm jogada de ataque. Ataque próprio/desarmado e Forma Selvagem são limites
+explícitos do controle, com resolução na mesa.
+
+`riposte-ui.ts` acrescenta o botão compacto junto da arma e reutiliza a janela
+nativa. Uma confirmação por ficha revalida documento/conta/permissão/arma/botão,
+sessão, preparação de crítico/–5/+10, outras manobras e modo/sequência do dado
+antes do custo e RNG. Campos mantêm nós/foco. Cobra um dado antes do ataque,
+sem rolar sua face antecipada; um passo local registra o gasto mesmo se errar.
+
+`rollWeapon(..., 'riposte')` segue o caminho normal de ataque com contexto pago.
+Não é ação Atacar nem ataque de oportunidade e não dispara Ataque Extra. Não
+concede vantagem; modo/inspiração/Sortudo/halfling mantêm as regras existentes.
+`weapon-attack-session.ts` guarda origem/tamanho/alvo em WeakMap; há só um
+contra-ataque pago pendente por ficha, independentemente de arma/origem. Outra
+manobra no mesmo ataque fica bloqueada. Finta pendente com a mesma identificação
+textual não pode ser combinada; outra criatura não consome esse crédito.
+Identidade real, alcance e turno continuam declarados pela mesa.
+
+`weapon-damage.ts` inclui o dado do tipo da arma no dano do acerto, dobrado em
+crítico, sem cobrar novamente. O diálogo pede confirmar o acerto daquele
+contra-ataque. Furtivo por turno, Destruição e –5/+10 conservam seus contratos;
+repetições limitadas à arma excluem o dado de superioridade. OFF/Só Pool usam
+ataque/dano físicos sem RNG nem consumo de inspiração preparada.
+
+Errar/encerrar, outro ataque, descanso, troca de ficha/conta/modo, recarga ou
+objetos substituídos por desfazer descartam o contexto sem reembolso. Remover ou
+substituir a arma invalida sua sessão e não bloqueia novas reações declaradas;
+se ainda precisa resolver o dado já pago, use a mesa. Desfazer/refazer restaura
+somente o contador; descanso segue a recuperação normal. Não há contador de
+reação/rodada inventado, alvo persistido novo, outra ficha alterada, SQL ou
+consulta/sincronização de nuvem.
