@@ -39,7 +39,7 @@ export function weaponDamageOptions(c:Sheet,entry:Sheet,E:Engine) {
   const maneuvers:(typeof sweepingAttackDefinition|({id:DamageManeuver}&(typeof damageManeuvers)[DamageManeuver]))[]=automatic && hasDamage?Object.entries(damageManeuvers).filter(([,m])=>training.known.has(norm(m.name))).map(([id,m])=>({id:id as DamageManeuver,...m})):[];
   if(sweepingAttackOption(c,entry,E))maneuvers.push(sweepingAttackDefinition);
   const superiority=maneuvers.length?superiorityOptions(c,E):[];
-  return {w,automatic,sneak:!!sneak,colossus:!!colossus,smite:automatic && !!hasDamage && w.meleeAttack && level(c,'paladino')>=2,maneuvers,superiority};
+  return {w,automatic,sneak:!!sneak,colossus:!!colossus,smite:automatic && !!hasDamage && !w.unarmed && w.meleeAttack && level(c,'paladino')>=2,maneuvers,superiority};
 }
 function criticalFormula(formula:string,critical:boolean) {
   const parsed=parseDiceFormula(formula);if(!parsed)throw new Error('Fórmula de dano inválida. Corrija o ataque; nenhum recurso foi gasto.');
@@ -101,7 +101,7 @@ export function previewWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoic
   if(lunging)add('Ataque Estendido',`1d${lunging.die}`,w.dmgTypeLabel);
   if(feinting)add('Ataque de Finta',`1d${feinting.die}`,w.dmgTypeLabel);
   if(riposte)add('Contra-Atacar',`1d${riposte.die}`,w.dmgTypeLabel);
-  if(automatic && critical && w.meleeAttack && w.weaponDie!=='0') {
+  if(automatic && critical && !w.unarmed && w.meleeAttack && w.weaponDie!=='0') {
     const weaponDie=String(w.weaponDie).match(/^\d+d(\d+)$/)?.[1];
     if(weaponDie) {
       const barbarian=level(c,'barbaro'),extra=barbarian>=17?3:barbarian>=13?2:barbarian>=9?1:0;

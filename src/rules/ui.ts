@@ -24,6 +24,7 @@ import {setupRiposteUI} from './riposte-ui';
 import {commandersStrikeControls,setupCommandersStrikeUI} from './commanders-strike-ui';
 import {duelistControls,setupCombatFeatsUI} from './combat-feats-ui';
 import {bardGivingControls,setupSupportActionsUI} from './support-actions-ui';
+import {setupMonkUI} from './monk-ui';
 import {feintingStartControl,setupFeintingAttackUI,useFeintingAttack,useFeintingAtTable,endFeintingUI} from './feinting-attack-ui';
 
 export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
@@ -91,7 +92,7 @@ export function defenseControls(c:Sheet,E:Engine) {
 export function conditionControls(c:Sheet) {
   const fatigue=exhaustion(c);
   const count=CONDITIONS.filter(x=>hasCondition(c,x.id)).length;
-  return `<div class="rule-context rule-controls"><label>Exaustão <select data-rule-exhaustion aria-label="Nível de exaustão">${[0,1,2,3,4,5,6].map(n=>`<option ${n===fatigue.level?'selected':''}>${n}</option>`).join('')}</select></label>${fatigue.level?`<span>${fatigue.penalties.map(escape).join(' · ')}</span>`:''}</div><details class="rule-context" data-rule-disclosure="conditions"><summary title="Marque estados como envenenado, caído ou paralisado. Consulte cada condição para conferir seus efeitos.">Condições${count?` · ${count} ativa(s)`:''}</summary><div class="rule-conditions">${CONDITIONS.map(x=>{const derived=derivedCondition(c,x.id);return `<label class="rule-check" tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name:x.name,text:x.text+(derived?' Decorre do estado atual; encerre sua causa para remover.':'')}))}"><input type="checkbox" data-rule-condition="${x.id}" ${hasCondition(c,x.id)?'checked':''} ${derived?'disabled':''}><span>${x.name}${derived?' · decorrente':''}</span></label>`;}).join('')}</div><p>Concentração, impedimentos e falhas de FOR/DES são aplicados. Auto Ficha reúne as fontes próprias de vantagem/desvantagem antes de cancelar; o resultado explica as origens. Visibilidade do medo, sentidos especiais, alvos, dano e duração seguem a mesa; consulte cada nome.</p></details>`;
+  return `<div class="rule-context rule-controls"><label>Exaustão <select data-rule-exhaustion aria-label="Nível de exaustão">${[0,1,2,3,4,5,6].map(n=>`<option ${n===fatigue.level?'selected':''}>${n}</option>`).join('')}</select></label>${fatigue.level?`<span>${fatigue.penalties.map(escape).join(' · ')}</span>`:''}</div><details class="rule-context" data-rule-disclosure="conditions"><summary title="Marque estados como envenenado, caído ou paralisado. Consulte cada condição para conferir seus efeitos.">Condições${count?` · ${count} ativa(s)`:''}</summary><div class="rule-conditions">${CONDITIONS.map(x=>{const derived=derivedCondition(c,x.id),immune=x.id==='envenenado' && level(c,'monge')>=10;return `<label class="rule-check" tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name:x.name,text:x.text+(derived?' Decorre do estado atual; encerre sua causa para remover.':'')}))}"><input type="checkbox" data-rule-condition="${x.id}" ${hasCondition(c,x.id)?'checked':''} ${derived || immune?'disabled':''}><span>${x.name}${immune?' · imune (Pureza Corporal)':derived?' · decorrente':''}</span></label>`;}).join('')}</div><p>Concentração, impedimentos e falhas de FOR/DES são aplicados. Auto Ficha reúne as fontes próprias de vantagem/desvantagem antes de cancelar; o resultado explica as origens. Visibilidade do medo, sentidos especiais, alvos, dano e duração seguem a mesa; consulte cada nome.</p></details>`;
 }
 
 export function hitDiceRecoveryControls(c:Sheet,E:Engine) {
@@ -138,6 +139,7 @@ export function setupRuleUI(E: Engine) {
   setupCommandersStrikeUI(E,save);
   setupCombatFeatsUI(E,save);
   setupSupportActionsUI(E,save);
+  setupMonkUI(E,save);
   setupFeintingAttackUI(E);
   setupLuckyUI(E,save);
   setupDragonbornBreathUI(E,save);

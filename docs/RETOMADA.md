@@ -10,12 +10,12 @@ recursos e magias de 2014**, na branch `feature/manobras-acerto-2014`, iniciada
 no develop público `9f676e0`. Tudo permanece agrupado na
 [PR #35](https://github.com/mhaetinger/D-D/pull/35), sem mesclar/publicar.
 
-O vigésimo primeiro recorte agrupa Curandeiro/kit, concessão e Palavras de
-Interrupção do bardo, dado recebido e Bravura. Corrige também funções ausentes
-de moedas da loja. A aplicação em outras criaturas e elegibilidade/tempo de
-jogo continuam na mesa. Campos opcionais compatíveis preservam dados antigos;
-sem SQL ou nova consulta de nuvem. O vigésimo reúne modos contextuais,
-equipamento, Fúria/Força Indomável, Duelista Defensivo e Líder Inspirador.
+O vigésimo segundo recorte reúne núcleo de combate do monge: golpe desarmado
+no editor/rolador comuns, Atordoante, Defletir/Queda Lenta/devolução, Mente
+Tranquila/Pureza/Corpo Vazio e Alma de Diamante, incluindo concentração/morte.
+O vigésimo primeiro trouxe Curandeiro/kit, apoio do bardo e correção da loja.
+Alvos, condições físicas, prazos e economia de ações/turnos continuam na mesa.
+Nenhum dos lotes cria SQL ou nova consulta de nuvem.
 
 A falha de Inspirar foi isolada como ancoragem atrás da janela e corrigida com
 regressão forçada de 97 px. A diferença posterior de 7 px no último teste da PR
@@ -29,10 +29,11 @@ inteiro. A mesma PR reúne Adepto Elemental, recuperação/modo contextual na
 iniciativa, Sobrevivente e a revisão delimitada das quatro invocações. Critérios,
 limites e pendências ficam somente em `docs/AUDITORIA-LIVRO-2014.md`.
 
-A base `2409a39` passou integralmente na CI do push: 665 testes, banco,
-build e 54 roteiros. A CI da PR falhou só na medição de scroll final descrita
-acima; Inspirar passou. O avanço de apoio passou 690 testes Node, tipos/build e seis roteiros Chromium. O pacote exige agora 55 roteiros e
-PostgreSQL descartável na CI. Resultados e evidências ficam na auditoria/PR #35.
+A base `0506cb9` passou integralmente em ambas as CIs: 690 testes, dependências,
+banco descartável, build e 55 roteiros. O avanço do monge passou 711 testes
+Node, tipos/build e nove roteiros Chromium. A suíte exige agora
+56 roteiros e PostgreSQL descartável na CI. Resultados/evidências na auditoria
+junto dos limites de cada operação e na PR #35.
 As PRs #33/#34 foram substituídas pela entrega agrupada; não são trabalhos
 paralelos pendentes.
 
@@ -56,7 +57,7 @@ os recortes ainda parciais, sem prometer automação integral do livro.
 
 ## Escopo da entrega e próximos avanços
 
-O quarto recorte de R2 já foi publicado; quinto ao vigésimo primeiro ficam em
+O quarto recorte de R2 já foi publicado; quinto ao vigésimo segundo ficam em
 desenvolvimento, junto da revisão delimitada das invocações. A auditoria é a
 fonte única de critérios e pendências; as decisões da mesa podem continuar
 manuais, com indicação clara. A ordem permanece **draconatos → rolagens →

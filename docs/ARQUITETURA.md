@@ -1882,3 +1882,49 @@ O auxiliar `settleSheetAppearance` dos testes aguarda fontes e animações finit
 de fonte/altura, inclusive SizeMotion iniciado por ResizeObserver. Medir antes
 permitia clamp de scroll no fim de uma folha ainda encolhendo. Não espera a aura
 infinita do dado e mantém comparação exata e sonda posterior de 97 px.
+
+
+## Núcleo de combate do monge — 29/10/2026
+
+`martial-arts.ts` acrescenta uma opção operacional ao editor, sem editar o catálogo
+gerado. Somente `ruleWeapon: Golpe desarmado` ativa o cálculo comum. Nomes livres
+não são homologados. `combat.ts` separa golpe sem arma de arma física, calcula
+proficiência/atributo/dado, mantém ajustes expressos e não aplica Furtivo,
+Destruição, Duelismo ou extras de dado de arma ao golpe. `weapon-damage-ui.ts`
+usa a composição comum também no golpe normal, para respeitar crítico e mínimo
+zero sem alterar o pool livre. Ataques humanos na Forma Selvagem não são usados
+pelo novo controle. Armas de monge já usavam o dado; os requisitos de mãos/armas
+empunhadas continuam declarados na mesa.
+
+`monk.ts` valida reserva de Chi legível antes do custo. Atordoante usa acerto
+corpo a corpo reconhecido, inclusive desarmado; não exige arma de monge ou falta
+de armadura. Cada acerto/limite temporal é declarado, sem contador de turno.
+Mente Tranquila encerra um efeito; marca agregada só é removida por escolha
+expressa de último efeito. `conditions.ts` suprime envenenado em monge 10 sem
+apagar registro antigo e deriva invisibilidade de Corpo Vazio em monge 18.
+
+`DamagePacket.monkDefense` representa Defletir ou Queda Lenta declarados.
+`damage.ts` valida origem, reação e exclusão com Aparar/Esquiva, aloca uma redução
+pela ordem dos tipos e aplica defesas comuns. Proteção Arcana vem antes;
+resistência/vulnerabilidade vêm depois. `monkOrder` explicita ordem com redução
+de armadura. Captura exige redução a zero antes da resistência e participação
+efetiva de Defletir; mão/tamanho são declarados. `monk-defense-ui.ts` prepara
+d10 com origem física/virtual, sem custo/efeito até Aplicar dano.
+
+Devolução é uma operação separada declarada para a mesma reação, permitindo
+uso após a deflexão resolvida na mesa. Informa dados próprios da arma/munição,
+proficiência e dado de Artes Marciais elegível; não infere a arma do dano recebido.
+Chi/inspiração são salvos antes do d20. `monk-state.ts` guarda somente o dano
+pendente desse ataque pago, ligado ao objeto e snapshot. Registro de dano não
+cobra de novo. Alteração, recarga, histórico, troca de contexto/modo e descanso
+descartam a pendência, preservando o custo; não é campo do backup nem do histórico.
+
+`monk-ui.ts` reutiliza origem de dados, rolagens normais/contextuais e confirmação.
+Alma de Diamante não depende de ação/consciência: pode repetir a morte a 0 PV,
+mas não depois de morto. O recurso é pago/salvo antes da nova jogada. Nos fluxos
+de morte/concentração, o jogador prepara a oferta; só uma falha a abre. A falha
+original ainda não está aplicada, portanto a nova jogada é resolvida uma vez
+pelos mesmos módulos, sem desfazer/reaplicar contagens ou concentração. Cancelar
+mantém a original sem custo; contexto obsoleto impede ambos. O modo/bônus original
+é conservado, sem consumir outra inspiração ou oferecer repetição recursiva.
+Sem nova consulta de nuvem, SQL ou relógio de combate.

@@ -37,6 +37,7 @@ import {featureTalentControls} from '../rules/combat-feats-ui';
 import {supportFeatureControls,receivedBardicControls,kitUseSummary} from '../rules/support-actions-ui';
 import {addPurchasedKitUses,healerKit} from '../rules/support-actions';
 import {COIN_RATES_IN_PC,coinTotal,deductCoinsSmart} from '../rules/coins';
+import {monkFeatureControls} from '../rules/monk-ui';
 import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponCriticalPrepared, weaponDamageLabel, weaponAttackBonus, weaponPowerAttackPrepared, refreshWeaponDamageLabel } from '../rules/weapon-damage-ui';
 import { applyCastConcentration, concentration, concentrationBlock, incapacityReason, needsConcentrationConfirmation, spellConcentration, validateConcentrationStart } from '../rules/concentration';
 import { concentrationControls } from '../rules/concentration-ui';
@@ -2280,7 +2281,7 @@ function renderFeaturesCollapsible(char, wide = false) {
     const levels=group.levels.map(level=>{
       const items=level.entries.map(({gain:g,index,controls})=>{
         const disclosure=`feature:${g.classId || g.source}:${g.level}:${index}`;
-        return `<section class="feature-entry">${featureConsultButton(g,disclosure,group.label,controls[0]?.note)}${renderResourceControls(char,CharacterEngine,controls,controls.length>1 || g.name==='Juramento Sagrado')}${featureTalentControls(char,g,CharacterEngine)}${supportFeatureControls(char,g,CharacterEngine)}</section>`;
+        return `<section class="feature-entry">${featureConsultButton(g,disclosure,group.label,controls[0]?.note)}${renderResourceControls(char,CharacterEngine,controls,controls.length>1 || g.name==='Juramento Sagrado')}${featureTalentControls(char,g,CharacterEngine)}${supportFeatureControls(char,g,CharacterEngine)}${monkFeatureControls(char,g,CharacterEngine)}</section>`;
       });
       return `<section class="feature-level" data-feature-level="${level.level}">${group.classId?`<h5 class="feature-level-title">Nível ${level.level}</h5>`:''}${items.join('')}</section>`;
     });
@@ -2805,6 +2806,7 @@ async function rollWeapon(index, kind) {
   const riposte=kind==='riposte';if(riposte)kind='attack';
   if(kind==='damage' && rollPreparedWeaponDamage(getChar(),index,CharacterEngine,saveRuleStep))return;
   const c=getChar(),entry=c.weapons[index];
+  if(entry?.ruleWeapon==='Golpe desarmado' && c.ruleState?.active?.['druida:wildShape'])return showToast('Ataque desarmado da Forma Selvagem: confira estatísticas e capacidade física na mesa. Não usa os valores humanos.');
   const weapon = CharacterEngine.weaponStats(c, entry);
   if (!weapon) return;
   const bonus = String(weaponAttackBonus(c,entry,CharacterEngine)).trim();

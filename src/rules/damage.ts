@@ -3,6 +3,7 @@ import { incapacityReason } from './concentration';
 import { automaticSaveFailure, hasCondition } from './conditions';
 import {dragonAncestry} from './draconic-ancestry';
 import {previewParry,type ParryChoice} from './parry';
+import {previewMonkDefense,type MonkDefenseChoice} from './monk';
 
 export const DAMAGE_TYPES = [
   ['acid','Ácido'],['bludgeoning','Concussão'],['slashing','Cortante'],['lightning','Elétrico'],
@@ -19,7 +20,7 @@ export const DAMAGE_SOURCES = [
 export type DamageSource=typeof DAMAGE_SOURCES[number][0];
 export type DamageDefense='auto'|'normal'|'resistance'|'immunity';
 export interface DamagePart { type:DamageType; amount:number; defense?:DamageDefense; vulnerable?:boolean; reduction?:number }
-export interface DamagePacket { source:DamageSource; parts:DamagePart[]; critical?:boolean; silvered?:boolean; uncannyDodge?:boolean; dexteritySave?:'success'|'failure'; modifierOrder?:'reduceFirst'|'halveFirst'; parry?:ParryChoice; parryOrder?:'armorFirst'|'parryFirst' }
+export interface DamagePacket { source:DamageSource; parts:DamagePart[]; critical?:boolean; silvered?:boolean; uncannyDodge?:boolean; dexteritySave?:'success'|'failure'; modifierOrder?:'reduceFirst'|'halveFirst'; parry?:ParryChoice; parryOrder?:'armorFirst'|'parryFirst';monkDefense?:MonkDefenseChoice;monkOrder?:'armorFirst'|'monkFirst' }
 export const damageTypeName=(type:string)=>DAMAGE_TYPES.find(x=>x[0]===type)?.[1] || '';
 const typeFromText=(text:unknown)=>DAMAGE_TYPES.find(([id,name])=>norm(text)===id || norm(text)===norm(name))?.[0];
 const lastChoice=(c:Sheet,E:Engine,cls:string|null,key:string)=>E.selections(c,cls,key)?.at(-1);
@@ -89,12 +90,18 @@ export function previewTypedDamage(c:Sheet,packet:DamagePacket,E:Engine) {
   if(packet.parryOrder!==undefined && !['armorFirst','parryFirst'].includes(packet.parryOrder))throw new Error('Confira a ordem de Aparar e da redução de armadura.');
   if(packet.parry && (!isDamageAttack(packet.source) || packet.uncannyDodge))throw new Error('Aparar exige um ataque corpo a corpo e sua reação: não combine com Esquiva Sobrenatural na mesma ocorrência.');
   const parry=packet.parry?previewParry(c,packet.parry,E):null;
+  if(packet.monkOrder!==undefined && !['armorFirst','monkFirst'].includes(packet.monkOrder))throw new Error('Confira a ordem da redução do monge e da armadura.');
+  const monkDefense=packet.monkDefense?previewMonkDefense(c,packet.monkDefense):null;
+  if(monkDefense && (packet.parry || packet.uncannyDodge))throw new Error('Não combine duas reações na mesma ocorrência.');
+  if(monkDefense?.kind==='projectile' && !['weapon','magicWeapon'].includes(packet.source))throw new Error('Defletir Projéteis exige ataque de arma à distância; não afeta ataque de magia.');
+  if(monkDefense?.kind==='fall' && (packet.source!=='other' || packet.parts.some(p=>p.type!=='bludgeoning') || monkDefense.catch || packet.dexteritySave))throw new Error('Queda Lenta exige dano da própria queda, não mágico, de concussão.');
   if(parry && previewTypedDamage(c,{...packet,parry:undefined},E).received===0)throw new Error('Este dano já é zero após proteção e defesas; Aparar não se aplica.');
   const evasion=!!packet.dexteritySave && hasEvasion(c,E),zero=evasion && packet.dexteritySave==='success';
   const saveHalf=packet.dexteritySave==='success' || evasion && packet.dexteritySave==='failure';
   const heavyAvailable=heavyArmorReduction(c,E,packet.source);
   let heavyRemaining=heavyAvailable;
   let parryRemaining=parry?.reduction || 0;
+  let monkRemaining=monkDefense?.reduction || 0;
   let wardRemaining=arcaneWardPoints(c);
   if(!Number.isSafeInteger(wardRemaining) || wardRemaining<0)throw new Error('Reserva de Proteção Arcana inválida preservada; confira a ficha.');
   const seen=new Set<string>();
@@ -116,16 +123,19 @@ export function previewTypedDamage(c:Sheet,packet:DamagePacket,E:Engine) {
     // dos tipos físicos. A mesa pode ordenar as linhas antes de confirmar.
     const beforeReduction=packet.uncannyDodge && packet.modifierOrder==='halveFirst'?Math.floor(afterWard/2):afterWard;
     const available=immunity.length?0:Math.max(0,beforeReduction-reduction),parryFirst=packet.parryOrder==='parryFirst';
-    const earlyParry=parryFirst?Math.min(parryRemaining,available):0;
-    const heavyReduction=!['bludgeoning','piercing','slashing'].includes(part.type)?0:Math.min(heavyRemaining,available-earlyParry);heavyRemaining-=heavyReduction;
+    const earlyParry=parryFirst?Math.min(parryRemaining,available):0,earlyMonk=packet.monkOrder==='monkFirst'?Math.min(monkRemaining,available-earlyParry):0;
+    const heavyReduction=!['bludgeoning','piercing','slashing'].includes(part.type)?0:Math.min(heavyRemaining,available-earlyParry-earlyMonk);heavyRemaining-=heavyReduction;
     const parryReduction=parryFirst?earlyParry:Math.min(parryRemaining,available-heavyReduction);parryRemaining-=parryReduction;
-    const reduced=Math.max(0,available-heavyReduction-parryReduction);
+    const monkReduction=packet.monkOrder==='monkFirst'?earlyMonk:Math.min(monkRemaining,available-heavyReduction-parryReduction);monkRemaining-=monkReduction;
+    const reduced=Math.max(0,available-heavyReduction-parryReduction-monkReduction);
     const afterReduction=packet.uncannyDodge && packet.modifierOrder!=='halveFirst'?Math.floor(reduced/2):reduced;
     const afterResistance=resistance.length?Math.floor(afterReduction/2):afterReduction;
-    return {...part,defense,reduction,heavyReduction,ward,immunity,resistance,afterSave,afterWard,afterReduction,received:afterResistance*(part.vulnerable?2:1),...(parry?{parryReduction}:{})};
+    return {...part,defense,reduction,heavyReduction,ward,immunity,resistance,afterSave,afterWard,afterReduction,received:afterResistance*(part.vulnerable?2:1),...(parry?{parryReduction}:{}),...(monkDefense?{monkReduction}:{})};
   });
+  const catchable=monkDefense?.kind==='projectile' && parts.some(p=>(p.monkReduction || 0)>0) && parts.every(p=>p.afterReduction===0);
+  if(monkDefense?.catch && !catchable)throw new Error('Só pode apanhar se Defletir reduzir o dano a zero antes de resistência; confira tamanho e mão livre.');
   return {source:packet.source,critical:!!packet.critical,silvered:!!packet.silvered,uncannyDodge:!!packet.uncannyDodge,dexteritySave:packet.dexteritySave,evasion,modifierOrder:packet.modifierOrder || 'reduceFirst',parts,
-    raw:parts.reduce((n,p)=>n+p.amount,0),ward:parts.reduce((n,p)=>n+p.ward,0),received:parts.reduce((n,p)=>n+p.received,0),...(parry?{parry,parryOrder:heavyAvailable?packet.parryOrder || 'armorFirst':undefined}:{})};
+    raw:parts.reduce((n,p)=>n+p.amount,0),ward:parts.reduce((n,p)=>n+p.ward,0),received:parts.reduce((n,p)=>n+p.received,0),...(parry?{parry,parryOrder:heavyAvailable?packet.parryOrder || 'armorFirst':undefined}:{}),...(monkDefense?{monkDefense,catchable,monkOrder:packet.monkOrder || 'armorFirst'}:{})};
 }
 export type DamagePlan=ReturnType<typeof previewTypedDamage>;
 export function typedDamageSummary(plan:DamagePlan) {
@@ -133,5 +143,6 @@ export function typedDamageSummary(plan:DamagePlan) {
   const save=plan.dexteritySave?`DES para metade · ${plan.dexteritySave==='success'?'sucesso':'falha'}${plan.evasion?' · Evasão':''}; `:'';
   const parry=plan.parry?`Aparar · reação · ${plan.parry.source.name} d${plan.parry.source.die}[${plan.parry.face}] + DES (${plan.parry.dex}) = até ${plan.parry.reduction} de redução · gasta 1 dado${plan.parryOrder?` · ${plan.parryOrder==='parryFirst'?'Aparar antes da armadura':'armadura antes de Aparar'}`:''}; `:'';
   const fixed=(p:DamagePlan['parts'][number])=>{const armor=p.heavyReduction?` − Maestria em Armadura Pesada ${p.heavyReduction}`:'',parry=p.parryReduction?` − Aparar ${p.parryReduction}`:'';return plan.parryOrder==='parryFirst'?parry+armor:armor+parry;};
-  return reaction+save+parry+plan.parts.map(p=>`${p.amount} ${damageTypeName(p.type)}${plan.dexteritySave?` → teste ${p.afterSave}`:''}${p.ward?` − proteção ${p.ward}`:''}${p.immunity.length?` · ${p.immunity.join(', ')} = 0`:`${p.reduction?` − redução ${p.reduction}`:''}${fixed(p)}${p.resistance.length?` · resistência (${p.resistance.join(', ')}) ÷2`:p.defense==='normal'?' · sem defesa (mesa)':''}${p.vulnerable?' · vulnerabilidade ×2 (mesa)':''} = ${p.received}`}`).join('; ');
+  const monk=plan.monkDefense?`${plan.monkDefense.name} · reação · até ${plan.monkDefense.reduction} de redução · ${plan.monkOrder==='monkFirst'?'monge antes da armadura':'armadura antes do monge'}${plan.monkDefense.catch?' · projétil apanhado':''}; `:'';
+  return reaction+save+parry+monk+plan.parts.map(p=>`${p.amount} ${damageTypeName(p.type)}${plan.dexteritySave?` → teste ${p.afterSave}`:''}${p.ward?` − proteção ${p.ward}`:''}${p.immunity.length?` · ${p.immunity.join(', ')} = 0`:`${p.reduction?` − redução ${p.reduction}`:''}${fixed(p)}${p.monkReduction?` − ${plan.monkDefense!.name} ${p.monkReduction}`:''}${p.resistance.length?` · resistência (${p.resistance.join(', ')}) ÷2`:p.defense==='normal'?' · sem defesa (mesa)':''}${p.vulnerable?' · vulnerabilidade ×2 (mesa)':''} = ${p.received}`}`).join('; ');
 }

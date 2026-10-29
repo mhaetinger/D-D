@@ -253,6 +253,30 @@ mantém ou substitui seus temporários. Confira o descanso de cada destinatário
 mesmo que tenha recebido de outro líder; a ficha não conhece outras fichas.
 Temporários não se somam nem curam. Não há limite diário de discursos.
 
+O **monge**, em desenvolvimento, pode cadastrar **Golpe desarmado** em Artes
+Marciais com o cadeado aberto; também aparece entre as opções do editor comum.
+Usa FOR e 1 de dano base normalmente, ou DES e dado de Artes Marciais quando
+estiver sem armadura/escudo e empunhando só armas de monge. Ação/ataque bônus
+continuam conferidos na mesa. **Atordoar após acerto** gasta 1 Chi e informa a
+resistência de CON do alvo; funciona com golpe desarmado. **Mente Tranquila**
+encerra um efeito próprio de encanto/medo; mantenha a marca se outro efeito
+continua causando a condição. Pureza Corporal indica a imunidade a envenenado.
+
+Em **Dano detalhado → Calcular por tipo**, monge escolhe **Defletir Projéteis**
+para um ataque de arma à distância ou **Queda Lenta** para a própria queda.
+Confirme reação e informe o d10 quando necessário. Não gastam Chi. Só marque
+apanhar quando a deflexão zera o dano e houver tamanho adequado/mão livre.
+**Devolver projétil apanhado**, na característica, gasta 1 Chi antes do ataque
+na mesma reação. Confira o dano próprio da arma/munição e alcance 6/18 m;
+não copie o dano recebido ou o bônus do arco para uma flecha. Registre o dano
+se acertar, ou encerre se errou/já resolveu na mesa; não gaste outro Chi.
+
+**Alma de Diamante** permite repetir uma resistência que falhou, antes de aplicar
+o efeito. A nova jogada é obrigatória. Em concentração e morte, marque **Se
+falhar, escolher se uso Alma de Diamante**: a escolha vem antes de aplicar a
+falha; cancelar mantém o resultado original. O ponto é gasto antes de repetir,
+sem pagar outra inspiração. Outros efeitos de escolha de d20 ficam na mesa.
+
 **Curandeiro** oferece tratamento e estabilização junto do talento. Escolha o
 kit do inventário e confira seus usos atuais; kits antigos/importados não são
 presumidos cheios. Tratamento cura 1d6 + 4 + Dados de Vida **máximos do

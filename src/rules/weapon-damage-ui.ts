@@ -70,7 +70,7 @@ export function rollPreparedWeaponDamage(c:Sheet,index:number,E:Engine,save:(des
   if(resumeWeaponReroll(c,entry))return true;
   const critical=weaponCriticalPrepared(entry),powerAttack=weaponPowerAttackPrepared(c,entry,E),rerolls=weaponRerollOptions(c,entry,E);
   if(currentWeaponAttack(c,entry)?.lunging || currentWeaponAttack(c,entry)?.feinting || currentWeaponAttack(c,entry)?.riposte){document.querySelector<HTMLButtonElement>(`[data-rule-weapon-damage="${index}"]`)?.click();return true;}
-  if(!critical && !powerAttack && !rerolls.savage && !rerolls.greatWeapon)return false;
+  if(!critical && !powerAttack && !rerolls.savage && !rerolls.greatWeapon && !weaponDamageOptions(c,entry,E).w.unarmed)return false;
   const host=window as any;
   if(!host.ruleDiceSettings().automatic) {document.querySelector<HTMLButtonElement>(`[data-rule-weapon-damage="${index}"]`)?.click();return true;}
   try {

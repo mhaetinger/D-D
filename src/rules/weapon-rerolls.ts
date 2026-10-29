@@ -10,7 +10,7 @@ export function weaponRerollOptions(c:Sheet,entry:Sheet,E:Engine):WeaponRerollOp
   const none={savage:false,greatWeapon:false};
   if(!entry || !c.weapons?.includes(entry) || active(c,'druida:wildShape'))return none;
   const w=weaponStats(c,entry,E);
-  if(!w.ruleWeapon || w.calculationMode==='manual' || !w.meleeAttack || entry.attackMode==='thrown' || !/^\d+d\d+$/.test(w.weaponDie))return none;
+  if(!w.ruleWeapon || w.unarmed || w.calculationMode==='manual' || !w.meleeAttack || entry.attackMode==='thrown' || !/^\d+d\d+$/.test(w.weaponDie))return none;
   const style='Combate com Armas Grandes';
   const selected=level(c,'guerreiro')>=1 && E.selections(c,'guerreiro','fighting').includes(style) ||
     level(c,'paladino')>=2 && E.selections(c,'paladino','fighting').includes(style) ||

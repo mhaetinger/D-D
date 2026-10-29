@@ -2,6 +2,7 @@ import { escape, type Engine, type Sheet } from '../rules/model';
 import {parseDiceFormula} from '../rules/dice-formula';
 import {bladePact} from '../rules/passives';
 import {helpAttributes} from '../app/help';
+import {weaponChoices} from '../rules/martial-arts';
 
 /** Mantém os IDs consumidos pelo editor anterior; somente estrutura e rótulos
  * mudam. Ajustes recolhidos conservam seus valores e continuam no formulário. */
@@ -14,7 +15,7 @@ export function weaponCalculationFields(original:Sheet,ruleWeapon:string|undefin
   const number=(id:string,value:unknown,min:number,max:number)=>`<input id="${id}" type="number" min="${min}" max="${max}" step="1" value="${Number(value || 0)}">`;
   section.innerHTML=`<div class="weapon-editor-grid">
     ${field('Cálculo de ataque e dano',select('hbWepMode',[['auto','Calcular pela ficha'],['manual','Manter valores informados']],automatic?'auto':'manual'))}
-    ${field('Arma do catálogo',select('hbWepCatalog',[['','Personalizada'],...E.progression.weapons.map((w:Sheet)=>[w.name,w.name] as [string,string])],ruleWeapon||''))}
+    ${field('Arma do catálogo',select('hbWepCatalog',[['','Personalizada'],...weaponChoices(E).map((w:Sheet)=>[w.name,w.name] as [string,string])],ruleWeapon||''))}
   </div>
   <details class="weapon-editor-adjustments"><summary ${helpAttributes('Ajustes do cálculo','Confira proficiência com a arma, habilidade, bônus mágico e ajustes. Eles afetam o cálculo automático; valores manuais continuam como você informou.')}>Ajustes do cálculo</summary><p class="weapon-editor-hint">Opções avançadas do modo automático. Só altere se uma característica ou adaptação mudar o cálculo. No modo manual, use os totais escritos abaixo.</p>
     <div class="weapon-editor-grid">

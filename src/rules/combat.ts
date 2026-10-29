@@ -7,14 +7,17 @@ import { arcaneWardPoints, previewTypedDamage, type DamagePacket } from './damag
 import { commitSurvival, previewSurvival, type SurvivalChoice, type SurvivalPlan } from './survival';
 import {spend} from './resources';
 import {evasiveFootworkBonus} from './evasive-footwork';
+import {UNARMED,martialDie,martialArtsAvailable} from './martial-arts';
 
 const aliases: Record<string,string> = { warhammer:'Martelo de guerra', longsword:'Espada longa', shortsword:'Espada curta', dagger:'Adaga', quarterstaff:'Bordão', rapier:'Rapieira', handaxe:'Machadinha', greataxe:'Machado grande', longbow:'Arco longo', shortbow:'Arco curto', 'light crossbow':'Besta leve', 'heavy crossbow':'Besta pesada' };
 export function catalogueWeapon(entry: Sheet, E: Engine) {
+  if(entry.ruleWeapon===UNARMED.name)return UNARMED;
   const name = norm(entry.ruleWeapon || entry.name).replace(/\s+[123]$/, '');
   return E.progression.weapons.find((w: Sheet) => norm(w.name) === norm(aliases[name] || name));
 }
 export function isProficient(c: Sheet, entry: Sheet, w: Sheet, E: Engine) {
   if (typeof entry.proficient === 'boolean') return entry.proficient;
+  if(w.kind==='unarmed')return true;
   const ids = c.classes.map((x: Sheet) => x.classId), primary = ids[0], simple = w.kind.startsWith('simple');
   if (ids.some((id: string) => ['barbaro','guerreiro','paladino','patrulheiro'].includes(id))) return true;
   if (['guerra','tempestade'].includes(subclass(c,'clerigo',E))) return true;
@@ -40,7 +43,7 @@ export function weaponStats(c: Sheet, entry: Sheet, E: Engine):WeaponResult {
   const w = catalogueWeapon(entry,E);
   if (!w || entry.calculationMode === 'manual') return { ...entry, bonus:String(entry.bonus ?? '+0'),damage:String(entry.damage ?? '0'),calculationMode:'manual', explanation:'Valores manuais preservados. Escolha uma arma do catálogo para calcular automaticamente.', extras:[] };
   const rangedWeapon = w.kind.endsWith('Ranged'), thrown = entry.attackMode === 'thrown' && /arremesso/i.test(w.properties), meleeAttack = !rangedWeapon && !thrown;
-  const monk = level(c,'monge'), monkWeapon = monk > 0 && !c.armorEquipped && !c.shieldEquipped && (norm(w.name) === 'espada curta' || w.kind === 'simpleMelee' && !/pesada|duas mãos/i.test(w.properties));
+  const unarmed=w.kind==='unarmed',monk = level(c,'monge'), monkWeapon = martialArtsAvailable(c) && (unarmed || norm(w.name) === 'espada curta' || w.kind === 'simpleMelee' && !/pesada|duas mãos/i.test(w.properties));
   const str = ability(c,'str'), dex = ability(c,'dex'), canDex = /acuidade/i.test(w.properties) || monkWeapon;
   // Acuidade permite FOR ou DES também numa arma à distância, como Dardo.
   const key = entry.abilityOverride === 'str' || entry.abilityOverride === 'dex' ? entry.abilityOverride : rangedWeapon && !canDex ? 'dex' : canDex && dex > str ? 'dex' : 'str';
@@ -52,26 +55,27 @@ export function weaponStats(c: Sheet, entry: Sheet, E: Engine):WeaponResult {
   const sacred = level(c,'paladino') >= 3 && subclass(c,'paladino',E) === 'devocao' && active(c,'paladino:sacredWeapon') && c.ruleState?.targets?.['paladino:sacredWeapon'] === entry.name ? Math.max(1,ability(c,'cha')) : 0;
   const archery = rangedWeapon && styles.includes('Arquearia') ? 2 : 0;
   const twoHands = /duas mãos/i.test(w.properties) || entry.hands === 2;
-  const duel = meleeAttack && !twoHands && !entry.offHand && styles.includes('Duelismo') && entry.duelingEligible === true ? 2 : 0;
+  const duel = !unarmed && meleeAttack && !twoHands && !entry.offHand && styles.includes('Duelismo') && entry.duelingEligible === true ? 2 : 0;
   const attack = modifier + pb + magic + sacred + archery + Number(entry.attackAdjustment || 0);
   let die = w.damage;
+  if(unarmed && hasFeat(c,E,'Especialista em Briga'))die='1d4';
   if (twoHands && /vers[aá]til/i.test(w.properties)) die = w.properties.match(/vers[aá]til\s*\((\d+d\d+)\)/i)?.[1] || die;
   if (monkWeapon) {
-    const sides = monk >= 17 ? 10 : monk >= 11 ? 8 : monk >= 5 ? 6 : 4;
-    if (/^1d\d+$/.test(die) && Number(die.slice(2)) < sides) die = '1d'+sides;
+    const sides = martialDie(c);
+    if (die==='1' || /^1d\d+$/.test(die) && Number(die.slice(2)) < sides) die = '1d'+sides;
   }
-  const damageBonus = (entry.offHand && !styles.includes('Combate com Duas Armas') ? Math.min(0,modifier) : modifier) + magic + rage + duel + Number(entry.damageAdjustment || 0);
-  const improvedSmite = level(c,'paladino') >= 11 && !rangedWeapon ? '+1d8' : '';
-  const lifedrinker=lifedrinkerBonus(c,entry,E),totalBonus=damageBonus+lifedrinker;
+  const damageBonus = (entry.offHand && !unarmed && !styles.includes('Combate com Duas Armas') ? Math.min(0,modifier) : modifier) + magic + rage + duel + Number(entry.damageAdjustment || 0);
+  const improvedSmite = !unarmed && level(c,'paladino') >= 11 && !rangedWeapon ? '+1d8' : '';
+  const lifedrinker=unarmed?0:lifedrinkerBonus(c,entry,E),totalBonus=damageBonus+lifedrinker;
   const damage = die === '0' ? '0' : die + improvedSmite + (totalBonus < 0 ? '' : '+') + totalBonus;
   const extras = [];
   if (level(c,'ladino') && (rangedWeapon || /acuidade/i.test(w.properties))) extras.push({name:'Ataque Furtivo',formula:`${Math.ceil(level(c,'ladino')/2)}d6`,condition:'Uma vez por turno; vantagem ou aliado elegível junto do alvo, sem desvantagem.'});
-  if (level(c,'paladino') >= 2 && meleeAttack) extras.push({name:'Destruição Divina',formula:'2d8',condition:'Após acertar, gaste espaço: +1d8 por nível acima do 1º (máx. 5d8), +1d8 contra morto-vivo/corruptor.'});
+  if (!unarmed && level(c,'paladino') >= 2 && meleeAttack) extras.push({name:'Destruição Divina',formula:'2d8',condition:'Após acertar, gaste espaço: +1d8 por nível acima do 1º (máx. 5d8), +1d8 contra morto-vivo/corruptor.'});
   if (selections(c,E,'hunter').includes('Assassino de Colossos')) extras.push({name:'Assassino de Colossos',formula:'1d8',condition:'Uma vez por turno, contra criatura que já está abaixo dos PV máximos.'});
-  if (meleeAttack && level(c,'barbaro') >= 9) extras.push({name:'Crítico Brutal',formula:`${level(c,'barbaro') >= 17 ? 3 : level(c,'barbaro') >= 13 ? 2 : 1}d${die.match(/d(\d+)/)?.[1] || 6}`,condition:'Somente no acerto crítico corpo a corpo; não exige Fúria.'});
+  if (!unarmed && meleeAttack && level(c,'barbaro') >= 9) extras.push({name:'Crítico Brutal',formula:`${level(c,'barbaro') >= 17 ? 3 : level(c,'barbaro') >= 13 ? 2 : 1}d${die.match(/d(\d+)/)?.[1] || 6}`,condition:'Somente no acerto crítico corpo a corpo; não exige Fúria.'});
   const critical = subclass(c,'guerreiro',E) === 'campeao' && level(c,'guerreiro') >= 3 ? level(c,'guerreiro') >= 15 ? 18 : 19 : 20;
-  return { ...entry, ruleWeapon:w.name, proficient, magicBonus:magic, bonus:(attack >= 0 ? '+' : '')+attack, damage, weaponDie:die, damageBonus, lifedrinker, improvedSmite:!!improvedSmite, meleeAttack, rangedWeapon, dmgTypeLabel:w.damageType, properties:w.properties, category:w.kind, critical, ability:key, extras,
-    explanation:`Ataque: ${key.toUpperCase()} ${modifier >= 0 ? '+' : ''}${modifier} + proficiência ${pb} + magia ${magic} + Arquearia ${archery} + Arma Sagrada ${sacred}${entry.attackAdjustment ? ' + ajuste '+entry.attackAdjustment : ''} = ${attack}. Dano: ${die}${improvedSmite} + habilidade ${modifier} + magia ${magic} + Fúria ${rage} + Duelismo ${duel}${lifedrinker?' + Sorvedor de Vida '+lifedrinker+' necrótico':''}${entry.damageAdjustment ? ' + ajuste '+entry.damageAdjustment : ''}. ${w.properties}. Crítico: ${critical}–20.` };
+  return { ...entry, ruleWeapon:w.name, unarmed,monkWeapon,magicalForResistance:unarmed && monk>=6,proficient, magicBonus:magic, bonus:(attack >= 0 ? '+' : '')+attack, damage, weaponDie:die, damageBonus, lifedrinker, improvedSmite:!!improvedSmite, meleeAttack, rangedWeapon, dmgTypeLabel:w.damageType, properties:w.properties, category:w.kind, critical, ability:key, extras,
+    explanation:`Ataque: ${key.toUpperCase()} ${modifier >= 0 ? '+' : ''}${modifier} + proficiência ${pb} + magia ${magic} + Arquearia ${archery} + Arma Sagrada ${sacred}${entry.attackAdjustment ? ' + ajuste '+entry.attackAdjustment : ''} = ${attack}. Dano: ${die}${improvedSmite} + habilidade ${modifier} + magia ${magic} + Fúria ${rage} + Duelismo ${duel}${lifedrinker?' + Sorvedor de Vida '+lifedrinker+' necrótico':''}${entry.damageAdjustment ? ' + ajuste '+entry.damageAdjustment : ''}. ${w.properties}. Crítico: ${critical}–20.${unarmed && monk>=6?' Ataques desarmados contam como mágicos para superar resistência/imunidade, sem bônus numérico extra.':''}` };
 }
 
 export function armorClass(c: Sheet, E: Engine) {

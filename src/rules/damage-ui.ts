@@ -3,6 +3,7 @@ import { active, escape, level, type Engine, type Sheet } from './model';
 import { automaticSaveFailure } from './conditions';
 import { survivalOptions } from './survival';
 import {parryControls,readParry,updateParry,prepareParryFace} from './parry-ui';
+import {monkDefenseControls,readMonkDefense,updateMonkDefense,prepareMonkDefense} from './monk-defense-ui';
 
 const help=(name:string,text:string)=>`tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name,text}))}"`;
 function damageRow() {
@@ -22,6 +23,7 @@ export function damageControls(c:Sheet,E:Engine) {
   <label data-damage-save-label hidden ${help('Resistência de DES para metade','Somente para um efeito que pede DES e causa metade do dano no sucesso. Informe os valores antes do teste e registre seu resultado aqui. Com Evasão: sucesso zera, falha divide por dois, sem gastar reação. Os tipos são arredondados separadamente. Outros testes/efeitos continuam resolvidos pela mesa; não repita uma redução já aplicada.')}>DES para metade${hasEvasion(c,E)?' · Evasão':''} <select data-damage-save><option value="">Não se aplica / já resolvido</option><option value="success">Sucesso no teste</option><option value="failure">Falha no teste</option></select></label>
   ${hasUncannyDodge(c,E)?`<label class="rule-check" data-damage-uncanny-label hidden ${help('Esquiva Sobrenatural','Ao ser atingido por um ataque, inclusive de magia, pode gastar a reação para reduzir pela metade o dano que receber. Marque somente se puder ver o atacante e sua reação estiver disponível. A ficha não acompanha os turnos; esta escolha vale para um único ataque. Não serve contra dano por teste de resistência. Os tipos são arredondados separadamente.')}> <input type="checkbox" data-damage-uncanny> Usar Esquiva Sobrenatural · vejo o atacante e tenho reação</label><label data-damage-modifier-label hidden ${help('Ordem dos modificadores','Quando a metade da Esquiva e uma redução fixa coincidem, declare com o Mestre a ordem usada. Ambas vêm depois da proteção e antes de resistência/vulnerabilidade. A prévia mostra o resultado; não repita modificadores já resolvidos.')}>Ordem definida pela mesa <select data-damage-modifier-order><option value="reduceFirst">Reduções → Esquiva</option><option value="halveFirst">Esquiva → reduções</option></select></label>`:''}
   ${parryControls(c,E)}
+  ${monkDefenseControls(c)}
   <div data-damage-parts>${damageRow()}</div><button type="button" data-damage-row-action="add">Adicionar outro tipo</button>
   <p data-damage-order-note hidden ${help('Uma ocorrência, vários tipos','A proteção absorve na ordem acima. Maestria em Armadura Pesada usa uma reserva de 3 por ataque, distribuída entre os tipos físicos elegíveis nessa ordem, sem afetar fogo ou dano mágico. Use as setas para a ordem definida com o Mestre. Concentração e morte usam o total uma única vez.')}>A ordem dos tipos define a alocação da proteção e da redução de armadura; confira com o Mestre.</p>
   <output data-damage-preview role="status" aria-live="polite">Informe origem, tipo e valor para conferir o cálculo.</output></div>
@@ -35,6 +37,7 @@ export function readDamagePacket(controls:HTMLElement):DamagePacket {
     silvered:controls.querySelector<HTMLInputElement>('[data-damage-silvered]')!.checked,
     uncannyDodge:controls.querySelector<HTMLInputElement>('[data-damage-uncanny]')?.checked || false,
     ...readParry(controls),
+    ...readMonkDefense(controls),
     ...(controls.querySelector<HTMLSelectElement>('[data-damage-save]')!.value?{dexteritySave:controls.querySelector<HTMLSelectElement>('[data-damage-save]')!.value as 'success'|'failure'}:{}),
     modifierOrder:(controls.querySelector<HTMLSelectElement>('[data-damage-modifier-order]')?.value || 'reduceFirst') as DamagePacket['modifierOrder'],
     parts:[...controls.querySelectorAll<HTMLElement>('[data-damage-part]')].map(row=>({
@@ -100,13 +103,14 @@ export function setupDamageUI(E:Engine) {
     if(save.selectedOptions[0]?.disabled)save.value='';
     controls.querySelector<HTMLElement>('[data-damage-save-label]')!.hidden=save.disabled;
     updateParry(controls,c,E);
+    updateMonkDefense(controls,c,E);
     const uncanny=controls.querySelector<HTMLInputElement>('[data-damage-uncanny]');
     if(uncanny) {
       uncanny.disabled=!canUncannyDodge(c,E,source);if(uncanny.disabled)uncanny.checked=false;
       controls.querySelector<HTMLElement>('[data-damage-uncanny-label]')!.hidden=uncanny.disabled;
       controls.querySelector<HTMLElement>('[data-damage-modifier-label]')!.hidden=!uncanny.checked || !(heavyArmorReduction(c,E,source) || rows.some(r=>Number(r.querySelector<HTMLInputElement>('[data-damage-reduction]')!.value)>0));
     }
-    controls.querySelector<HTMLElement>('[data-damage-order-note]')!.hidden=rows.length<2 || !(arcaneWardPoints(c)>0 || heavyArmorReduction(c,E,source)>0 || controls.querySelector<HTMLInputElement>('[data-parry-use]')?.checked);
+    controls.querySelector<HTMLElement>('[data-damage-order-note]')!.hidden=rows.length<2 || !(arcaneWardPoints(c)>0 || heavyArmorReduction(c,E,source)>0 || controls.querySelector<HTMLInputElement>('[data-parry-use]')?.checked || controls.querySelector<HTMLSelectElement>('[data-monk-defense]')?.value);
     const target=controls.querySelector<HTMLOutputElement>('[data-damage-preview]')!;
     try {
       const plan=previewTypedDamage(c,readDamagePacket(controls),E);
@@ -119,9 +123,13 @@ export function setupDamageUI(E:Engine) {
     if(target.matches('[data-parry-use]') && target.checked){const other=controls.querySelector<HTMLInputElement>('[data-damage-uncanny]');if(other)other.checked=false;}
     if(target.matches('[data-damage-uncanny]') && target.checked){const other=controls.querySelector<HTMLInputElement>('[data-parry-use]');if(other)other.checked=false;}
     if(target.matches('[data-parry-source]'))controls.querySelector<HTMLInputElement>('[data-parry-face]')!.value='';
+    if(target.matches('[data-monk-defense]') && target.value){for(const attr of ['data-parry-use','data-damage-uncanny']){const other=controls.querySelector<HTMLInputElement>(`[${attr}]`);if(other)other.checked=false;}}
+    if(target.matches('[data-parry-use],[data-damage-uncanny]') && target.checked){const other=controls.querySelector<HTMLSelectElement>('[data-monk-defense]');if(other)other.value='';}
     update(controls);
   });
   document.addEventListener('click',async event=>{
+    const monk=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-monk-defense-roll]');
+    if(monk && !monk.disabled){const controls=monk.closest<HTMLElement>('[data-damage-controls]')!;try{await prepareMonkDefense(controls,E,()=>readDamagePacket(controls));}catch(error){host.showToast((error as Error).message);}return;}
     const parry=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-parry-roll]');
     if(parry && !parry.disabled){const controls=parry.closest<HTMLElement>('[data-damage-controls]')!;try{await prepareParryFace(controls,E,()=>readDamagePacket(controls));}catch(error){host.showToast((error as Error).message);}return;}
     const button=(event.target as HTMLElement).closest<HTMLButtonElement>('[data-damage-row-action]');if(!button || button.disabled)return;

@@ -10,6 +10,7 @@ import {finishLungingAttack,finishFeintingAttack,finishRiposte} from './weapon-a
 import {clearPendingFeint} from './feinting-state';
 import {endCommand} from './commanders-strike-state';
 import {endReceivedBardic} from './bardic-received';
+import {endMonkReturn} from './monk-state';
 export interface Resource { id:string; classId:string; name:string; max:number; recovery:'short'|'long'|'none'; kind:'counter'|'pool'|'toggle'|'note'|'portent'; note:string; cost?:[string,number]; action?:string }
 
 /** Cada definição usa nível da própria classe, nunca nível total. Sem ficha-modelo. */
@@ -273,6 +274,7 @@ export function resetResources(c: Sheet, kind:'short'|'long', E: Engine, random=
   finishRiposte(c);
   endCommand(c);
   endReceivedBardic(c);
+  endMonkReturn(c);
   if (active(c,'barbaro:rage')) toggleResource(c,resourcesFor(c,E).find(r=>r.id==='barbaro:rage')!,E);
   if(deathStatus(c).dead)return;
   s.used['barbaro:relentless']=0;

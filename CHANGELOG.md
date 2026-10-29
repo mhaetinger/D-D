@@ -1,5 +1,42 @@
 # Changelog
 
+## Não lançado — Combate do monge — 2026-10-29
+
+- Vigésimo segundo recorte de R2, com avanço de R3, na PR #35. Golpe desarmado
+  vinculado explicitamente usa o editor/rolador comuns, proficiência, FOR normal
+  ou DES/Artes Marciais sem armadura/escudo, d4/d6/d8/d10 pelo nível próprio,
+  crítico e dano mínimo zero. Especialista em Briga usa d4 quando aplicável.
+  Golpes de Chi indicam a propriedade mágica sem inventar bônus numérico;
+  bônus que exigem arma física não são concedidos por tratar o golpe como ataque.
+- Ataque Atordoante gasta a reserva comum de Chi após confirmar acerto corpo a
+  corpo, inclusive desarmado: CON contra 8 + SAB + proficiência. Não adiciona o
+  limite de uma tentativa por turno de 2024; alvo e fim do próximo turno na mesa.
+- Defletir Projéteis e Queda Lenta integram o dano detalhado por tipo: uma reação,
+  um orçamento de redução por ocorrência, ordem com armadura explícita, antes
+  de resistência/vulnerabilidade. Defletir usa d10 + DES + nível próprio; Queda
+  usa 5 × nível próprio. Não gastam Chi. Apanhar exige zero pela deflexão antes
+  de resistência, tamanho adequado e mão livre declarados.
+- Devolver projétil apanhado gasta 1 Chi antes do ataque proficiente, mesmo no
+  erro; alcance 6/18 m e mesma reação declarados. Usa os dados próprios informados
+  do projétil ou Artes Marciais elegível. Acerto/crítico têm registro físico ou
+  virtual de dano sem novo custo. Devolução paga é transitória: não reaparece
+  por recarga/desfazer/troca de contexto; o custo continua no histórico.
+- Mente Tranquila encerra um efeito próprio de encanto/medo com ação, sem Chi.
+  Só retira a marca se o jogador confirmar que era o último efeito. Pureza
+  Corporal impede envenenado sem apagar registros antigos. Corpo Vazio também
+  concede invisibilidade derivada às jogadas, além das defesas já existentes.
+- Alma de Diamante repete resistência com 1 Chi, usando obrigatoriamente a nova
+  jogada. Concentração e morte oferecem repetição na falha quando preparada na
+  janela, antes de aplicar a consequência original, sem duplicar contagens,
+  testes ou inspiração. Pode funcionar a 0 PV; não exige ação nem revive mortos.
+- Modos/origem física/virtual, permissões, custos e janelas reutilizam módulos
+  comuns. Valores da Forma Selvagem continuam na mesa. Sem SQL, consulta de
+  nuvem, dados pessoais, catálogo gerado alterado ou publicação.
+- Verificados 711 testes Node, tipos/build e nove roteiros Chromium, incluindo
+  monge, PV/concentração/dano, editor/ataques, Aparar, rolagens condicionais e
+  apoio. Cobrem celular/GG/temas/layouts, físico/virtual/OFF/Só Pool, cancelamento,
+  guardas/desfazer/isolamento e offline real. CI ampliada para 56 roteiros.
+
 ## Não lançado — Apoio, Curandeiro e bardo — 2026-10-29
 
 - Vigésimo primeiro recorte de R2, com avanço delimitado de R3/R6, na PR #35.

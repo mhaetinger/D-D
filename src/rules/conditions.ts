@@ -1,4 +1,4 @@
-import { active, state, type Sheet } from './model';
+import { active, level,state, type Sheet } from './model';
 import { incapacityReason } from './concentration';
 import { syncIncapacity } from './health';
 import {endEvasiveFootworkIfStopped} from './evasive-footwork-state';
@@ -22,6 +22,10 @@ export const CONDITIONS = [
 export type ConditionId=typeof CONDITIONS[number]['id'];
 const explicit=(c:Sheet,id:string)=>c.ruleState?.conditions?.[id]===true || id==='inconsciente' && c.conscious===false;
 export function hasCondition(c:Sheet,id:string):boolean {
+  // O registro antigo fica preservado. Pureza Corporal impede os efeitos de
+  // envenenado enquanto o nível vigente concede a imunidade.
+  if(id==='envenenado' && level(c,'monge')>=10)return false;
+  if(id==='invisivel' && level(c,'monge')>=18 && active(c,'monge:emptyBody'))return true;
   if(explicit(c,id))return true;
   if(id==='inconsciente')return c.hpCurrent<=0 && !active(c,'druida:wildShape');
   if(id==='caido')return hasCondition(c,'inconsciente');
@@ -31,6 +35,7 @@ export function hasCondition(c:Sheet,id:string):boolean {
 export const derivedCondition=(c:Sheet,id:string)=>id==='caido' && hasCondition(c,'inconsciente') || hasCondition(c,id) && !explicit(c,id);
 export function setCondition(c:Sheet,id:string,enabled:boolean) {
   if(!CONDITIONS.some(x=>x.id===id))throw new Error('Condição desconhecida.');
+  if(enabled && id==='envenenado' && level(c,'monge')>=10)throw new Error('Pureza Corporal: imune a venenos/doenças e à condição envenenado. Registro anterior preservado.');
   const s=state(c);
   if(s.conditions!=null && (typeof s.conditions!=='object' || Array.isArray(s.conditions)))throw new Error('Registro de condições ilegível preservado; confira o backup.');
   endEvasiveFootworkIfStopped(c);

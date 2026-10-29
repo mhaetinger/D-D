@@ -1,7 +1,8 @@
 import { concentration, concentrationBlock, concentrationInvalid, endConcentration, focusedConjuration, resolveConcentration, startConcentration } from './concentration';
 import { concentrationSaveDetails } from './combat';
 import { consumeInspiration } from './health';
-import { active, escape, type Engine, type Sheet } from './model';
+import { active, escape, level,type Engine, type Sheet } from './model';
+import {offerDiamondReroll} from './monk-ui';
 import { chooseDieSource, dieSourceControls, ruleD20Options } from './health-ui';
 
 const button=(action:string,text:string,disabled=false)=>`<button type="button" data-concentration-action="${action}" ${disabled?'disabled':''}>${text}</button>`;
@@ -34,6 +35,7 @@ export function setupConcentrationUI(E:Engine,save:(description:string)=>void) {
       const controls=document.createElement('div');controls.className='rule-context rule-dialog-fields';
       const shape=check?check.shape:active(c,'druida:wildShape');
       controls.innerHTML=`${dieSourceControls(20)}${!check?'<label>CD indicada pela mesa <input type="number" min="1" max="1000" value="10" required data-concentration-dc></label>':''}${shape?'<label title="Informe o total adequado à forma que recebeu o dano, incluindo proficiências e efeitos. Não é somado ao bônus humano.">Bônus total de CON da forma <input type="number" min="-100" max="100" step="1" required data-concentration-shape></label>':''}<label>Outros bônus recebidos <input type="number" min="-100" max="100" step="1" value="0" data-concentration-extra></label><label>Modo da mesa <select data-concentration-mode><option value="normal">Normal</option><option value="adv">Vantagem</option><option value="dis">Desvantagem</option></select></label><p data-concentration-preview></p><p>1/20 natural não decide sozinho: compare o total com a CD.</p>`;
+      if(level(c,'monge')>=14)controls.insertAdjacentHTML('beforeend','<label class="rule-check"><input type="checkbox" data-concentration-diamond-ready> Se falhar, escolher se uso Alma de Diamante · 1 Chi</label>');
       chooseDieSource(controls);
       const mode=controls.querySelector<HTMLSelectElement>('[data-concentration-mode]')!;mode.value=host.ruleDiceSettings().mode;
       const details=()=>{
@@ -50,9 +52,10 @@ export function setupConcentrationUI(E:Engine,save:(description:string)=>void) {
       if(host.getChar()!==c || concentration(c)?.id!==current.id)return;
       const d=details(),virtual=controls.querySelector<HTMLSelectElement>('[data-health-source]')!.value==='virtual',face=Number(controls.querySelector<HTMLInputElement>('[data-health-face]')!.value),dc=check?.dc ?? Number(controls.querySelector<HTMLInputElement>('[data-concentration-dc]')!.value);
       resolveConcentration(structuredClone(c),current.id,check?.id || null,virtual?10:face,d.bonus,dc);
-      const natural=virtual?await host.resolveRuleD20('Concentração · '+current.name,d.mode,{type:'save'},{...ruleD20Options(controls,d.inspired),key:'concentration:'+current.id+':'+(check?.id || 'environment')}):face;
+      let natural=virtual?await host.resolveRuleD20('Concentração · '+current.name,d.mode,{type:'save'},{...ruleD20Options(controls,d.inspired),key:'concentration:'+current.id+':'+(check?.id || 'environment')}):face;
       if(natural===null)return;
       if(host.getChar()!==c || concentration(c)?.id!==current.id)return;
+      if(controls.querySelector<HTMLInputElement>('[data-concentration-diamond-ready]')?.checked)natural=await offerDiamondReroll(c,E,{natural,bonus:d.bonus,dc,mode:d.mode,label:'Concentração · '+current.name,valid:()=>host.getChar()===c && trigger.isConnected && concentration(c)?.id===current.id && (!check || concentration(c)?.checks[0]?.id===check.id)});
       const result=resolveConcentration(c,current.id,check?.id || null,natural,d.bonus,dc),inspired=consumeInspiration(c);
       save(`Concentração · ${result.name}: d20 ${natural}, CON ${d.bonus}, total ${result.total}/CD ${result.dc} · ${result.success?'manteve':'encerrou'}${inspired?' · usou inspiração':''}`);
       host.showToast(`${result.success?'Manteve':'Encerrou'} concentração · ${result.total}/CD ${result.dc}.`);

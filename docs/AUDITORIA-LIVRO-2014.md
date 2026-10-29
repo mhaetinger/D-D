@@ -284,11 +284,11 @@ básico real telefone/computador já foram confirmados pelo responsável.
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
 | R1 — bônus nos cálculos | **Quatro passivos entregues; achados A01/A05/A06 corrigidos nesta branch** | O recorte original continua implementado. A01/A05/A06 corrigem os bônus/modificadores adicionais e a inconsistência de PV identificados no check-up; regressões nesta entrega. Tipos variáveis/efeitos posteriores seguem em R5. |
-| R2 — rolagens e gastos condicionais | **Quinto ao vigésimo recortes em desenvolvimento; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo na PR #20; -5/+10 na PR #21; Atacante Bestial e Combate com Armas Grandes publicados nas PRs #31/#32. Quinto recorte: Adepto Elemental nos danos de magia reconhecidos. Sexto: Ataque Desarmante/Derrubar no dano e reservas do Adepto Marcial. Sétimo: Precisão depois do d20 com Sortudo/halfling. Oitavo: cinco outras manobras de dano, com FOR/SAB ou sem resistência. Nono: recuperação de superioridade, Inspiração de Bardo e Chi ao rolar iniciativa com a reserva vazia. Décimo: vantagem/desvantagem contextual na iniciativa. Décimo primeiro: Sobrevivente no início do turno declarado pela mesa. Décimo segundo: Aparar no dano recebido. Décimo terceiro: Inspirar com dado + CAR para PV temporários de aliado. Décimo quarto: Passo Evasivo na CA até parar de se mover. Décimo quinto: Estendido escolhido antes do ataque, alcance de um ataque e dado já pago no dano. Décimo sexto: Finta com ação bônus/alvo, vantagem contextual e dado já pago no acerto. Décimo sétimo: Trespassante com dano separado à segunda criatura pela mesma jogada. Décimo oitavo: Contra-Atacar com reação e custo antes do ataque após um erro corpo a corpo. Décimo nono: Golpe do Comandante com custo antecipado e dado adicional do ataque imediato de um aliado, resolvido na mesa. Vigésimo: lote de modos contextuais, Força Indomável, Duelista Defensivo e Líder Inspirador. As 16 manobras têm controles delimitados; critérios e limites abaixo. Faltam adicionais dos demais talentos/estilos e contextos de elemento/efeito ainda manuais. Turnos/alvos continuam declarados pela mesa. |
-| R3 — condições, defesas e características | Planejada; já há cobertura parcial | Modos próprios de condições integrados no lote de combate abaixo; completar imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
+| R2 — rolagens e gastos condicionais | **Quinto ao vigésimo segundo recortes em desenvolvimento; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo na PR #20; -5/+10 na PR #21; Atacante Bestial e Combate com Armas Grandes publicados nas PRs #31/#32. Quinto recorte: Adepto Elemental nos danos de magia reconhecidos. Sexto: Ataque Desarmante/Derrubar no dano e reservas do Adepto Marcial. Sétimo: Precisão depois do d20 com Sortudo/halfling. Oitavo: cinco outras manobras de dano, com FOR/SAB ou sem resistência. Nono: recuperação de superioridade, Inspiração de Bardo e Chi ao rolar iniciativa com a reserva vazia. Décimo: vantagem/desvantagem contextual na iniciativa. Décimo primeiro: Sobrevivente no início do turno declarado pela mesa. Décimo segundo: Aparar no dano recebido. Décimo terceiro: Inspirar com dado + CAR para PV temporários de aliado. Décimo quarto: Passo Evasivo na CA até parar de se mover. Décimo quinto: Estendido escolhido antes do ataque, alcance de um ataque e dado já pago no dano. Décimo sexto: Finta com ação bônus/alvo, vantagem contextual e dado já pago no acerto. Décimo sétimo: Trespassante com dano separado à segunda criatura pela mesma jogada. Décimo oitavo: Contra-Atacar com reação e custo antes do ataque após um erro corpo a corpo. Décimo nono: Golpe do Comandante com custo antecipado e dado adicional do ataque imediato de um aliado, resolvido na mesa. Vigésimo: lote de modos contextuais, Força Indomável, Duelista Defensivo e Líder Inspirador. Vigésimo primeiro: Curandeiro/kit e apoio do bardo. Vigésimo segundo: núcleo de combate do monge, reações e repetição de resistências. As 16 manobras têm controles delimitados; critérios e limites abaixo. Faltam adicionais dos demais talentos/estilos e contextos de elemento/efeito ainda manuais. Turnos/alvos continuam declarados pela mesa. |
+| R3 — condições, defesas e características | Planejada; já há cobertura parcial | Modos próprios de condições integrados no lote de combate; Pureza Corporal/Corpo Vazio e Mente Tranquila no lote do monge. Completar outras imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
 | R5 — famílias de magias | Parcial: oito curas e quatro invocações auditadas | Revisão delimitada de invocações e magias associadas concluída abaixo; vínculo automático de conjuração/custo ainda manual. Revisar outras famílias: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
-| R6 — equipamento e contexto de combate | Parcial: penalidades de armadura e arma pesada/Pequeno no lote de combate | Munição/recarga/consumíveis, demais penalidades de equipamento, carga e ações condicionais. Definir antes qualquer acompanhamento opcional de turno; alvos, alcance, cobertura e viagem podem continuar na mesa, com essa limitação clara. |
+| R6 — equipamento e contexto de combate | Parcial: penalidades de armadura/arma pesada, kit e loja nos lotes de combate/apoio | Munição/recarga/consumíveis, demais penalidades de equipamento, carga e ações condicionais. Definir antes qualquer acompanhamento opcional de turno; alvos, alcance, cobertura e viagem podem continuar na mesa, com essa limitação clara. |
 
 ### Draconatos — recorte de 23/10/2026
 
@@ -1382,6 +1382,55 @@ resultado remoto na PR #35. Evidências locais fora do repositório:
 R2/R3/R4/R5/R6 continuam parciais. Não conclui os demais recursos de bardo,
 todos os consumíveis ou a revisão de magias/importação.
 
+### Vigésimo segundo recorte de R2: núcleo de combate do monge — 29/10/2026
+
+**Em desenvolvimento na PR #35, sem publicação.** Fontes: Livro do Jogador
+2014, Artes Marciais/Chi/Defletir/Queda Lenta p. 104/PDF 103; Atordoante,
+Mente Tranquila, Pureza Corporal/Corpo Vazio e Alma de Diamante p. 105/PDF 104;
+Especialista em Briga p. 169/PDF 168; tabela do
+monge no catálogo de progressão. Conferência complementar no
+[Sage Advice Compendium 2014](https://www.dndbeyond.com/sources/dnd/sac/sage-advice-compendium):
+golpe desarmado é ataque corpo a corpo com arma para Atordoante, mas não arma
+física para Destruição/Atacante Bestial. Projétil devolvido conta como arma de
+monge e permite seu dano próprio ou Artes Marciais elegível.
+
+| Operação | Cobertura deste lote | Limite na mesa |
+| --- | --- | --- |
+| Golpe desarmado/Artes Marciais | Vínculo explícito no editor comum; cadastro pela característica com cadeado aberto. FOR/1 normal, DES/dado de monge sem armadura/escudo, d4/d6/d8/d10 pelo nível próprio, proficiência, crítico e mínimo zero. Briga usa d4 quando aplicável. Golpes de Chi indicam propriedade mágica sem bônus numérico | Armas empunhadas, ação Atacar/ataque bônus e mãos; ataques/estatísticas da forma; nomes livres/manuais não são homologados |
+| Ataque Atordoante | Monge 5, acerto corpo a corpo reconhecido, inclusive desarmado, CD 8 + SAB + proficiência e 1 Chi compartilhado. Não exige arma de monge ou ausência de armadura; não impõe limite de uma tentativa por turno de 2024 | Cada acerto só dispara sua tentativa declarada; resistência, imunidade e atordoamento do alvo até o fim do próximo turno |
+| Defletir Projéteis/Queda Lenta | No dano detalhado, reação declarada, redução única por ocorrência: d10 + DES + nível ou 5 × nível. Sem Chi. Proteção antes; redução antes de resistência/vulnerabilidade. Ordem com armadura explícita. Magia de ataque não é projétil de arma | Origem à distância/queda e reação. Apanhar só se a deflexão zerar antes de resistência e com mão/tamanho adequados |
+| Devolução do projétil | Operação declarada na mesma reação; 1 Chi salvo antes do ataque proficiente, mesmo no erro. Dados próprios informados do projétil ou dado de Artes Marciais elegível. Acerto/crítico físico ou virtual, modificador uma vez, sem novo custo | Captura anterior pode ter sido resolvida na mesa; não infere arma pelo dano recebido. Alcance 6/18 m, modo/alcance longo, habilidade de arremesso e acerto são conferidos. Escolhas adicionais de d20 ficam na mesa |
+| Mente Tranquila/Pureza/Corpo Vazio | Ação para encerrar um efeito próprio de encanto/medo, sem Chi; só retira marca por declaração de último efeito. Pureza impede envenenado preservando registro antigo. Corpo Vazio deriva invisibilidade nas jogadas, além das defesas existentes | Efeito que controla ações pode impedir Mente Tranquila; doença não tem cadastro próprio. Fim das durações continua declarado |
+| Alma de Diamante | 1 Chi para refazer resistência, nova jogada obrigatória, sem exigir ação/consciência. Proficiência já existia, inclusive na morte. Preparação opcional em concentração/morte oferece repetição só na falha e antes de aplicá-la; não duplica contagens/fila/inspiração. Cancelar mantém original sem custo | Resistências comuns informam tipo/CD/bônus/modo original antes de aplicar efeitos; outros efeitos de escolha/repetição de dados ficam na mesa |
+
+Pendência de dano da devolução é transitória e vinculada ao snapshot: alterar,
+recarregar, trocar contexto/modo, descansar ou desfazer não a recria; custo
+persiste no histórico. Cancelar registro de dano mantém a pendência vigente.
+Prévia/cancelamento antes da confirmação não gastam nem rolam. Guardas conferem
+ficha/conta/permissão/nó/modos antes de custo/RNG. Sem SQL, nova consulta de nuvem,
+edição de catálogo gerado ou fichas pessoais.
+
+**Base anterior aprovada integralmente:** `0506cb9`, 690 testes, dependências,
+banco descartável, build e 55 roteiros em ambos os runs:
+[PR](https://github.com/mhaetinger/D-D/actions/runs/40962532204) e
+[push](https://github.com/mhaetinger/D-D/actions/runs/40962525202).
+
+**Verificação deste lote:** 711 testes Node, tipos/build e nove roteiros Chromium:
+monge, PV, concentração, dano/defesas, editor de armas, dano de armas, Aparar,
+rolagens condicionais e apoio. Incluem físico/virtual/OFF/Só Pool, custos/prévias/
+cancelamento, guarda de contexto antes do RNG, repetição obrigatória sem duplicar
+morte/concentração, dano mínimo/crítico, reserva única, condições preservadas,
+nós/desfazer/isolamento/notas, 320px/GG/três temas/dois layouts/toque/scroll/XSS
+e offline real sob `/D-D/`. Após explicitar a ordem de reduções no resumo,
+monge e dano/defesas foram repetidos. A suíte completa exige 56 roteiros e banco
+descartável na CI; resultado remoto na PR #35. Evidências locais fora do projeto:
+`~/.local/state/critcall/audits/2026-10-29-combate-monge/`.
+
+R2/R3/R4/R5/R6 permanecem parciais. O lote não certifica todas as subclasses do
+monge, efeitos das disciplinas, economia de ações/turnos ou imunidades de todas
+as classes. Rajada/Defesa Paciente/Passo do Vento mantêm a reserva comum e regras
+consultáveis; efeitos condicionais não integram um controlador de turnos.
+
 ### Revisão das quatro invocações — 23/10/2026
 
 **Revisão delimitada concluída em desenvolvimento**, a partir das reproduções
@@ -1541,7 +1590,7 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 | Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa parcial de Atletismo Extraordinário; repetição de Combate com Armas Grandes no quarto recorte de R2; Implacável na iniciativa no nono e Sobrevivente do Campeão no décimo primeiro | A06/A13 corrigidos: arredondamento/testes físicos e Retomar físico/virtual. Sete manobras no dano e Precisão no ataque (sexto a oitavo recortes); Aparar integrado ao dano recebido e Inspirar com resultado para o aliado no décimo terceiro recorte; Passo Evasivo integrado à CA no décimo quarto; Estendido antes do ataque no décimo quinto; Finta no próximo ataque contra o alvo no décimo sexto; Trespassante separado no segundo alvo no décimo sétimo; Contra-Atacar com reação no décimo oitavo; Golpe do Comandante com ordem/custo/dado adicional no décimo nono, ataque do aliado na mesa; início dos turnos continua declarado pela mesa |
 | Ladino, 88–92 | Ladrão; Assassino; Trapaceiro Arcano | Especialização, composição de Ataque Furtivo, Esquiva/Evasão, usos avançados, magias e Talento Confiável nas perícias da ficha (R2 inicial) | Testes com ferramentas na mesa; surpresa/Assassinar e Ação Ardilosa |
 | Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, Dominar/Assinatura, recuperação, Proteção Arcana inclusive multiclasse, Conjuração Focada, Presságio e usos/estados de escola | Efeitos por alvo, demais bônus de escola, lacaios, pedra e Sobrecarga; fluxo de troca temporal das escolhas |
-| Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi, movimento/CA, curas/usos, Evasão, defesas de Pureza Corporal/Corpo Vazio no dano por tipo e Auto Aperfeiçoamento na iniciativa (nono recorte de R2) | Imunidade a condições, Artes Marciais/dano desarmado em todas as condições, Atordoar/Defletir Projéteis |
+| Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi, movimento/CA, curas/usos, Evasão, defesas de dano e Auto Aperfeiçoamento na iniciativa; Artes Marciais/desarmado, Atordoante, Defletir/Queda/devolução, Mente Tranquila/Pureza/Corpo Vazio e Alma de Diamante no vigésimo segundo recorte | Requisitos físicos da forma, demais efeitos de subclasses/disciplinas, Rajada/Defesa Paciente/Passo do Vento e economia de ações/turnos continuam parciais |
 | Paladino, 107–113 | Devoção; Anciões; Vingança | Cura pelas Mãos, Canalizar, Arma Sagrada, aura própria nos testes, preparação e Destruição com gasto de espaço | Aplicação a aliados/consciência e condições dos juramentos; cura no alvo |
 | Patrulheiro Revisado, 114–120 | Besta; Caçador; Rastreador Subterrâneo | Progressão/seleções da adaptação, conjuração, extras condicionais, PV do companheiro e vantagem de Explorador Natural na iniciativa (décimo recorte de R2) | Inimigo favorito, exploração, alvos do primeiro turno e estatísticas/comandos do companheiro; não misturar regras do patrulheiro original |
 
@@ -1608,7 +1657,7 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 | Curandeiro | Tratamento, estabilização e gasto de kit; cura própria e cálculo para destinatário, no lote de apoio | Elegibilidade por tratamentos/descansos anteriores e aplicação em outra ficha declaradas; ver limites do vigésimo primeiro recorte |
 | Duelista Defensivo | Prévia e registro de reação junto da CA, arma de acuidade proficiente, bônus só contra um ataque e crítico/igualdade distintos; lote de combate | Reação/arma empunhada declaradas; dano na mesa, sem CA permanente |
 | Especialista em Besta | Registro | Recarga, ataque próximo e ação bônus |
-| Especialista em Briga | +1 FOR/CON | Dano desarmado d4, armas improvisadas e agarrar |
+| Especialista em Briga | +1 FOR/CON e d4 no golpe desarmado vinculado, no lote do monge | Armas improvisadas e agarrar |
 | Explorador de Cavernas | Registro | Armadilhas/portas e deslocamento de procura |
 | Imobilizador | Registro | Vantagem contra alvo agarrado e imobilização |
 | Iniciado em Magia | Dois truques, magia e uso limitado | Efeitos/resolução do grimório; exceções de origem precisam revisão |
