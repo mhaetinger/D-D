@@ -27,8 +27,9 @@ import {choosePrecisionAttack} from '../rules/precision-attack-ui';
 import {applyInitiativeRecovery,initiativeRecoveryDescription,initiativeRecoveryFeatures} from '../rules/initiative-recovery';
 import {recoverPhysicalInitiative,refreshInitiativeResources} from '../rules/initiative-recovery-ui';
 import {initiativeTraits,initiativeRollDetails,initiativeRollDescription} from '../rules/initiative-mode';
-import {beginWeaponAttack,clearWeaponAttacks,finishWeaponAttack,isCurrentWeaponAttack} from '../rules/weapon-attack-session';
-import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponDamageLabel, weaponAttackBonus, weaponPowerAttackPrepared } from '../rules/weapon-damage-ui';
+import {beginWeaponAttack,clearWeaponAttacks,finishLungingAttack,finishWeaponAttack,isCurrentWeaponAttack} from '../rules/weapon-attack-session';
+import {chooseLungingAttack,lungingPrepared,refreshLungingTools} from '../rules/lunging-attack-ui';
+import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponCriticalPrepared, weaponDamageLabel, weaponAttackBonus, weaponPowerAttackPrepared, refreshWeaponDamageLabel } from '../rules/weapon-damage-ui';
 import { applyCastConcentration, concentration, concentrationBlock, incapacityReason, needsConcentrationConfirmation, spellConcentration, validateConcentrationStart } from '../rules/concentration';
 import { concentrationControls } from '../rules/concentration-ui';
 import { automaticSaveFailure } from '../rules/conditions';
@@ -1121,7 +1122,10 @@ function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligib
   const initiativeDetails=initiative?initiativeRollDetails(c,currentRollMode,CharacterEngine,!!inspired):null;
   const mode=initiativeDetails?.mode ?? (inspired?inspirationRollMode(c,currentRollMode):currentRollMode);
   if(initiativeDetails)context={...context,initiativeRoll:initiativeDetails};
-  if(context?.type==='attack' && context.weapon && diceMode==='auto')context={...context,weaponAttack:beginWeaponAttack(c,context.weapon)};
+  if(context?.type==='attack' && context.weapon && diceMode==='auto'){
+    if(context.weaponAttack && !isCurrentWeaponAttack(context.weaponAttack))return showToast('O ataque estendido mudou. Resolva na mesa o dado já pago.');
+    context={...context,weaponAttack:context.weaponAttack || beginWeaponAttack(c,context.weapon)};
+  }
   let result = evaluateDicePool(dicePoolCounts, modVal, mode,c?sheetD20Rules(c,context,CharacterEngine):{});
   if(context?.elementalAdept)result=applyElementalAdept(result,context.elementalAdept);
   if(context?.spellComponents)result=spellDamageBreakdown(result,context.spellComponents);
@@ -2774,7 +2778,7 @@ async function closeHomebrewModal(force = false) {
   closeSheetPanel('homebrew');
 }
 
-function rollWeapon(index, kind) {
+async function rollWeapon(index, kind) {
   if(kind==='damage' && rollPreparedWeaponDamage(getChar(),index,CharacterEngine,saveRuleStep))return;
   const c=getChar(),entry=c.weapons[index];
   const weapon = CharacterEngine.weaponStats(c, entry);
@@ -2790,7 +2794,18 @@ function rollWeapon(index, kind) {
     showToast("Fórmula inválida. Corrija o ataque antes de rolar.");
     return;
   }
-  const result=triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}${kind==='attack' && weaponPowerAttackPrepared(c,entry,CharacterEngine)?' · '+weaponPowerAttackOption(c,entry,CharacterEngine).name+' (–5 ataque / +10 dano)':''}`,kind==='attack',kind==='attack'?{type:'attack',weapon:entry}:null);
+  let attack;
+  if(kind==='attack'){
+    if(lungingPrepared(entry)){
+      const critical=weaponCriticalPrepared(entry),powerAttack=weaponPowerAttackPrepared(c,entry,CharacterEngine);
+      try{attack=await chooseLungingAttack(c,entry,index,CharacterEngine,saveRuleStep,()=>weaponCriticalPrepared(entry)===critical && weaponPowerAttackPrepared(c,entry,CharacterEngine)===powerAttack && String(weaponAttackBonus(c,entry,CharacterEngine)).trim()===bonus);}
+      catch(error){showToast(error.message || 'Não foi possível usar Ataque Estendido.');return;}
+      if(!attack)return;
+      if(getChar()!==c || c.weapons[index]!==entry || !isCurrentWeaponAttack(attack))return showToast('O ataque mudou. Resolva na mesa o dado já pago.');
+    }else {const old=finishLungingAttack(c);if(old)refreshWeaponDamageLabel(c,c.weapons.indexOf(old.entry),CharacterEngine);refreshLungingTools(c,CharacterEngine);}
+  }
+  const result=triggerSheetRoll(formula, `${kind === "attack" ? "Ataque" : "Dano"}: ${weapon.name}${attack?.lunging?' · Estendido +1,5 m (dado já pago)':''}${kind==='attack' && weaponPowerAttackPrepared(c,entry,CharacterEngine)?' · '+weaponPowerAttackOption(c,entry,CharacterEngine).name+' (–5 ataque / +10 dano)':''}`,kind==='attack',kind==='attack'?{type:'attack',weapon:entry,...(attack?{weaponAttack:attack}: {})}:null);
+  if(attack?.lunging && !result)showToast('Estendido: alcance +1,5 m neste ataque; dado já pago. Role o ataque na mesa; se acertar, registre em Dano. Se errar, use Errou / encerrar ataque.');
   // Usa o resultado resolvido neste clique, nunca o texto da animação ou o
   // total com bônus. Só ataques reais em Auto Ficha atualizam esta preparação.
   if(kind==='attack' && result && c===getChar() && c.weapons[index]===entry)

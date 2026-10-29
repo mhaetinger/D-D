@@ -1,5 +1,33 @@
 # Changelog
 
+## Não lançado — Ataque Estendido — 2026-10-29
+
+- Décimo quinto recorte de R2: Estendido é preparado na arma corpo a corpo
+  reconhecida antes de Atq. Confirma origem, novo ataque no próprio turno e
+  nenhuma outra manobra; paga um dado antes do d20, inclusive se errar, para
+  +1,5 m de alcance apenas nesse ataque. Não exige ação bônus. O fluxo explicita
+  o momento do original de 2014, ambíguo no PDF traduzido, sem editar o catálogo.
+- Dano pede confirmar acerto e inclui o dado já pago, dobrado no crítico, sem
+  descontar superioridade novamente. Bloqueia Precisão/outra manobra no ataque,
+  inclusive após Sortudo/halfling; conserva Furtivo, Destruição, –5/+10 e as
+  repetições restritas aos dados da arma. OFF/Só Pool registram o total físico.
+- Errou/encerrar e outro ataque, inclusive de outra arma, descartam o contexto
+  sem reembolso. Descanso, troca de contexto, recarga e desfazer também encerram;
+  apenas o contador é salvo/restaurado, sem recriar o ataque. A interface orienta
+  resolver na mesa o dado
+  pago se perder o contexto. Ataques próprios/desarmados e forma de besta
+  continuam manuais neste controle. Sem campo persistido, SQL ou nova consulta.
+- Marcar/cancelar não gastam, rolam ou registram. Confirmação revalida documento,
+  arma, conta, permissão, botão, preparação e estado do dado antes do gasto/RNG;
+  cliques concorrentes não duplicam. Preserva notas, fichas e salvamento existente.
+- Verificados 597 testes Node, tipos/build e oito roteiros Chromium: Estendido,
+  Precisão, manobras, dano de arma, –5/+10, rerrolagens, dado e regras. Incluem
+  escolha antecipada/erro/acerto/crítico, origem do talento, manobra isolada,
+  Destruição/inspiração/Sortudos, físico/OFF/Só Pool, contexto/conta/permissão,
+  descanso/outro ataque/desfazer, nós/foco/scroll, 320px/GG/temas/layouts e
+  notas/histórico/offline /D-D/. CI exige 49 roteiros e banco descartável;
+  resultados na PR #35. Cobertura: 12/16 manobras; quatro pendentes. Sem publicação.
+
 ## Não lançado — Passo Evasivo — 2026-10-29
 
 - Décimo quarto recorte de R2: Passo Evasivo usa um dado da reserva escolhida

@@ -5,32 +5,32 @@ Estado consolidado em **29/10/2026**. Leia também `AGENTS.md`, `README.md`,
 
 ## Onde o trabalho parou
 
-**Em desenvolvimento: Passo Evasivo e os avanços individuais de combate,
+**Em desenvolvimento: Ataque Estendido e os avanços individuais de combate,
 recursos e magias de 2014**, na branch `feature/manobras-acerto-2014`, iniciada
 no develop público `9f676e0`. Tudo permanece agrupado na
 [PR #35](https://github.com/mhaetinger/D-D/pull/35), sem mesclar/publicar.
 
-O décimo quarto recorte de R2 integra **Passo Evasivo**: um dado da reserva
-escolhida soma sua face à CA até parar de se mover. Não exige ação bônus ou
-reação. O botão **Terminei de me mover**, junto à CA, encerra sem devolver o dado;
-iniciar/gastar e encerrar são passos locais de desfazer. A mesa declara o
-movimento e as pausas. Condições impeditivas, queda/morte, exaustão 5, descanso
-e correções de vida/deslocamento/classe encerram o efeito sem retomá-lo depois.
-CA editada desconta o bônus temporário ao guardar o valor base. Registro opcional
-conserva o efeito por recarga/offline; valores ilegíveis/futuros ficam preservados,
-sem bônus. Forma Selvagem continua manual.
+O décimo quinto recorte de R2 integra **Ataque Estendido**: marque na arma
+corpo a corpo reconhecida e clique em Atq. Confirme um novo ataque no próprio
+turno, ainda não rolado/resolvido e sem outra manobra; gasta um dado e aumenta
+o alcance apenas desse ataque em 1,5 m. O custo permanece se errar. Dano pede
+confirmar acerto, soma o dado (dobrado no crítico), sem cobrar outra vez.
+**Errou / encerrar ataque**, outro ataque, descanso ou troca de contexto encerram
+a sessão; recarga/desfazer não a restauram. Desfazer/refazer restaura o contador
+do documento, sem recriar o ataque; recarga conserva o gasto salvo.
+OFF/Só Pool permitem ataque físico e registro do total do dano, sem RNG.
+Armas próprias, ataque desarmado e Forma Selvagem continuam manuais neste controle.
 
 Cobertura de manobras: **sete no dano + Precisão + Aparar + Inspirar + Passo
-Evasivo = 11/16**. Faltam cinco, listadas na auditoria única. Alvos, movimento,
-reação e turnos continuam com a mesa; a contagem não conclui o livro.
+Evasivo + Estendido = 12/16**. Faltam quatro, listadas na auditoria única. Alvos,
+movimento, reação e turnos continuam com a mesa; a contagem não conclui o livro.
 A mesma PR reúne Adepto Elemental, recuperação/modo contextual na iniciativa,
 Sobrevivente e a revisão delimitada das quatro invocações. Detalhes, limites e
 verificações históricas ficam em `docs/AUDITORIA-LIVRO-2014.md`.
 
-A base anterior (`0af4f6d`, Inspirar) passou integralmente na CI: 573 testes,
-banco, build e 47 roteiros. Nesta revisão passaram 586 testes Node, tipos/build
-e oito roteiros Chromium. A CI exige 48 roteiros e PostgreSQL descartável;
-resultados atuais na PR #35.
+A base anterior (`439c7cd`, Passo Evasivo) passou integralmente na CI: 586 testes,
+banco, build e 48 roteiros. As verificações deste avanço ficam na auditoria;
+a CI exige agora 49 roteiros e PostgreSQL descartável. Resultados atuais na PR #35.
 As PRs #33/#34 foram substituídas pela entrega agrupada; não são trabalhos
 paralelos pendentes.
 
@@ -54,7 +54,7 @@ os recortes ainda parciais, sem prometer automação integral do livro.
 
 ## Escopo da entrega e próximos avanços
 
-O quarto recorte de R2 já foi publicado; quinto a décimo quarto ficam em
+O quarto recorte de R2 já foi publicado; quinto a décimo quinto ficam em
 desenvolvimento, junto da revisão delimitada das invocações. A auditoria é a
 fonte única de critérios e pendências; as decisões da mesa podem continuar
 manuais, com indicação clara. A ordem permanece **draconatos → rolagens →

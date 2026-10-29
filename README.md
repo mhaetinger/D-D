@@ -207,7 +207,7 @@ Manobra usa a reação do aliado e evita oportunidade só do alvo atingido;
 Distrativo beneficia apenas o próximo ataque de outra criatura no prazo indicado.
 Adepto Marcial tem seu dado adicional
 identificado, com recuperação em descanso curto/longo. OFF/Só Pool registram
-o total físico. Demais manobras continuam em **Usar na mesa**.
+o total físico. Manobras sem controle próprio continuam em **Usar na mesa**.
 Também em desenvolvimento, **Aparar** aparece em **Dano detalhado → Calcular
 por tipo** para quem conhece a manobra. Confirme ataque corpo a corpo de outra
 criatura, reação disponível e nenhuma outra manobra sua no ataque. Escolha a
@@ -231,6 +231,18 @@ use **Terminei de me mover** junto à CA, mesmo que vá continuar o turno; encer
 não devolve o dado. A mesa acompanha o movimento e as pausas. Condições que
 impedem movimento, queda a 0 PV, exaustão 5 e descanso encerram o bônus. Recarga
 offline conserva o movimento declarado; forma de besta continua manual.
+
+**Ataque Estendido**, em desenvolvimento, é marcado na arma corpo a corpo
+reconhecida antes de clicar em **Atq**. Escolha a origem e confirme que é um novo
+ataque no próprio turno, ainda não rolado/resolvido e sem outra manobra. Gasta um
+dado mesmo se errar, para **+1,5 m de alcance só nesse ataque**. Ao acertar, clique
+em **Dano** e confirme o acerto: inclui o dado, dobrado no crítico, sem novo gasto.
+Se errar, use **Errou / encerrar ataque**. Não exige ação bônus. OFF/Só Pool
+permitem rolar na mesa e registrar o total físico incluindo o dado. Outro ataque,
+descanso, troca de ficha/modo ou recarga descartam o contexto. Desfazer/refazer
+restaura o contador salvo, sem recriar o ataque. Se perder o contexto de um dado
+ainda pago, resolva-o na mesa. Este
+controle não cobre ataques próprios, desarmados ou em Forma Selvagem.
 
 Depois de rolar o ataque no **Auto Ficha**, abra a bandeja do dado e use
 **Precisão · usar 1 dado**. Escolha a origem e role o dado de superioridade

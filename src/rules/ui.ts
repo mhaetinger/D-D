@@ -8,7 +8,7 @@ import { setupHealthUI } from './health-ui';
 import { CONDITIONS, derivedCondition, hasCondition, setCondition } from './conditions';
 import { concentration } from './concentration';
 import { concentrationControls, setupConcentrationUI } from './concentration-ui';
-import { setupWeaponDamageUI } from './weapon-damage-ui';
+import { setupWeaponDamageUI,refreshWeaponDamageLabel } from './weapon-damage-ui';
 import {sheetInput} from '../sheet-edit/ui';
 import {hasFeat} from './passives';
 import { luckRemaining } from './lucky';
@@ -19,6 +19,7 @@ import {dragonbornBreathControls,setupDragonbornBreathUI} from './dragonborn-bre
 import {rallyControls,useRally} from './rally-ui';
 import {endEvasiveMovement,evasiveDefenseControls,evasiveStartControl,useEvasiveFootwork} from './evasive-footwork-ui';
 import {endEvasiveFootworkIfStopped} from './evasive-footwork-state';
+import {setupLungingAttackUI} from './lunging-attack-ui';
 
 export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
   const number = (n:number) => Number.isFinite(n)?n:'∞';
@@ -126,6 +127,7 @@ export function setupRuleUI(E: Engine) {
   setupHealthUI(E,save);
   setupConcentrationUI(E,save);
   setupWeaponDamageUI(E,save);
+  setupLungingAttackUI(E,(c,index)=>refreshWeaponDamageLabel(c,index,E));
   setupLuckyUI(E,save);
   setupDragonbornBreathUI(E,save);
   document.addEventListener('change',event=>{

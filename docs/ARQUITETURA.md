@@ -1626,3 +1626,37 @@ outro encerra, e ambos podem ser desfeitos. Controle ativo fica junto à CA;
 inventa uma parada na aventura; o registro permanece inclusive offline. Distância,
 pausas, ataques de oportunidade e turnos são acompanhados pela mesa. Sem novo
 relógio, sessão compartilhada, SQL ou consultas de nuvem.
+
+
+## Ataque Estendido — décimo quinto recorte de R2, 29/10/2026
+
+`lunging-attack.ts` valida conhecimento vigente, arma corpo a corpo reconhecida,
+capacidade de atacar, fórmula/bônus e origem/saldo legível antes de gastar um
+único dado. Não exige proficiência; arremesso, arma própria e Forma Selvagem não
+são cobertos por este controle. A escolha declara ataque novo no próprio turno,
+ainda não rolado/resolvido e sem outra manobra. O dado é pago antes do d20, mesmo
+se errar; sua face só é rolada no dano de um acerto confirmado.
+
+`lunging-attack-ui.ts` mantém a marca em `WeakSet` por objeto de arma. Marcar não
+gasta, grava nem reconstrói nós. O diálogo reutiliza a confirmação nativa;
+revalida documento, conta, objeto/índice da arma, botão conectado, permissão,
+preparação, sessão anterior, modo/sequência do dado e bônus antes de gastar.
+Uma trava por ficha impede confirmações concorrentes. Gasto entra no histórico
+local uma vez; não altera dados das armas nem persiste faces/alcance/alvos.
+
+`weapon-attack-session.ts` guarda a origem/tamanho pagos num contexto efêmero.
+O ataque automático usa essa mesma identidade; OFF/Só Pool conservam o contexto
+para registrar o total físico. Precisão e outra manobra no dano são bloqueadas,
+inclusive após Sortudo/halfling recomporem o d20. `weapon-damage.ts` inclui o dado
+do tipo da arma, dobrado no crítico; Furtivo, Destruição e –5/+10 conservam seus
+contratos/custos. Rerrolagens restritas à arma deixam o dado da manobra intacto.
+Dano exige confirmar acerto, não desconta superioridade de novo e encerra a sessão.
+
+**Errou / encerrar ataque** elimina contexto e opções do d20, sem devolver uso.
+Outro ataque, inclusive com outra arma, encerra o alcance anterior. Descanso
+limpa o contexto antes da recuperação normal. Troca de ficha/conta/modo, recarga
+e objetos substituídos por desfazer não restauram o ataque. Desfazer/refazer
+restaura o contador do documento; descanso segue a recuperação normal. Se ele ainda
+precisa ser resolvido, a interface orienta usar a mesa com o dado já pago.
+Não há medição de alcance, relógio de ações/turnos, modificação de outro jogador,
+novo campo persistido, SQL ou consulta de nuvem.
