@@ -1726,7 +1726,10 @@ Um único passo local guarda o custo e os dois resultados.
 
 Repetições recebem apenas o resultado principal e suas partes originais. O
 diálogo identifica o total como dano do alvo original e explica que o secundário
-já foi registrado. Textos do alvo usam textContent/escape e quebram linha; não
+já foi registrado. Textos do alvo usam textContent/escape e quebram linha;
+`#dice3dResultText` limita a largura e permite quebra em qualquer ponto para
+nomes sem espaços, inclusive na legenda virtual dentro da bandeja móvel. O
+aviso global também tem largura máxima e quebra para esses nomes. Não
 há alvo/face/efeito persistido na ficha. Desfazer/refazer restaura o contador e
 descanso segue a recuperação normal. Não altera outro jogador, catálogos,
 contratos antigos de dano, SQL ou consultas/sincronização de nuvem.

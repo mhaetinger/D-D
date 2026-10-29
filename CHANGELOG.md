@@ -17,7 +17,9 @@
 - Mantém a escolha de uma manobra por ataque, bloqueia combinação com Precisão/
   Estendido/Finta, revalida contexto/conta/permissão/modo/sequência antes do RNG
   e preserva nós/foco. Origem, saldo/registro ilegível, crítico e campos físicos
-  são conferidos antes de gastar. Textos do alvo são dados e quebram linha.
+  são conferidos antes de gastar. Textos do alvo são dados e quebram linha,
+  inclusive na legenda do resultado virtual e no aviso: nomes longos não alargam
+  a bandeja do dado nem ultrapassam a tela do celular.
 - Ataques próprios/Forma Selvagem e aplicação de dano no outro personagem
   continuam na mesa. Sem campo persistido novo, SQL, consulta de nuvem, edição
   de catálogo ou publicação. Auditoria atualizada: **14/16** manobras; faltam

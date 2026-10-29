@@ -1152,7 +1152,8 @@ Trespassante, Finta, Estendido, Precisão, manobras, dano de arma, –5/+10,
 repetições, dado e regras. Cobrem dano separado/crítico/Destruição, origens/
 tentativa sem atingir, físico/virtual/OFF/Só Pool, validação antes do RNG/gasto,
 contexto/conta/permissão, desfazer/notas/histórico, nós/foco/XSS, toque emulado/
-320px/GG/três temas/dois layouts/scroll e offline real sob `/D-D/`. CI exige
+320px/GG/três temas/dois layouts/scroll, nome longo na legenda virtual sem
+alargar a bandeja do dado e offline real sob `/D-D/`. CI exige
 agora 51 roteiros e PostgreSQL descartável; resultados atuais na PR #35.
 A base `5b0d48b` passou com 613 testes,
 banco/build e 50 roteiros em [push](https://github.com/mhaetinger/D-D/actions/runs/40911433089)
