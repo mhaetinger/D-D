@@ -10,7 +10,8 @@ const {confirmationActions}=require('./confirmation.cjs');
   c.classes=[{...c.classes[0],level:6,subclassId:'mestreBatalha',subclass:'Mestre de Batalha'},{classId:'paladino',level:2,subclassId:'devocao',subclass:'Devoção',hitDie:10,hitDiceUsed:0}];
   c.rules.raceId='halflingLeve';c.rules.history=[{classId:'guerreiro',level:3,answers:{maneuvers:['Ataque de Precisão','Ataque Desarmante','Derrubar']}},{classId:'guerreiro',level:4,answers:{feat:'Adepto Marcial',featManeuvers:['Ataque de Precisão','Derrubar']}},{classId:'guerreiro',level:6,answers:{feat:'Sortudo'}}];
   c.ruleState={version:1,used:{},active:{},pools:{},targets:{},portent:[]};c.standardSlots={1:{total:2,used:0}};
-  c.weapons=[{name:'Rapieira'},{name:'Arco Longo'},{name:'Rede'},{name:'Ataque próprio',calculationMode:'manual',bonus:'+5',damage:'1d8+4'}].map(w=>({bonus:'+0',damage:'0',notes:'Notas sintéticas de arma preservadas',...w}));
+  // Arco curto isola Precisão da nova desvantagem de arma pesada no halfling.
+  c.weapons=[{name:'Rapieira'},{name:'Arco Curto'},{name:'Rede'},{name:'Ataque próprio',calculationMode:'manual',bonus:'+5',damage:'1d8+4'}].map(w=>({bonus:'+0',damage:'0',notes:'Notas sintéticas de arma preservadas',...w}));
   const other=structuredClone(c);other.id='precision-other';other.name='Outra ficha sintética';other.rules.history=[];
   await page.addInitScript(({c,other})=>{if(localStorage.getItem('precisionSeeded'))return;localStorage.setItem('critcall_characters_v1',JSON.stringify({schemaVersion:1,characters:[c,other]}));localStorage.setItem('precisionSeeded','1');},{c,other});
   await page.goto(server.url,{waitUntil:'networkidle'});await page.locator('#accessContinueLocal').click();await page.locator('[data-rule-weapon-damage="0"]').waitFor();

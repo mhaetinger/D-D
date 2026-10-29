@@ -22,6 +22,7 @@ import {endEvasiveFootworkIfStopped} from './evasive-footwork-state';
 import {setupLungingAttackUI} from './lunging-attack-ui';
 import {setupRiposteUI} from './riposte-ui';
 import {commandersStrikeControls,setupCommandersStrikeUI} from './commanders-strike-ui';
+import {duelistControls,setupCombatFeatsUI} from './combat-feats-ui';
 import {feintingStartControl,setupFeintingAttackUI,useFeintingAttack,useFeintingAtTable,endFeintingUI} from './feinting-attack-ui';
 
 export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
@@ -79,7 +80,7 @@ export function defenseControls(c:Sheet,E:Engine) {
     ['spell:shield','Escudo Arcano +5','Marque após usar a reação da magia Escudo Arcano: soma +5 à CA até o início do seu próximo turno, inclusive contra o ataque que a desencadeou, e impede dano de Mísseis Mágicos. Desmarque ao terminar; o espaço e a reação são controlados separadamente.'],
     ['spell:bladeWard','Proteção contra Lâminas · resistência','Até o fim do seu próximo turno, esta magia dá resistência a dano de concussão, cortante e perfurante causado por ataques com armas. Não aumenta a CA. Em Dano detalhado → Calcular por tipo, escolha ataque de arma para aplicar a resistência. No modo já resolvido, aplique-a na mesa.'],
   ];
-  return `${evasiveDefenseControls(c,E)}<details class="rule-context" data-rule-disclosure="defense"><summary>Ajustes de defesa e efeitos recebidos</summary>
+  return `${evasiveDefenseControls(c,E)}${duelistControls(c,E)}<details class="rule-context" data-rule-disclosure="defense"><summary>Ajustes de defesa e efeitos recebidos</summary>
     <div class="rule-defense-field"><label for="ruleAcFormula" ${help('Fórmula de CA','CA é a Classe de Armadura, o valor que um ataque precisa alcançar para acertar. Automática escolhe a maior fórmula válida; você pode escolher outra das disponíveis. Fórmulas alternativas não se somam. Os bônus abaixo são adicionados à fórmula escolhida.')}>Fórmula de CA</label><select id="ruleAcFormula" data-rule-ac>${ac.options.map(o=>`<option value="${o.id}" ${c.acFormula===o.id?'selected':''}>${escape(o.label)} · ${o.total}</option>`).join('')}<option value="auto" ${!ac.options.some(o=>o.id===c.acFormula)?'selected':''}>Automática · maior válida</option></select></div>
     <div class="rule-defense-grid">${adjustments.map(([id,label,text])=>`<div class="rule-defense-field"><label for="ruleDefense-${id}" ${help(label,text)}>${label}</label><input id="ruleDefense-${id}" type="number" min="-100" max="100" step="1" data-rule-defense="${id}" placeholder="Auto" value="${c[id]===undefined?'':Number(c[id])}"></div>`).join('')}</div>
     <div class="rule-defense-effects">${effects.map(([id,label,text])=>`<div class="rule-effect-row"><label ${help(label,text)}><input type="checkbox" data-rule-effect="${id}" ${active(c,id)?'checked':''}><span>${label}</span></label></div>`).join('')}</div></details>`;
@@ -88,7 +89,7 @@ export function defenseControls(c:Sheet,E:Engine) {
 export function conditionControls(c:Sheet) {
   const fatigue=exhaustion(c);
   const count=CONDITIONS.filter(x=>hasCondition(c,x.id)).length;
-  return `<div class="rule-context rule-controls"><label>Exaustão <select data-rule-exhaustion aria-label="Nível de exaustão">${[0,1,2,3,4,5,6].map(n=>`<option ${n===fatigue.level?'selected':''}>${n}</option>`).join('')}</select></label>${fatigue.level?`<span>${fatigue.penalties.map(escape).join(' · ')}</span>`:''}</div><details class="rule-context" data-rule-disclosure="conditions"><summary title="Marque estados como envenenado, caído ou paralisado. Consulte cada condição para conferir seus efeitos.">Condições${count?` · ${count} ativa(s)`:''}</summary><div class="rule-conditions">${CONDITIONS.map(x=>{const derived=derivedCondition(c,x.id);return `<label class="rule-check" tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name:x.name,text:x.text+(derived?' Decorre do estado atual; encerre sua causa para remover.':'')}))}"><input type="checkbox" data-rule-condition="${x.id}" ${hasCondition(c,x.id)?'checked':''} ${derived?'disabled':''}><span>${x.name}${derived?' · decorrente':''}</span></label>`;}).join('')}</div><p>Concentração, impedimentos de agir/mover e falhas de FOR/DES são aplicados. Outros modos de rolagem, sentidos, alvos, dano e duração seguem a mesa; consulte cada nome.</p></details>`;
+  return `<div class="rule-context rule-controls"><label>Exaustão <select data-rule-exhaustion aria-label="Nível de exaustão">${[0,1,2,3,4,5,6].map(n=>`<option ${n===fatigue.level?'selected':''}>${n}</option>`).join('')}</select></label>${fatigue.level?`<span>${fatigue.penalties.map(escape).join(' · ')}</span>`:''}</div><details class="rule-context" data-rule-disclosure="conditions"><summary title="Marque estados como envenenado, caído ou paralisado. Consulte cada condição para conferir seus efeitos.">Condições${count?` · ${count} ativa(s)`:''}</summary><div class="rule-conditions">${CONDITIONS.map(x=>{const derived=derivedCondition(c,x.id);return `<label class="rule-check" tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name:x.name,text:x.text+(derived?' Decorre do estado atual; encerre sua causa para remover.':'')}))}"><input type="checkbox" data-rule-condition="${x.id}" ${hasCondition(c,x.id)?'checked':''} ${derived?'disabled':''}><span>${x.name}${derived?' · decorrente':''}</span></label>`;}).join('')}</div><p>Concentração, impedimentos e falhas de FOR/DES são aplicados. Auto Ficha reúne as fontes próprias de vantagem/desvantagem antes de cancelar; o resultado explica as origens. Visibilidade do medo, sentidos especiais, alvos, dano e duração seguem a mesa; consulte cada nome.</p></details>`;
 }
 
 export function hitDiceRecoveryControls(c:Sheet,E:Engine) {
@@ -133,6 +134,7 @@ export function setupRuleUI(E: Engine) {
   setupLungingAttackUI(E,(c,index)=>refreshWeaponDamageLabel(c,index,E));
   setupRiposteUI(E,(c,index)=>refreshWeaponDamageLabel(c,index,E));
   setupCommandersStrikeUI(E,save);
+  setupCombatFeatsUI(E,save);
   setupFeintingAttackUI(E);
   setupLuckyUI(E,save);
   setupDragonbornBreathUI(E,save);

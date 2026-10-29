@@ -1,5 +1,44 @@
 # Changelog
 
+## Não lançado — Lote de combate e janelas — 2026-10-29
+
+- Corrigido o reposicionamento automático da página atrás de diálogos: a rodinha
+  já era contida, mas a ancoragem do navegador movia a ficha após mudanças de
+  altura/fonte. Desativa somente essa ancoragem enquanto houver diálogo aberto;
+  não bloqueia o body. Regressão força +97 px atrás de Inspirar, além da rodinha.
+- Vigésimo recorte de R2, com integração parcial em R3/R6: Auto Ficha reúne
+  condições, exaustão, equipamento, Fúria, invisibilidade, Finta, inspiração e
+  modo informado antes de cancelar vantagens/desvantagens. Resultado identifica
+  as fontes; Sortudo conserva o perfil capturado. Pool livre conserva seu contrato.
+- FOR/DES respeitam armadura/escudo sem proficiência; Furtividade reconhece o
+  catálogo e Maestria em Armadura Média remove só a penalidade da armadura média.
+  Arma pesada reconhecida impõe desvantagem a criatura Pequena. Caído/cego/impedido,
+  veneno e exaustão diferenciam ataque, habilidade e resistência. Passivos de
+  Percepção/Investigação refletem o contexto conhecido, sem modo global/inspiração.
+- Fúria dá vantagem em testes/resistências de FOR sem armadura pesada. Força
+  Indomável do bárbaro 18 aplica mínimo de FOR ao total de um teste, preservando
+  a face natural e as repetições de Sortudo. Valores humanos em Forma Selvagem
+  e contextos de alvos/sentidos/medo permanecem na mesa.
+- Duelista Defensivo junto da CA registra reação declarada com arma de acuidade
+  proficiente: soma proficiência somente contra o ataque recebido. Prévia distingue
+  erro, igualdade e crítico, sem alterar CA permanente ou aplicar dano.
+- Líder Inspirador junto da característica calcula nível total + CAR para até
+  seis participantes, incluindo você. Declaração confirma discurso, alcance,
+  comunicação e descanso de cada destinatário desde o último benefício de qualquer
+  líder. Temporários próprios só são substituídos por escolha explícita; demais
+  fichas ficam na mesa. Não cria reserva diária nem soma temporários.
+- Sem campo persistido novo, SQL, consulta de nuvem, catálogo gerado alterado ou
+  publicação. Mantidos notas, histórico limitado, modos do dado e isolamento.
+- Verificados **665 testes Node**, tipos/build e **12 roteiros Chromium**: lote de
+  combate, Inspirar, Finta, Precisão, rolagens condicionais, passivos, iniciativa,
+  Contra-Atacar, Estendido, ataque de magia, Sortudo e dado. Incluem físico/virtual/
+  OFF/Só Pool, natural/mínimo/Sortudo, fontes antes do cancelamento, prévias,
+  crítico/CA/temporários, cancelamento/concorrência/conta/permissão/nós/foco,
+  notas/histórico/desfazer/isolamento, toque/320px/GG/três temas/dois layouts/scroll/
+  XSS e offline real sob `/D-D/`. Contraprova com ancoragem antiga forçada falhou
+  exatamente em +97 px; com a correção passou. A CI completa exige **54 roteiros**
+  e PostgreSQL descartável; resultado remoto na PR #35.
+
 ## Não lançado — Golpe do Comandante — 2026-10-29
 
 - Décimo nono recorte de R2: **Comandar ataque** junto da superioridade confirma

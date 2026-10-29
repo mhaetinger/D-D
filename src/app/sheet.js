@@ -32,6 +32,8 @@ import {chooseLungingAttack,lungingPrepared,refreshLungingTools} from '../rules/
 import {chooseRiposte,refreshRiposteTools} from '../rules/riposte-ui';
 import {feintingPrepared,chooseFeintingWeaponAttack,feintingStatus,refreshFeintingUI} from '../rules/feinting-attack-ui';
 import {feintingRollDetails,feintingRollDescription} from '../rules/feinting-attack';
+import {sheetRollDetails} from '../rules/roll-context';
+import {featureTalentControls} from '../rules/combat-feats-ui';
 import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponCriticalPrepared, weaponDamageLabel, weaponAttackBonus, weaponPowerAttackPrepared, refreshWeaponDamageLabel } from '../rules/weapon-damage-ui';
 import { applyCastConcentration, concentration, concentrationBlock, incapacityReason, needsConcentrationConfirmation, spellConcentration, validateConcentrationStart } from '../rules/concentration';
 import { concentrationControls } from '../rules/concentration-ui';
@@ -1122,9 +1124,11 @@ function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligib
   const c=getChar(),inspired=inspirationEligible && !!c && dicePoolCounts[20]===1 && c.heroicInspiration && c.ruleState?.inspirationReady;
   const initiative=context?.initiative===true && context.type==='check';
   if(initiative && (diceMode!=='auto' || !canEditSheet(c)))return showToast('A iniciativa desta ficha não pode alterar recursos neste contexto.');
-  const initiativeDetails=initiative?initiativeRollDetails(c,currentRollMode,CharacterEngine,!!inspired):null;
-  const feintingDetails=context?.weaponAttack?.feinting?feintingRollDetails(currentRollMode,!!inspired):null;
-  const mode=initiativeDetails?.mode ?? feintingDetails?.mode ?? (inspired?inspirationRollMode(c,currentRollMode):currentRollMode);
+  const rollDetails=c && dicePoolCounts[20]===1 && ['check','save','attack'].includes(context?.type)?sheetRollDetails(c,context,currentRollMode,CharacterEngine,!!inspired,context?.weaponAttack?.feinting?['Finta']:[]):null;
+  const initiativeDetails=initiative?rollDetails:null;
+  const feintingDetails=context?.weaponAttack?.feinting?{...feintingRollDetails(currentRollMode,!!inspired),mode:rollDetails.mode,canceled:!!rollDetails.disadvantage.length,contextual:rollDetails.disadvantage.some(x=>x!=='Desvantagem informada no dado')}:null;
+  const mode=rollDetails?.mode ?? (inspired?inspirationRollMode(c,currentRollMode):currentRollMode);
+  if(rollDetails)context={...context,ruleRoll:rollDetails};
   if(feintingDetails)context={...context,feintingRoll:feintingDetails};
   if(initiativeDetails)context={...context,initiativeRoll:initiativeDetails};
   if(context?.type==='attack' && context.weapon && diceMode==='auto'){
@@ -1254,6 +1258,7 @@ function presentDiceResult(result, customLabel, rerollContext = null, animate = 
     <div class="text-[11px] font-bold t-text-muted">${modeLabel}</div>
     ${rerollContext?.context?.feintingRoll?`<div data-feinting-mode class="text-[11px] t-text-muted leading-tight">${escapeHTML(feintingRollDescription(rerollContext.context.feintingRoll))}</div>`:''}
     ${rerollContext?.context?.initiativeRoll?`<div data-initiative-mode class="text-[11px] t-text-muted leading-tight">${escapeHTML(initiativeRollDescription(rerollContext.context.initiativeRoll))}</div>`:''}
+    ${rerollContext?.context?.ruleRoll && !rerollContext.context.initiativeRoll?`<div data-sheet-roll-mode class="text-[11px] t-text-muted leading-tight">${escapeHTML(initiativeRollDescription(rerollContext.context.ruleRoll))}</div>`:''}
     <div class="text-xl font-extrabold t-text-main">
       Total: <span class="t-text-accent">${result.total}</span>
       ${isCrit ? '<span class="ml-1 px-1.5 py-0.5 rounded badge-fogo text-[10px]">20 NATURAL!</span>' : ""}
@@ -1669,7 +1674,7 @@ function rollSpellAttack(index) {
   if(!spell || resolveSpellMeta(spell).defType!=='atq_magico' || !canCastNormally(char,spell,CharacterEngine))return;
   const stats=getSpellcastingStats(char,spell.classId,spell);
   if(!stats || !Number.isFinite(stats.attack))return;
-  return triggerSheetRoll(`1d20${fmtMod(stats.attack)}`,`Ataque: ${spell.name}`,true,{type:'attack'});
+  return triggerSheetRoll(`1d20${fmtMod(stats.attack)}`,`Ataque: ${spell.name}`,true,{type:'attack',ability:stats.ability});
 }
 
 function renderSpellEffectDetails(char, spell, index) {
@@ -1952,8 +1957,8 @@ function renderSkillAdjustment(char,sk,val,label) {
 }
 function renderPassiveSkill(char,sk) {
   if(!['percepcao','investigacao'].includes(sk.id))return '';
-  const p=passiveSkill(char,sk,CharacterEngine);
-  const text=`10 + bônus de perícia ${p.bonus}${p.observer?' + Observador 5':''} = ${p.total}. Observador só afeta o valor passivo, não a rolagem ativa. Vantagem/desvantagem situacional altera o passivo em +5/−5, conforme a mesa; o modo do dado não altera este valor de referência.`;
+  const details=sheetRollDetails(char,{type:'check',skill:sk.id},'normal',CharacterEngine,false),p=passiveSkill(char,sk,CharacterEngine,details.mode);
+  const text=`10 + bônus de perícia ${p.bonus}${p.observer?' + Observador 5':''}${p.situational?' + contexto '+p.situational:''} = ${p.total}. ${initiativeRollDescription(details)} Observador só afeta o valor passivo, não a rolagem ativa. Contexto informado só na mesa pode alterar o passivo em +5/−5; modo global e inspiração não alteram esta referência.`;
   return `<span class="sheet-skill-passive t-text-muted" tabindex="0" onclick="event.stopPropagation()" data-skill-passive="${sk.id}" ${RuleTooltips.attributes('Valor passivo',{text})}>Passiva ${p.total}</span>`;
 }
 function renderMainClassic2014(char) {
@@ -1965,7 +1970,7 @@ function renderMainClassic2014(char) {
       return `
     <div class="sheet-ability-card t-card-accent p-2.5 text-center flex flex-col items-center justify-center">
       <span class="text-[10px] font-bold uppercase tracking-wider t-text-muted">${meta.name}</span>
-      <button onclick="triggerSheetRoll('1d20${fmtMod(mod+untrainedAbilityBonus(char,key))}', 'Teste de ${meta.name}', true, {type:'check'})" class="text-2xl font-extrabold t-text-main my-0.5 hover:scale-110 transition">
+      <button onclick="triggerSheetRoll('1d20${fmtMod(mod+untrainedAbilityBonus(char,key))}', 'Teste de ${meta.name}', true, {type:'check',ability:'${key}'})" class="text-2xl font-extrabold t-text-main my-0.5 hover:scale-110 transition">
         ${fmtMod(mod)}
       </button>
       <div class="flex items-center gap-1 t-inset px-2 py-0.5 rounded-full text-xs">
@@ -2062,7 +2067,7 @@ function renderMainModern2024(char) {
             <button onclick="changeAbility('${key}', 1)" class="px-1.5 t-inset rounded font-bold">+</button>
           </div>
         </div>
-        <button onclick="triggerSheetRoll('1d20${fmtMod(mod+untrainedAbilityBonus(char,key))}', 'Teste de ${meta.name}', true, {type:'check'})" class="t-inset rounded-lg px-3 py-1 text-center hover:scale-105 transition">
+        <button onclick="triggerSheetRoll('1d20${fmtMod(mod+untrainedAbilityBonus(char,key))}', 'Teste de ${meta.name}', true, {type:'check',ability:'${key}'})" class="t-inset rounded-lg px-3 py-1 text-center hover:scale-105 transition">
           <span class="text-[9px] uppercase t-text-muted block">Mod</span>
           <span class="text-xl font-extrabold t-text-accent">${fmtMod(mod)}</span>
         </button>
@@ -2264,7 +2269,7 @@ function renderFeaturesCollapsible(char, wide = false) {
     const levels=group.levels.map(level=>{
       const items=level.entries.map(({gain:g,index,controls})=>{
         const disclosure=`feature:${g.classId || g.source}:${g.level}:${index}`;
-        return `<section class="feature-entry">${featureConsultButton(g,disclosure,group.label,controls[0]?.note)}${renderResourceControls(char,CharacterEngine,controls,controls.length>1 || g.name==='Juramento Sagrado')}</section>`;
+        return `<section class="feature-entry">${featureConsultButton(g,disclosure,group.label,controls[0]?.note)}${renderResourceControls(char,CharacterEngine,controls,controls.length>1 || g.name==='Juramento Sagrado')}${featureTalentControls(char,g,CharacterEngine)}</section>`;
       });
       return `<section class="feature-level" data-feature-level="${level.level}">${group.classId?`<h5 class="feature-level-title">Nível ${level.level}</h5>`:''}${items.join('')}</section>`;
     });

@@ -5,19 +5,18 @@ Estado consolidado em **29/10/2026**. Leia também `AGENTS.md`, `README.md`,
 
 ## Onde o trabalho parou
 
-**Em desenvolvimento: Golpe do Comandante e os avanços individuais de combate,
+**Em desenvolvimento: lote de combate, estabilidade das janelas e avanços em
 recursos e magias de 2014**, na branch `feature/manobras-acerto-2014`, iniciada
 no develop público `9f676e0`. Tudo permanece agrupado na
 [PR #35](https://github.com/mhaetinger/D-D/pull/35), sem mesclar/publicar.
 
-O décimo nono recorte de R2 integra **Comandar ataque** junto da superioridade:
-confirma ação Atacar no próprio turno, um ataque cedido, ação bônus e aliado
-amigável que pode ver ou ouvir você. Gasta um dado antes da decisão/reação
-imediata dele; erro ou recusa não reembolsam. O aliado resolve seu ataque com
-arma na mesa. Registrar resultado informa só o dado adicional já pago, dobrado
-no crítico, físico ou virtual, sem usar bônus/preparações do comandante.
-Ordem transitória não é recriada por recarga/desfazer/troca de contexto; somente
-o contador é salvo. Turno/reação imediata e aplicação do bônus ficam na mesa.
+O vigésimo recorte reúne modos contextuais de ataques/testes/resistências,
+penalidades de equipamento/Maestria, Fúria/Força Indomável, Duelista Defensivo e
+Líder Inspirador, com limites na auditoria. Não transfere valores humanos à forma,
+CA de um ataque ao valor permanente nem temporários a outra ficha. A falha da
+CI em Inspirar foi reproduzida como ancoragem da página após mudança de altura;
+CSS desativa só essa ancoragem durante diálogo aberto, com regressão forçada.
+O trabalho deve avançar por módulos/lotes, sem pedir autorização por botão.
 
 Cobertura de manobras: **16/16 com controles nos limites de cada recorte**.
 Isso não conclui R2 nem automatiza combate, interação entre fichas ou o livro
@@ -27,7 +26,9 @@ limites e pendências ficam somente em `docs/AUDITORIA-LIVRO-2014.md`.
 
 A base anterior (`179514a`, Contra-Atacar) passou integralmente na CI: 637 testes,
 banco, build e 52 roteiros. As verificações deste avanço ficam na auditoria;
-a CI exige agora 53 roteiros e PostgreSQL descartável. Resultados atuais na PR #35.
+a CI exige agora 54 roteiros e PostgreSQL descartável. Os runs de `d3e2e99`
+falharam na posição da página em Inspirar após Node/banco/build passarem; a causa
+e a correção estão na auditoria. Resultados atuais na PR #35.
 As PRs #33/#34 foram substituídas pela entrega agrupada; não são trabalhos
 paralelos pendentes.
 
@@ -51,7 +52,7 @@ os recortes ainda parciais, sem prometer automação integral do livro.
 
 ## Escopo da entrega e próximos avanços
 
-O quarto recorte de R2 já foi publicado; quinto a décimo nono ficam em
+O quarto recorte de R2 já foi publicado; quinto ao vigésimo ficam em
 desenvolvimento, junto da revisão delimitada das invocações. A auditoria é a
 fonte única de critérios e pendências; as decisões da mesa podem continuar
 manuais, com indicação clara. A ordem permanece **draconatos → rolagens →

@@ -11,3 +11,13 @@ function confirmationActions(page) {
   return {dialog,accept:()=>choose(page.locator('#confirmationAccept')),cancel:()=>choose(dialog.getByRole('button',{name:'Cancelar',exact:true}))};
 }
 module.exports={confirmationActions};
+/** Mudanças de fonte/tema terminam antes de medir a rolagem. Espera eventos
+ * reais, sem atraso fixo; as sondas de altura continuam verificando ancoragem. */
+async function settleSheetAppearance(page) {
+  await page.evaluate(async()=>{
+    await document.fonts.ready;
+    await Promise.all(document.documentElement.getAnimations().map(a=>a.finished.catch(()=>{})));
+    await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+  });
+}
+module.exports.settleSheetAppearance=settleSheetAppearance;

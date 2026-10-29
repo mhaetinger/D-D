@@ -234,6 +234,25 @@ Reação/gatilho/alcance ficam com a mesa; ataques próprios/desarmados e Forma
 Selvagem continuam manuais. Recarregar/desfazer/trocar contexto não recriam o
 ataque: se necessário, resolva na mesa um dado ainda pago.
 
+Em desenvolvimento, **Auto Ficha** reúne as fontes próprias de vantagem e
+desvantagem antes de cancelar: condições marcadas, exaustão, Fúria e equipamento,
+além de inspiração/Finta e modo informado. O resultado mostra as origens sem
+mudar o seletor global. Armadura/escudo sem proficiência afetam as jogadas de
+FOR/DES; Furtividade usa o catálogo, respeitando Maestria em Armadura Média.
+Criaturas Pequenas têm desvantagem com armas pesadas reconhecidas. Força
+Indomável do bárbaro 18 usa o valor de FOR como mínimo do total de testes de
+FOR, sem mudar a face natural. Contextos de alvos, sentidos especiais e medo
+continuam na mesa; Forma Selvagem não herda equipamento/valores humanos.
+
+**Duelista Defensivo**, junto da CA, confirma uma reação e arma de acuidade
+proficiente empunhada. Informe o total recebido e se é crítico: mostra a CA só
+contra esse ataque, sem torná-la permanente ou aplicar dano. **Líder Inspirador**,
+junto da característica, calcula os temporários de até seis criaturas após o
+discurso. Identifique os outros participantes e escolha se você participa e
+mantém ou substitui seus temporários. Confira o descanso de cada destinatário,
+mesmo que tenha recebido de outro líder; a ficha não conhece outras fichas.
+Temporários não se somam nem curam. Não há limite diário de discursos.
+
 Também em desenvolvimento, **Comandar ataque** junto da superioridade usa
 **Golpe do Comandante**. Confirme a ação Atacar no seu turno, um ataque ainda
 não realizado que você cede, ação bônus disponível e criatura amigável que pode

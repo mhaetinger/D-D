@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),path=require('node:path');
 const {chromium}=require('playwright'),{serve}=require('./serve.cjs'),{warrior}=require('./fixture.cjs');
-const {confirmationActions}=require('./confirmation.cjs');
+const {confirmationActions,settleSheetAppearance}=require('./confirmation.cjs');
 (async()=>{
  const server=await serve(path.join(__dirname,'../dist')),browser=await chromium.launch();
  try{
@@ -60,12 +60,19 @@ const {confirmationActions}=require('./confirmation.cjs');
   // Formulário compacto em 320px/GG, seis apresentações, nós/foco, scroll contido e texto não confiável.
   await page.evaluate(()=>{setDiceMode('off');});
   for(const layout of ['classic_2014','modern_2024'])for(const theme of ['pergaminho_claro','pergaminho_escuro','obsidiana']){
-   await page.setViewportSize({width:320,height:950});await page.evaluate(({layout,theme})=>{setLayout(layout);setTheme(theme);setFontScale(125);},{layout,theme});await open();
+   await page.setViewportSize({width:320,height:950});await page.evaluate(({layout,theme})=>{setLayout(layout);setTheme(theme);setFontScale(125);},{layout,theme});await settleSheetAppearance(page);await open();
    await dialog.locator('[data-rally-ally]').fill('<img src=x onerror=alert(1)>');await dialog.locator('[data-rally-ally]').evaluate(e=>window.rallyName=e);await dialog.locator('[data-health-source]').selectOption('physical');
    await dialog.locator('[data-rally-ally]').focus();assert.equal(await dialog.locator('[data-rally-ally]').evaluate(e=>e===window.rallyName&&e===document.activeElement),true);
    assert.equal(await dialog.evaluate(e=>e.scrollWidth<=e.clientWidth),true);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+   // Mudanças de altura atrás do diálogo (fonte GG, renderização de outro painel)
+   // também não podem reposicionar a página pela ancoragem automática do navegador.
+   await page.evaluate(()=>{const probe=document.createElement('div');probe.id='rallyScrollProbe';document.getElementById('sheetApp').prepend(probe);});
+   const anchored=await page.evaluate(()=>scrollY);
+   await page.evaluate(async()=>{document.getElementById('rallyScrollProbe').style.height='97px';await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));});
+   assert.equal(await page.evaluate(()=>scrollY),anchored,'altura da página atrás do diálogo não muda sua posição');
    const y=await page.evaluate(()=>scrollY);await dialog.hover();await page.mouse.wheel(0,400);await page.waitForTimeout(80);assert.equal(await page.evaluate(()=>scrollY),y);
    if(layout==='classic_2014'&&theme==='pergaminho_claro')await dialog.screenshot({path:'/tmp/critcall-inspirar-mobile.png'});await cancel();
+   await page.evaluate(()=>document.getElementById('rallyScrollProbe').remove());
   }
   await open();await physical(4);await dialog.locator('[data-rally-ally]').fill('<img src=x onerror=alert(1)>');await accept();assert.equal(await output().locator('img').count(),0);assert.match(await output().innerText(),/<img src=x onerror=alert\(1\)>: 7/);
   await open();await physical(4);await dialog.locator('[data-rally-ally]').fill('A'.repeat(80));await accept();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.evaluate(()=>undoStep());

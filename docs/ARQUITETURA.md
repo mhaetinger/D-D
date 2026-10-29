@@ -1801,3 +1801,40 @@ modo/sequência antecedem custo/RNG; campos mudam sem substituir nós. Nomes sã
 dados escapados e quebram linha no celular. Registrar uma ordem já emitida não
 exige consciência contínua nem cobra a reserva de novo. Não há identidade de
 outro documento, alteração de outra ficha, campo persistido ou consulta de nuvem.
+
+
+## Lote de combate e estabilidade das janelas — 29/10/2026
+
+`html:has(dialog[open])` desativa a ancoragem automática enquanto um diálogo
+está aberto. `window-scroll.js` continua contendo a rodinha; o body não é
+bloqueado e posição não é restaurada por scripts. A falha da CI em Inspirar
+foi reproduzida com mudanças de altura atrás do modal; a regressão força 97 px
+adicionais, sem relaxar a comparação da posição. Testes aguardam fontes e
+transições reais antes de medir, sem espera fixa; a sonda continua forçando uma
+mudança de altura com a janela aberta.
+
+`src/rules/roll-context.ts` reúne as fontes próprias por tipo/habilidade da
+jogada. Reutiliza as fontes da iniciativa; no caminho de `rollCurrentPool`,
+Finta e inspiração entram na mesma lista antes do cancelamento. O resultado
+captura o perfil para Sortudo/repetições. Não infere pelo rótulo da jogada:
+atributos/resistências fornecem a habilidade, perícias usam seus identificadores,
+armas usam estatísticas conhecidas e magias informam a habilidade de conjuração.
+Sem contexto/um d20 único, não aplica fontes da ficha ao pool livre. Metadado de
+Furtividade vem de `equipmentCatalog`, sem editar catálogo gerado. Armadura,
+escudo, tamanho racial e Fúria humanos não são transferidos à Forma Selvagem.
+
+`dice-roll.ts` aceita o mínimo opcional de Força Indomável no perfil capturado:
+compara o TOTAL após modificador com FOR, preserva natural e repete esse cálculo
+com as faces de Sortudo. Só testes de FOR de bárbaro 18 fora da forma recebem
+o mínimo. Passivos apresentados usam fontes conhecidas sem inspiração ou modo
+global; fontes dependentes do alvo/visibilidade continuam declaradas na mesa.
+
+`combat-feats.ts` mantém prévias puras de Duelista Defensivo e Líder Inspirador.
+O primeiro não muda CA: informa o bônus válido só contra um ataque, reconhece
+acuidade/proficiência e trata crítico/igualdade. O segundo não inventa recurso
+diário: o limite pertence ao destinatário e exige declaração do descanso, inclusive
+entre líderes distintos. Só muda `hpTemp`/`hpTempSource` próprios por escolha
+expressa; nenhuma outra ficha é acessada. `combat-feats-ui.ts` reutiliza confirmação,
+prévia e histórico, com trava e guarda de documento/conta/permissão/nó. Campos
+não são remontados e identificações são tratadas como dados. Sem schema, SQL,
+contadores de turno ou consultas de nuvem novos.

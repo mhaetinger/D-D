@@ -5,6 +5,10 @@ html {
   scrollbar-gutter: stable;
 }
 @supports not (scrollbar-gutter: stable) { html { overflow-y: scroll; } }
+/* Uma mudança de fonte/altura atrás do diálogo não deve mover a página por
+   ancoragem automática. A rodinha continua contida pelo módulo compartilhado;
+   isto não bloqueia o body nem altera a posição ao abrir/fechar a janela. */
+html:has(dialog[open]) { overflow-anchor: none; }
 
 :root,
 [data-theme="pergaminho_claro"] {

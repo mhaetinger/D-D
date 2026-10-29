@@ -1,9 +1,9 @@
-import { level, type Engine, type Sheet } from './model';
+import { active, level, type Engine, type Sheet } from './model';
 import { hasFeat } from './passives';
 
 export type RollMode = 'normal'|'adv'|'dis';
-export interface RollContext { type:'check'|'attack'|'save'; skill?:string }
-export interface D20Rules { reliableTalent?:boolean; halflingLuck?:boolean; luckyFeat?:boolean }
+export interface RollContext { type:'check'|'attack'|'save'; skill?:string;ability?:string }
+export interface D20Rules { reliableTalent?:boolean; halflingLuck?:boolean; luckyFeat?:boolean;indomitableMight?:number }
 interface DiceGroup { sides:number; faces:number[] }
 interface Reroll { index:number; from:number; to:number }
 type Luck = { extra:number; selected:number; canceled?:false } | { canceled:true };
@@ -26,6 +26,7 @@ export function sheetD20Rules(c:Sheet,context:RollContext|null,E:Engine):D20Rule
     luckyFeat:hasFeat(c,E,'Sortudo'),
     reliableTalent:context.type==='check' && level(c,'ladino')>=11 && !!context.skill &&
       Object.hasOwn(E.data.skills,context.skill) && c.skillsProf?.includes(context.skill)===true,
+    ...(context.type==='check' && !active(c,'druida:wildShape') && level(c,'barbaro')>=18 && (context.ability==='str' || !context.ability && context.skill==='atletismo') && Number.isInteger(c.abilities?.str?.score) && c.abilities.str.score>=1 && c.abilities.str.score<=30?{indomitableMight:c.abilities.str.score}:{}),
   };
 }
 
@@ -59,6 +60,10 @@ function summarize(groups:DiceGroup[],modifier:number,appliedMode:RollMode,rules
   }
   total+=modifier;
   if(modifier!==0)breakdown.push(modifier>0?`+${modifier}`:String(modifier));
+  if(rules.indomitableMight && total<rules.indomitableMight){
+    breakdown.push(`Força Indomável: total ${total} elevado ao valor de FOR ${rules.indomitableMight}`);
+    total=rules.indomitableMight;
+  }
   if(precision){total+=precision.face;breakdown.push(precisionDescription(precision));}
   return {total,d20Natural,breakdown,appliedMode,groups,modifier,rules,...(reroll?{reroll}:{}),...(luck?{luck}:{}),...(precision?{precision}:{})};
 }

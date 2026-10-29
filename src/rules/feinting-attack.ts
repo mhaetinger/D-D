@@ -64,6 +64,6 @@ export function feintingRollDetails(selected:RollMode,inspired=false) {
   if(!['normal','adv','dis'].includes(selected))throw new Error('Confira o modo do dado.');
   return {mode:(selected==='dis'?'normal':'adv') as RollMode,inspired,canceled:selected==='dis'};
 }
-export function feintingRollDescription(details:ReturnType<typeof feintingRollDetails>) {
-  return `Finta: vantagem${details.inspired?' e inspiração preparada':''}. ${details.canceled?'Desvantagem informada anula as fontes de vantagem: 1d20.':'2d20, use o maior.'}`;
+export function feintingRollDescription(details:ReturnType<typeof feintingRollDetails>&{contextual?:boolean}) {
+  return `Finta: vantagem${details.inspired?' e inspiração preparada':''}. ${details.canceled?(details.contextual?'Desvantagem da ficha anula as fontes de vantagem: 1d20.':'Desvantagem informada anula as fontes de vantagem: 1d20.'):'2d20, use o maior.'}`;
 }
