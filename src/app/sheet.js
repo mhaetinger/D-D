@@ -34,6 +34,9 @@ import {feintingPrepared,chooseFeintingWeaponAttack,feintingStatus,refreshFeinti
 import {feintingRollDetails,feintingRollDescription} from '../rules/feinting-attack';
 import {sheetRollDetails} from '../rules/roll-context';
 import {featureTalentControls} from '../rules/combat-feats-ui';
+import {supportFeatureControls,receivedBardicControls,kitUseSummary} from '../rules/support-actions-ui';
+import {addPurchasedKitUses,healerKit} from '../rules/support-actions';
+import {COIN_RATES_IN_PC,coinTotal,deductCoinsSmart} from '../rules/coins';
 import { renderWeaponDamageTools, rollPreparedWeaponDamage, setWeaponCriticalPrepared, weaponCriticalPrepared, weaponDamageLabel, weaponAttackBonus, weaponPowerAttackPrepared, refreshWeaponDamageLabel } from '../rules/weapon-damage-ui';
 import { applyCastConcentration, concentration, concentrationBlock, incapacityReason, needsConcentrationConfirmation, spellConcentration, validateConcentrationStart } from '../rules/concentration';
 import { concentrationControls } from '../rules/concentration-ui';
@@ -340,6 +343,14 @@ const BOOK_ITEMS_DB = {
 
 const SHOP_CATALOG = [
   {
+    id: "item_kit_primeiros_socorros",
+    name: "Kit de primeiros-socorros",
+    category: "Aventura",
+    costQty: 5,
+    costCoin: "po",
+    weightKg: 1.5,
+  },
+  {
     id: "item_pocao_cura",
     name: "Poção de Cura (2d4+2 PV)",
     category: "Aventura",
@@ -636,7 +647,6 @@ function persistHistory() {
   if (!writePreference(historyKey(historyOwnerId),JSON.stringify(bounded))) showToast('O histórico não pôde ser salvo. Baixe um backup antes de fechar.');
 }
 
-const COIN_RATES_IN_PC = { pc: 1, pp: 10, pe: 50, po: 100, pl: 1000 };
 
 // Codificação para texto/atributos HTML. Eventos novos usam índices numéricos,
 // sem interpolar nomes ou descrições do usuário em código JavaScript.
@@ -2176,6 +2186,7 @@ function renderCombatBlock(char) {
             </div>
           </div>
           <div class="sheet-inspiration rule-context rule-controls" data-inspiration-control>${inspirationControls(char)}</div>
+          ${receivedBardicControls(char)}
         </div>
 
         ${deathControls(char,CharacterEngine)}
@@ -2269,7 +2280,7 @@ function renderFeaturesCollapsible(char, wide = false) {
     const levels=group.levels.map(level=>{
       const items=level.entries.map(({gain:g,index,controls})=>{
         const disclosure=`feature:${g.classId || g.source}:${g.level}:${index}`;
-        return `<section class="feature-entry">${featureConsultButton(g,disclosure,group.label,controls[0]?.note)}${renderResourceControls(char,CharacterEngine,controls,controls.length>1 || g.name==='Juramento Sagrado')}${featureTalentControls(char,g,CharacterEngine)}</section>`;
+        return `<section class="feature-entry">${featureConsultButton(g,disclosure,group.label,controls[0]?.note)}${renderResourceControls(char,CharacterEngine,controls,controls.length>1 || g.name==='Juramento Sagrado')}${featureTalentControls(char,g,CharacterEngine)}${supportFeatureControls(char,g,CharacterEngine)}</section>`;
       });
       return `<section class="feature-level" data-feature-level="${level.level}">${group.classId?`<h5 class="feature-level-title">Nível ${level.level}</h5>`:''}${items.join('')}</section>`;
     });
@@ -2344,7 +2355,7 @@ function renderLoreSection(char) {
             (item, idx) => `
           <div class="flex flex-wrap items-center justify-between gap-2 t-inset px-3 py-1.5 rounded" data-sheet-item="${idx}">
             <button class="text-left underline decoration-dotted" onmouseenter="showEquipmentTooltip(event, 'item', ${idx})" onmousemove="positionTooltip(event)" onmouseleave="hideBookTooltip()" onfocus="showEquipmentTooltip(event, 'item', ${idx})" onblur="hideBookTooltip()" onclick="showEquipmentTooltip(event, 'item', ${idx})"><strong>${item.qty}x</strong> ${escapeHTML(item.name)}</button>
-            <div class="flex flex-wrap justify-end items-center gap-2 shrink-0">${CharacterEngine.armorInfo(item.name) ? `<button class="underline" onclick="toggleWornArmor(${idx})">${(CharacterEngine.armorInfo(item.name).type === 'shield' ? char.shieldEquipped : char.armorEquipped === item.name) ? 'Retirar' : 'Equipar'}</button>` : ''}<span class="text-[10px] t-text-muted">${item.weightUnreviewed ? "Peso a conferir" : (item.weightKg * item.qty).toFixed(1) + " kg"}</span><button onclick="openHomebrewModal('item', ${idx})" aria-label="Editar item ${escapeHTML(item.name)}"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button></div>
+            <div class="flex flex-wrap justify-end items-center gap-2 shrink-0">${kitUseSummary(item)}${CharacterEngine.armorInfo(item.name) ? `<button class="underline" onclick="toggleWornArmor(${idx})">${(CharacterEngine.armorInfo(item.name).type === 'shield' ? char.shieldEquipped : char.armorEquipped === item.name) ? 'Retirar' : 'Equipar'}</button>` : ''}<span class="text-[10px] t-text-muted">${item.weightUnreviewed ? "Peso a conferir" : (item.weightKg * item.qty).toFixed(1) + " kg"}</span><button onclick="openHomebrewModal('item', ${idx})" aria-label="Editar item ${escapeHTML(item.name)}"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button></div>
           </div>
         `,
           )
@@ -3393,12 +3404,12 @@ function renderShopItems() {
       (cat === "all" || item.category === cat) &&
       item.name.toLowerCase().includes(query),
   );
-  const totalPC = getTotalWealthInPC(char.coins);
+  const totalPC = coinTotal(char.coins);
 
   document.getElementById("shopItemsContainer").innerHTML = filtered
     .map((item) => {
       const itemCostPC = item.costQty * COIN_RATES_IN_PC[item.costCoin];
-      const canAfford = totalPC >= itemCostPC;
+      const canAfford = totalPC!==null && totalPC >= itemCostPC;
       return `
     <div class="t-inset p-3 rounded-xl flex items-center justify-between gap-3">
       <div>
@@ -3424,12 +3435,13 @@ function buyItem(itemId) {
   if (!item || !deductCoinsSmart(char.coins, item.costQty, item.costCoin))
     return;
   const existing = char.inventoryItems.find((i) => i.name === item.name);
-  if (existing) existing.qty += 1;
+  if (existing) { addPurchasedKitUses(existing); existing.qty += 1; }
   else
     char.inventoryItems.push({
       name: item.name,
       qty: 1,
       weightKg: item.weightKg,
+      ...(healerKit(item)?{healerKitUses:10}:{}),
     });
   recordStepAndSave(`Comprou ${item.name}`);
   renderShopItems();

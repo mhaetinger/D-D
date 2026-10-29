@@ -1335,6 +1335,53 @@ narrativas ou dependentes do Mestre podem permanecer manuais; não são novos
 botões obrigatórios. Próximos avanços devem agrupar operações/módulos, em vez de
 exigir uma nova autorização para cada característica isolada.
 
+### Vigésimo primeiro recorte de R2: apoio e recursos — 29/10/2026
+
+**Em desenvolvimento na PR #35, sem publicação.** Avança Curandeiro, bardo e
+kits na ficha individual. Fontes: Livro do Jogador 2014, Curandeiro p. 169/PDF
+168; kit p. 154/PDF 153; Inspiração de Bardo p. 53/PDF 52; Palavras de Interrupção
+e Inspiração em Combate p. 54/PDF 53. A conferência complementar no
+[Sage Advice Compendium 2014](https://www.dndbeyond.com/sources/dnd/sac/sage-advice-compendium)
+explicita que Interrupção pode reduzir dano rolado de magia e que o dado de
+dano da Inspiração em Combate é duplicado no crítico.
+
+| Operação | Aplicação neste lote | Limite na mesa |
+| --- | --- | --- |
+| Curandeiro · tratamento | Ação, 1 uso do kit, 1d6 + 4 + DV máximos do destinatário; não gasta DV. Próprio: soma níveis e aplica cura até máximo vigente; outro: informa DV, calcula sem editar ficha alheia | Acesso à criatura, ação e descanso curto/longo desde tratamento de qualquer Curandeiro |
+| Curandeiro · estabilização | 1 uso do kit, fixa 1 PV para criatura viva morrendo a 0 PV; não rola d6. Exige declaração separada de elegibilidade por tratamentos/descansos | O texto limita nova cura pelo talento após tratamento. Não certifica repetição ilimitada de 1 PV; a mesa confere esse caso e ações especiais como Mãos Rápidas |
+| Kit/loja | Saldo opcional de usos da pilha, não presume kit importado cheio. Compra acrescenta dez só a saldo conhecido; kit novo tem dez. Zero não remove item. Corrigidas funções ausentes de saldo/pagamento da loja; troco conserva valor | Kits escritos com outro nome/edição de quantidade exigem conferência; saldo ilegível bloqueia e permanece preservado |
+| Conceder inspiração | Outro destinatário, ação bônus declarada, dado pelo nível próprio de bardo; gasta reserva existente uma vez sem rolar | Até 18 m, ouvir, não acumular, prazo de dez minutos e registro pelo destinatário |
+| Palavras de Interrupção | Conhecimento 3+, reação, 1 dado físico/virtual descontado da mesma reserva. Reduz ataque, teste ou dano já rolado; dano mínimo zero; não afeta resistências nem cancela crítico natural | Ver criatura até 18 m, ouvir, não ser imune a encantamento e momento anterior à resolução/dano; não aplica efeito em outra ficha |
+| Dado recebido | Um registro separado da inspiração de vantagem, com fonte/dado/Bravura. Soma dado a total de teste/ataque/resistência informado e consome mesmo sem mudar resultado | Prazo e momento declarados; sem recomposição automática do d20 da bandeja ou comunicação entre fichas |
+| Bravura recebida | Também soma ao dano de arma, dois dados em crítico; ou CA só contra um ataque, reação declarada. Não muda CA permanente nem aplica dano | Confirmação da origem, tipo da jogada e reação; crítico ainda acerta |
+
+Prévia/cancelamento não gastam nem rolam. Antes do primeiro RNG, revalida
+ficha/conta/permissão/nó/modos/sequência. Origem física/virtual reutiliza controles
+comuns, sem herdar vantagem, pool ou inspiração de d20. Descanso encerra apenas
+registro recebido legível; não reabastece kits. Backups/histórico preservam os
+campos opcionais e formatos futuros sem nova consulta de nuvem ou SQL.
+
+**CI anterior e estabilidade:** `2409a39` passou integralmente no
+[push](https://github.com/mhaetinger/D-D/actions/runs/40956324664), com 665 testes,
+banco, build e 54 roteiros. Na [PR](https://github.com/mhaetinger/D-D/actions/runs/40956331369),
+Inspirar passou; o último roteiro mediu 7 px de diferença com a folha ainda
+encolhendo. O auxiliar esperava a fonte mas não as animações de altura iniciadas
+pelo ResizeObserver. Agora espera ambas, mantendo comparação exata/sonda de
+97 px e contenção de rodinha. Três repetições locais do lote de combate passaram.
+
+**Verificação deste lote:** 690 testes Node, tipos/build e seis roteiros
+Chromium: apoio, PV, recursos/regras, Inspirar, lote de combate e dado. Incluem
+saldo antigo/compra/troco/DV máximos, reserva única, Interrupção, recebido/Bravura/
+crítico/CA, físico/virtual/OFF/Só Pool, cancelamento/guardas antes do RNG,
+documento/conta/permissão/modo/nós, desfazer/notas/isolamento, formatos futuros/
+backups, 320px/GG/três temas/dois layouts/toque/scroll/XSS e recarga offline real
+sob `/D-D/`. A suíte remota passa a exigir 55 roteiros e PostgreSQL descartável;
+resultado remoto na PR #35. Evidências locais fora do repositório:
+`~/.local/state/critcall/audits/2026-10-29-apoio-combate/`.
+
+R2/R3/R4/R5/R6 continuam parciais. Não conclui os demais recursos de bardo,
+todos os consumíveis ou a revisão de magias/importação.
+
 ### Revisão das quatro invocações — 23/10/2026
 
 **Revisão delimitada concluída em desenvolvimento**, a partir das reproduções
@@ -1463,7 +1510,7 @@ casos corrigidos como se toda a funcionalidade estivesse ausente.
 | Cap. 2, raças, 16–42 | Atributos, idiomas, opções, descrições, magias e resistências de tiefling/anão/draconato no dano por tipo; sopro com dano, gasto e descanso no recorte de 23/10 | Outras resistências/condições, rerrolagens e gatilhos raciais seguem pendentes |
 | Cap. 3, classes, 44–120 | Progressão das 12 classes/41 subclasses; várias reservas e ações contextuais | Matriz por classe abaixo; contadores não controlam alvos, turnos e todos os passivos |
 | Cap. 4, personalidade/antecedentes, 122–142 | 13 antecedentes, tendências, sugestões editáveis, campos narrativos e inspiração de 2014 | Personalização completa de antecedente ainda exige adaptação manual |
-| Cap. 5, equipamento, 144–160 | Compras em cobre, quantidades/peso, armadura/escudo, armas e propriedades consultáveis | Penalidades por falta de proficiência, munição, recarga, consumíveis e detalhes de carga; ver itens abaixo |
+| Cap. 5, equipamento, 144–160 | Compras/troco, quantidades/peso, armadura/escudo, penalidades de treino/Furtividade, armas/propriedades consultáveis e usos de kit de Curandeiro | Munição, recarga, demais consumíveis e detalhes de carga; ver itens abaixo |
 | Cap. 6, personalização, 164–171 | Pré-requisitos/escolhas de multiclasse/talentos, espaços combinados e Pacto separado | Vários talentos só registram a escolha; o efeito numérico não está aplicado |
 | Cap. 7, habilidades, 174–180 | Modificadores, proficiência, especialização, perícias, resistências, modo vantagem/desvantagem e bônus auditados de iniciativa | Testes passivos/condicionais e rolagens mínimas ainda incompletos; iniciativa contextual delimitada no décimo recorte |
 | Cap. 8, aventuras, 182–188 | Deslocamento, inventário, descansos, exaustão e gasto/recuperação de Dados de Vida por classe | Tempo de descanso, viagem, luz, sufocamento, alimento/água e atividades entre aventuras são manuais |
@@ -1486,7 +1533,7 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 | Classe / PDF | Subclasses conferidas | Cobertura operacional existente | Próxima revisão necessária |
 | --- | --- | --- | --- |
 | Bárbaro, 45–49 | Furioso; Guerreiro Totêmico | Fúria, vantagem de FOR e Força Indomável no lote de combate, dano com FOR, resistências por tipo, Frenesi/exaustão, CA alternativa, Crítico Brutal, Fúria Implacável e vantagem de Instinto Selvagem na iniciativa (décimo recorte de R2) | Vantagens situacionais e duração/gatilhos |
-| Bardo, 50–54 | Conhecimento; Bravura | Reserva/dado de inspiração, proficiências/especialização, segredos, conjuração, iniciativa de Versatilidade, Canção do Descanso opcional e Inspiração Superior na iniciativa (nono recorte de R2) | Inspiração de Bardo recebida/Palavras de Interrupção na jogada |
+| Bardo, 50–54 | Conhecimento; Bravura | Reserva/dado de inspiração, proficiências/especialização, segredos, conjuração, iniciativa de Versatilidade, Canção do Descanso opcional e Inspiração Superior na iniciativa (nono recorte de R2); concessão, Interrupção e dado recebido/Bravura com calculador no lote de apoio | Alvos, prazo/reação/momento declarados; integração automática do dado recebido ao d20 e demais efeitos de bardo continuam parciais |
 | Bruxo, 55–61 | Arquifada; Corruptor; Grande Antigo | Pacto, Arcanum, usos, Bênção do Obscuro, Explosão Agonizante, Sorvedor de Vida na arma vinculada e resistências de patrono registradas | Troca da resistência após descanso e reflexão de psíquico; espaço de invocações não equivale ao contador diário; alvos |
 | Clérigo, 62–69 | Conhecimento; Enganação; Guerra; Luz; Natureza; Tempestade; Vida | Preparação/domínios, Canalizar compartilhado, usos e Intervenção | Efeitos de cada domínio no alvo, cura/dano condicionado e Expulsar/Destruir Mortos-Vivos por ND |
 | Druida, 70–75 | Terra; Lua | Preparação/círculo, Forma Selvagem/PV, cura da Lua, Recuperação Natural e concentração mantida na transformação | Bloco de besta/estatísticas e custo de elemental; CON da forma informada no teste |
@@ -1558,7 +1605,7 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 | Combatente Montado | Registro | Vantagem, redirecionar ataque e defesa da montaria |
 | Conjurador de Guerra | Vantagem para manter concentração após dano | Componentes e magia na oportunidade |
 | Conjurador de Ritual | Escolha de classe/rituais e ação ritual | Cópia/custo/tempo do livro e efeitos das magias |
-| Curandeiro | Registro | Estojo, cura e limite por criatura/descanso |
+| Curandeiro | Tratamento, estabilização e gasto de kit; cura própria e cálculo para destinatário, no lote de apoio | Elegibilidade por tratamentos/descansos anteriores e aplicação em outra ficha declaradas; ver limites do vigésimo primeiro recorte |
 | Duelista Defensivo | Prévia e registro de reação junto da CA, arma de acuidade proficiente, bônus só contra um ataque e crítico/igualdade distintos; lote de combate | Reação/arma empunhada declaradas; dano na mesa, sem CA permanente |
 | Especialista em Besta | Registro | Recarga, ataque próximo e ação bônus |
 | Especialista em Briga | +1 FOR/CON | Dano desarmado d4, armas improvisadas e agarrar |
@@ -1609,8 +1656,9 @@ defesas recebidas que podem ter vindo de outro conjurador.
 Ações/reações, oportunidade, duas armas, agarrar/empurrar, montaria, combate
 submerso, surpresa e ataques por ação exigem contexto da mesa. Antes de impor
 bloqueios por turno, definir acompanhamento opcional. Tempo de vestir/tirar,
-munição, recarga, consumíveis, penalidades de Furtividade e sobrecarga não têm
-resolução integral. Viagem, luz, sufocamento, fome/sede e atividades entre
+munição, recarga, demais consumíveis e sobrecarga não têm resolução integral.
+Kits de Curandeiro têm saldo/consumo no lote de apoio; Furtividade usa a armadura
+e Maestria no lote de combate. Isso não certifica todo equipamento. Viagem, luz, sufocamento, fome/sede e atividades entre
 aventuras podem permanecer manuais ou receber auxiliares opcionais.
 
 Deuses, planos, interpretação, benefícios sociais dos antecedentes e bibliografia

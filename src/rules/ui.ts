@@ -23,6 +23,7 @@ import {setupLungingAttackUI} from './lunging-attack-ui';
 import {setupRiposteUI} from './riposte-ui';
 import {commandersStrikeControls,setupCommandersStrikeUI} from './commanders-strike-ui';
 import {duelistControls,setupCombatFeatsUI} from './combat-feats-ui';
+import {bardGivingControls,setupSupportActionsUI} from './support-actions-ui';
 import {feintingStartControl,setupFeintingAttackUI,useFeintingAttack,useFeintingAtTable,endFeintingUI} from './feinting-attack-ui';
 
 export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
@@ -46,6 +47,7 @@ export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],sho
     else if (r.kind==='pool') control = `<label>Reserva <input type="number" min="0" max="${r.max}" step="1" data-rule-pool="${r.id}" value="${value}" aria-label="${escape(r.name)} atuais"></label><span>/ ${maxInput}</span>`;
     else if (r.kind==='counter') control = `<span>${r.cost?`Custo ${r.cost[1]} ${r.cost[0]==='monge:ki'?'Chi':r.cost[0]==='feiticeiro:sorceryPool'?'pt':'uso'}`:`<span data-resource-balance="${r.id}"${r.id.endsWith(':superiority')?` data-superiority-balance="${r.id}"`:''}>${number(value)}</span>/${maxInput} usos`}</span><button type="button" data-rule-action="use" data-resource="${r.id}" ${manualInvocation(r)?`aria-label="Registrar uso diário de ${escape(r.name)}"`:''} ${value<1 || !affordable?'disabled':''}>${r.id.endsWith(':superiority')?'Usar na mesa':manualInvocation(r)?'Registrar uso':'Usar'}</button>${!r.cost?`<button type="button" data-rule-action="refund" data-resource="${r.id}" ${value===r.max?'disabled':''} aria-label="Devolver um uso de ${escape(r.name)}">↶</button>`:''}${manualInvocation(r)?'<span class="t-text-muted">Magia e custos na mesa</span>':''}`;
     if (r.action==='wildShape') control += `<label>PV da forma <input type="number" min="0" data-rule-beast-hp value="${Number(c.ruleState?.pools?.[r.id] || 0)}"></label><label>PV máximos <input type="number" min="1" data-rule-beast-max value="${Number(c.ruleState?.beastMax || 1)}"></label>${enabled?`<button type="button" data-rule-action="toggle" data-resource="${r.id}">Encerrar forma</button>`:''}`;
+    if(r.id==='bardo:inspiration')control=control.replace('>Usar</button>','>Usar na mesa</button>')+bardGivingControls(c,E);
     if(r.id.endsWith(':superiority'))control+=rallyControls(c,E,r.id)+evasiveStartControl(c,E,r.id)+feintingStartControl(c,E,r.id)+commandersStrikeControls(c,E,r.id);
     if(r.action==='intervention' && interventionWaiting(c))control+='<span>7 dias na aventura</span><button type="button" data-rule-action="interventionWeek" data-resource="clerigo:intervention">Registrar semana transcorrida</button>';
     const needsTarget = ['paladino:sacredWeapon','paladino:enmity','mago:hypnotic'].includes(r.id);
@@ -99,7 +101,7 @@ export function hitDiceRecoveryControls(c:Sheet,E:Engine) {
 export function saveRuleStep(description:string) {
   const host = window as any;
   const focused = document.activeElement as HTMLElement;
-  const attrs = focused ? [...focused.attributes].filter(a=>a.name.startsWith('data-rule-') || a.name.startsWith('data-health-') || a.name.startsWith('data-concentration-') || ['data-resource','data-index','data-class'].includes(a.name)).map(a=>`[${a.name}="${CSS.escape(a.value)}"]`).join('') : '';
+  const attrs = focused ? [...focused.attributes].filter(a=>a.name.startsWith('data-rule-') || a.name.startsWith('data-health-') || a.name.startsWith('data-support-') || a.name.startsWith('data-concentration-') || ['data-resource','data-index','data-class'].includes(a.name)).map(a=>`[${a.name}="${CSS.escape(a.value)}"]`).join('') : '';
   const handler=focused?.getAttribute('onclick');
   const focusKey=attrs || (focused?.id?'#'+CSS.escape(focused.id):handler?`[onclick="${CSS.escape(handler)}"]`:'');
   const open = new Map([...document.querySelectorAll<HTMLDetailsElement>('[data-rule-disclosure]')].map(el=>[el.dataset.ruleDisclosure,el.open]));
@@ -135,6 +137,7 @@ export function setupRuleUI(E: Engine) {
   setupRiposteUI(E,(c,index)=>refreshWeaponDamageLabel(c,index,E));
   setupCommandersStrikeUI(E,save);
   setupCombatFeatsUI(E,save);
+  setupSupportActionsUI(E,save);
   setupFeintingAttackUI(E);
   setupLuckyUI(E,save);
   setupDragonbornBreathUI(E,save);

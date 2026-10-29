@@ -253,6 +253,29 @@ mantém ou substitui seus temporários. Confira o descanso de cada destinatário
 mesmo que tenha recebido de outro líder; a ficha não conhece outras fichas.
 Temporários não se somam nem curam. Não há limite diário de discursos.
 
+**Curandeiro** oferece tratamento e estabilização junto do talento. Escolha o
+kit do inventário e confira seus usos atuais; kits antigos/importados não são
+presumidos cheios. Tratamento cura 1d6 + 4 + Dados de Vida **máximos do
+destinatário**, sem gastar esses dados. O destinatário precisa do descanso
+exigido pelo talento; para estabilização e 1 PV, confira com a mesa tratamentos
+anteriores e elegibilidade. A aplicação própria respeita o máximo de PV;
+outro destinatário aplica na própria ficha. A loja vende kits novos de dez usos.
+
+**Conceder dado**, junto da Inspiração de Bardo, gasta um uso e informa o dado
+para outra criatura, sem rolá-lo. **Interromper**, no Colégio do Conhecimento,
+usa a mesma reserva e subtrai o dado de ataque, teste ou dano já rolado, após
+confirmar a reação e o momento. Não afeta resistências nem cancela crítico
+natural. Não desconte de novo em **Usar na mesa**.
+
+**Inspiração de Bardo recebida**, junto dos PV, registra um único dado de outro
+bardo por até dez minutos de jogo, conferidos na mesa. Some-o a uma jogada já
+rolada, antes da resolução. Dado da Bravura também permite dano de arma (dois
+dados no crítico) ou reação na CA só contra um ataque. O cálculo consome o dado,
+mesmo sem mudar o resultado; não altera permanentemente CA nem aplica dano.
+Não é a inspiração que concede vantagem. Descanso encerra um registro válido;
+formatos futuros/ilegíveis são preservados. Esses controles estão em
+desenvolvimento, sem envio automático entre fichas.
+
 Também em desenvolvimento, **Comandar ataque** junto da superioridade usa
 **Golpe do Comandante**. Confirme a ação Atacar no seu turno, um ataque ainda
 não realizado que você cede, ação bônus disponível e criatura amigável que pode

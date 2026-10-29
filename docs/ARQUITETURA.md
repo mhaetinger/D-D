@@ -1838,3 +1838,47 @@ expressa; nenhuma outra ficha é acessada. `combat-feats-ui.ts` reutiliza confir
 prévia e histórico, com trava e guarda de documento/conta/permissão/nó. Campos
 não são remontados e identificações são tratadas como dados. Sem schema, SQL,
 contadores de turno ou consultas de nuvem novos.
+
+
+## Apoio e saldos compatíveis — 29/10/2026
+
+`support-actions.ts` mantém prévias e aplicação de Curandeiro, concessão e
+Interrupção do bardo. Não procura outro personagem: nomes só identificam
+participantes na mesa. Reutiliza cura/máximo de PV, reserva `bardo:inspiration`
+e recuperação existentes. Cura própria usa DV máximos somados das classes;
+alvos externos informam os próprios DV. Tratamentos anteriores, descanso e
+permissão para o 1 PV da estabilização são declarados, sem cadastro crescente
+de alvos nem interpretação de repetição ilimitada do talento.
+
+`inventoryItems[].healerKitUses` é opcional: inteiro de zero a `qty * 10` para
+kits reconhecidos. Ausente significa saldo ainda não conferido, não kit cheio.
+A confirmação do uso permite informar/corrigir saldo legível, consumindo um.
+Campo ilegível bloqueia sem sobrescrever. Edição/importação não reabastece;
+compra de uma unidade nova acrescenta dez somente a saldo conhecido válido,
+antes de aumentar `qty`. Kit novo comprado começa com dez; kit esgotado continua
+no inventário. `coins.ts` calcula pagamento/troco antes da mutação, conserva
+valor e não normaliza moedas que não precisam ser trocadas. A loja não depende
+mais das funções globais de moedas ausentes.
+
+`bardic-received.ts` lê `ruleState.bardicInspiration` opcional, formato
+`{version:1, source, die, combat}`. Um dado, fonte até 80 caracteres, d6/d8/d10/d12
+e flag de Bravura. Ausente/null significa nenhum. Formato desconhecido é
+preservado e bloqueado; uso, encerramento explícito ou descanso só apagam
+registro conhecido. Prazo de dez minutos é de jogo e declarado, sem cronômetro
+real. Desfazer restaura estado consumido como os demais recursos persistidos.
+
+`support-actions-ui.ts` usa confirmação, origem física/virtual e dados normais
+comuns. Prévia atualiza campos sem remontar nós. Guarda documento, conta,
+permissão, nó e modos/sequência antes da primeira rolagem. Após a rolagem própria,
+a sequência da animação muda legitimamente; sem await intermediário, revalida
+estado/modos para aplicar custo e efeito. OFF não chama RNG; Só Pool sugere físico.
+O bônus recebido calcula uma jogada já rolada informada pelo jogador, sem
+recompor o d20 anterior. Bravura duplica o dado adicional no dano crítico da arma,
+não na CA. CA/resultado externo são informativos; não altera valor permanente,
+resolve acerto, aplica dano ou cria chamada entre fichas. Campos opcionais
+passam pelos backups/histórico existentes, sem novo schema, SQL ou sincronização.
+
+O auxiliar `settleSheetAppearance` dos testes aguarda fontes e animações finitas
+de fonte/altura, inclusive SizeMotion iniciado por ResizeObserver. Medir antes
+permitia clamp de scroll no fim de uma folha ainda encolhendo. Não espera a aura
+infinita do dado e mantém comparação exata e sonda posterior de 97 px.

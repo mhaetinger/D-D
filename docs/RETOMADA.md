@@ -10,13 +10,18 @@ recursos e magias de 2014**, na branch `feature/manobras-acerto-2014`, iniciada
 no develop público `9f676e0`. Tudo permanece agrupado na
 [PR #35](https://github.com/mhaetinger/D-D/pull/35), sem mesclar/publicar.
 
-O vigésimo recorte reúne modos contextuais de ataques/testes/resistências,
-penalidades de equipamento/Maestria, Fúria/Força Indomável, Duelista Defensivo e
-Líder Inspirador, com limites na auditoria. Não transfere valores humanos à forma,
-CA de um ataque ao valor permanente nem temporários a outra ficha. A falha da
-CI em Inspirar foi reproduzida como ancoragem da página após mudança de altura;
-CSS desativa só essa ancoragem durante diálogo aberto, com regressão forçada.
-O trabalho deve avançar por módulos/lotes, sem pedir autorização por botão.
+O vigésimo primeiro recorte agrupa Curandeiro/kit, concessão e Palavras de
+Interrupção do bardo, dado recebido e Bravura. Corrige também funções ausentes
+de moedas da loja. A aplicação em outras criaturas e elegibilidade/tempo de
+jogo continuam na mesa. Campos opcionais compatíveis preservam dados antigos;
+sem SQL ou nova consulta de nuvem. O vigésimo reúne modos contextuais,
+equipamento, Fúria/Força Indomável, Duelista Defensivo e Líder Inspirador.
+
+A falha de Inspirar foi isolada como ancoragem atrás da janela e corrigida com
+regressão forçada de 97 px. A diferença posterior de 7 px no último teste da PR
+era medida enquanto animações de altura ainda encolhiam a folha; o auxiliar
+agora espera fonte e altura, sem relaxar a comparação. O trabalho avança por
+módulos/lotes, sem pedir autorização por botão.
 
 Cobertura de manobras: **16/16 com controles nos limites de cada recorte**.
 Isso não conclui R2 nem automatiza combate, interação entre fichas ou o livro
@@ -24,11 +29,10 @@ inteiro. A mesma PR reúne Adepto Elemental, recuperação/modo contextual na
 iniciativa, Sobrevivente e a revisão delimitada das quatro invocações. Critérios,
 limites e pendências ficam somente em `docs/AUDITORIA-LIVRO-2014.md`.
 
-A base anterior (`179514a`, Contra-Atacar) passou integralmente na CI: 637 testes,
-banco, build e 52 roteiros. As verificações deste avanço ficam na auditoria;
-a CI exige agora 54 roteiros e PostgreSQL descartável. Os runs de `d3e2e99`
-falharam na posição da página em Inspirar após Node/banco/build passarem; a causa
-e a correção estão na auditoria. Resultados atuais na PR #35.
+A base `2409a39` passou integralmente na CI do push: 665 testes, banco,
+build e 54 roteiros. A CI da PR falhou só na medição de scroll final descrita
+acima; Inspirar passou. O avanço de apoio passou 690 testes Node, tipos/build e seis roteiros Chromium. O pacote exige agora 55 roteiros e
+PostgreSQL descartável na CI. Resultados e evidências ficam na auditoria/PR #35.
 As PRs #33/#34 foram substituídas pela entrega agrupada; não são trabalhos
 paralelos pendentes.
 
@@ -52,7 +56,7 @@ os recortes ainda parciais, sem prometer automação integral do livro.
 
 ## Escopo da entrega e próximos avanços
 
-O quarto recorte de R2 já foi publicado; quinto ao vigésimo ficam em
+O quarto recorte de R2 já foi publicado; quinto ao vigésimo primeiro ficam em
 desenvolvimento, junto da revisão delimitada das invocações. A auditoria é a
 fonte única de critérios e pendências; as decisões da mesa podem continuar
 manuais, com indicação clara. A ordem permanece **draconatos → rolagens →

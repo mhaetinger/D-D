@@ -1,0 +1,9 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {coinTotal,deductCoinsSmart} from '../src/rules/coins';
+const bag=(extra={})=>({pc:0,pp:0,pe:0,po:0,pl:0,...extra});
+test('loja prefere unidade do preço sem converter as demais moedas',()=>{const c=bag({po:20,pp:7,pl:2});assert.equal(deductCoinsSmart(c,5,'po'),true);assert.deepEqual(c,bag({po:15,pp:7,pl:2}));});
+test('loja faz troco da menor moeda suficiente e conserva valor total',()=>{const c=bag({pl:1});assert.equal(deductCoinsSmart(c,5,'po'),true);assert.deepEqual(c,bag({po:5}));assert.equal(coinTotal(c),500);const d=bag({pp:5});assert.equal(deductCoinsSmart(d,15,'pc'),true);assert.deepEqual(d,bag({pp:3,pc:5}));});
+test('loja aceita pagamento misto e electro sem saldo negativo',()=>{const c=bag({pc:5,pp:2,pe:1});assert.equal(deductCoinsSmart(c,7,'pp'),true);assert.equal(coinTotal(c),5);assert.deepEqual(c,bag({pc:5}));});
+test('loja rejeita saldo insuficiente, ilegível, preço/unidade inválidos sem mexer na bolsa',()=>{for(const c of [bag({po:4}),bag({po:'5'}),bag({po:1.5}),bag({po:-1}),bag({pl:Number.MAX_SAFE_INTEGER})]){const before=structuredClone(c);assert.equal(deductCoinsSmart(c,5,'po'),false);assert.deepEqual(c,before);}for(const [n,u] of [[NaN,'po'],[-1,'po'],[1.5,'po'],[1,'ouro'],[1,'constructor']]){const c=bag({po:10}),before=structuredClone(c);assert.equal(deductCoinsSmart(c,n as number,u as string),false);assert.deepEqual(c,before);}});
+test('troco conserva o valor em combinações de moedas, sem normalização gratuita',()=>{for(let pc=0;pc<=2;pc++)for(let pp=0;pp<=2;pp++)for(let pe=0;pe<=2;pe++)for(let po=0;po<=2;po++)for(let pl=0;pl<=2;pl++)for(const cost of [0,1,9,10,49,50,99,100,499,500,999,1000,1999]){const c={pc,pp,pe,po,pl},before=coinTotal(c)!;assert.equal(deductCoinsSmart(c,cost,'pc'),before>=cost);assert.equal(coinTotal(c),before>=cost?before-cost:before);}});

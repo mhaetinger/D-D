@@ -1,5 +1,38 @@
 # Changelog
 
+## Não lançado — Apoio, Curandeiro e bardo — 2026-10-29
+
+- Vigésimo primeiro recorte de R2, com avanço delimitado de R3/R6, na PR #35.
+  Curandeiro calcula tratamento por DV máximos do destinatário e estabilização
+  com 1 PV. Desconta um uso do kit só após confirmar; cura própria respeita o
+  máximo vigente, sem gastar DV ou somar temporários. Elegibilidade por
+  tratamentos/descansos anteriores é conferida na mesa, inclusive na estabilização.
+- Kits antigos/importados exigem saldo declarado. Campo opcional guarda usos da
+  pilha; não remove kits vazios nem altera peso/quantidade. Compra de kit novo
+  acrescenta dez usos conhecidos. Saldos ilegíveis são preservados e bloqueados.
+- Corrigidas as funções ausentes no pagamento/exibição da loja. Validação antes
+  do desconto, preferência pela moeda do preço e troco só do necessário, sem
+  converter toda a bolsa. Compra de kit incluída com preço/peso do livro 2014.
+- Bardo concede dado sem rolar e Palavras de Interrupção usa a mesma reserva,
+  respeitando níveis próprios, recuperação e Colégio do Conhecimento. Interrupção
+  reduz ataque/teste/dano rolado (inclusive mágico), não resistência; dano mínimo
+  zero e crítico natural preservado. Reação/alcance/momento confirmados na mesa.
+- Registro opcional de um dado recebido de outro bardo, separado da inspiração
+  de vantagem. Calcula bônus em jogada informada; Bravura admite dano de arma
+  (dois dados no crítico) e CA só de um ataque, com reação. Consome ao rolar;
+  prazo de jogo declarado, sem relógio real ou acesso a outra ficha. Descanso
+  encerra somente formato conhecido. Dados futuros/ilegíveis são preservados.
+- Físico/virtual/OFF/Só Pool, prévias e cancelamento reutilizam módulos comuns;
+  documento/conta/permissão/nó/modo/sequência conferidos antes de rolar ou gastar.
+  Sem SQL, consultas de nuvem, dados pessoais ou alteração de catálogos gerados.
+- O auxiliar de teste aguarda também animações de altura iniciadas pelo
+  ResizeObserver depois da fonte. A comparação de scroll continua exata;
+  mantém a regressão de +97 px, sem afrouxar a contenção da rodinha.
+- Verificados 690 testes Node, tipos/build e seis roteiros Chromium: apoio, PV,
+  recursos/regras, Inspirar, lote de combate e dado; inclui 320px/GG, três temas,
+  dois layouts, toque, cancelamento/guardas/desfazer, texto não confiável e offline
+  real sob `/D-D/`. CI ampliada para 55 roteiros; resultado remoto na PR #35.
+
 ## Não lançado — Lote de combate e janelas — 2026-10-29
 
 - Corrigido o reposicionamento automático da página atrás de diálogos: a rodinha
