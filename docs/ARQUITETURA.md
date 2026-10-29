@@ -1572,3 +1572,27 @@ O envio bloqueia concorrência no mesmo formulário e revalida os campos de Apar
 e a permissão após eventual teste de sobrevivência. Aplicar inicia outra ocorrência
 com novo formulário. A mesa acompanha ataque, reação e turnos; não há identidade
 de alvo, relógio, novos campos persistidos ou chamadas de nuvem.
+
+
+## Inspirar — décimo terceiro recorte de R2, 29/10/2026
+
+`rules/rally.ts` usa conhecimento vigente de `maneuverTraining` e as reservas
+existentes de `superiorityOptions`. Valida origem/saldo/máximo, registros, face,
+CAR e declaração de aliado/percepção/ação bônus no próprio turno. Calcula
+`max(0, face + CAR)`; `applyRally` valida antes de gastar exatamente um dado.
+Não modifica PV/temporários/estado do usuário nem outra ficha. Incapacitação
+impede a ação; Forma Selvagem continua manual. Não exige que o usuário veja o
+aliado: este é que precisa ver ou ouvir o usuário, confirmado pela mesa.
+
+`rally-ui.ts` acrescenta apenas um botão nas reservas que já existem e revela
+um resultado transitório depois da confirmação. O assistente comum de dados
+aceita `fields` opcionais dentro do diálogo nativo; os quatro argumentos antigos
+continuam iguais. Campos extras mantêm nós/foco ao escolher físico/virtual.
+Documento/conta/botão/permissão e contexto são revalidados antes do RNG e gasto;
+uma trava por ficha evita confirmações concorrentes entre as duas origens.
+Virtual rola um dado normal, sem mexer no pool, modo ou inspiração; OFF permite
+face física. O histórico conserva aliado, face, CAR, total e origem com o gasto,
+e desfazer devolve o dado. O resultado usa texto seguro e quebra nomes longos.
+`refreshSuperiorityControls` também mantém a disponibilidade de Inspirar após
+Precisão. Não existe envio para aliado, relógio de ações, novo dado persistido,
+SQL, consulta ou sincronização automática.

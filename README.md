@@ -216,6 +216,15 @@ resistências, uma vez para todo o ataque. Preparar a face não gasta: **Aplicar
 dano** desconta um dado e os PV na mesma etapa de desfazer. Aparar e Esquiva
 Sobrenatural são alternativas de reação. Confira a ordem das linhas no dano
 misto e a ordem das reduções quando usar Maestria em Armadura Pesada.
+
+**Inspirar**, também em desenvolvimento, fica junto de cada reserva de
+superioridade para quem conhece a manobra. Identifique o aliado e confirme ação
+bônus no próprio turno e que ele pode ver ou ouvir você. Informe a face física
+ou role o dado virtual normal: gasta um dado e mostra **face + CAR em PV
+temporários** para comunicar ao aliado. Ele aplica na mesa, escolhendo entre os
+temporários atuais e os novos; não se somam nem curam. Cancelar não gasta;
+desfazer devolve o dado. O resultado fica no histórico, sem alterar outra ficha.
+
 Depois de rolar o ataque no **Auto Ficha**, abra a bandeja do dado e use
 **Precisão · usar 1 dado**. Escolha a origem e role o dado de superioridade
 ou informe sua face física; o d20 natural permanece igual. Sortudo e o halfling

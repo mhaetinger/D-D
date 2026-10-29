@@ -4,13 +4,14 @@ import type {Sheet} from './model';
 const pending=new WeakSet<Sheet>();
 /** Reutiliza a escolha físico/virtual. Só retorna faces validadas; o chamador
  * revalida a reserva e aplica gasto/efeito depois. Cancelar não altera a ficha. */
-export async function chooseResourceDice(c:Sheet,title:string,sides:number,count=1,options:{valid?:()=>boolean;message?:string;acceptLabel?:string}={}):Promise<number[]|null> {
+export async function chooseResourceDice(c:Sheet,title:string,sides:number,count=1,options:{valid?:()=>boolean;message?:string;acceptLabel?:string;fields?:HTMLElement}={}):Promise<number[]|null> {
   if(pending.has(c))return null;
   pending.add(c);
   try {
     const host=window as any,before=JSON.stringify(c),controls=document.createElement('div');
     controls.className='rule-context rule-dialog-fields';
     controls.innerHTML=dieSourceControls(sides,false);
+    if(options.fields)controls.prepend(options.fields);
     if(count>1){
       const fields=document.createElement('div');fields.setAttribute('data-health-face-label','');fields.className='rule-dialog-fields';
       fields.innerHTML=Array.from({length:count},(_,i)=>`<label>Dado ${i+1} · face do d${sides} <input type="number" min="1" max="${sides}" step="1" data-resource-die ${i===0?'data-health-face':''}></label>`).join('');

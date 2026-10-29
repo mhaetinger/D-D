@@ -1,5 +1,32 @@
 # Changelog
 
+## Não lançado — Inspirar — 2026-10-29
+
+- Décimo terceiro recorte de R2: quem conhece Inspirar recebe um botão compacto
+  junto de cada reserva de superioridade. Um único diálogo identifica o aliado
+  e confirma ação bônus no próprio turno e que o aliado pode ver ou ouvir o
+  personagem. Calcula dado da origem + CAR e gasta exatamente um dado.
+- Usa face física em OFF/Só Pool/Auto ou um dado virtual normal quando habilitado,
+  com dados aprimorados pelo nível próprio do Mestre de Batalha. Preserva pool,
+  modo global e inspiração. CAR negativo não recebe mínimo 1 artificial;
+  resultado não positivo concede zero temporários, com o gasto normal.
+- Resultado visível e histórico informam aliado, face, CAR, total e origem.
+  O aliado aplica na mesa, sem somar temporários, curar ou estabilizar; não altera
+  a própria vida ou outra ficha. Desfazer devolve o dado. Forma Selvagem continua
+  manual; ação/percepção/turno são declarados pela mesa.
+- Revalida conhecimento, saldo/máximo, face/CAR, ficha, conta, botão e permissão
+  antes de RNG/gasto. Cancelamento/campos inválidos não gastam; uma confirmação
+  por ficha evita concorrência entre as origens. Preserva registros ilegíveis.
+  Reutiliza o assistente de dados com campos opcionais; nomes viram texto seguro
+  e quebram em telas pequenas. Sem novo contador, migração ou chamada de nuvem.
+- Verificados 573 testes Node, tipos/build e seis roteiros Chromium: Inspirar,
+  Aparar, Precisão, manobras, PV e 32 cenários das correções auditadas. Incluem
+  físico/virtual/OFF, cancelamento/concorrência/contexto antes do RNG, desfazer,
+  outras fichas/PV preservados, pool/inspiração, nós/foco/scroll, 320px/GG/temas/
+  layouts, texto não confiável/nomes longos e notas/histórico/offline /D-D/.
+  A CI exige 47 roteiros e banco descartável; resultados na PR #35.
+  Cobertura de manobras: 10/16, seis pendentes na auditoria. Sem publicação.
+
 ## Não lançado — Aparar — 2026-10-29
 
 - Décimo segundo recorte de R2: Dano detalhado por tipo oferece Aparar a quem

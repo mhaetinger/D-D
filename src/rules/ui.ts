@@ -16,6 +16,7 @@ import { setupLuckyUI } from './lucky-ui';
 import {chooseResourceDice} from './resource-roll-ui';
 import {applyRolledResource,finishInterventionWeek,interventionWaiting} from './resource-effects';
 import {dragonbornBreathControls,setupDragonbornBreathUI} from './dragonborn-breath-ui';
+import {rallyControls,useRally} from './rally-ui';
 
 export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
   const number = (n:number) => Number.isFinite(n)?n:'∞';
@@ -38,6 +39,7 @@ export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],sho
     else if (r.kind==='pool') control = `<label>Reserva <input type="number" min="0" max="${r.max}" step="1" data-rule-pool="${r.id}" value="${value}" aria-label="${escape(r.name)} atuais"></label><span>/ ${maxInput}</span>`;
     else if (r.kind==='counter') control = `<span>${r.cost?`Custo ${r.cost[1]} ${r.cost[0]==='monge:ki'?'Chi':r.cost[0]==='feiticeiro:sorceryPool'?'pt':'uso'}`:`<span data-resource-balance="${r.id}"${r.id.endsWith(':superiority')?` data-superiority-balance="${r.id}"`:''}>${number(value)}</span>/${maxInput} usos`}</span><button type="button" data-rule-action="use" data-resource="${r.id}" ${manualInvocation(r)?`aria-label="Registrar uso diário de ${escape(r.name)}"`:''} ${value<1 || !affordable?'disabled':''}>${r.id.endsWith(':superiority')?'Usar na mesa':manualInvocation(r)?'Registrar uso':'Usar'}</button>${!r.cost?`<button type="button" data-rule-action="refund" data-resource="${r.id}" ${value===r.max?'disabled':''} aria-label="Devolver um uso de ${escape(r.name)}">↶</button>`:''}${manualInvocation(r)?'<span class="t-text-muted">Magia e custos na mesa</span>':''}`;
     if (r.action==='wildShape') control += `<label>PV da forma <input type="number" min="0" data-rule-beast-hp value="${Number(c.ruleState?.pools?.[r.id] || 0)}"></label><label>PV máximos <input type="number" min="1" data-rule-beast-max value="${Number(c.ruleState?.beastMax || 1)}"></label>${enabled?`<button type="button" data-rule-action="toggle" data-resource="${r.id}">Encerrar forma</button>`:''}`;
+    if(r.id.endsWith(':superiority'))control+=rallyControls(c,E,r.id);
     if(r.action==='intervention' && interventionWaiting(c))control+='<span>7 dias na aventura</span><button type="button" data-rule-action="interventionWeek" data-resource="clerigo:intervention">Registrar semana transcorrida</button>';
     const needsTarget = ['paladino:sacredWeapon','paladino:enmity','mago:hypnotic'].includes(r.id);
     const target = needsTarget ? r.id==='paladino:sacredWeapon' ? `<label>Arma<select data-rule-target="${r.id}"><option value="">Escolha a arma</option>${c.weapons.map((w:Sheet)=>`<option ${c.ruleState?.targets?.[r.id]===w.name?'selected':''}>${escape(w.name)}</option>`).join('')}</select></label>` : `<input data-rule-target="${r.id}" value="${escape(c.ruleState?.targets?.[r.id] || '')}" placeholder="Alvo" aria-label="Alvo de ${escape(r.name)}">` : '';
@@ -160,6 +162,7 @@ export function setupRuleUI(E: Engine) {
     if(r?.id==='race:breath' && !host.requireSheetEdit())return;
     try {
       const action = button.dataset.ruleAction;
+      if(action==='rally'){await useRally(c,E,button,save);return;}
       const oldConcentration=concentration(c);
       if(r && action==='toggle' && !active(c,r.id) && ['clerigo:duplicate','feiticeiro:presence'].includes(r.id) && oldConcentration){
         const before=JSON.stringify(c);

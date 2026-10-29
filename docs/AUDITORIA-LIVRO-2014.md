@@ -284,7 +284,7 @@ básico real telefone/computador já foram confirmados pelo responsável.
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
 | R1 — bônus nos cálculos | **Quatro passivos entregues; achados A01/A05/A06 corrigidos nesta branch** | O recorte original continua implementado. A01/A05/A06 corrigem os bônus/modificadores adicionais e a inconsistência de PV identificados no check-up; regressões nesta entrega. Tipos variáveis/efeitos posteriores seguem em R5. |
-| R2 — rolagens e gastos condicionais | **Quinto a décimo segundo recortes em desenvolvimento; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo na PR #20; -5/+10 na PR #21; Atacante Bestial e Combate com Armas Grandes publicados nas PRs #31/#32. Quinto recorte: Adepto Elemental nos danos de magia reconhecidos. Sexto: Ataque Desarmante/Derrubar no dano e reservas do Adepto Marcial. Sétimo: Precisão depois do d20 com Sortudo/halfling. Oitavo: cinco outras manobras de dano, com FOR/SAB ou sem resistência. Nono: recuperação de superioridade, Inspiração de Bardo e Chi ao rolar iniciativa com a reserva vazia. Décimo: vantagem/desvantagem contextual na iniciativa. Décimo primeiro: Sobrevivente no início do turno declarado pela mesa. Décimo segundo: Aparar no dano recebido. Critérios e limites abaixo. Faltam sete manobras, adicionais dos demais talentos/estilos e contextos de elemento/efeito ainda manuais. Turnos/alvos continuam declarados pela mesa. |
+| R2 — rolagens e gastos condicionais | **Quinto a décimo terceiro recortes em desenvolvimento; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo na PR #20; -5/+10 na PR #21; Atacante Bestial e Combate com Armas Grandes publicados nas PRs #31/#32. Quinto recorte: Adepto Elemental nos danos de magia reconhecidos. Sexto: Ataque Desarmante/Derrubar no dano e reservas do Adepto Marcial. Sétimo: Precisão depois do d20 com Sortudo/halfling. Oitavo: cinco outras manobras de dano, com FOR/SAB ou sem resistência. Nono: recuperação de superioridade, Inspiração de Bardo e Chi ao rolar iniciativa com a reserva vazia. Décimo: vantagem/desvantagem contextual na iniciativa. Décimo primeiro: Sobrevivente no início do turno declarado pela mesa. Décimo segundo: Aparar no dano recebido. Décimo terceiro: Inspirar com dado + CAR para PV temporários de aliado. Critérios e limites abaixo. Faltam seis manobras, adicionais dos demais talentos/estilos e contextos de elemento/efeito ainda manuais. Turnos/alvos continuam declarados pela mesa. |
 | R3 — condições, defesas e características | Planejada; já há cobertura parcial | Completar efeitos das condições, imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
 | R5 — famílias de magias | Parcial: oito curas e quatro invocações auditadas | Revisão delimitada de invocações e magias associadas concluída abaixo; vínculo automático de conjuração/custo ainda manual. Revisar outras famílias: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
@@ -924,6 +924,48 @@ contexto/permissão antes do RNG, clique duplo, custo/dano/desfazer, CON único,
 nós/foco/scroll, 320px/GG/temas/layouts, notas e offline /D-D/. A CI exige
 46 roteiros e PostgreSQL descartável; resultado atual na PR #35.
 
+### Décimo terceiro recorte de R2: Inspirar — 29/10/2026
+
+**Implementado em desenvolvimento, sem publicação.** Livro local do Jogador
+2014, Inspirar, p. 88 / PDF 87. Usa **dado de superioridade + CAR**. Temporários:
+[regras básicas oficiais de 2014](https://www.dndbeyond.com/sources/dnd/basic-rules-2014/combat#TemporaryHitPoints).
+
+- Botão compacto **Inspirar** junto de cada origem de superioridade, apenas
+  para quem conhece a manobra vigente. Usa o dado daquela origem: classe ou
+  Adepto Marcial, com os aprimoramentos pelo nível próprio do Mestre de Batalha.
+- Um único diálogo identifica o aliado, confirma ação bônus no próprio turno e
+  que ele pode ver ou ouvir o personagem. Permite face física em OFF/Só Pool/Auto
+  ou rolar o dado virtual normal quando habilitado. Modo global, pool e inspiração
+  ficam independentes; não duplica o dado por vantagem nem aplica crítico.
+- Confirmar valida tudo antes do RNG/gasto e registra **um** dado gasto junto
+  do resultado no histórico local. Cancelar, campos inválidos, documento/conta/
+  permissão alterados ou cliques concorrentes não gastam. O resultado visível
+  identifica aliado, total, face e CAR; o histórico conserva a descrição depois
+  de recarregar. Desfazer devolve o dado; não altera a ficha do aliado.
+- CAR negativo é considerado sem mínimo 1 artificial. Soma não positiva concede
+  zero PV temporários e ainda gasta o dado usado. Não cura, estabiliza, soma aos
+  temporários atuais nem aplica pontos ao próprio usuário. O aliado escolhe na
+  mesa entre seus temporários e os novos; duram até acabar ou descanso longo.
+- Incapacitação impede a ação bônus. Cegueira/surdez do usuário isoladas não
+  determinam a percepção do aliado. Forma Selvagem permanece manual, com
+  conferência da comunicação da forma. Registros ilegíveis/saldo fora do máximo
+  são preservados. Não cria relógio, cadastro de alvos, campos persistidos ou rede.
+
+Cobertura: **sete manobras no dano + Precisão + Aparar + Inspirar = 10/16**.
+Faltam **seis**: **Ataque Estendido, Ataque de Finta, Ataque Trespassante,
+Contra-Atacar, Golpe do Comandante e Passo Evasivo**. A contagem refere-se às
+manobras, não à conclusão do livro. **R2 continua parcial**; R3/R4/R5/R6 mantêm
+os limites das matrizes e o ciclo de importação real continua adiado por decisão
+do responsável. Interação entre fichas não faz parte desta implementação.
+
+Verificados **573 testes Node**, tipos/build e **seis roteiros Chromium**:
+Inspirar, Aparar, Precisão, manobras, PV e 32 cenários das correções auditadas.
+Incluem origens/dados/CAR, físico/virtual/OFF, cancelamento/concorrência, validação
+antes do RNG, ficha/conta/permissão, desfazer sem alterar PV próprios ou aliados,
+pool/inspiração, nós/foco/scroll, 320px/GG/temas/layouts, texto não confiável,
+nomes longos, notas/histórico e offline /D-D/. A CI completa da PR #35 exige
+47 roteiros e PostgreSQL descartável; resultados da revisão atual na PR.
+
 ### Revisão das quatro invocações — 23/10/2026
 
 **Revisão delimitada concluída em desenvolvimento**, a partir das reproduções
@@ -1080,7 +1122,7 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 | Clérigo, 62–69 | Conhecimento; Enganação; Guerra; Luz; Natureza; Tempestade; Vida | Preparação/domínios, Canalizar compartilhado, usos e Intervenção | Efeitos de cada domínio no alvo, cura/dano condicionado e Expulsar/Destruir Mortos-Vivos por ND |
 | Druida, 70–75 | Terra; Lua | Preparação/círculo, Forma Selvagem/PV, cura da Lua, Recuperação Natural e concentração mantida na transformação | Bloco de besta/estatísticas e custo de elemental; CON da forma informada no teste |
 | Feiticeiro, 76–81 | Magia Selvagem; Linhagem Dracônica | Feitiçaria/metamágica, conversão, Marés, CA, resistência e bônus inicial de Afinidade Elemental nos casos reconhecidos | Surto/gatilhos, tipos variáveis/efeitos posteriores e elegibilidade completa de metamagias; adaptações identificadas |
-| Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa parcial de Atletismo Extraordinário; repetição de Combate com Armas Grandes no quarto recorte de R2; Implacável na iniciativa no nono e Sobrevivente do Campeão no décimo primeiro | A06/A13 corrigidos: arredondamento/testes físicos e Retomar físico/virtual. Sete manobras no dano e Precisão no ataque (sexto a oitavo recortes); Aparar integrado ao dano recebido no décimo segundo recorte; sete manobras/reações pendentes; início dos turnos continua declarado pela mesa |
+| Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa parcial de Atletismo Extraordinário; repetição de Combate com Armas Grandes no quarto recorte de R2; Implacável na iniciativa no nono e Sobrevivente do Campeão no décimo primeiro | A06/A13 corrigidos: arredondamento/testes físicos e Retomar físico/virtual. Sete manobras no dano e Precisão no ataque (sexto a oitavo recortes); Aparar integrado ao dano recebido e Inspirar com resultado para o aliado no décimo terceiro recorte; seis manobras/reações pendentes; início dos turnos continua declarado pela mesa |
 | Ladino, 88–92 | Ladrão; Assassino; Trapaceiro Arcano | Especialização, composição de Ataque Furtivo, Esquiva/Evasão, usos avançados, magias e Talento Confiável nas perícias da ficha (R2 inicial) | Testes com ferramentas na mesa; surpresa/Assassinar e Ação Ardilosa |
 | Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, Dominar/Assinatura, recuperação, Proteção Arcana inclusive multiclasse, Conjuração Focada, Presságio e usos/estados de escola | Efeitos por alvo, demais bônus de escola, lacaios, pedra e Sobrecarga; fluxo de troca temporal das escolhas |
 | Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi, movimento/CA, curas/usos, Evasão, defesas de Pureza Corporal/Corpo Vazio no dano por tipo e Auto Aperfeiçoamento na iniciativa (nono recorte de R2) | Imunidade a condições, Artes Marciais/dano desarmado em todas as condições, Atordoar/Defletir Projéteis |
@@ -1136,7 +1178,7 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 | Talento | Aplicação identificada | Manual, ausente ou a corrigir |
 | --- | --- | --- |
 | Adepto Elemental | Escolha/repetição por elemento, mínimo 1→2 em dano de magia reconhecido e indicação da resistência ignorada; quinto recorte de R2 | Alvo/resistência/imunidade na mesa; escolhas de elemento, efeitos/rodadas/parcelas sem vínculo e fórmulas próprias continuam manuais |
-| Adepto Marcial | Duas manobras e dado adicional pela errata 2014; sete manobras no dano e Precisão após d20, com origem/gasto/descanso; sexto a oitavo recortes de R2 | Aparar integrado ao dano recebido no décimo segundo recorte; outras sete manobras e decisão antecipada continuam manuais; uma manobra por ataque e efeito no alvo confirmados pela mesa |
+| Adepto Marcial | Duas manobras e dado adicional pela errata 2014; sete manobras no dano e Precisão após d20, com origem/gasto/descanso; sexto a oitavo recortes de R2 | Aparar integrado ao dano recebido e Inspirar com resultado para o aliado no décimo terceiro recorte; outras seis manobras e decisão antecipada continuam manuais; uma manobra por ataque e efeito no alvo confirmados pela mesa |
 | Alerta | +5 na iniciativa | Surpresa/atacante oculto |
 | Ambidestro | +1 CA calculada com duas armas empunhadas confirmadas, sem duplicar CA escrita | Elegibilidade de duas armas, sacar/guardar e contexto da mesa |
 | Atacante Bestial | Nova rolagem dos dados da arma e escolha de conjunto completo, no quarto recorte de R2 | Disponibilidade de uma vez por turno confirmada pela mesa; ataques manuais e físicos são resolvidos na mesa |

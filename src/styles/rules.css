@@ -28,6 +28,7 @@
   .feature-list-wide > .feature-group + .feature-group { margin-top:.3rem; padding-top:.65rem; border-top:1px solid var(--border-main); }
 }
 .rule-controls { display:flex; flex-wrap:wrap; align-items:center; gap:.4rem; }
+[data-rally-result] { flex-basis:100%; min-width:0; overflow-wrap:anywhere; }
 .rule-context button, .rule-context input, .rule-context select, .rule-inline button, .rule-inline input, .rule-inline select { border:1px solid var(--border-main); border-radius:.3rem; padding:.3rem .45rem; background:var(--bg-inset); color:var(--text-main); max-width:100%; }
 .rule-context input[type=number], .rule-inline input[type=number] { width:5rem; }
 .rule-inline button:disabled { opacity:.45; }

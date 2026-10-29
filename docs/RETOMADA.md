@@ -5,7 +5,7 @@ Estado consolidado em **29/10/2026**. Leia também `AGENTS.md`, `README.md`,
 
 ## Onde o trabalho parou
 
-**Em desenvolvimento: Aparar, Sobrevivente, modo/recuperação na iniciativa, Precisão, manobras no acerto,
+**Em desenvolvimento: Inspirar, Aparar, Sobrevivente, modo/recuperação na iniciativa, Precisão, manobras no acerto,
 Adepto Elemental e revisão das quatro invocações**, na branch `feature/manobras-acerto-2014`, iniciada no
 develop público `9f676e0`. Tudo permanece agrupado na
 [PR #35](https://github.com/mhaetinger/D-D/pull/35), sem mesclar/publicar.
@@ -14,8 +14,8 @@ Implacável (Mestre de Batalha 15), Inspiração Superior (bardo 20) e Auto
 Aperfeiçoamento (monge 20). Auto Ficha usa contexto explícito; OFF/Só Pool
 permitem confirmar uma nova iniciativa já rolada na mesa. Sortudo/halfling não
 recuperam outra vez ao repetir o mesmo d20. Preserva máximos ajustados, valores
-ilegíveis, outros recursos/rascunhos e nós/foco. Cobertura de manobras permanece
-em sete de dano + Precisão + Aparar, **9/16**; efeitos/alvos/turnos ficam com a mesa.
+ilegíveis, outros recursos/rascunhos e nós/foco. Cobertura de manobras agora está
+em sete de dano + Precisão + Aparar + Inspirar, **10/16**; efeitos/alvos/turnos ficam com a mesa.
 O décimo recorte reúne fontes de vantagem/desvantagem na iniciativa antes de
 cancelar: Instinto Selvagem (bárbaro 7), Explorador Natural (Patrulheiro Revisado
 1), inspiração preparada, modo informado e desvantagens verificadas. Resultado
@@ -33,12 +33,18 @@ orçamento único por ataque misto e gasto de um dado junto do dano aplicado.
 Preparar a face física/virtual não gasta; cancelar preserva tudo. Confirma corpo
 a corpo/reação, revalida contexto, mantém campos e bloqueia envio concorrente.
 Aparar e Esquiva são alternativas; a mesa declara a ordem com redução de armadura.
-O décimo primeiro recorte (`07cec47`) passou integralmente na CI (552 testes, banco, build
-e 45 roteiros); a execução da nova revisão fica na mesma PR. As PRs #33/#34
+O décimo terceiro recorte acrescenta Inspirar junto de cada reserva vigente:
+confirma aliado/percepção/ação bônus no próprio turno e calcula face + CAR em PV
+temporários, com dado físico ou virtual normal. Gasta uma vez ao confirmar e
+registra o resultado no histórico; o aliado aplica na mesa, sem somar temporários.
+Não altera PV próprios ou outra ficha. Revalida documento, conta e permissão antes
+de RNG/gasto; Forma Selvagem continua manual.
+O décimo segundo recorte (`60b94c8`) passou integralmente na CI (564 testes, banco, build
+e 46 roteiros); a execução da nova revisão fica na mesma PR. As PRs #33/#34
 foram substituídas pela entrega agrupada; não são trabalhos paralelos pendentes.
-Nesta rodada passaram 564 testes Node, tipos/build e sete roteiros Chromium;
-os detalhes ficam no décimo segundo recorte da auditoria. A CI exige 46 roteiros e PostgreSQL
-descartável; resultado da revisão atual na PR #35.
+Nesta rodada passaram 573 testes Node, tipos/build e seis roteiros Chromium.
+A CI exige 47 roteiros e PostgreSQL descartável; resultados
+desta revisão ficam na PR #35 e no décimo terceiro recorte da auditoria.
 
 **Publicação por entregas agrupadas.** O responsável orientou não publicar cada
 correção. Acumular e verificar os ajustes em desenvolvimento; uma PR para `main`
@@ -65,13 +71,13 @@ recorte de R2 (Adepto Elemental), o sexto (manobras no acerto/Adepto Marcial),
 o sétimo (Precisão depois do d20), o oitavo (cinco outras manobras de dano),
 o nono (recuperação na iniciativa), o décimo (modo da iniciativa) e o décimo
 primeiro (Sobrevivente no começo do turno declarado) e o décimo segundo (Aparar
-no dano recebido).
+no dano recebido), além do décimo terceiro (Inspirar com PV temporários para aliado).
 Os critérios e limites estão na auditoria; isso não
 promete automação integral de todas as regras do livro. As demais possibilidades
 registradas são evoluções da ficha individual. Decisões que pertencem à mesa
 podem continuar manuais, com indicação clara, sem bloquear o uso da ficha.
 
-O quarto recorte de R2 já foi publicado; quinto a décimo segundo ficam em desenvolvimento,
+O quarto recorte de R2 já foi publicado; quinto a décimo terceiro ficam em desenvolvimento,
 junto da auditoria de invocações. Outros adicionais/manobras e os
 contextos de magia ainda manuais permanecem na matriz da auditoria. Ordem mantida:
 **draconatos → rolagens → magias → importação**.
