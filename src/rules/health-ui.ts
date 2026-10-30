@@ -115,7 +115,7 @@ export function setupHealthUI(E:Engine,save:(description:string)=>void) {
           const packet=typed?readDamagePacket(controls):null,received=packet?previewTypedDamage(c,packet,E).received:Math.max(0,n-arcaneWardPoints(c));
           const survival=await chooseDamageSurvival(c,received,controls,E);if(!survival)return;
           if(host.getChar()!==c || !controls.isConnected)return;
-          if((packet?.parry || packet?.monkDefense) && (!canEditSheet(c) || controls.querySelector<HTMLSelectElement>('[data-damage-mode]')!.value!=='typed' || JSON.stringify(readDamagePacket(controls))!==JSON.stringify(packet)))throw new Error('A permissão ou o dano mudou. A reação não foi aplicada; nenhum dado foi gasto.');
+          if((packet?.parry || packet?.monkDefense || packet?.shieldMaster) && (!canEditSheet(c) || controls.querySelector<HTMLSelectElement>('[data-damage-mode]')!.value!=='typed' || JSON.stringify(readDamagePacket(controls))!==JSON.stringify(packet)))throw new Error('A permissão ou o dano mudou. A reação não foi aplicada; nenhum dado foi gasto.');
           let description:string;
           if(packet) {
             const result=applyTypedDamage(c,packet,E,survival.choice);

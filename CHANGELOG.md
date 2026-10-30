@@ -1,5 +1,35 @@
 # Changelog
 
+## Não lançado — Defesas e resistências condicionais — 2026-10-30
+
+- Vigésimo terceiro recorte de R2/R3 na PR #35. Um assistente de resistência
+  reúne atributo/efeito/fonte, bônus do escudo quando elegível, modo e inspiração
+  para uma jogada. Reutiliza dado físico/virtual, confirma antes de rolar/gastar
+  e conserva os bônus permanentes e o pool. CD/modo/ajuste ficam recolhidos.
+- Inclui fontes raciais, Sentido de Perigo, Abjuração e vantagem de Matador de
+  Conjuradores nas condições declaradas. Imunidade/falha automática não rolam
+  nem gastam inspiração; 1/20 não são sucesso/falha automática de resistência.
+  Sortudo e outras rerrolagens ficam na mesa neste assistente.
+- Coragem/Devoção, Fúria Inconsciente, Defesa Sedutora e veneno da Terra/Pureza
+  derivam imunidade sem apagar marcas anteriores; registro encerrado na mesa
+  pode ser retirado explicitamente, com desfazer. Auras de Proteção/Coragem/
+  Devoção verificam consciência sem confundir com incapacitação. Vigilância dos
+  Anciões conserva seu requisito próprio, resiste dano de magias conjuradas e
+  não divide duas vezes com outra resistência. Auras recebidas/aliados manuais.
+- Mestre de Escudo soma bônus próprio apenas a DES contra alvo exclusivo no
+  assistente; no dano por tipo, reação após sucesso em DES para metade pode
+  evitar dano, inclusive de área. Não reduz na falha nem gasta reação quando
+  Evasão já zera; não combina reações e preserva Proteção Arcana/concentração
+  quando o dano é zero. Empurrão após Atacar permanece na mesa.
+- Corrigida resistência do halfling robusto ao dano de veneno; o teste anterior
+  também tinha omitido esse benefício do livro. Pés-leves não o recebem.
+- 733 testes Node, tipos/build e nove roteiros Chromium aprovados: defesas,
+  monge, PV, dano, concentração, rolagens condicionais, Aparar, combate e consulta.
+  Cobrem celular/GG/temas/layouts, físico/virtual/OFF/Só Pool, cancelamento/guardas,
+  foco/nós/rodinha, registros antigos/desfazer/isolamento e offline real.
+  Suíte remota ampliada para 57 roteiros. Sem SQL, nova consulta de nuvem,
+  alteração de catálogos gerados, dados pessoais ou publicação.
+
 ## Não lançado — Combate do monge — 2026-10-29
 
 - Vigésimo segundo recorte de R2, com avanço de R3, na PR #35. Golpe desarmado

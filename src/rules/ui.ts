@@ -25,6 +25,8 @@ import {commandersStrikeControls,setupCommandersStrikeUI} from './commanders-str
 import {duelistControls,setupCombatFeatsUI} from './combat-feats-ui';
 import {bardGivingControls,setupSupportActionsUI} from './support-actions-ui';
 import {setupMonkUI} from './monk-ui';
+import {ownConditionImmunity} from './defensive-traits';
+import {situationalSaveControls,setupSituationalSavesUI} from './situational-saves-ui';
 import {feintingStartControl,setupFeintingAttackUI,useFeintingAttack,useFeintingAtTable,endFeintingUI} from './feinting-attack-ui';
 
 export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
@@ -83,7 +85,7 @@ export function defenseControls(c:Sheet,E:Engine) {
     ['spell:shield','Escudo Arcano +5','Marque após usar a reação da magia Escudo Arcano: soma +5 à CA até o início do seu próximo turno, inclusive contra o ataque que a desencadeou, e impede dano de Mísseis Mágicos. Desmarque ao terminar; o espaço e a reação são controlados separadamente.'],
     ['spell:bladeWard','Proteção contra Lâminas · resistência','Até o fim do seu próximo turno, esta magia dá resistência a dano de concussão, cortante e perfurante causado por ataques com armas. Não aumenta a CA. Em Dano detalhado → Calcular por tipo, escolha ataque de arma para aplicar a resistência. No modo já resolvido, aplique-a na mesa.'],
   ];
-  return `${evasiveDefenseControls(c,E)}${duelistControls(c,E)}<details class="rule-context" data-rule-disclosure="defense"><summary>Ajustes de defesa e efeitos recebidos</summary>
+  return `${situationalSaveControls(c,E)}${evasiveDefenseControls(c,E)}${duelistControls(c,E)}<details class="rule-context" data-rule-disclosure="defense"><summary>Ajustes de defesa e efeitos recebidos</summary>
     <div class="rule-defense-field"><label for="ruleAcFormula" ${help('Fórmula de CA','CA é a Classe de Armadura, o valor que um ataque precisa alcançar para acertar. Automática escolhe a maior fórmula válida; você pode escolher outra das disponíveis. Fórmulas alternativas não se somam. Os bônus abaixo são adicionados à fórmula escolhida.')}>Fórmula de CA</label><select id="ruleAcFormula" data-rule-ac>${ac.options.map(o=>`<option value="${o.id}" ${c.acFormula===o.id?'selected':''}>${escape(o.label)} · ${o.total}</option>`).join('')}<option value="auto" ${!ac.options.some(o=>o.id===c.acFormula)?'selected':''}>Automática · maior válida</option></select></div>
     <div class="rule-defense-grid">${adjustments.map(([id,label,text])=>`<div class="rule-defense-field"><label for="ruleDefense-${id}" ${help(label,text)}>${label}</label><input id="ruleDefense-${id}" type="number" min="-100" max="100" step="1" data-rule-defense="${id}" placeholder="Auto" value="${c[id]===undefined?'':Number(c[id])}"></div>`).join('')}</div>
     <div class="rule-defense-effects">${effects.map(([id,label,text])=>`<div class="rule-effect-row"><label ${help(label,text)}><input type="checkbox" data-rule-effect="${id}" ${active(c,id)?'checked':''}><span>${label}</span></label></div>`).join('')}</div></details>`;
@@ -92,7 +94,7 @@ export function defenseControls(c:Sheet,E:Engine) {
 export function conditionControls(c:Sheet) {
   const fatigue=exhaustion(c);
   const count=CONDITIONS.filter(x=>hasCondition(c,x.id)).length;
-  return `<div class="rule-context rule-controls"><label>Exaustão <select data-rule-exhaustion aria-label="Nível de exaustão">${[0,1,2,3,4,5,6].map(n=>`<option ${n===fatigue.level?'selected':''}>${n}</option>`).join('')}</select></label>${fatigue.level?`<span>${fatigue.penalties.map(escape).join(' · ')}</span>`:''}</div><details class="rule-context" data-rule-disclosure="conditions"><summary title="Marque estados como envenenado, caído ou paralisado. Consulte cada condição para conferir seus efeitos.">Condições${count?` · ${count} ativa(s)`:''}</summary><div class="rule-conditions">${CONDITIONS.map(x=>{const derived=derivedCondition(c,x.id),immune=x.id==='envenenado' && level(c,'monge')>=10;return `<label class="rule-check" tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name:x.name,text:x.text+(derived?' Decorre do estado atual; encerre sua causa para remover.':'')}))}"><input type="checkbox" data-rule-condition="${x.id}" ${hasCondition(c,x.id)?'checked':''} ${derived || immune?'disabled':''}><span>${x.name}${immune?' · imune (Pureza Corporal)':derived?' · decorrente':''}</span></label>`;}).join('')}</div><p>Concentração, impedimentos e falhas de FOR/DES são aplicados. Auto Ficha reúne as fontes próprias de vantagem/desvantagem antes de cancelar; o resultado explica as origens. Visibilidade do medo, sentidos especiais, alvos, dano e duração seguem a mesa; consulte cada nome.</p></details>`;
+  return `<div class="rule-context rule-controls"><label>Exaustão <select data-rule-exhaustion aria-label="Nível de exaustão">${[0,1,2,3,4,5,6].map(n=>`<option ${n===fatigue.level?'selected':''}>${n}</option>`).join('')}</select></label>${fatigue.level?`<span>${fatigue.penalties.map(escape).join(' · ')}</span>`:''}</div><details class="rule-context" data-rule-disclosure="conditions"><summary title="Marque estados como envenenado, caído ou paralisado. Consulte cada condição para conferir seus efeitos.">Condições${count?` · ${count} ativa(s)`:''}</summary><div class="rule-conditions">${CONDITIONS.map(x=>{const derived=derivedCondition(c,x.id),immune=ownConditionImmunity(c,x.id);return `<div><label class="rule-check" tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name:x.name,text:x.text+(immune.length?' Imune por '+immune.join(', ')+'. Marca anterior preservada; confira a duração na mesa.':'')+(derived?' Decorre do estado atual; encerre sua causa para remover.':'')}))}"><input type="checkbox" data-rule-condition="${x.id}" ${hasCondition(c,x.id)?'checked':''} ${derived || immune.length?'disabled':''}><span>${x.name}${immune.length?' · imune ('+immune.join(', ')+')':derived?' · decorrente':''}</span></label>${immune.length && c.ruleState?.conditions?.[x.id]===true?`<button type="button" data-rule-action="clearImmuneCondition" data-condition="${x.id}" aria-label="Encerrar registro anterior de ${x.name}">Encerrar registro anterior</button>`:''}</div>`;}).join('')}</div><p>Concentração, impedimentos e falhas de FOR/DES são aplicados. Auto Ficha reúne as fontes próprias de vantagem/desvantagem antes de cancelar; o resultado explica as origens. Visibilidade do medo, sentidos especiais, alvos, dano e duração seguem a mesa; consulte cada nome.</p></details>`;
 }
 
 export function hitDiceRecoveryControls(c:Sheet,E:Engine) {
@@ -125,6 +127,8 @@ export function retainConditionNodes(previous:HTMLElement|null,root:HTMLElement)
     old.checked=input.checked;old.disabled=input.disabled;
     const label=old.closest('label')!,fresh=input.closest('label')!;
     label.dataset.ruleTooltip=fresh.dataset.ruleTooltip;label.querySelector('span')!.textContent=fresh.querySelector('span')!.textContent;
+    const oldClear=label.parentElement!.querySelector<HTMLButtonElement>('[data-rule-action="clearImmuneCondition"]'),freshClear=fresh.parentElement!.querySelector<HTMLButtonElement>('[data-rule-action="clearImmuneCondition"]');
+    if(!freshClear)oldClear?.remove();else if(!oldClear)label.parentElement!.append(freshClear);
   }
   previous.querySelector('summary')!.textContent=next.querySelector('summary')!.textContent;
   next.replaceWith(previous);
@@ -140,6 +144,7 @@ export function setupRuleUI(E: Engine) {
   setupCombatFeatsUI(E,save);
   setupSupportActionsUI(E,save);
   setupMonkUI(E,save);
+  setupSituationalSavesUI(E,save);
   setupFeintingAttackUI(E);
   setupLuckyUI(E,save);
   setupDragonbornBreathUI(E,save);
@@ -180,6 +185,12 @@ export function setupRuleUI(E: Engine) {
     if(r?.id==='race:breath' && !host.requireSheetEdit())return;
     try {
       const action = button.dataset.ruleAction;
+      if(action==='clearImmuneCondition'){
+        const id=button.dataset.condition!;
+        if(!host.requireSheetEdit() || !ownConditionImmunity(c,id).length || c.ruleState?.conditions?.[id]!==true)return;
+        setCondition(c,id,false);save('Encerrou registro anterior · '+(CONDITIONS.find(x=>x.id===id)?.name || id));
+        document.querySelector<HTMLInputElement>(`[data-rule-condition="${CSS.escape(id)}"]`)?.closest('label')?.focus({preventScroll:true});return;
+      }
       if(action==='rally'){await useRally(c,E,button,save);return;}
       if(action==='feintStart'){await useFeintingAttack(c,E,button,save);return;}
       if(action==='feintEnd'){endFeintingUI(c,E,(c,index)=>refreshWeaponDamageLabel(c,index,E));return;}

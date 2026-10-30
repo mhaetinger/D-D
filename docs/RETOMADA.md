@@ -1,6 +1,6 @@
 # Retomada do CritCall
 
-Estado consolidado em **29/10/2026**. Leia também `AGENTS.md`, `README.md`,
+Estado consolidado em **30/10/2026**. Leia também `AGENTS.md`, `README.md`,
 `CHANGELOG.md` e [ARQUITETURA.md](ARQUITETURA.md) antes de alterar.
 
 ## Onde o trabalho parou
@@ -10,6 +10,9 @@ recursos e magias de 2014**, na branch `feature/manobras-acerto-2014`, iniciada
 no develop público `9f676e0`. Tudo permanece agrupado na
 [PR #35](https://github.com/mhaetinger/D-D/pull/35), sem mesclar/publicar.
 
+O vigésimo terceiro recorte reúne defesas: imunidades/auras próprias,
+resistências condicionais e Mestre de Escudo, além da resistência a veneno do
+halfling robusto. Usa as janelas/rolador existentes, sem consulta de nuvem.
 O vigésimo segundo recorte reúne núcleo de combate do monge: golpe desarmado
 no editor/rolador comuns, Atordoante, Defletir/Queda Lenta/devolução, Mente
 Tranquila/Pureza/Corpo Vazio e Alma de Diamante, incluindo concentração/morte.
@@ -29,10 +32,10 @@ inteiro. A mesma PR reúne Adepto Elemental, recuperação/modo contextual na
 iniciativa, Sobrevivente e a revisão delimitada das quatro invocações. Critérios,
 limites e pendências ficam somente em `docs/AUDITORIA-LIVRO-2014.md`.
 
-A base `0506cb9` passou integralmente em ambas as CIs: 690 testes, dependências,
-banco descartável, build e 55 roteiros. O avanço do monge passou 711 testes
+A base `8c71885` passou integralmente em ambas as CIs: 711 testes, dependências,
+banco descartável, build e 56 roteiros. O avanço das defesas passou 733 testes
 Node, tipos/build e nove roteiros Chromium. A suíte exige agora
-56 roteiros e PostgreSQL descartável na CI. Resultados/evidências na auditoria
+57 roteiros e PostgreSQL descartável na CI. Resultados/evidências na auditoria
 junto dos limites de cada operação e na PR #35.
 As PRs #33/#34 foram substituídas pela entrega agrupada; não são trabalhos
 paralelos pendentes.
@@ -57,7 +60,7 @@ os recortes ainda parciais, sem prometer automação integral do livro.
 
 ## Escopo da entrega e próximos avanços
 
-O quarto recorte de R2 já foi publicado; quinto ao vigésimo segundo ficam em
+O quarto recorte de R2 já foi publicado; quinto ao vigésimo terceiro ficam em
 desenvolvimento, junto da revisão delimitada das invocações. A auditoria é a
 fonte única de critérios e pendências; as decisões da mesa podem continuar
 manuais, com indicação clara. A ordem permanece **draconatos → rolagens →

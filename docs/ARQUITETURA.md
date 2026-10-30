@@ -1928,3 +1928,21 @@ pelos mesmos módulos, sem desfazer/reaplicar contagens ou concentração. Cance
 mantém a original sem custo; contexto obsoleto impede ambos. O modo/bônus original
 é conservado, sem consumir outra inspiração ou oferecer repetição recursiva.
 Sem nova consulta de nuvem, SQL ou relógio de combate.
+
+
+### Imunidades próprias e resistências condicionais
+
+`defensive-traits.ts` deriva imunidades sem reescrever as marcas de condições.
+`model.isConscious` distingue morte/inconsciência de incapacitação para Proteção,
+Coragem e Devoção. Vigilância tem contrato próprio, sem exigir consciência.
+`shield-master.ts` lê somente o bônus do equipamento, sem somar CA total ou
+Escudo Arcano; a escolha de reação é parte transitória de `DamagePacket`.
+
+`situational-saves.ts` calcula uma única resistência declarada por efeito/fonte,
+reutilizando `sheetRollDetails` para cancelar todos os modos uma vez. O assistente
+em `situational-saves-ui.ts` usa a confirmação e o dado comuns, sem alterar o
+bônus permanente ou o pool manual. Valida documento, conta, permissão, nó e
+configuração/sequência de dado antes do RNG. Imunidade e falha automática não
+rolam nem gastam inspiração. CD/modo/ajuste ficam recolhidos; escolhas/resultado
+não viram novos campos persistentes. Rerrolagens adicionais são resolvidas na
+mesa neste assistente; os botões de resistência comuns preservam o fluxo atual.

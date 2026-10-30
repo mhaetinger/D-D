@@ -1,6 +1,6 @@
 # Regras de 2014: cobertura e roteiro
 
-Auditoria inicial em **19/10/2026**, implementações até **23/10/2026** e novo
+Auditoria inicial em **19/10/2026**, implementações até **30/10/2026** e novo
 check-up em **23/10/2026**. Este é o registro único de progresso das mecânicas.
 Para branch, publicação e validações externas, consulte [RETOMADA.md](RETOMADA.md).
 Contratos técnicos ficam em [ARQUITETURA.md](ARQUITETURA.md); entregas/testes
@@ -284,8 +284,8 @@ básico real telefone/computador já foram confirmados pelo responsável.
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
 | R1 — bônus nos cálculos | **Quatro passivos entregues; achados A01/A05/A06 corrigidos nesta branch** | O recorte original continua implementado. A01/A05/A06 corrigem os bônus/modificadores adicionais e a inconsistência de PV identificados no check-up; regressões nesta entrega. Tipos variáveis/efeitos posteriores seguem em R5. |
-| R2 — rolagens e gastos condicionais | **Quinto ao vigésimo segundo recortes em desenvolvimento; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo na PR #20; -5/+10 na PR #21; Atacante Bestial e Combate com Armas Grandes publicados nas PRs #31/#32. Quinto recorte: Adepto Elemental nos danos de magia reconhecidos. Sexto: Ataque Desarmante/Derrubar no dano e reservas do Adepto Marcial. Sétimo: Precisão depois do d20 com Sortudo/halfling. Oitavo: cinco outras manobras de dano, com FOR/SAB ou sem resistência. Nono: recuperação de superioridade, Inspiração de Bardo e Chi ao rolar iniciativa com a reserva vazia. Décimo: vantagem/desvantagem contextual na iniciativa. Décimo primeiro: Sobrevivente no início do turno declarado pela mesa. Décimo segundo: Aparar no dano recebido. Décimo terceiro: Inspirar com dado + CAR para PV temporários de aliado. Décimo quarto: Passo Evasivo na CA até parar de se mover. Décimo quinto: Estendido escolhido antes do ataque, alcance de um ataque e dado já pago no dano. Décimo sexto: Finta com ação bônus/alvo, vantagem contextual e dado já pago no acerto. Décimo sétimo: Trespassante com dano separado à segunda criatura pela mesma jogada. Décimo oitavo: Contra-Atacar com reação e custo antes do ataque após um erro corpo a corpo. Décimo nono: Golpe do Comandante com custo antecipado e dado adicional do ataque imediato de um aliado, resolvido na mesa. Vigésimo: lote de modos contextuais, Força Indomável, Duelista Defensivo e Líder Inspirador. Vigésimo primeiro: Curandeiro/kit e apoio do bardo. Vigésimo segundo: núcleo de combate do monge, reações e repetição de resistências. As 16 manobras têm controles delimitados; critérios e limites abaixo. Faltam adicionais dos demais talentos/estilos e contextos de elemento/efeito ainda manuais. Turnos/alvos continuam declarados pela mesa. |
-| R3 — condições, defesas e características | Planejada; já há cobertura parcial | Modos próprios de condições integrados no lote de combate; Pureza Corporal/Corpo Vazio e Mente Tranquila no lote do monge. Completar outras imunidades, auras/consciência, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
+| R2 — rolagens e gastos condicionais | **Quinto ao vigésimo terceiro recortes em desenvolvimento; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo na PR #20; -5/+10 na PR #21; Atacante Bestial e Combate com Armas Grandes publicados nas PRs #31/#32. Quinto recorte: Adepto Elemental nos danos de magia reconhecidos. Sexto: Ataque Desarmante/Derrubar no dano e reservas do Adepto Marcial. Sétimo: Precisão depois do d20 com Sortudo/halfling. Oitavo: cinco outras manobras de dano, com FOR/SAB ou sem resistência. Nono: recuperação de superioridade, Inspiração de Bardo e Chi ao rolar iniciativa com a reserva vazia. Décimo: vantagem/desvantagem contextual na iniciativa. Décimo primeiro: Sobrevivente no início do turno declarado pela mesa. Décimo segundo: Aparar no dano recebido. Décimo terceiro: Inspirar com dado + CAR para PV temporários de aliado. Décimo quarto: Passo Evasivo na CA até parar de se mover. Décimo quinto: Estendido escolhido antes do ataque, alcance de um ataque e dado já pago no dano. Décimo sexto: Finta com ação bônus/alvo, vantagem contextual e dado já pago no acerto. Décimo sétimo: Trespassante com dano separado à segunda criatura pela mesma jogada. Décimo oitavo: Contra-Atacar com reação e custo antes do ataque após um erro corpo a corpo. Décimo nono: Golpe do Comandante com custo antecipado e dado adicional do ataque imediato de um aliado, resolvido na mesa. Vigésimo: lote de modos contextuais, Força Indomável, Duelista Defensivo e Líder Inspirador. Vigésimo primeiro: Curandeiro/kit e apoio do bardo. Vigésimo segundo: núcleo de combate do monge, reações e repetição de resistências. Vigésimo terceiro: resistências condicionais, imunidades/auras próprias e defesas de Mestre de Escudo. As 16 manobras têm controles delimitados; critérios e limites abaixo. Faltam adicionais dos demais talentos/estilos e contextos de elemento/efeito ainda manuais. Turnos/alvos continuam declarados pela mesa. |
+| R3 — condições, defesas e características | **Parcial: lote de imunidades/auras e testes condicionais implementado** | Modos próprios de condições, defesas do monge e vigésimo terceiro recorte: auras próprias, Fúria Inconsciente, Defesa Sedutora, Proteção Natural, fontes raciais, Sentido de Perigo, Abjuração e Mestre de Escudo. Completar as demais imunidades/auras recebidas, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
 | R5 — famílias de magias | Parcial: oito curas e quatro invocações auditadas | Revisão delimitada de invocações e magias associadas concluída abaixo; vínculo automático de conjuração/custo ainda manual. Revisar outras famílias: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
 | R6 — equipamento e contexto de combate | Parcial: penalidades de armadura/arma pesada, kit e loja nos lotes de combate/apoio | Munição/recarga/consumíveis, demais penalidades de equipamento, carga e ações condicionais. Definir antes qualquer acompanhamento opcional de turno; alvos, alcance, cobertura e viagem podem continuar na mesa, com essa limitação clara. |
@@ -1431,6 +1431,47 @@ monge, efeitos das disciplinas, economia de ações/turnos ou imunidades de toda
 as classes. Rajada/Defesa Paciente/Passo do Vento mantêm a reserva comum e regras
 consultáveis; efeitos condicionais não integram um controlador de turnos.
 
+### Vigésimo terceiro recorte de R2/R3: defesas e resistências condicionais — 30/10/2026
+
+**Em desenvolvimento na PR #35, sem publicação.** Fontes: Livro do Jogador
+2014, Resiliência Anã p. 20, Ancestral Feérico pp. 23/39, Bravura/Resiliência
+dos Robustos p. 28, Esperteza Gnômica p. 37, Sentido de Perigo/Fúria
+Inconsciente pp. 48–49, Defesa Sedutora p. 60, Proteção Natural p. 76,
+Resistência à Magia p. 98, auras pp. 111–113, Mestre de Escudo p. 171 e
+Matador de Conjuradores p. 170. O [Sage Advice oficial de 2014](https://www.dndbeyond.com/sources/dnd/sac/sage-advice-compendium)
+confirma que Devoção pode suspender encanto sem encerrar o efeito de origem.
+
+| Operação | Cobertura deste lote | Limite na mesa |
+| --- | --- | --- |
+| Resistência com contexto | Assistente único junto das defesas de combate, com atributo, efeito e origem para uma jogada; físico/virtual, bônus base, escudo separado, ajuste e CD opcional. Reúne fontes próprias/modo/inspiração e cancela vantagem/desvantagem uma vez; 1/20 não são automáticos | Selecionar o efeito e sua fonte; face física final. Sortudo e demais rerrolagens são resolvidos na mesa neste assistente; botões de resistência comuns mantêm seu comportamento anterior |
+| Fontes raciais | Anões/robustos contra veneno; halflings contra medo; elfos/meio-elfo contra encanto e sono mágico; gnomos em INT/SAB/CAR contra magia. Corrigida resistência a dano de veneno do robusto, antes ausente inclusive no teste antigo | Sono natural e inconsciência por dano não são sono mágico. Não transforma imunidade ao veneno em imunidade a todo efeito composto |
+| Sentido de Perigo/Abjuração/talento | DES com efeito visto e bárbaro capaz, sem cegueira/surdez; Abjuração 14 contra magia conjurada; Matador contra magia de conjurador a até 1,5 m | Visibilidade, distância e natureza da magia declaradas. Concentração por dano não é resistência contra a magia causadora |
+| Imunidades próprias | Fúria Inconsciente em Furioso 6, Coragem 10, Devoção 7, Defesa Sedutora 10 e veneno de Terra 10/Pureza 10. Impedem novas marcas e suspendem os efeitos de registros antigos sem apagá-los; ação explícita permite encerrar registro antigo, com desfazer | Duração/origem na mesa. Terra só impede encanto/medo de fada/elemental declarado no assistente; a marca geral não conhece essa fonte. Reação de Defesa Sedutora não é automática |
+| Auras próprias | Proteção usa nível próprio/CAR mínimo +1 e consciência; Coragem/Devoção também exigem consciência, sem confundir incapacitação com inconsciência. Vigilância dos Anciões resiste dano de magias conjuradas e não herda requisito de consciência ausente de seu texto | Aliados, alcance e auras recebidas continuam manuais. Vigilância não resiste todo dano mágico e não divide duas vezes com outra resistência |
+| Mestre de Escudo | Bônus próprio, inclusive magia do escudo, só em DES com alvo exclusivo no assistente. Reação declarada evita dano no sucesso de DES para metade, inclusive área; não absorve Proteção Arcana nem enfileira concentração com zero. Falha não ganha metade; Evasão já zera sem reação | Empunhar escudo e reação disponível. Empurrão após ação Atacar continua manual; escudo não dá seu bônus contra área e Escudo Arcano não é bônus deste equipamento |
+
+Cancelamento, contexto vencido, perda de permissão ou dados inválidos não rolam
+nem gastam. Imunidade/falha automática não consomem inspiração. A janela reutiliza
+controles de dados/rolagem, guarda ficha/conta/permissão/nó/modo/sequência e conserva
+pool, foco e nós ao selecionar. Forma Selvagem continua na mesa. Sem SQL,
+consulta de nuvem, alteração de catálogo gerado ou dados pessoais.
+
+**Base aprovada integralmente:** `8c71885`, 711 testes, dependências, PostgreSQL
+descartável, build e 56 roteiros em ambos os runs:
+[PR](https://github.com/mhaetinger/D-D/actions/runs/40969589645) e
+[push](https://github.com/mhaetinger/D-D/actions/runs/40969582004).
+
+**Verificação local:** 733 testes Node, tipos/build e nove roteiros Chromium
+aprovados: defesas, monge, PV, dano, concentração, rolagens condicionais, Aparar,
+lote de combate e consulta de características. Incluem fonte/alvo exclusivo/área,
+imunidades sem gasto, marcas antigas/encerramento explícito/desfazer, guardas antes
+do RNG, dados físicos/virtuais/OFF/Só Pool, pool/inspiração, nós/foco/rodinha,
+320px/GG/três temas/dois layouts/toque e offline real sob `/D-D/`. A consulta
+contextual foi repetida após ajustar foco inicial para o topo no celular.
+Evidências em `~/.local/state/critcall/audits/2026-10-30-defesas/`.
+A suíte remota passa a exigir 57 roteiros. R2/R3/R4/R5/R6 continuam parciais;
+não certifica todas as condições, todas as auras ou decisões de alvos/turnos.
+
 ### Revisão das quatro invocações — 23/10/2026
 
 **Revisão delimitada concluída em desenvolvimento**, a partir das reproduções
@@ -1556,7 +1597,7 @@ casos corrigidos como se toda a funcionalidade estivesse ausente.
 | --- | --- | --- |
 | Capa, índice, prefácio e introdução, 1–7 | Consulta local e navegação | Explicação do jogo; sem necessidade de novos campos |
 | Cap. 1, criação, 10–14 | Atributos, 27 pontos, conjunto padrão, rolagem, criação/evolução e multiclasse | Distinguir uma escolha cadastrada de seu efeito aplicado; ver passivos abaixo |
-| Cap. 2, raças, 16–42 | Atributos, idiomas, opções, descrições, magias e resistências de tiefling/anão/draconato no dano por tipo; sopro com dano, gasto e descanso no recorte de 23/10 | Outras resistências/condições, rerrolagens e gatilhos raciais seguem pendentes |
+| Cap. 2, raças, 16–42 | Atributos, idiomas, opções, descrições, magias e resistências de tiefling/anão/draconato/halfling robusto no dano por tipo e assistente de resistências raciais condicionais; sopro com dano, gasto e descanso no recorte de 23/10 | Outras resistências/condições, rerrolagens e gatilhos raciais seguem pendentes |
 | Cap. 3, classes, 44–120 | Progressão das 12 classes/41 subclasses; várias reservas e ações contextuais | Matriz por classe abaixo; contadores não controlam alvos, turnos e todos os passivos |
 | Cap. 4, personalidade/antecedentes, 122–142 | 13 antecedentes, tendências, sugestões editáveis, campos narrativos e inspiração de 2014 | Personalização completa de antecedente ainda exige adaptação manual |
 | Cap. 5, equipamento, 144–160 | Compras/troco, quantidades/peso, armadura/escudo, penalidades de treino/Furtividade, armas/propriedades consultáveis e usos de kit de Curandeiro | Munição, recarga, demais consumíveis e detalhes de carga; ver itens abaixo |
@@ -1566,7 +1607,7 @@ casos corrigidos como se toda a funcionalidade estivesse ausente.
 | Cap. 9, combate, 189–198 | Ataques/dano, CA, PV, reservas, morte/estabilidade e dano por tipo com fontes verificadas, prévia e ajuste da mesa | Outras defesas/reações, adicionais de ataque, cobertura, alvos e exceções de classe ainda exigem controle manual |
 | Cap. 10, conjuração, 201–205 | Preparação, rituais elegíveis, espaços por classe/Pacto, CDs, custos de feitiçaria e concentração com fila por dano | Componentes, duração, interrupções durante conjuração prolongada e economia de ações seguem manuais |
 | Cap. 11, magias, 207–288 | 361 descrições e metadados, campos longos corrigidos, fórmulas auditadas unificadas e escalonamento | Não há executor de todos os efeitos das 361 magias; consultar limitações por família |
-| Apêndice A, condições, 289–291 | Exaustão e 14 condições com ajuda; incapacitação, movimento, falhas de FOR/DES e defesas de dano da petrificação no modo por tipo | Modos próprios integrados no lote de combate; sentidos, alvos e imunidade a condições ainda seguem manuais |
+| Apêndice A, condições, 289–291 | Exaustão e 14 condições com ajuda; incapacitação, movimento, falhas de FOR/DES e defesas de dano da petrificação no modo por tipo | Modos próprios integrados no lote de combate; sentidos, alvos e demais imunidades continuam manuais; imunidades próprias do vigésimo terceiro recorte são derivadas sem apagar marcas |
 | Apêndice B, deuses, 292–298 | Consulta no livro | Referência narrativa; não impor divindade/domínio ao jogador |
 | Apêndice C, planos, 299–302 | Consulta no livro | Referência de cenário; efeitos dependem do Mestre |
 | Apêndice D, criaturas, 303–310 | Consulta e reserva manual de PV da Forma Selvagem; companheiro separado | Sem seleção de bloco de criatura para forma/companheiro/familiar nem fusão de estatísticas |
@@ -1581,17 +1622,17 @@ estejam todas automatizadas. As descrições continuam sendo a referência.
 
 | Classe / PDF | Subclasses conferidas | Cobertura operacional existente | Próxima revisão necessária |
 | --- | --- | --- | --- |
-| Bárbaro, 45–49 | Furioso; Guerreiro Totêmico | Fúria, vantagem de FOR e Força Indomável no lote de combate, dano com FOR, resistências por tipo, Frenesi/exaustão, CA alternativa, Crítico Brutal, Fúria Implacável e vantagem de Instinto Selvagem na iniciativa (décimo recorte de R2) | Vantagens situacionais e duração/gatilhos |
+| Bárbaro, 45–49 | Furioso; Guerreiro Totêmico | Fúria, vantagem de FOR e Força Indomável no lote de combate, dano com FOR, resistências por tipo, Frenesi/exaustão, CA alternativa, Crítico Brutal, Fúria Implacável e vantagem de Instinto Selvagem na iniciativa (décimo recorte de R2) | Sentido de Perigo no assistente e Fúria Inconsciente na condição própria; demais vantagens, duração/gatilhos continuam parciais |
 | Bardo, 50–54 | Conhecimento; Bravura | Reserva/dado de inspiração, proficiências/especialização, segredos, conjuração, iniciativa de Versatilidade, Canção do Descanso opcional e Inspiração Superior na iniciativa (nono recorte de R2); concessão, Interrupção e dado recebido/Bravura com calculador no lote de apoio | Alvos, prazo/reação/momento declarados; integração automática do dado recebido ao d20 e demais efeitos de bardo continuam parciais |
-| Bruxo, 55–61 | Arquifada; Corruptor; Grande Antigo | Pacto, Arcanum, usos, Bênção do Obscuro, Explosão Agonizante, Sorvedor de Vida na arma vinculada e resistências de patrono registradas | Troca da resistência após descanso e reflexão de psíquico; espaço de invocações não equivale ao contador diário; alvos |
+| Bruxo, 55–61 | Arquifada; Corruptor; Grande Antigo | Pacto, Arcanum, usos, Bênção do Obscuro, Explosão Agonizante, Sorvedor de Vida na arma vinculada e resistências de patrono registradas | Defesa Sedutora impede encanto; sua reação de devolução, troca da resistência após descanso e reflexão de psíquico continuam manuais; espaço de invocações não equivale ao contador diário; alvos |
 | Clérigo, 62–69 | Conhecimento; Enganação; Guerra; Luz; Natureza; Tempestade; Vida | Preparação/domínios, Canalizar compartilhado, usos e Intervenção | Efeitos de cada domínio no alvo, cura/dano condicionado e Expulsar/Destruir Mortos-Vivos por ND |
-| Druida, 70–75 | Terra; Lua | Preparação/círculo, Forma Selvagem/PV, cura da Lua, Recuperação Natural e concentração mantida na transformação | Bloco de besta/estatísticas e custo de elemental; CON da forma informada no teste |
+| Druida, 70–75 | Terra; Lua | Preparação/círculo, Forma Selvagem/PV, cura da Lua, Recuperação Natural e concentração mantida na transformação | Bloco de besta/estatísticas e custo de elemental; CON da forma informada no teste. Proteção Natural integrada a veneno e ao assistente para fadas/elementais, sem adivinhar fonte das marcas antigas |
 | Feiticeiro, 76–81 | Magia Selvagem; Linhagem Dracônica | Feitiçaria/metamágica, conversão, Marés, CA, resistência e bônus inicial de Afinidade Elemental nos casos reconhecidos | Surto/gatilhos, tipos variáveis/efeitos posteriores e elegibilidade completa de metamagias; adaptações identificadas |
 | Guerreiro, 82–87 | Campeão; Mestre de Batalha; Cavaleiro Arcano | Retomar o Fôlego, Surto, Indomável, superioridade, estilos, crítico, magias e iniciativa parcial de Atletismo Extraordinário; repetição de Combate com Armas Grandes no quarto recorte de R2; Implacável na iniciativa no nono e Sobrevivente do Campeão no décimo primeiro | A06/A13 corrigidos: arredondamento/testes físicos e Retomar físico/virtual. Sete manobras no dano e Precisão no ataque (sexto a oitavo recortes); Aparar integrado ao dano recebido e Inspirar com resultado para o aliado no décimo terceiro recorte; Passo Evasivo integrado à CA no décimo quarto; Estendido antes do ataque no décimo quinto; Finta no próximo ataque contra o alvo no décimo sexto; Trespassante separado no segundo alvo no décimo sétimo; Contra-Atacar com reação no décimo oitavo; Golpe do Comandante com ordem/custo/dado adicional no décimo nono, ataque do aliado na mesa; início dos turnos continua declarado pela mesa |
 | Ladino, 88–92 | Ladrão; Assassino; Trapaceiro Arcano | Especialização, composição de Ataque Furtivo, Esquiva/Evasão, usos avançados, magias e Talento Confiável nas perícias da ficha (R2 inicial) | Testes com ferramentas na mesa; surpresa/Assassinar e Ação Ardilosa |
-| Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, Dominar/Assinatura, recuperação, Proteção Arcana inclusive multiclasse, Conjuração Focada, Presságio e usos/estados de escola | Efeitos por alvo, demais bônus de escola, lacaios, pedra e Sobrecarga; fluxo de troca temporal das escolhas |
+| Mago, 93–100 | Abjuração; Adivinhação; Conjuração; Encantamento; Evocação; Ilusão; Necromancia; Transmutação | Livro/preparo/ritual, Dominar/Assinatura, recuperação, Proteção Arcana inclusive multiclasse, Conjuração Focada, Presságio e usos/estados de escola | Resistência à Magia da Abjuração no assistente; efeitos por alvo, demais bônus de escola, lacaios, pedra e Sobrecarga; fluxo de troca temporal das escolhas |
 | Monge, 101–106 | Mão Aberta; Sombra; Quatro Elementos | Chi, movimento/CA, curas/usos, Evasão, defesas de dano e Auto Aperfeiçoamento na iniciativa; Artes Marciais/desarmado, Atordoante, Defletir/Queda/devolução, Mente Tranquila/Pureza/Corpo Vazio e Alma de Diamante no vigésimo segundo recorte | Requisitos físicos da forma, demais efeitos de subclasses/disciplinas, Rajada/Defesa Paciente/Passo do Vento e economia de ações/turnos continuam parciais |
-| Paladino, 107–113 | Devoção; Anciões; Vingança | Cura pelas Mãos, Canalizar, Arma Sagrada, aura própria nos testes, preparação e Destruição com gasto de espaço | Aplicação a aliados/consciência e condições dos juramentos; cura no alvo |
+| Paladino, 107–113 | Devoção; Anciões; Vingança | Cura pelas Mãos, Canalizar, Arma Sagrada, Aura de Proteção própria nos testes com guarda de consciência, Coragem/Devoção nas condições e Vigilância no dano de magias; preparação e Destruição com gasto de espaço | Auras recebidas/aplicação a aliados, demais condições dos juramentos e cura no alvo |
 | Patrulheiro Revisado, 114–120 | Besta; Caçador; Rastreador Subterrâneo | Progressão/seleções da adaptação, conjuração, extras condicionais, PV do companheiro e vantagem de Explorador Natural na iniciativa (décimo recorte de R2) | Inimigo favorito, exploração, alvos do primeiro turno e estatísticas/comandos do companheiro; não misturar regras do patrulheiro original |
 
 ## Raças e antecedentes
@@ -1666,11 +1707,11 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 | Maestria em Arma de Haste | Registro | Ataque bônus d4 e oportunidade ao entrar no alcance |
 | Maestria em Armadura Média | Teto de DES +3 na CA e remoção da desvantagem de Furtividade da armadura média equipada; lote de combate | Outras fontes de desvantagem continuam válidas; equipamento desconhecido na mesa |
 | Maestria em Armadura Pesada | +1 FOR; redução 3 no dano por tipo | Outras interações continuam na mesa |
-| Matador de Conjuradores | Registro | Reação, concentração do alvo e vantagem situacional |
+| Matador de Conjuradores | Vantagem no assistente contra magia de conjurador a até 1,5 m, declarado | Reação e concentração do alvo permanecem manuais |
 | Mente Afiada | +1 INT | Orientação, horário e memória consultáveis |
 | Mestre de Armas | +1 FOR/DES, quatro proficiências | Demais condições do ataque usam o fluxo comum |
 | Mestre de Armas Grandes | -5/+10 opcional por ataque corpo a corpo com arma pesada proficiente; terceiro recorte de R2 | Ataque bônus após crítico/abate e economia de ações continuam na mesa |
-| Mestre de Escudo | Registro | Empurrão, bônus de resistência e reação condicionais |
+| Mestre de Escudo | DES com alvo exclusivo soma bônus próprio do escudo no assistente; reação evita dano de DES para metade no sucesso, inclusive área, no dano detalhado | Empurrão com ação bônus após Atacar, reação/empunhadura e alvo exclusivo declarados; não é Evasão na falha |
 | Mobilidade | +3 m no deslocamento | Terreno difícil/Disparada e oportunidade |
 | Observador | +1 INT/SAB; +5 nos passivos de Percepção/Investigação | Leitura labial consultável; contexto de vantagem/desvantagem na mesa |
 | Perito | Três perícias/ferramentas | Revisar escolhas já dominadas e rolagem contextual com ferramenta |
