@@ -1,5 +1,30 @@
 # Changelog
 
+## Não lançado — Conjuração por invocações — 2026-10-30
+
+- Vigésimo quinto recorte, R5 na PR #35. As 19 invocações de conjuração direta
+  usam Conjurar na característica, sem adicionar magia conhecida. Sete cobram
+  uso diário e espaço de Pacto juntos; onze são à vontade no círculo base.
+  Curto recupera Pacto sem liberar uso diário; longo recupera ambos.
+- Correntes de Cárceri exige nível próprio/Pacto da Corrente, tipo de criatura
+  e confirmação de não repetição naquela criatura desde o descanso longo.
+  Retirado o limite diário global incorreto, com a chave antiga preservada.
+- Concentração/duração e consequências usam os módulos do grimório, incluindo
+  Maldição no Pacto 3/4/5, Proteção Arcana e Transposição Benigna. Armadura de
+  Sombras ativa a fórmula existente em si, sem vestir armadura. Vigor Abissal
+  usa d4 físico/virtual +4 e permite manter/substituir temporários, sem somar ou
+  curar. Resistências indicam atributo/CD de CAR do bruxo, com proficiência total.
+- Confirmação compacta informa custos, componentes dispensados, tempo/duração e
+  troca de concentração. Registrar uso permanece em Já resolvi na mesa, para
+  não cobrar espaço novamente. Guardas antecedem RNG/custo; Só Pool bloqueia,
+  OFF aceita físico. Rituais, Metamagia por esse controle, alvos, formas e prazos
+  mantêm seus limites explícitos. Sem SQL, nova consulta de nuvem ou publicação.
+- 776 testes Node (21 casos novos), tipos/build e 11 roteiros Chromium aprovados:
+  invocações novas/anteriores, concentração, PV, ataques de magia, regras
+  auditadas, consulta, ajudas, curas, monge e ações de combate. Incluem
+  celular/GG/temas/layouts/toque, físico/virtual/OFF/Só Pool, cancelamento/guardas,
+  escolhas/nós/rodinha, notas/outras fichas e offline. Suíte remota: 59 roteiros.
+
 ## Não lançado — Talentos, ações e disputas de combate — 2026-10-30
 
 - Vigésimo quarto recorte de R2/R3/R6, agrupado na PR #35. Armas automáticas

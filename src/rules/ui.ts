@@ -27,6 +27,8 @@ import {bardGivingControls,setupSupportActionsUI} from './support-actions-ui';
 import {setupMonkUI} from './monk-ui';
 import {setupCombatActionsUI} from './combat-actions-ui';
 import {setupPhysicalContestsUI} from './physical-contests-ui';
+import {invocationDefinition} from './invocation-casting';
+import {invocationCastControls,setupInvocationCastingUI} from './invocation-casting-ui';
 import {ownConditionImmunity} from './defensive-traits';
 import {situationalSaveControls,setupSituationalSavesUI} from './situational-saves-ui';
 import {feintingStartControl,setupFeintingAttackUI,useFeintingAttack,useFeintingAtTable,endFeintingUI} from './feinting-attack-ui';
@@ -36,7 +38,7 @@ export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],sho
   const manualInvocation=(r:Resource)=>r.id.startsWith('bruxo:invocation-') && !r.action;
   const tip = (r:Resource) => {
     const ref = r.id==='race:breath'?E.reference('Arma de Sopro',null,'draconato','race'):r.classId==='feat'?E.reference(r.name,null,null,'feat'):E.reference(r.name,r.classId);
-    const text=r.note+(manualInvocation(r)?'\n\nRegistro manual: este controle desconta somente o uso diário. Resolva a magia e seus custos separadamente.':'' );
+    const text=r.note+(manualInvocation(r)?invocationDefinition(r.name)?.pact?'\n\nConjurar cobra o uso diário e o espaço de Pacto juntos. Em Já resolvi na mesa, Registrar uso corrige somente o contador diário; não gasta nem devolve espaço.':'\n\nRegistro manual: este controle desconta somente o uso diário. Resolva a magia e seus custos separadamente.':'' );
     return `data-rule-tooltip="${escape(JSON.stringify({name:r.name,text,page:ref?.page || E.data.classes[r.classId]?.page,pdfPage:ref?.pdfPage || E.data.classes[r.classId]?.page}))}"`;
   };
   return resources.map(r=>{
@@ -52,6 +54,7 @@ export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],sho
     else if (r.kind==='pool') control = `<label>Reserva <input type="number" min="0" max="${r.max}" step="1" data-rule-pool="${r.id}" value="${value}" aria-label="${escape(r.name)} atuais"></label><span>/ ${maxInput}</span>`;
     else if (r.kind==='counter') control = `<span>${r.cost?`Custo ${r.cost[1]} ${r.cost[0]==='monge:ki'?'Chi':r.cost[0]==='feiticeiro:sorceryPool'?'pt':'uso'}`:`<span data-resource-balance="${r.id}"${r.id.endsWith(':superiority')?` data-superiority-balance="${r.id}"`:''}>${number(value)}</span>/${maxInput} usos`}</span><button type="button" data-rule-action="use" data-resource="${r.id}" ${manualInvocation(r)?`aria-label="Registrar uso diário de ${escape(r.name)}"`:''} ${value<1 || !affordable?'disabled':''}>${r.id.endsWith(':superiority')?'Usar na mesa':manualInvocation(r)?'Registrar uso':'Usar'}</button>${!r.cost?`<button type="button" data-rule-action="refund" data-resource="${r.id}" ${value===r.max?'disabled':''} aria-label="Devolver um uso de ${escape(r.name)}">↶</button>`:''}${manualInvocation(r)?'<span class="t-text-muted">Magia e custos na mesa</span>':''}`;
     if (r.action==='wildShape') control += `<label>PV da forma <input type="number" min="0" data-rule-beast-hp value="${Number(c.ruleState?.pools?.[r.id] || 0)}"></label><label>PV máximos <input type="number" min="1" data-rule-beast-max value="${Number(c.ruleState?.beastMax || 1)}"></label>${enabled?`<button type="button" data-rule-action="toggle" data-resource="${r.id}">Encerrar forma</button>`:''}`;
+    if(manualInvocation(r) && invocationDefinition(r.name)?.pact)control=invocationCastControls(c,r.name,E)+`<details><summary>Já resolvi na mesa</summary><p>Use somente se o espaço e a magia já foram resolvidos fora deste controle.</p>${control}</details>`;
     if(r.id==='bardo:inspiration')control=control.replace('>Usar</button>','>Usar na mesa</button>')+bardGivingControls(c,E);
     if(r.id.endsWith(':superiority'))control+=rallyControls(c,E,r.id)+evasiveStartControl(c,E,r.id)+feintingStartControl(c,E,r.id)+commandersStrikeControls(c,E,r.id);
     if(r.action==='intervention' && interventionWaiting(c))control+='<span>7 dias na aventura</span><button type="button" data-rule-action="interventionWeek" data-resource="clerigo:intervention">Registrar semana transcorrida</button>';
@@ -106,7 +109,7 @@ export function hitDiceRecoveryControls(c:Sheet,E:Engine) {
 export function saveRuleStep(description:string) {
   const host = window as any;
   const focused = document.activeElement as HTMLElement;
-  const attrs = focused ? [...focused.attributes].filter(a=>a.name.startsWith('data-rule-') || a.name.startsWith('data-health-') || a.name.startsWith('data-support-') || a.name.startsWith('data-concentration-') || ['data-resource','data-index','data-class'].includes(a.name)).map(a=>`[${a.name}="${CSS.escape(a.value)}"]`).join('') : '';
+  const attrs = focused ? [...focused.attributes].filter(a=>a.name.startsWith('data-rule-') || a.name.startsWith('data-health-') || a.name.startsWith('data-support-') || a.name.startsWith('data-invocation-') || a.name.startsWith('data-concentration-') || ['data-resource','data-index','data-class'].includes(a.name)).map(a=>`[${a.name}="${CSS.escape(a.value)}"]`).join('') : '';
   const handler=focused?.getAttribute('onclick');
   const focusKey=attrs || (focused?.id?'#'+CSS.escape(focused.id):handler?`[onclick="${CSS.escape(handler)}"]`:'');
   const open = new Map([...document.querySelectorAll<HTMLDetailsElement>('[data-rule-disclosure]')].map(el=>[el.dataset.ruleDisclosure,el.open]));
@@ -148,6 +151,7 @@ export function setupRuleUI(E: Engine) {
   setupMonkUI(E,save);
   setupCombatActionsUI(E);
   setupPhysicalContestsUI(E,save);
+  setupInvocationCastingUI(E,save);
   setupSituationalSavesUI(E,save);
   setupFeintingAttackUI(E);
   setupLuckyUI(E,save);

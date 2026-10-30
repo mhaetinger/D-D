@@ -139,10 +139,20 @@ Bom Fruto não oferece Gêmea; suas reservas/efeitos são resolvidos na mesa.
 
 Invocações substituídas deixam de aparecer nas características; reaprender uma
 delas mostra somente a aquisição atual, preservando histórico e usos já gastos.
-Os botões **Registrar uso** das invocações descontam somente seu contador diário;
-a magia e seus custos são resolvidos separadamente na mesa. Armadura de Sombras
-e Vigor Abissal continuam à vontade, sem criar reserva diária ou magia conhecida.
-Vitalidade Falsa identifica PV temporários, sem cura/aplicação automática.
+As 19 invocações de conjuração direta têm **Conjurar** na característica. Sete
+cobram o uso diário e o espaço de Pacto juntos; Conjuração não paga esse custo.
+Onze são à vontade no círculo base, sem reserva diária ou magia conhecida extra.
+Em **Já resolvi na mesa**, **Registrar uso** continua corrigindo somente o uso
+diário de uma magia já resolvida manualmente. Correntes de Cárceri confirma o
+tipo e a repetição por criatura, sem limitar outras criaturas por um contador
+global. Esse limite e os efeitos nos alvos são conferidos na mesa.
+Armadura de Sombras ativa Armadura Arcana em si, sem armadura vestida. Vigor
+Abissal rola 1d4+4 físico/virtual e permite manter ou substituir a reserva de PV
+temporários; não soma nem cura. Componentes dispensados e concentração são
+indicados antes de confirmar. Rituais do Livro de Segredos Antigos continuam no
+grimório. Metamagia neste controle e prazos/estatísticas das formas ficam na mesa.
+Vitalidade Falsa lançada pelo cartão comum do grimório continua sem aplicação
+automática de PV temporários.
 Rogar Maldição registra seu efeito sem dano imediato; duração e concentração
 seguem o círculo escolhido, dispensando concentração a partir do 5º.
 

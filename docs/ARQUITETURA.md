@@ -1968,3 +1968,29 @@ sem escrever condições/posição do alvo. O d20 virtual usa `rollRuleCheck` na
 o bônus entra no mesmo cálculo antes do piso de Força Indomável. O assistente
 físico replica essa ordem e aplica Confiável à face tratada. O empate conserva
 a situação anterior; custo/gatilho e aplicação no alvo seguem declarados.
+
+### Conjuração por invocações — 30/10/2026
+
+`invocation-casting.ts` explicita as 19 correspondências do livro de 2014,
+sem inferir custos de palavras no texto ou cadastrar magias conhecidas. Valida
+seleção atual, nível próprio e Pacto exigido, restrições de conjuração e reservas.
+Sete ações usam o contador diário existente junto de Pacto; onze usam o círculo
+base sem espaço. Cárceri exige declaração por criatura, sem contador global.
+Seu contador antigo permanece preservado, sem bloquear outros alvos.
+
+Uma cópia valida custos/consequências antes de aplicar os campos afetados. O
+módulo reutiliza `spellConcentration`, `applyCastConcentration`, `onSpellCast` e
+`resolveSpellEffect`: inclui duração de Maldição por círculo, Proteção Arcana e
+Transposição Benigna. Material dispensado não dispensa V/S. A resistência, quando
+exigida, indica atributo e CD de CAR do bruxo, com proficiência total. Não rola
+ataques, dano, resistência do alvo ou estatísticas de criaturas automaticamente.
+
+`invocation-casting-ui.ts` usa confirmação, balões e escolha físico/virtual
+existentes. A revalidação de documento, conta, permissão, nó e modo/sequência
+precede custo/RNG. Cancelar não altera reservas, concentração ou histórico;
+Vigor revalida antes do d4 e permite manter/substituir temporários sem somar.
+Não chama o fluxo assíncrono genérico de concessão de PV após cobrar o recurso.
+Registrar uso continua disponível em detalhe para uma conjuração já resolvida
+na mesa, sem cobrar novamente o espaço. O botão diário aparece uma única vez
+no controle existente; as demais invocações usam sua característica já montada.
+Não há novo formato persistido, SQL, consulta de nuvem ou cache de jogador.

@@ -10,6 +10,8 @@ recursos e magias de 2014**, na branch `feature/manobras-acerto-2014`, iniciada
 no develop público `9f676e0`. Tudo permanece agrupado na
 [PR #35](https://github.com/mhaetinger/D-D/pull/35), sem mesclar/publicar.
 
+O vigésimo quinto recorte integra as 19 invocações de conjuração direta ao
+custo/concentração existentes. Escopo, limites e resultados ficam na auditoria.
 O vigésimo quarto recorte reúne ataques bônus/oportunidade de talentos e
 assistente de disputas corporais. Haste, besta, Investida, Armas Grandes,
 Sentinela e Imobilizador usam os módulos de ataque/dano e as guardas existentes.
@@ -35,10 +37,10 @@ inteiro. A mesma PR reúne Adepto Elemental, recuperação/modo contextual na
 iniciativa, Sobrevivente e a revisão delimitada das quatro invocações. Critérios,
 limites e pendências ficam somente em `docs/AUDITORIA-LIVRO-2014.md`.
 
-A base `008471d` passou integralmente em ambas as CIs: 733 testes, dependências,
-banco descartável, build e 57 roteiros. O avanço de talentos passou 755 testes
-Node, tipos/build e 13 roteiros Chromium. A suíte exige agora
-58 roteiros e PostgreSQL descartável na CI. Resultados/evidências na auditoria
+A base `f1667bc` passou integralmente em ambas as CIs: 755 testes, dependências,
+banco descartável, build e 58 roteiros. O avanço das invocações acrescenta
+21 casos Node e um roteiro Chromium; a suíte exige agora
+59 roteiros e PostgreSQL descartável na CI. Resultados/evidências na auditoria
 junto dos limites de cada operação e na PR #35.
 As PRs #33/#34 foram substituídas pela entrega agrupada; não são trabalhos
 paralelos pendentes.
@@ -63,8 +65,8 @@ os recortes ainda parciais, sem prometer automação integral do livro.
 
 ## Escopo da entrega e próximos avanços
 
-O quarto recorte de R2 já foi publicado; quinto ao vigésimo quarto ficam em
-desenvolvimento, junto da revisão delimitada das invocações. A auditoria é a
+O quarto recorte de R2 já foi publicado; quinto ao vigésimo quinto ficam em
+desenvolvimento, incluindo os vínculos de conjuração por invocações. A auditoria é a
 fonte única de critérios e pendências; as decisões da mesa podem continuar
 manuais, com indicação clara. A ordem permanece **draconatos → rolagens →
 magias → importação**.
@@ -72,8 +74,8 @@ magias → importação**.
 Outros adicionais de talentos/estilos e contextos de magia ainda manuais seguem
 nas matrizes. R2/R3/R4/R5/R6 permanecem parciais; não há promessa de automação
 integral do livro. O ciclo com PDF real foi adiado pelo responsável, para o fim
-da prioridade atual. A integração completa de conjuração por invocações continua
-em R5, sem bloquear os avanços delimitados da ficha individual.
+da prioridade atual. Efeitos/transformações e demais famílias de magias continuam
+em R5, além dos vínculos de custo/concentração já implementados.
 
 **Interação entre fichas é uma etapa futura.** Os módulos puros e a guarda de
 permissão da interface podem ser reaproveitados. Aplicar dano/cura/efeitos a

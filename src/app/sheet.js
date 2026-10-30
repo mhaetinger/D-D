@@ -8,6 +8,7 @@ import { readableText } from "../rules/text";
 import { renderResourceControls, renderResourcesAt, spellcastingStatusControls, defenseControls, conditionControls, hitDiceRecoveryControls, saveRuleStep, retainConditionNodes } from "../rules/ui";
 import { spellClassPanels } from '../rules/spell-class-panels';
 import { resourcesAt } from "../rules/placement";
+import {invocationFeatureControls} from '../rules/invocation-casting-ui';
 import { featureGroups } from '../rules/feature-groups';
 import { canCastNormally, canRitual, preparation, wizardPrivilege, castingRestriction, armorProficiencies } from "../rules/spellcasting";
 import { resolveSpellEffect, innateCastLevel, twinEligible, spellDamageBreakdown } from "../rules/spell-effects";
@@ -2298,7 +2299,7 @@ function renderFeaturesCollapsible(char, wide = false) {
     const levels=group.levels.map(level=>{
       const items=level.entries.map(({gain:g,index,controls})=>{
         const disclosure=`feature:${g.classId || g.source}:${g.level}:${index}`;
-        return `<section class="feature-entry">${featureConsultButton(g,disclosure,group.label,controls[0]?.note)}${renderResourceControls(char,CharacterEngine,controls,controls.length>1 || g.name==='Juramento Sagrado')}${featureTalentControls(char,g,CharacterEngine)}${supportFeatureControls(char,g,CharacterEngine)}${monkFeatureControls(char,g,CharacterEngine)}</section>`;
+        return `<section class="feature-entry">${featureConsultButton(g,disclosure,group.label,controls[0]?.note)}${renderResourceControls(char,CharacterEngine,controls,controls.length>1 || g.name==='Juramento Sagrado')}${featureTalentControls(char,g,CharacterEngine)}${supportFeatureControls(char,g,CharacterEngine)}${monkFeatureControls(char,g,CharacterEngine)}${invocationFeatureControls(char,g,CharacterEngine)}</section>`;
       });
       return `<section class="feature-level" data-feature-level="${level.level}">${group.classId?`<h5 class="feature-level-title">Nível ${level.level}</h5>`:''}${items.join('')}</section>`;
     });

@@ -23,10 +23,10 @@ const advance=(c,answers={})=>{const d=E.context({},{},c,'bruxo');choose(d,'corr
    await consult(name).tap();await pop.waitFor({state:'visible'});assert.match(await pop.innerText(),pattern);assert.ok((await pop.locator('a').getAttribute('href')).endsWith('page='+book));await pop.getByRole('button',{name:'Fechar consulta'}).click();
   }
   assert.equal(await counter('armadura-de-sombras').count(),0);assert.equal(await counter('vigor-abissal').count(),0);
-  assert.equal(await counter('sinal-de-mau-agouro').count(),1);assert.match(await counter('sinal-de-mau-agouro').innerText(),/Magia e custos na mesa/);assert.equal(await use('sinal-de-mau-agouro').innerText(),'Registrar uso');
+  assert.equal(await counter('sinal-de-mau-agouro').count(),1);assert.match(await counter('sinal-de-mau-agouro').textContent(),/Magia e custos na mesa/);assert.equal(await use('sinal-de-mau-agouro').textContent(),'Registrar uso');
   // O registro diário pode acontecer depois do espaço físico já gasto: não cobra duas vezes.
   await page.evaluate(()=>{getChar().pactMagic.used=getChar().pactMagic.total;window.invocationCalls=0;window.invocationRandom=Math.random;Math.random=()=>{window.invocationCalls++;return .5;};});
-  const pact=await page.evaluate(()=>JSON.stringify(getChar().pactMagic));await use('sinal-de-mau-agouro').click();assert.equal(await use('sinal-de-mau-agouro').isDisabled(),true);assert.equal(await page.evaluate(()=>JSON.stringify(getChar().pactMagic)),pact);assert.equal(await page.evaluate(()=>window.invocationCalls),0);
+  const pact=await page.evaluate(()=>JSON.stringify(getChar().pactMagic));await counter('sinal-de-mau-agouro').getByText('Já resolvi na mesa',{exact:true}).click();await use('sinal-de-mau-agouro').click();assert.equal(await use('sinal-de-mau-agouro').isDisabled(),true);assert.equal(await page.evaluate(()=>JSON.stringify(getChar().pactMagic)),pact);assert.equal(await page.evaluate(()=>window.invocationCalls),0);
   await page.evaluate(()=>shortRest());assert.equal(await use('sinal-de-mau-agouro').isDisabled(),true);await page.evaluate(()=>{longRest();});await accept();assert.equal(await use('sinal-de-mau-agouro').isDisabled(),false);
   await page.evaluate(()=>{getChar().ruleState.concentration={version:1,id:'prior',name:'Concentração anterior',duration:'1 hora',spellKey:'synthetic',school:'',checks:[]};setTab('spells');setSpellCastLevelByIndex(0,1);});
   const badge=i=>page.locator(`[data-spell-effect="${i}"]`),cast=i=>page.locator(`[data-cast-spell="${i}"]`);

@@ -61,6 +61,9 @@ export function resourcesFor(c: Sheet, E: Engine): Resource[] {
     if (sub('bruxo')==='grandeAntigo' && warlock>=6) add('bruxo','entropic','Proteção Entrópica',1,'short','Reação: desvantagem num ataque contra você; se errar, vantagem no próximo ataque contra ele até fim do próximo turno.');
     for (const invocation of selections(c,E,'invocations')) {
       const ref = E.reference(invocation,'bruxo');
+      // Cárceri limita a repetição na mesma criatura, não um uso global/dia.
+      // O contador legado permanece no documento, sem limitar outros alvos.
+      if(norm(invocation)==='correntes de carceri')continue;
       if (ref?.text && /descanso longo/i.test(ref.text)) add('bruxo','invocation-'+norm(invocation).replace(/ /g,'-'),invocation,1,'long',ref.text);
     }
   }

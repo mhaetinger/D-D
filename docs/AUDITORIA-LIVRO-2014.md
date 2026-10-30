@@ -217,10 +217,10 @@ As matrizes abaixo continuam sendo o roteiro R2–R6. A presença de contador ou
 livrinho não conclui a característica. Nesta rodada foram reinspecionados:
 
 - Invocações de conjuração como **Armadura de Sombras**, **Vigor Abissal** e
-  **Escultor de Carne**: a escolha/descrição existe; não há vínculo automático
-  completo entre a magia, eventual espaço de Pacto e o uso diário. Não adicionar
-  um contador paralelo ao implementar a conjuração. Não confundir invocação
-  conhecida com concessão automática de uma magia conhecida de bruxo.
+  **Escultor de Carne**: vínculo de conjuração/custo implementado no vigésimo
+  quinto recorte abaixo, reutilizando o contador existente. Não confundir
+  invocação conhecida com concessão automática de magia conhecida de bruxo.
+  Efeitos nos alvos, formas, prazos e Metamagia por esse controle continuam na mesa.
 - Sopro do draconato: gasto, dano/metade, dado físico/virtual e recuperação
   implementados no recorte abaixo. Alvos, suas resistências e defesas são
   resolvidos na mesa. Ancestralidade racial e Linhagem Dracônica seguem
@@ -287,7 +287,7 @@ básico real telefone/computador já foram confirmados pelo responsável.
 | R2 — rolagens e gastos condicionais | **Quinto ao vigésimo quarto recortes em desenvolvimento; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo na PR #20; -5/+10 na PR #21; Atacante Bestial e Combate com Armas Grandes publicados nas PRs #31/#32. Quinto recorte: Adepto Elemental nos danos de magia reconhecidos. Sexto: Ataque Desarmante/Derrubar no dano e reservas do Adepto Marcial. Sétimo: Precisão depois do d20 com Sortudo/halfling. Oitavo: cinco outras manobras de dano, com FOR/SAB ou sem resistência. Nono: recuperação de superioridade, Inspiração de Bardo e Chi ao rolar iniciativa com a reserva vazia. Décimo: vantagem/desvantagem contextual na iniciativa. Décimo primeiro: Sobrevivente no início do turno declarado pela mesa. Décimo segundo: Aparar no dano recebido. Décimo terceiro: Inspirar com dado + CAR para PV temporários de aliado. Décimo quarto: Passo Evasivo na CA até parar de se mover. Décimo quinto: Estendido escolhido antes do ataque, alcance de um ataque e dado já pago no dano. Décimo sexto: Finta com ação bônus/alvo, vantagem contextual e dado já pago no acerto. Décimo sétimo: Trespassante com dano separado à segunda criatura pela mesma jogada. Décimo oitavo: Contra-Atacar com reação e custo antes do ataque após um erro corpo a corpo. Décimo nono: Golpe do Comandante com custo antecipado e dado adicional do ataque imediato de um aliado, resolvido na mesa. Vigésimo: lote de modos contextuais, Força Indomável, Duelista Defensivo e Líder Inspirador. Vigésimo primeiro: Curandeiro/kit e apoio do bardo. Vigésimo segundo: núcleo de combate do monge, reações e repetição de resistências. Vigésimo terceiro: resistências condicionais, imunidades/auras próprias e defesas de Mestre de Escudo. Vigésimo quarto: talentos de ataques bônus/oportunidade, contexto de magia e disputas corporais. As 16 manobras têm controles delimitados; critérios e limites abaixo. Faltam adicionais dos demais talentos/estilos e contextos de elemento/efeito ainda manuais. Turnos/alvos continuam declarados pela mesa. |
 | R3 — condições, defesas e características | **Parcial: lote de imunidades/auras e testes condicionais implementado** | Modos próprios de condições, defesas do monge e vigésimo terceiro recorte: auras próprias, Fúria Inconsciente, Defesa Sedutora, Proteção Natural, fontes raciais, Sentido de Perigo, Abjuração e Mestre de Escudo. Completar as demais imunidades/auras recebidas, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
-| R5 — famílias de magias | Parcial: oito curas e quatro invocações auditadas | Revisão delimitada de invocações e magias associadas concluída abaixo; vínculo automático de conjuração/custo ainda manual. Revisar outras famílias: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
+| R5 — famílias de magias | Parcial: oito curas, quatro invocações revisadas em profundidade e 19 vínculos de conjuração | Vigésimo quinto recorte: custo conjunto com Pacto, à vontade no círculo base, concentração, Armadura Arcana e Vigor Abissal; Cárceri tem limite declarado por criatura. Não certifica todos os efeitos das 32 invocações nem das 361 magias. Demais famílias: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador. |
 | R6 — equipamento e contexto de combate | Parcial: penalidades de armadura/arma pesada, kit e loja nos lotes de combate/apoio | Munição/recarga/consumíveis, demais penalidades de equipamento, carga e ações condicionais. Definir antes qualquer acompanhamento opcional de turno; alvos, alcance, cobertura e viagem podem continuar na mesa, com essa limitação clara. |
 
 ### Draconatos — recorte de 23/10/2026
@@ -1519,7 +1519,67 @@ Evidências em `~/.local/state/critcall/audits/2026-10-30-acoes-combate/`. R2/R3
 continuam parciais. Montaria, surpresa/ocultação, demais passivos de subclasses,
 munição/recarga automática e todas as famílias de magias não estão concluídos.
 
+### Vigésimo quinto recorte — conjuração por invocações, 30/10/2026
+
+**Em desenvolvimento na PR #35**, sem publicação. As duas CIs da base `f1667bc`
+concluíram com sucesso: 755 testes, dependências, banco descartável, tipos/build
+e 58 roteiros. Este lote atende o vínculo antes manual entre invocação, magia,
+uso diário e Pacto; não é uma revisão integral dos efeitos das 32 invocações.
+
+Conferência: Livro do Jogador, pp. 61–62 (PDF 60–61), pré-requisitos e texto das
+19 concessões diretas; magias correspondentes no catálogo integral autorizado.
+Fonte primária de apoio: [SRD 5.1, pp. 48–50](https://media.wizards.com/2023/downloads/dnd/SRD_CC_v5.1.pdf#page=48).
+O requisito de Cárceri é Pacto da Corrente; a referência circular na tradução do
+PDF não substitui esse requisito, já presente no seletor do motor.
+
+| Família | Operação implementada | Limite na mesa |
+| --- | --- | --- |
+| Encharcar a Mente, Escultor de Carne, Lacaios do Caos, Larápio dos Cinco Destinos, Palavra Terrível, Sinal de Mau Agouro e Sussurros Sedutores | Uma confirmação cobra contador diário existente e espaço de Pacto no círculo atual. Não aceita Conjuração; curto recupera Pacto sem liberar uso diário, longo recupera ambos. Seleção/nível próprio revalidados | Componentes, ação/tempo, alcance, alvos, resistências e efeitos. Elemental exige conjuração concluída; perder concentração não o dissipa |
+| Armadura de Sombras, Idioma Bestial, Máscara das Muitas Faces, Mestre das Infindáveis Formas, Passo Ascendente, Salto Transcendental, Sussurros da Sepultura, Vigor Abissal, Visão Mística, Visões de Reinos Distantes e Visões nas Brumas | À vontade no círculo base, sem espaço/contador extra/magia conhecida. Somente as exceções expressas dispensam material ou restringem a si. Armadura Arcana exige não vestir armadura e ativa a fórmula existente. Vigor físico/virtual dá 1d4+4 temporários em si, mantendo/substituindo a reserva | Durações e condições dos efeitos. Levitação/Salto por essas invocações são em si; Falar com os Mortos mantém o limite de dez dias do cadáver. Transformação/ataques de Alterar-se não são cadastrados |
+| Correntes de Cárceri | Bruxo 15 e Pacto da Corrente; sem espaço/material. Confirma celestial/corruptor/elemental e ausência de uso na mesma criatura desde o último descanso longo. Sem contador global; chave antiga preservada | Identificação/repetição por criatura e resistência/condição do alvo; não infere identidade remota a partir do nome |
+
+Concentração usa o módulo do grimório. A troca, inclusive ao reconjurar o mesmo
+efeito, é informada antes do custo; cancelar mantém a anterior. Maldição no
+Pacto 3/4 concentra por 1/10 minutos; no 5º dura 8 horas sem encerrar outra
+concentração. Não oferece dano imediato de maldição. Conjuração à vontade
+alimenta Proteção Arcana/Transposição Benigna pela consequência comum, sem
+contadores duplicados. Resistência indicada usa CAR do bruxo e proficiência
+total; não confunde com ataque contra CA nem rola pela outra criatura.
+
+O controle diário antigo fica em **Já resolvi na mesa**: Registrar uso só
+desconta o contador, para quem já resolveu a magia/espaço por outro caminho.
+Não se clica nele após Conjurar. Magia conhecida equivalente mantém seu cartão
+e custo independentes; aprender a invocação não altera a lista de conhecidas.
+Metamagia não é aplicada pelo novo controle. Livro de Segredos Antigos continua
+no fluxo de rituais, fora dessas 19 concessões diretas.
+
+Snapshot de ficha/conta/permissão/nó/modo/sequência é revalidado antes de RNG e
+cobrança; clique repetido não abre segunda operação. OFF aceita físico; Auto
+permite físico/virtual e Só Pool bloqueia o lançamento, como no grimório.
+Vigor não usa vantagem/desvantagem em d4 nem consome inspiração. Cópia prévia
+impede cobrança parcial, preservando registros futuros/ilegíveis e os demais
+campos. Sem SQL, nova consulta de nuvem, ficha pessoal ou catálogo gerado editado.
+
+Verificados **776 testes Node** (21 casos novos), tipos/build e **11 roteiros
+Chromium**: conjuração por invocações, auditoria anterior de invocações,
+concentração, PV, ataques de magia, regras auditadas, consulta, ajudas, curas
+auditadas, monge e ações de combate. Incluem custo conjunto, magia conhecida
+independente, descansos, concentração 3/4/5, temporários físico/virtual,
+OFF/Só Pool, guardas de documento/personagem/modo/sequência, clique repetido,
+cancelamento/nós/rodinha, registros futuros/notas/outra ficha, 320px/GG/três
+temas/dois layouts/toque, texto como dado e offline real sob `/D-D/`.
+A chamada inicial de curas sem `--import tsx` falhou na leitura do TypeScript,
+antes do navegador; a execução prevista no `package.json` passou. Os dois
+roteiros de invocações foram repetidos após os últimos ajustes de texto/alcance.
+Suíte remota ampliada para 59 roteiros. Evidências em
+`~/.local/state/critcall/audits/2026-10-30-conjuracao-invocacoes/`.
+R2/R3/R4/R5/R6 permanecem parciais, com os limites das matrizes anteriores.
+
 ### Revisão das quatro invocações — 23/10/2026
+
+O estado manual registrado nesta seção é histórico. O vínculo de conjuração e
+os custos avançaram no vigésimo quinto recorte acima, preservando os controles
+de registro manual e as correções delimitadas de descrição/metadados.
 
 **Revisão delimitada concluída em desenvolvimento**, a partir das reproduções
 parciais do Claude. A conferência independente usou a base atual e o livro local
