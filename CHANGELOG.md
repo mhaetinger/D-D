@@ -1,5 +1,41 @@
 # Changelog
 
+## Não lançado — Talentos, ações e disputas de combate — 2026-10-30
+
+- Vigésimo quarto recorte de R2/R3/R6, agrupado na PR #35. Armas automáticas
+  elegíveis usam Ação / reação para declarar ataque bônus, oportunidade ou
+  contexto do alvo sem reescrever o cadastro. Uma sessão por personagem/acerto;
+  custo de ação é declarado na mesa, sem contador fictício de turnos.
+- Maestria em Arma de Haste prepara cabo d4 de concussão, com habilidade/magia,
+  crítico e adicionais comuns. Lança incluída pela errata de 2014; lança longa
+  só permite oportunidade na entrada. Dado de Artes Marciais é escolha elegível;
+  não trata ataque bônus como segunda arma. Repetições identificam os dados
+  efetivos do cabo, sem repetir dados de outras fontes.
+- Besta de mão prepara ataque bônus, mantendo munição/mão livre; escudo bloqueia
+  esse uso. Especialista em Besta retira só a desvantagem por inimigo próximo,
+  inclusive no contexto opcional de ataques de magia; outras fontes permanecem.
+  O fluxo não registra nova conjuração nem gasta espaço ao rolar ataque mágico.
+- Investida prepara ataque após Disparada; +5 somente com deslocamento em linha
+  reta confirmado e sem dobrar no crítico. Armas Grandes tem ataque bônus por
+  crítico/abate declarado, sem exigir pesada nessa parte do talento. Sentinela
+  diferencia oportunidade de reação após ataque contra terceiro; somente
+  oportunidade informa deslocamento zero no acerto.
+- Assistente de disputas usa Atletismo contra total declarado do oponente, com
+  empate mantendo a situação anterior. Inclui agarrar, empurrar/derrubar,
+  imobilizar com ação inteira e empurrões bônus de Escudo/Investida. Reutiliza
+  modos, inspiração, Confiável e piso do total de Força Indomável. Alvo,
+  condições/posição e economia de ações continuam na mesa.
+- Sessões não entram no backup/histórico; edição invalida sem ressuscitar ao
+  voltar ao valor antigo. Inspiração/Sortudo e custos de Precisão/Atordoante do
+  mesmo ataque conservam seu contexto. Cancelamento/guardas precedem RNG/gasto;
+  físico/virtual/OFF/Só Pool, foco e rolagem usam os módulos comuns.
+- 755 testes Node, tipos/build e 13 roteiros Chromium aprovados: ações, dano,
+  –5/+10, repetições, Precisão, monge, magias, Estendido, Finta, Contra-Atacar,
+  lote de combate, editor e dado. Incluem celular/GG/temas/layouts/toque,
+  físico/virtual/OFF/Só Pool, guardas/cancelamento/nós/rodinha e offline.
+  Suíte remota ampliada para 58 roteiros. Sem SQL, consulta de nuvem, edição de
+  catálogo gerado, dados pessoais ou publicação.
+
 ## Não lançado — Defesas e resistências condicionais — 2026-10-30
 
 - Vigésimo terceiro recorte de R2/R3 na PR #35. Um assistente de resistência

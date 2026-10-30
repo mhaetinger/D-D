@@ -25,6 +25,8 @@ import {commandersStrikeControls,setupCommandersStrikeUI} from './commanders-str
 import {duelistControls,setupCombatFeatsUI} from './combat-feats-ui';
 import {bardGivingControls,setupSupportActionsUI} from './support-actions-ui';
 import {setupMonkUI} from './monk-ui';
+import {setupCombatActionsUI} from './combat-actions-ui';
+import {setupPhysicalContestsUI} from './physical-contests-ui';
 import {ownConditionImmunity} from './defensive-traits';
 import {situationalSaveControls,setupSituationalSavesUI} from './situational-saves-ui';
 import {feintingStartControl,setupFeintingAttackUI,useFeintingAttack,useFeintingAtTable,endFeintingUI} from './feinting-attack-ui';
@@ -144,6 +146,8 @@ export function setupRuleUI(E: Engine) {
   setupCombatFeatsUI(E,save);
   setupSupportActionsUI(E,save);
   setupMonkUI(E,save);
+  setupCombatActionsUI(E);
+  setupPhysicalContestsUI(E,save);
   setupSituationalSavesUI(E,save);
   setupFeintingAttackUI(E);
   setupLuckyUI(E,save);

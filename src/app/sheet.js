@@ -33,6 +33,9 @@ import {chooseRiposte,refreshRiposteTools} from '../rules/riposte-ui';
 import {feintingPrepared,chooseFeintingWeaponAttack,feintingStatus,refreshFeintingUI} from '../rules/feinting-attack-ui';
 import {feintingRollDetails,feintingRollDescription} from '../rules/feinting-attack';
 import {sheetRollDetails} from '../rules/roll-context';
+import {discardCombatAction,spellAttackHasContext,chooseSpellAttackSituation} from '../rules/combat-actions-ui';
+import {combatActionState} from '../rules/combat-action-state';
+import {physicalContestControls} from '../rules/physical-contests-ui';
 import {featureTalentControls} from '../rules/combat-feats-ui';
 import {supportFeatureControls,receivedBardicControls,kitUseSummary} from '../rules/support-actions-ui';
 import {addPurchasedKitUses,healerKit} from '../rules/support-actions';
@@ -1132,7 +1135,8 @@ function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligib
   ) || 0;
   // Resolve tudo no clique. Trocar modo, limpar ou editar a bandeja durante a
   // animação só vale para o próximo lançamento, nunca para o que já foi feito.
-  const c=getChar(),inspired=inspirationEligible && !!c && dicePoolCounts[20]===1 && c.heroicInspiration && c.ruleState?.inspirationReady;
+  const c=getChar();if(context?.type==='attack' && (!context.weapon || !context.weaponAttack || combatActionState(c,context.weapon)?.attack!==context.weaponAttack))discardCombatAction(c,CharacterEngine);
+  const inspired=inspirationEligible && !!c && dicePoolCounts[20]===1 && c.heroicInspiration && c.ruleState?.inspirationReady;
   const initiative=context?.initiative===true && context.type==='check';
   if(initiative && (diceMode!=='auto' || !canEditSheet(c)))return showToast('A iniciativa desta ficha não pode alterar recursos neste contexto.');
   const rollDetails=c && dicePoolCounts[20]===1 && ['check','save','attack'].includes(context?.type)?sheetRollDetails(c,context,currentRollMode,CharacterEngine,!!inspired,context?.weaponAttack?.feinting?['Finta']:[]):null;
@@ -1167,6 +1171,12 @@ function rollCurrentPool(customLabel = "", allowFixed = false, inspirationEligib
 // Ações com resultado aplicado aos PV usam o mesmo motor/animação, sem alterar
 // o pool manual. OFF sempre exige registrar a face do dado físico.
 function ruleDiceSettings() { return {enabled:diceMode!=='off',automatic:diceMode==='auto',mode:currentRollMode,sequence:diceRollSequence}; }
+function rollRuleCheck(label,mode,context,bonus) {
+  if(diceMode==='off')throw new Error('Dados virtuais desativados: registre a face física.');
+  if(!Number.isSafeInteger(bonus) || Math.abs(bonus)>1000)throw new Error('Bônus de teste inválido.');
+  const result=evaluateDicePool({20:1},bonus,mode,sheetD20Rules(getChar(),context,CharacterEngine));
+  presentDiceResult(result,label);return result;
+}
 function rollRuleDie(sides,label,mode='normal',context=null,repeatOne=false) {
   if(diceMode==='off') throw new Error('Dados virtuais desativados: registre o resultado do dado físico.');
   let result=evaluateDicePool({[sides]:1},0,mode,sheetD20Rules(getChar(),context,CharacterEngine));
@@ -1648,6 +1658,7 @@ function renderSpellCastControls(char, spell, index) {
       ${options.length ? options.map((option) => `<option value="${option.value}" ${option.value === chosen ? "selected" : ""}>${option.source} · ${option.level}º · ${Number.isFinite(option.remaining)?Math.max(0, option.remaining):'∞'}/${Number.isFinite(option.total)?option.total:'∞'}${option.remaining <= 0 ? " (esgotado)" : ""}</option>`).join("") : '<option value="">Sem espaços compatíveis</option>'}
     </select>` : ""}
     ${spell.limitedUse ? `<span class="text-[11px]">Usos: ${Math.max(0, spell.limitedUse - (spell.usesUsed || 0))}/${escapeHTML(spell.limitedUse)}</span>` : ''}
+    ${canNormal && attackStats && spellAttackHasContext(char,CharacterEngine)?`<button type="button" data-spell-attack-context="${index}" onclick="rollSpellAttack(${index},true)" ${diceMode!=='auto'?'disabled':''} class="spell-action-button t-inset" aria-label="Contexto do ataque de ${escapeHTML(spell.name)}">Contexto</button>`:''}
     ${canNormal && attackStats?`<button type="button" data-spell-attack="${index}" onclick="rollSpellAttack(${index})" ${diceMode!=='auto'?'disabled':''} class="spell-action-button badge-feiticeiro" aria-label="Ataque de ${escapeHTML(spell.name)} ${fmtMod(attackStats.attack)}" ${RuleTooltips.attributes('Ataque com magia',{text:`Role 1d20 ${fmtMod(attackStats.attack)} contra a CA do alvo em Auto Ficha. Usa o bônus da classe desta magia, com vantagem/desvantagem e inspiração quando preparadas. Só rola o ataque: use Conjurar/Truque para registrar o lançamento e gastar o espaço, mesmo se errar. ${detail.perRay?'Cada raio/feixe exige uma jogada de ataque separada; repetir este botão não gasta outro espaço.':''}`})}>Atq ${fmtMod(attackStats.attack)}</button>`:''}
     ${canNormal ? `<button data-cast-spell="${index}" onclick="castSpellByIndex(${index})" ${poolOnly || unavailable ? "disabled" : ""} class="spell-action-button spell-cast-button t-btn-primary" title="${poolOnly?'Só Pool: use a bandeja. Para conjurar pela ficha, escolha Auto Ficha ou OFF para dados físicos.':['mastery','signature'].includes(chosen) ? 'Usa a característica sem gastar espaço. Para aprimorar, escolha um espaço no seletor.' : usesSlot ? "Gasta apenas o espaço selecionado. Para trocar a origem, use o seletor." : "Não gasta espaços de magia."}">${spell.ritual ? "Ritual" : spell.circle === 0 ? "Truque" : unavailable ? "Esgotado" : "Conjurar"}</button>` : ''}
     ${canCastRitual(char, spell) ? `<button data-cast-ritual="${index}" onclick="castRitualByIndex(${index})" ${poolOnly?'disabled':''} class="spell-action-button spell-cast-button t-inset" title="${poolOnly?'Só Pool: conjuração pela ficha desativada.':'Acrescenta 10 minutos ao tempo de conjuração e não gasta espaço.'}">Ritual</button>` : ''}
@@ -1679,12 +1690,17 @@ function spellDamageContext(effect) {
 }
 // O índice continua sendo o original da ficha, mesmo após filtrar por classe.
 // Repetir ataques (raios/feixes, por exemplo) não conjura nem cobra outro espaço.
-function rollSpellAttack(index) {
+function rollSpellAttack(index,withContext=false) {
   if(diceMode!=='auto')return;
   const char=getChar(),spell=char.spells[index];
   if(!spell || resolveSpellMeta(spell).defType!=='atq_magico' || !canCastNormally(char,spell,CharacterEngine))return;
   const stats=getSpellcastingStats(char,spell.classId,spell);
   if(!stats || !Number.isFinite(stats.attack))return;
+  if(withContext){
+    const trigger=document.querySelector(`[data-spell-attack-context="${index}"]`);
+    if(!trigger || !spellAttackHasContext(char,CharacterEngine))return;
+    return chooseSpellAttackSituation(char,CharacterEngine,trigger,()=>char.spells[index]===spell && canCastNormally(char,spell,CharacterEngine)).then(situation=>situation?triggerSheetRoll(`1d20${fmtMod(stats.attack)}`,`Ataque: ${spell.name}`,true,{type:'attack',ability:stats.ability,...situation}):undefined).catch(error=>showToast(error.message));
+  }
   return triggerSheetRoll(`1d20${fmtMod(stats.attack)}`,`Ataque: ${spell.name}`,true,{type:'attack',ability:stats.ability});
 }
 
@@ -2234,6 +2250,7 @@ function renderAttacksBlock(char) {
       !isCollapsed
         ? `
       <div class="p-3 space-y-2">
+        ${physicalContestControls()}
         ${char.weapons
           .map((storedWeapon, idx) => {
             const w = CharacterEngine.weaponStats(char, storedWeapon), attackBonus=weaponAttackBonus(char,storedWeapon,CharacterEngine);
@@ -2806,6 +2823,7 @@ async function rollWeapon(index, kind) {
   const riposte=kind==='riposte';if(riposte)kind='attack';
   if(kind==='damage' && rollPreparedWeaponDamage(getChar(),index,CharacterEngine,saveRuleStep))return;
   const c=getChar(),entry=c.weapons[index];
+  if(kind==='attack')discardCombatAction(c,CharacterEngine);
   if(entry?.ruleWeapon==='Golpe desarmado' && c.ruleState?.active?.['druida:wildShape'])return showToast('Ataque desarmado da Forma Selvagem: confira estatísticas e capacidade física na mesa. Não usa os valores humanos.');
   const weapon = CharacterEngine.weaponStats(c, entry);
   if (!weapon) return;
@@ -3515,6 +3533,7 @@ Object.assign(window, {
   chooseLuckyD20,
   rollQuickD20,
   triggerSheetRoll,
+  rollRuleCheck,
   rollInitiative,
   openAuthAccountModal,
   closeAuthAccountModal,

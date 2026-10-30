@@ -1946,3 +1946,25 @@ configuração/sequência de dado antes do RNG. Imunidade e falha automática n�
 rolam nem gastam inspiração. CD/modo/ajuste ficam recolhidos; escolhas/resultado
 não viram novos campos persistentes. Rerrolagens adicionais são resolvidas na
 mesa neste assistente; os botões de resistência comuns preservam o fluxo atual.
+
+
+### Ações de talentos e disputas corporais
+
+`combat-actions.ts` valida armas/gatilhos declarados e calcula variantes sem
+editar a arma guardada. `combat-action-state.ts` mantém uma sessão ligada ao
+personagem/arma/ataque, com snapshot: edições invalidam permanentemente até
+encerrar ou declarar outro ataque. Inspiração/Sortudo do d20 são excluídos da
+comparação; `withCombatActionCost` renova a guarda apenas na transação síncrona
+de Precisão/Atordoante do mesmo ataque. Sessões não entram em armazenamento.
+
+`weapon-damage.ts` lê o perfil válido para compor dados/tipos/modificadores,
+críticos, adicionais e repetições existentes. Um perfil vencido bloqueia registrar
+dano, conservando a opção de encerrá-lo. `combat-actions-ui.ts` revalida snapshot,
+conta, permissão, nó, modo/sequência e preparação antes de custo/RNG. O ataque
+com magia tem contexto opcional para proximidade e alvo agarrado, sem conjurar.
+
+`physical-contests.ts` resolve o teste próprio de Atletismo e comparação opcional,
+sem escrever condições/posição do alvo. O d20 virtual usa `rollRuleCheck` na ponte:
+o bônus entra no mesmo cálculo antes do piso de Força Indomável. O assistente
+físico replica essa ordem e aplica Confiável à face tratada. O empate conserva
+a situação anterior; custo/gatilho e aplicação no alvo seguem declarados.

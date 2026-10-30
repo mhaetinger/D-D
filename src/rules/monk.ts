@@ -1,3 +1,4 @@
+import {withCombatActionCost} from './combat-action-state';
 import {ability,active,level,proficiency,subclass,type Engine,type Sheet} from './model';
 import {incapacityReason} from './concentration';
 import {hasCondition,setCondition} from './conditions';
@@ -27,7 +28,7 @@ export function previewStunning(c:Sheet,index:number,target:string,declared:bool
   if(typeof target!=='string' || !target.trim() || target.trim().length>80 || declared!==true)throw new Error('Confirme um acerto corpo a corpo em outra criatura e identifique o alvo.');
   return {...reserve,dc:8+proficiency(c)+ability(c,'wis'),target:target.trim(),weapon:w.name};
 }
-export function applyStunning(c:Sheet,index:number,target:string,declared:boolean,E:Engine) {const p=previewStunning(c,index,target,declared,E);spend(c,p.resource);return p;}
+export function applyStunning(c:Sheet,index:number,target:string,declared:boolean,E:Engine) {const p=previewStunning(c,index,target,declared,E);return withCombatActionCost(c,c.weapons[index],()=>{spend(c,p.resource);return p;});}
 export function finishStillness(c:Sheet,condition:string,declared:boolean,clearMark:boolean) {
   monkAction(c,7);
   if(!['enfeiticado','amedrontado'].includes(condition) || !hasCondition(c,condition) || declared!==true || typeof clearMark!=='boolean')throw new Error('Confirme ação disponível para encerrar um efeito que esteja enfeitiçando ou amedrontando você.');

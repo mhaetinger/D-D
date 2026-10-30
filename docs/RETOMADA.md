@@ -10,6 +10,9 @@ recursos e magias de 2014**, na branch `feature/manobras-acerto-2014`, iniciada
 no develop público `9f676e0`. Tudo permanece agrupado na
 [PR #35](https://github.com/mhaetinger/D-D/pull/35), sem mesclar/publicar.
 
+O vigésimo quarto recorte reúne ataques bônus/oportunidade de talentos e
+assistente de disputas corporais. Haste, besta, Investida, Armas Grandes,
+Sentinela e Imobilizador usam os módulos de ataque/dano e as guardas existentes.
 O vigésimo terceiro recorte reúne defesas: imunidades/auras próprias,
 resistências condicionais e Mestre de Escudo, além da resistência a veneno do
 halfling robusto. Usa as janelas/rolador existentes, sem consulta de nuvem.
@@ -32,10 +35,10 @@ inteiro. A mesma PR reúne Adepto Elemental, recuperação/modo contextual na
 iniciativa, Sobrevivente e a revisão delimitada das quatro invocações. Critérios,
 limites e pendências ficam somente em `docs/AUDITORIA-LIVRO-2014.md`.
 
-A base `8c71885` passou integralmente em ambas as CIs: 711 testes, dependências,
-banco descartável, build e 56 roteiros. O avanço das defesas passou 733 testes
-Node, tipos/build e nove roteiros Chromium. A suíte exige agora
-57 roteiros e PostgreSQL descartável na CI. Resultados/evidências na auditoria
+A base `008471d` passou integralmente em ambas as CIs: 733 testes, dependências,
+banco descartável, build e 57 roteiros. O avanço de talentos passou 755 testes
+Node, tipos/build e 13 roteiros Chromium. A suíte exige agora
+58 roteiros e PostgreSQL descartável na CI. Resultados/evidências na auditoria
 junto dos limites de cada operação e na PR #35.
 As PRs #33/#34 foram substituídas pela entrega agrupada; não são trabalhos
 paralelos pendentes.
@@ -60,7 +63,7 @@ os recortes ainda parciais, sem prometer automação integral do livro.
 
 ## Escopo da entrega e próximos avanços
 
-O quarto recorte de R2 já foi publicado; quinto ao vigésimo terceiro ficam em
+O quarto recorte de R2 já foi publicado; quinto ao vigésimo quarto ficam em
 desenvolvimento, junto da revisão delimitada das invocações. A auditoria é a
 fonte única de critérios e pendências; as decisões da mesa podem continuar
 manuais, com indicação clara. A ordem permanece **draconatos → rolagens →

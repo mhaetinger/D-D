@@ -6,6 +6,7 @@ import {superiorityOptions} from './superiority';
 import {addPrecisionDie,type DiceResult} from './dice-roll';
 import {spend} from './resources';
 import {attackHasManeuver,currentWeaponAttack} from './weapon-attack-session';
+import {withCombatActionCost} from './combat-action-state';
 
 export interface PrecisionChoice {source:string;unresolved:boolean;noOtherManeuver:boolean}
 export function precisionAttackOptions(c:Sheet,entry:Sheet,result:DiceResult,E:Engine) {
@@ -29,5 +30,5 @@ export function previewPrecisionAttack(c:Sheet,entry:Sheet,result:DiceResult,cho
 export function commitPrecisionAttack(c:Sheet,entry:Sheet,result:DiceResult,choice:PrecisionChoice,face:number,E:Engine) {
   const source=previewPrecisionAttack(c,entry,result,choice,E);
   const next=addPrecisionDie(result,{face,sides:source.die,source:source.name});
-  spend(c,source.resource);return next;
+  return withCombatActionCost(c,entry,()=>{spend(c,source.resource);return next;});
 }

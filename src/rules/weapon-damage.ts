@@ -8,6 +8,7 @@ import {spend} from './resources';
 import {superiorityOptions} from './superiority';
 import {attackHasManeuver,currentWeaponAttack} from './weapon-attack-session';
 import {previewSweepingAttack,sweepingAttackDefinition,sweepingAttackOption,type SweepingChoice} from './sweeping-attack';
+import {combatActionPlan,combatActionState} from './combat-action-state';
 
 export interface WeaponDamageChoice {
   critical?:boolean;
@@ -32,7 +33,7 @@ export function smiteSlots(c:Sheet):SmiteSlot[] {
   return slots.sort((a,b)=>a.level-b.level);
 }
 export function weaponDamageOptions(c:Sheet,entry:Sheet,E:Engine) {
-  const w=weaponStats(c,entry,E),automatic=!!w.ruleWeapon && w.calculationMode!=='manual',hasDamage=w.weaponDie && w.weaponDie!=='0';
+  const w=combatActionPlan(c,entry,E)?.w || weaponStats(c,entry,E),automatic=!!w.ruleWeapon && w.calculationMode!=='manual',hasDamage=w.weaponDie && w.weaponDie!=='0';
   const sneak=automatic && hasDamage && level(c,'ladino')>0 && (w.rangedWeapon || /acuidade/i.test(w.properties));
   const colossus=automatic && hasDamage && level(c,'patrulheiro')>=3 && subclass(c,'patrulheiro',E)==='cacador' && c.rules?.history?.some((h:Sheet)=>h.classId==='patrulheiro' && h.level===3 && [h.answers?.hunter].flat().includes('Assassino de Colossos'));
   const training=maneuverTraining(c,E);
@@ -57,13 +58,14 @@ export function previewWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoic
   if(incapacityReason(c))throw new Error('É preciso poder atacar para registrar este dano de arma.');
   if(active(c,'druida:wildShape'))throw new Error('Resolva os ataques e as estatísticas da Forma Selvagem na mesa.');
   if(!entry || !c.weapons?.includes(entry))throw new Error('O ataque não pertence mais a esta ficha.');
+  if(combatActionState(c,entry)?.stale)throw new Error('A ficha mudou após declarar a ação. Encerre essa ação e confira um novo ataque; o contexto antigo não foi aplicado.');
   if(!choice || ['critical','powerAttack','colossus','smiteFavored'].some(k=>choice[k as keyof WeaponDamageChoice]!==undefined && typeof choice[k as keyof WeaponDamageChoice]!=='boolean') || choice.sneak!==undefined && !['advantage','ally'].includes(choice.sneak) || choice.smiteSlot!==undefined && typeof choice.smiteSlot!=='string')throw new Error('Confira as escolhas de dano deste acerto.');
   const options=weaponDamageOptions(c,entry,E),{w,automatic}=options,critical=!!choice.critical;
   const attack=currentWeaponAttack(c,entry),lunging=attack?.lunging,feinting=attack?.feinting,riposte=attack?.riposte;
   if(riposte && (!automatic || !w.meleeAttack || entry.attackMode==='thrown'))throw new Error('O contra-ataque mudou. Resolva na mesa o dado já pago.');
   if(feinting && !automatic)throw new Error('O ataque da Finta mudou. Resolva na mesa o dado já pago.');
   if(lunging && (!automatic || !w.meleeAttack || entry.attackMode==='thrown'))throw new Error('O ataque estendido mudou. Resolva este ataque na mesa com o dado já gasto.');
-  const powerAttack=weaponPowerAttack(c,entry,choice.powerAttack ?? false,E);
+  const combatAction=combatActionPlan(c,entry,E),powerAttack=weaponPowerAttack(c,entry,choice.powerAttack ?? false,E);
   if(automatic && w.weaponDie==='0')throw new Error('Esta arma tem efeito especial, sem dano de arma rolável. Consulte sua descrição.');
   if(choice.sneak && !options.sneak || choice.colossus && !options.colossus || choice.smiteSlot && !options.smite)throw new Error('Esta arma, classe ou nível não permite o dano adicional escolhido.');
   if(choice.smiteFavored && !choice.smiteSlot)throw new Error('Escolha um espaço para a Destruição Divina antes de indicar o alvo.');
@@ -96,7 +98,8 @@ export function previewWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoic
   if(choice.sneak)add('Ataque Furtivo',`${Math.ceil(level(c,'ladino')/2)}d6`,w.dmgTypeLabel);
   if(choice.colossus)add('Assassino de Colossos','1d8',w.dmgTypeLabel);
   if(slot)add('Destruição Divina',`${Math.min(5,slot.level+1)+(choice.smiteFavored?1:0)}d8`,'radiante');
-  if(powerAttack)add(powerAttack.name,String(powerAttack.damage),powerAttack.type);
+  if(powerAttack)add(powerAttack.name,String(powerAttack.damage),w.dmgTypeLabel || powerAttack.type);
+  if(combatAction?.fixed)add('Investida Poderosa',String(combatAction.fixed),w.dmgTypeLabel);
   if(maneuver && !sweeping)add(maneuver.name,`1d${maneuver.source.die}`,w.dmgTypeLabel);
   if(lunging)add('Ataque Estendido',`1d${lunging.die}`,w.dmgTypeLabel);
   if(feinting)add('Ataque de Finta',`1d${feinting.die}`,w.dmgTypeLabel);
@@ -111,7 +114,7 @@ export function previewWeaponDamage(c:Sheet,entry:Sheet,choice:WeaponDamageChoic
   }
   const parsed=parseDiceFormula(parts.map(p=>p.formula).join('+').replace(/\+-/g,'-'));
   if(!parsed)throw new Error('A composição ultrapassa os limites do rolador; nenhum recurso foi gasto.');
-  return {name:String(w.name),critical,powerAttack,manual:!automatic,formula:parsed.formula,parts,slot:slot || null,maneuver,...(sweeping?{sweeping}:{}),...(lunging?{lunging}:{}),...(feinting?{feinting}:{}),...(riposte?{riposte}:{}),
+  return {name:String(w.name),critical,powerAttack,manual:!automatic,formula:parsed.formula,parts,slot:slot || null,maneuver,...(sweeping?{sweeping}:{}),...(lunging?{lunging}:{}),...(feinting?{feinting}:{}),...(riposte?{riposte}:{}),...(combatAction?{combatAction}:{}),
     summary:parts.map(p=>`${p.name}: ${p.formula} ${p.type}`).join(' · ')};
 }
 /** Valida todos os custos antes de descontar. Destruição não é conjuração de magia:

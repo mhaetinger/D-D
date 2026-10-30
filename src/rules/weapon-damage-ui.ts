@@ -12,6 +12,8 @@ import {attackHasManeuver,currentWeaponAttack,finishWeaponAttack} from './weapon
 import {lungingAttackTools} from './lunging-attack-ui';
 import {feintingWeaponTools} from './feinting-attack-ui';
 import {riposteTools} from './riposte-ui';
+import {combatActionTools,refreshCombatActionTools} from './combat-actions-ui';
+import {combatActionState,combatActionPlan} from './combat-action-state';
 
 const tip=(name:string,text:string)=>`tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name,text}))}"`;
 // Preparação efêmera por objeto de arma: não altera ficha, notas ou histórico,
@@ -26,17 +28,17 @@ export function weaponAttackBonus(c:Sheet,entry:Sheet,E:Engine) {
   const bonus=Number(base)-5;return bonus>=0?'+'+bonus:String(bonus);
 }
 export function weaponDamageLabel(c:Sheet,entry:Sheet,E:Engine,critical=weaponCriticalPrepared(entry),powerAttack=weaponPowerAttackPrepared(c,entry,E)) {
-  if(!critical && !powerAttack && !currentWeaponAttack(c,entry)?.lunging && !currentWeaponAttack(c,entry)?.feinting && !currentWeaponAttack(c,entry)?.riposte)return 'Dano '+weaponDamageOptions(c,entry,E).w.damage;
+  if(!critical && !powerAttack && !currentWeaponAttack(c,entry)?.lunging && !currentWeaponAttack(c,entry)?.feinting && !currentWeaponAttack(c,entry)?.riposte && !combatActionState(c,entry))return 'Dano '+weaponDamageOptions(c,entry,E).w.damage;
   try {return `${critical?'Dano crítico':'Dano'} `+previewWeaponDamage(c,entry,{critical,powerAttack},E).formula;}
   catch {return `${critical?'Dano crítico':'Dano'} · conferir`;}
 }
 export function refreshWeaponDamageLabel(c:Sheet,index:number,E:Engine) {
-  const entry=c.weapons[index],card=document.querySelector(`[data-weapon-card="${index}"]`);
+  const entry=c.weapons[index];refreshCombatActionTools(c,entry,index,E);const card=document.querySelector(`[data-weapon-card="${index}"]`);
   const label=card?.querySelector('[data-weapon-damage-text]');if(label)label.textContent=weaponDamageLabel(c,entry,E);
   const attack=card?.querySelector('[data-weapon-attack-text]');if(attack)attack.textContent='Atq '+weaponAttackBonus(c,entry,E);
   const record=card?.querySelector<HTMLButtonElement>('[data-rule-weapon-damage]');
   if(record){
-    const o=weaponDamageOptions(c,entry,E),session=currentWeaponAttack(c,entry),additional=o.sneak || o.colossus || o.smite || o.maneuvers.length>0 || !!session?.lunging || !!session?.feinting || !!session?.riposte;
+    const o=weaponDamageOptions(c,entry,E),session=currentWeaponAttack(c,entry),additional=o.sneak || o.colossus || o.smite || o.maneuvers.length>0 || !!session?.lunging || !!session?.feinting || !!session?.riposte || !!combatActionState(c,entry);
     // Finta já foi paga em outro passo: liberar o dano virtual atualiza o botão
     // existente, sem reconstruir a lista ou perder seu foco.
     record.toggleAttribute('data-weapon-record-only',!additional);record.textContent=additional?'Adicionais':'Registrar dano';record.setAttribute('aria-label',`${additional?'Adicionais':'Registrar dano'} de ${o.w.name}`);
@@ -59,9 +61,9 @@ export function setWeaponCriticalPrepared(c:Sheet,index:number,E:Engine,critical
   refreshWeaponDamageLabel(c,index,E);
 }
 export function renderWeaponDamageTools(c:Sheet,entry:Sheet,index:number,E:Engine) {
-  const options=weaponDamageOptions(c,entry,E),additional=options.sneak || options.colossus || options.smite || options.maneuvers.length>0 || !!currentWeaponAttack(c,entry)?.lunging || !!currentWeaponAttack(c,entry)?.feinting || !!currentWeaponAttack(c,entry)?.riposte;
+  const options=weaponDamageOptions(c,entry,E),additional=options.sneak || options.colossus || options.smite || options.maneuvers.length>0 || !!currentWeaponAttack(c,entry)?.lunging || !!currentWeaponAttack(c,entry)?.feinting || !!currentWeaponAttack(c,entry)?.riposte || !!combatActionState(c,entry);
   const power=weaponPowerAttackOption(c,entry,E);
-  return `<div class="weapon-tools mt-2 flex flex-wrap items-center gap-x-3 gap-y-1"><label class="inline-flex items-center gap-1.5" ${tip('Preparar dano crítico','No Auto Ficha, cada ataque desta arma atualiza a marca pelo d20 natural escolhido, respeitando seu intervalo de crítico. Você também pode marcar manualmente. Isso só prepara a fórmula: clique em Dano para rolar. Os dados do ataque dobram, os bônus fixos entram uma vez. Confirmar o dano retira a marca; cancelar mantém a preparação.')}><input type="checkbox" data-weapon-critical-toggle="${index}" ${weaponCriticalPrepared(entry)?'checked':''}> Crítico</label><button type="button" data-rule-weapon-damage="${index}" ${additional?'':'data-weapon-record-only'} class="underline decoration-dotted text-left" aria-label="${additional?'Adicionais':'Registrar dano'} de ${escape(options.w.name)}">${additional?'Adicionais':'Registrar dano'}</button>${power?`<label class="inline-flex items-center gap-1.5" ${tip(power.name,'2014: escolha antes de cada ataque com esta arma proficiente. Aplica –5 na jogada; se acertar, +10 do tipo da arma, uma vez, inclusive no crítico. Confirme acerto/erro na mesa. A escolha termina ao confirmar o dano; se errou, desmarque antes de continuar. OFF/Só Pool permitem registrar o total físico já incluindo +10. Totais cadastrados e outras armas não mudam. Cobertura, alcance e o ataque bônus de Mestre de Armas Grandes continuam na mesa.')}><input type="checkbox" data-weapon-power-toggle="${index}" ${weaponPowerAttackPrepared(c,entry,E)?'checked':''} ${canEditSheet(c)?'':'disabled'} aria-label="${escape(power.name)}: –5 no ataque e +10 no dano"> –5 ataque / +10 dano</label>`:''}${lungingAttackTools(c,entry,index,E)}${feintingWeaponTools(c,entry,index,E)}${riposteTools(c,entry,index,E)}</div>`;
+  return `<div class="weapon-tools mt-2 flex flex-wrap items-center gap-x-3 gap-y-1"><label class="inline-flex items-center gap-1.5" ${tip('Preparar dano crítico','No Auto Ficha, cada ataque desta arma atualiza a marca pelo d20 natural escolhido, respeitando seu intervalo de crítico. Você também pode marcar manualmente. Isso só prepara a fórmula: clique em Dano para rolar. Os dados do ataque dobram, os bônus fixos entram uma vez. Confirmar o dano retira a marca; cancelar mantém a preparação.')}><input type="checkbox" data-weapon-critical-toggle="${index}" ${weaponCriticalPrepared(entry)?'checked':''}> Crítico</label><button type="button" data-rule-weapon-damage="${index}" ${additional?'':'data-weapon-record-only'} class="underline decoration-dotted text-left" aria-label="${additional?'Adicionais':'Registrar dano'} de ${escape(options.w.name)}">${additional?'Adicionais':'Registrar dano'}</button>${power?`<label class="inline-flex items-center gap-1.5" ${tip(power.name,'2014: escolha antes de cada ataque com esta arma proficiente. Aplica –5 na jogada; se acertar, +10 do tipo da arma, uma vez, inclusive no crítico. Confirme acerto/erro na mesa. A escolha termina ao confirmar o dano; se errou, desmarque antes de continuar. OFF/Só Pool permitem registrar o total físico já incluindo +10. Totais cadastrados e outras armas não mudam. Cobertura e alcance continuam na mesa; o ataque bônus de Mestre de Armas Grandes fica em Ação / reação.')}><input type="checkbox" data-weapon-power-toggle="${index}" ${weaponPowerAttackPrepared(c,entry,E)?'checked':''} ${canEditSheet(c)?'':'disabled'} aria-label="${escape(power.name)}: –5 no ataque e +10 no dano"> –5 ataque / +10 dano</label>`:''}${lungingAttackTools(c,entry,index,E)}${feintingWeaponTools(c,entry,index,E)}${riposteTools(c,entry,index,E)}${combatActionTools(c,entry,index,E)}</div>`;
 }
 /** O botão comum trata crítico/–5/+10 preparados. Em OFF/Só Pool abre o
  * registro físico existente; em Auto Ficha rola no clique, nunca na marcação. */
@@ -69,7 +71,7 @@ export function rollPreparedWeaponDamage(c:Sheet,index:number,E:Engine,save:(des
   const entry=c.weapons[index];if(!entry)return false;
   if(resumeWeaponReroll(c,entry))return true;
   const critical=weaponCriticalPrepared(entry),powerAttack=weaponPowerAttackPrepared(c,entry,E),rerolls=weaponRerollOptions(c,entry,E);
-  if(currentWeaponAttack(c,entry)?.lunging || currentWeaponAttack(c,entry)?.feinting || currentWeaponAttack(c,entry)?.riposte){document.querySelector<HTMLButtonElement>(`[data-rule-weapon-damage="${index}"]`)?.click();return true;}
+  if(combatActionState(c,entry) || currentWeaponAttack(c,entry)?.lunging || currentWeaponAttack(c,entry)?.feinting || currentWeaponAttack(c,entry)?.riposte){document.querySelector<HTMLButtonElement>(`[data-rule-weapon-damage="${index}"]`)?.click();return true;}
   if(!critical && !powerAttack && !rerolls.savage && !rerolls.greatWeapon && !weaponDamageOptions(c,entry,E).w.unarmed)return false;
   const host=window as any;
   if(!host.ruleDiceSettings().automatic) {document.querySelector<HTMLButtonElement>(`[data-rule-weapon-damage="${index}"]`)?.click();return true;}
@@ -108,7 +110,7 @@ export function setupWeaponDamageUI(E:Engine,save:(description:string)=>void) {
       const critical=weaponCriticalPrepared(entry),powerAttack=weaponPowerAttackPrepared(c,entry,E),before=JSON.stringify(c),controls=document.createElement('div');
       const workspace=currentWorkspaceKey(),settings=host.ruleDiceSettings();
       controls.className='rule-context rule-dialog-fields';
-      controls.innerHTML=`${critical?'<p><strong>Crítico preparado na arma · dados extras já incluídos abaixo.</strong></p>':''}
+      controls.innerHTML=`${combatActionPlan(c,entry,E)?`<p><strong>${escape(combatActionPlan(c,entry,E)!.name)} · ${escape(combatActionPlan(c,entry,E)!.choice.target)}.</strong> ${escape(combatActionPlan(c,entry,E)!.note)}</p><label class="rule-check"><input type="checkbox" required data-combat-action-hit> Acertei este ataque contra o alvo declarado</label>`:''}${critical?'<p><strong>Crítico preparado na arma · dados extras já incluídos abaixo.</strong></p>':''}
       ${lunging?`<p><strong>Ataque Estendido · alcance +1,5 m neste ataque · ${escape(lunging.name)} d${lunging.die} já pago.</strong> No acerto, o dado entra no dano e dobra em crítico, sem novo gasto. Não combine outra manobra.</p><label class="rule-check"><input type="checkbox" required data-lunging-hit> Acertei este ataque estendido; o alcance e o alvo foram conferidos na mesa</label>`:''}
       ${feinting?`<p class="min-w-0 break-words"><strong>Ataque de Finta · ${escape(feinting.target)} · ${escape(feinting.name)} d${feinting.die} já pago.</strong> Só este ataque. No acerto, inclui o dado e dobra em crítico, sem novo gasto.</p><label class="rule-check"><input type="checkbox" required data-feinting-hit> Acertei o ataque da Finta contra esse alvo, no mesmo turno e sem outra manobra</label>`:''}
       ${riposte?`<p class="min-w-0 break-words"><strong>Contra-Atacar · ${escape(riposte.target)} · ${escape(riposte.name)} d${riposte.die} já pago.</strong> Um ataque com reação contra essa criatura. No acerto, inclui o dado e dobra em crítico, sem novo gasto.</p><label class="rule-check"><input type="checkbox" required data-riposte-hit> Acertei este contra-ataque contra a criatura que errou, sem outra manobra</label>`:''}
@@ -186,7 +188,7 @@ export function setupWeaponDamageUI(E:Engine,save:(description:string)=>void) {
       const form=document.querySelector<HTMLFormElement>('#confirmationDialog form')!;
       const validate=(event:SubmitEvent)=>{
         if((event.submitter as HTMLButtonElement)?.value!=='confirm')return;
-        try {if(riposte && !controls.querySelector<HTMLInputElement>('[data-riposte-hit]')!.checked)throw new Error('Confirme o acerto deste contra-ataque.');if(feinting && !controls.querySelector<HTMLInputElement>('[data-feinting-hit]')!.checked)throw new Error('Confirme o acerto da Finta.');if(lunging && !controls.querySelector<HTMLInputElement>('[data-lunging-hit]')!.checked)throw new Error('Confirme o acerto deste ataque estendido.');if(choice().maneuver && attackHasManeuver(currentWeaponAttack(c,entry)))throw new Error(precisionUsed?'Precisão já foi usada neste ataque. Não combine outra manobra.':'Este ataque já usou uma manobra. Não combine outra.');previewWeaponDamage(c,entry,choice(),E);}catch(error){event.preventDefault();host.showToast((error as Error).message);}
+        try {if(combatActionState(c,entry) && !controls.querySelector<HTMLInputElement>('[data-combat-action-hit]')?.checked)throw new Error('Confirme o acerto da ação declarada.');if(riposte && !controls.querySelector<HTMLInputElement>('[data-riposte-hit]')!.checked)throw new Error('Confirme o acerto deste contra-ataque.');if(feinting && !controls.querySelector<HTMLInputElement>('[data-feinting-hit]')!.checked)throw new Error('Confirme o acerto da Finta.');if(lunging && !controls.querySelector<HTMLInputElement>('[data-lunging-hit]')!.checked)throw new Error('Confirme o acerto deste ataque estendido.');if(choice().maneuver && attackHasManeuver(currentWeaponAttack(c,entry)))throw new Error(precisionUsed?'Precisão já foi usada neste ataque. Não combine outra manobra.':'Este ataque já usou uma manobra. Não combine outra.');previewWeaponDamage(c,entry,choice(),E);}catch(error){event.preventDefault();host.showToast((error as Error).message);}
       };
       form.addEventListener('submit',validate);
       let confirmed=false;

@@ -2,6 +2,7 @@ import type {Sheet} from './model';
 import {clearFeints,type PaidFeint} from './feinting-state';
 import {clearCommands} from './commanders-strike-state';
 import {clearMonkReturns} from './monk-state';
+import {clearCombatActions} from './combat-action-state';
 
 export interface PaidLungingAttack {source:string;name:string;die:number}
 export interface PaidRiposte extends PaidLungingAttack {target:string}
@@ -57,4 +58,4 @@ export function beginRiposte(c:Sheet,entry:Sheet,riposte:PaidRiposte) {
 export function finishRiposte(c:Sheet) {
   const old=riposteAttacks.get(c);if(old)finishWeaponAttack(c,old.entry);return old;
 }
-export function clearWeaponAttacks(){attacks=new WeakMap();lungingAttacks=new WeakMap();feintingAttacks=new WeakMap();riposteAttacks=new WeakMap();clearFeints();clearCommands();clearMonkReturns();}
+export function clearWeaponAttacks(){attacks=new WeakMap();lungingAttacks=new WeakMap();feintingAttacks=new WeakMap();riposteAttacks=new WeakMap();clearFeints();clearCommands();clearMonkReturns();clearCombatActions();}

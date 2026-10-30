@@ -6,7 +6,7 @@ import {catalogueWeapon,weaponStats} from './combat';
 import {initiativeTraits} from './initiative-mode';
 import type {RollMode} from './dice-roll';
 
-export interface SheetRollContext {type:'check'|'save'|'attack';ability?:string;skill?:string;initiative?:boolean;weapon?:Sheet}
+export interface SheetRollContext {type:'check'|'save'|'attack';ability?:string;skill?:string;initiative?:boolean;weapon?:Sheet;ranged?:boolean;hostileNear?:boolean;grappledByYou?:boolean}
 const skillAbilities:Record<string,string>={acrobacia:'dex',arcanismo:'int',atletismo:'str',atuacao:'cha',enganacao:'cha',furtividade:'dex',historia:'int',intimidacao:'cha',intuicao:'wis',investigacao:'int',lidar_animais:'wis',medicina:'wis',natureza:'int',percepcao:'wis',persuasao:'cha',prestidigitacao:'dex',religiao:'int',sobrevivencia:'wis'};
 export function rollAbility(c:Sheet,context:SheetRollContext,E:Engine) {
   return context.ability || (context.initiative?'dex':context.skill?skillAbilities[context.skill]:context.weapon?weaponStats(c,context.weapon,E).ability:undefined);
@@ -31,6 +31,9 @@ export function sheetRollTraits(c:Sheet,context:SheetRollContext,E:Engine) {
   if(Number(c.exhaustion)>=(context.type==='check'?1:3))disadvantage.push('Exaustão');
   if(context.type!=='save' && hasCondition(c,'envenenado'))disadvantage.push('Envenenado');
   if(context.type==='attack'){
+    const ranged=context.ranged || context.weapon && (weaponStats(c,context.weapon,E).rangedWeapon || context.weapon.attackMode==='thrown');
+    if(ranged && context.hostileNear){if(hasFeat(c,E,'Especialista em Besta'))notes.push('Especialista em Besta evita a desvantagem apenas por inimigo a até 1,5 m.');else disadvantage.push('Inimigo a até 1,5 m');}
+    if(context.grappledByYou && hasFeat(c,E,'Imobilizador'))advantage.push('Imobilizador · alvo agarrado por você');
     for(const [id,label] of [['cego','Cego'],['caido','Caído'],['impedido','Impedido']])if(hasCondition(c,id))disadvantage.push(label);
     if(hasCondition(c,'invisivel'))advantage.push('Invisível');
     const w=context.weapon && catalogueWeapon(context.weapon,E);

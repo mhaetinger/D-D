@@ -284,7 +284,7 @@ básico real telefone/computador já foram confirmados pelo responsável.
 | Etapa | Estado desta sequência | Trabalho e critério de conclusão |
 | --- | --- | --- |
 | R1 — bônus nos cálculos | **Quatro passivos entregues; achados A01/A05/A06 corrigidos nesta branch** | O recorte original continua implementado. A01/A05/A06 corrigem os bônus/modificadores adicionais e a inconsistência de PV identificados no check-up; regressões nesta entrega. Tipos variáveis/efeitos posteriores seguem em R5. |
-| R2 — rolagens e gastos condicionais | **Quinto ao vigésimo terceiro recortes em desenvolvimento; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo na PR #20; -5/+10 na PR #21; Atacante Bestial e Combate com Armas Grandes publicados nas PRs #31/#32. Quinto recorte: Adepto Elemental nos danos de magia reconhecidos. Sexto: Ataque Desarmante/Derrubar no dano e reservas do Adepto Marcial. Sétimo: Precisão depois do d20 com Sortudo/halfling. Oitavo: cinco outras manobras de dano, com FOR/SAB ou sem resistência. Nono: recuperação de superioridade, Inspiração de Bardo e Chi ao rolar iniciativa com a reserva vazia. Décimo: vantagem/desvantagem contextual na iniciativa. Décimo primeiro: Sobrevivente no início do turno declarado pela mesa. Décimo segundo: Aparar no dano recebido. Décimo terceiro: Inspirar com dado + CAR para PV temporários de aliado. Décimo quarto: Passo Evasivo na CA até parar de se mover. Décimo quinto: Estendido escolhido antes do ataque, alcance de um ataque e dado já pago no dano. Décimo sexto: Finta com ação bônus/alvo, vantagem contextual e dado já pago no acerto. Décimo sétimo: Trespassante com dano separado à segunda criatura pela mesma jogada. Décimo oitavo: Contra-Atacar com reação e custo antes do ataque após um erro corpo a corpo. Décimo nono: Golpe do Comandante com custo antecipado e dado adicional do ataque imediato de um aliado, resolvido na mesa. Vigésimo: lote de modos contextuais, Força Indomável, Duelista Defensivo e Líder Inspirador. Vigésimo primeiro: Curandeiro/kit e apoio do bardo. Vigésimo segundo: núcleo de combate do monge, reações e repetição de resistências. Vigésimo terceiro: resistências condicionais, imunidades/auras próprias e defesas de Mestre de Escudo. As 16 manobras têm controles delimitados; critérios e limites abaixo. Faltam adicionais dos demais talentos/estilos e contextos de elemento/efeito ainda manuais. Turnos/alvos continuam declarados pela mesa. |
+| R2 — rolagens e gastos condicionais | **Quinto ao vigésimo quarto recortes em desenvolvimento; etapa parcial** | Talento Confiável, Sortudo racial e talento Sortudo na PR #20; -5/+10 na PR #21; Atacante Bestial e Combate com Armas Grandes publicados nas PRs #31/#32. Quinto recorte: Adepto Elemental nos danos de magia reconhecidos. Sexto: Ataque Desarmante/Derrubar no dano e reservas do Adepto Marcial. Sétimo: Precisão depois do d20 com Sortudo/halfling. Oitavo: cinco outras manobras de dano, com FOR/SAB ou sem resistência. Nono: recuperação de superioridade, Inspiração de Bardo e Chi ao rolar iniciativa com a reserva vazia. Décimo: vantagem/desvantagem contextual na iniciativa. Décimo primeiro: Sobrevivente no início do turno declarado pela mesa. Décimo segundo: Aparar no dano recebido. Décimo terceiro: Inspirar com dado + CAR para PV temporários de aliado. Décimo quarto: Passo Evasivo na CA até parar de se mover. Décimo quinto: Estendido escolhido antes do ataque, alcance de um ataque e dado já pago no dano. Décimo sexto: Finta com ação bônus/alvo, vantagem contextual e dado já pago no acerto. Décimo sétimo: Trespassante com dano separado à segunda criatura pela mesma jogada. Décimo oitavo: Contra-Atacar com reação e custo antes do ataque após um erro corpo a corpo. Décimo nono: Golpe do Comandante com custo antecipado e dado adicional do ataque imediato de um aliado, resolvido na mesa. Vigésimo: lote de modos contextuais, Força Indomável, Duelista Defensivo e Líder Inspirador. Vigésimo primeiro: Curandeiro/kit e apoio do bardo. Vigésimo segundo: núcleo de combate do monge, reações e repetição de resistências. Vigésimo terceiro: resistências condicionais, imunidades/auras próprias e defesas de Mestre de Escudo. Vigésimo quarto: talentos de ataques bônus/oportunidade, contexto de magia e disputas corporais. As 16 manobras têm controles delimitados; critérios e limites abaixo. Faltam adicionais dos demais talentos/estilos e contextos de elemento/efeito ainda manuais. Turnos/alvos continuam declarados pela mesa. |
 | R3 — condições, defesas e características | **Parcial: lote de imunidades/auras e testes condicionais implementado** | Modos próprios de condições, defesas do monge e vigésimo terceiro recorte: auras próprias, Fúria Inconsciente, Defesa Sedutora, Proteção Natural, fontes raciais, Sentido de Perigo, Abjuração e Mestre de Escudo. Completar as demais imunidades/auras recebidas, outras reações e prevenção de queda, passivos de escolas/domínios e origens de resistência. Conferir alvos/fontes, custo, encerramento e o que continua decidido na mesa. |
 | R4 — formas e criaturas | Planejada; PV da forma/companheiro já existem | Integrar bloco de criatura e elegibilidade da forma, estatísticas/CON, custo de elemental, defesas/excesso, familiar e companheiro. Não aplicar estatísticas humanas à besta; manter a reserva humana e a consulta ao livro. |
 | R5 — famílias de magias | Parcial: oito curas e quatro invocações auditadas | Revisão delimitada de invocações e magias associadas concluída abaixo; vínculo automático de conjuração/custo ainda manual. Revisar outras famílias: dano/cura, bônus, áreas, alvos, transformações e efeitos persistentes. Reutilizar grimório/PV/rolador, sem 361 controles separados. |
@@ -1472,6 +1472,53 @@ Evidências em `~/.local/state/critcall/audits/2026-10-30-defesas/`.
 A suíte remota passa a exigir 57 roteiros. R2/R3/R4/R5/R6 continuam parciais;
 não certifica todas as condições, todas as auras ou decisões de alvos/turnos.
 
+### Vigésimo quarto recorte de R2/R3/R6: ações e disputas de combate — 30/10/2026
+
+**Em desenvolvimento na PR #35, sem publicação.** Fontes: Livro do Jogador
+2014, talentos pp. 169–172 (PDFs 168–171), ataques especiais p. 195/PDF 194,
+Artes Marciais p. 104/PDF 103; [errata oficial de 2014](https://media.wizards.com/2021/dnd/downloads/PH-Errata.pdf)
+para Maestria em Arma de Haste e [Sage Advice Compendium 2014](https://www.dndbeyond.com/sources/dnd/sac/sage-advice-compendium)
+para mão livre/munição, ataque com a própria besta, proximidade em magia,
+Disparada do próprio personagem e reação de Sentinela depois do ataque.
+
+| Operação | Cobertura deste lote | Limite na mesa |
+| --- | --- | --- |
+| Ação / reação | Uma preparação de arma automática por personagem/acerto. Usa o d20 comum em Auto Ficha ou prepara ataque físico; crítico, adicionais e dano usam o fluxo existente. Sem editar fórmula/tipo/ataque cadastrados | Ação bônus/reação, alcance, momento/gatilho e acerto declarados. Não implementa relógio de turnos nem permite outra reação automaticamente |
+| Haste | Cabo d4 de concussão; habilidade/magia elegíveis, modificador normal em ataque bônus, crítico/Brutal/meio-orc do dado efetivo, Destruição e repetições comuns. Lança entra pela errata; lança longa só tem oportunidade. Artes Marciais pode ser escolhida quando elegível | Ataques anteriores somente com armas elegíveis, empunhar a arma e alcance de entrada. Não cria bônus numérico por arma mágica de monge |
+| Besta | Ataque bônus apenas para besta de mão, depois de Atacar com arma de uma mão; não requer uma segunda besta. Escudo impede mão livre nesse fluxo. Contexto retira desvantagem exclusivamente pela proximidade com Especialista, inclusive em magia; preserva outras desvantagens | Munição/mão livre, proficiência para ignorar recarga e ataque anterior declarados. Contagem de disparos/munição continua manual |
+| Investida / Armas Grandes | Ataque bônus após a própria Disparada; +5 no dano só com 3 m em linha reta, uma vez também no crítico. Armas Grandes admite bônus após gatilho declarado, sem exigir arma pesada para essa parte | Gatilho não é inferido de PV de outra criatura. Sem nova aplicação de –5/+10 ou golpe extra automático |
+| Sentinela | Oportunidade na saída, mesmo com Desengajar, ou reação após ataque contra outro alvo sem o talento. Oportunidade de Sentinela/haste informa deslocamento zero até fim do turno ao acertar; ataque contra terceiro não ganha esse efeito | Visão quando exigida, movimento válido, alcance/reação. Não ignora Mobilidade ou outros meios de evitar oportunidade; aplica movimento no alvo na mesa |
+| Imobilizador / disputas | Contexto de vantagem contra alvo agarrado por você, também em magia; disputa própria de Atletismo para agarrar, empurrar/derrubar ou imobilizar com ação inteira. Oponente pode informar Atletismo/Acrobacia final; empate mantém o estado. Escudo e Investida têm empurrões bônus distintos | Mão, tamanho/alcance e agarre prévio. Imobilizar informa ambos impedidos; não escreve marca sem fonte em outra ficha ou apaga impedimentos antigos. Agarrar/empurrar são testes, não ataques contra CA ou resistências |
+| Teste próprio | Proficiência/especialização ou total manual, Confiável, Fúria/exaustão/inspiração e Força Indomável aplicados na ordem correta; físico/virtual. O piso de FOR vale no total após somar o bônus | Face física já escolhida pelo modo. Sortudo e outras rerrolagens são resolvidos na mesa neste assistente de disputas |
+
+Perfil/resultado ficam fora do documento e do backup. Outro ataque, modo/conta,
+encerramento ou edição encerram/invalidam o perfil; devolver o valor editado não
+o restaura. Custos próprios de inspiração/Sortudo não descartam o ataque, e
+Precisão/Atordoante atualizam a guarda em transação síncrona do mesmo ataque.
+Dano continua limitado a uma manobra e permite físico/virtual; preparações de
+Finta/Estendido usam seus fluxos próprios e não são combinadas neste assistente.
+Não apaga fichas/notas, não muda dados de outra criatura, não cria SQL/consulta
+de nuvem e não edita catálogos gerados.
+
+**Base aprovada integralmente:** `008471d`, 733 testes, dependências, banco
+PostgreSQL descartável, build e 57 roteiros em ambos os runs:
+[PR](https://github.com/mhaetinger/D-D/actions/runs/41065238275) e
+[push](https://github.com/mhaetinger/D-D/actions/runs/41065230564).
+
+**Verificação local:** 755 testes Node, tipos/build e 13 roteiros Chromium
+aprovados: ações, dano de armas, –5/+10, repetições, Precisão, monge, ataques
+de magia, Estendido, Finta, Contra-Atacar, lote de combate, editor e dado.
+Incluem custos/pisos/crítico/tipos/adicionais, declaração/alvos/gatilhos,
+cancelamento/guardas/futuro/backup, físico/virtual/OFF/Só Pool, nós/foco/rodinha,
+320px/GG/dois layouts/três temas/toque/XSS e offline real sob `/D-D/`.
+Uma execução de monge não abriu a janela de Alma de Diamante; três repetições
+passaram, as duas últimas sem instrumentação, sem mudar sua regra. O roteiro novo
+corrigiu uma espera do próprio teste que aguardava a confirmação antes de
+preenchê-la. A suíte remota completa continua exigida, agora com 58 roteiros.
+Evidências em `~/.local/state/critcall/audits/2026-10-30-acoes-combate/`. R2/R3/R4/R5/R6
+continuam parciais. Montaria, surpresa/ocultação, demais passivos de subclasses,
+munição/recarga automática e todas as famílias de magias não estão concluídos.
+
 ### Revisão das quatro invocações — 23/10/2026
 
 **Revisão delimitada concluída em desenvolvimento**, a partir das reproduções
@@ -1697,28 +1744,28 @@ que todos precisem ganhar um botão. Consulta/registro existem em todos.
 | Conjurador de Ritual | Escolha de classe/rituais e ação ritual | Cópia/custo/tempo do livro e efeitos das magias |
 | Curandeiro | Tratamento, estabilização e gasto de kit; cura própria e cálculo para destinatário, no lote de apoio | Elegibilidade por tratamentos/descansos anteriores e aplicação em outra ficha declaradas; ver limites do vigésimo primeiro recorte |
 | Duelista Defensivo | Prévia e registro de reação junto da CA, arma de acuidade proficiente, bônus só contra um ataque e crítico/igualdade distintos; lote de combate | Reação/arma empunhada declaradas; dano na mesa, sem CA permanente |
-| Especialista em Besta | Registro | Recarga, ataque próximo e ação bônus |
+| Especialista em Besta | Ataque bônus com besta de mão; contexto evita desvantagem por inimigo próximo, inclusive em ataque mágico | Munição/mão livre e Atacar anterior declarados; recarga proficiente consultada, sem contador automático de disparos |
 | Especialista em Briga | +1 FOR/CON e d4 no golpe desarmado vinculado, no lote do monge | Armas improvisadas e agarrar |
 | Explorador de Cavernas | Registro | Armadilhas/portas e deslocamento de procura |
-| Imobilizador | Registro | Vantagem contra alvo agarrado e imobilização |
+| Imobilizador | Contexto de vantagem contra criatura agarrada por você; disputa para imobilizar com ação inteira | Agarre anterior e condições de ambos na mesa; não ganha vantagem só por estar fazendo disputa de agarrar |
 | Iniciado em Magia | Dois truques, magia e uso limitado | Efeitos/resolução do grimório; exceções de origem precisam revisão |
-| Investida Poderosa | Registro | Disparada, distância mínima e ação bônus |
+| Investida Poderosa | Ataque bônus após Disparada, +5 com 3 m em linha reta sem dobrar no crítico; alternativa de empurrão por disputa | Gatilho, movimento e ação bônus declarados; condições/posição do alvo na mesa |
 | Líder Inspirador | Cálculo nível total + CAR, 1–6 participantes, declaração dos requisitos e manter/substituir temporários próprios; lote de combate | Descanso desde qualquer líder e aplicação por destinatário na mesa; não altera outras fichas |
-| Maestria em Arma de Haste | Registro | Ataque bônus d4 e oportunidade ao entrar no alcance |
+| Maestria em Arma de Haste | Cabo d4 concussão, habilidade/magia, crítico/adicionais/repetições e escolha de Artes Marciais elegível; oportunidade na entrada. Lança pela errata; lança longa sem cabo | Atacar anterior, empunhadura, reação/alcance e acerto declarados; efeitos no alvo manuais |
 | Maestria em Armadura Média | Teto de DES +3 na CA e remoção da desvantagem de Furtividade da armadura média equipada; lote de combate | Outras fontes de desvantagem continuam válidas; equipamento desconhecido na mesa |
 | Maestria em Armadura Pesada | +1 FOR; redução 3 no dano por tipo | Outras interações continuam na mesa |
 | Matador de Conjuradores | Vantagem no assistente contra magia de conjurador a até 1,5 m, declarado | Reação e concentração do alvo permanecem manuais |
 | Mente Afiada | +1 INT | Orientação, horário e memória consultáveis |
 | Mestre de Armas | +1 FOR/DES, quatro proficiências | Demais condições do ataque usam o fluxo comum |
-| Mestre de Armas Grandes | -5/+10 opcional por ataque corpo a corpo com arma pesada proficiente; terceiro recorte de R2 | Ataque bônus após crítico/abate e economia de ações continuam na mesa |
-| Mestre de Escudo | DES com alvo exclusivo soma bônus próprio do escudo no assistente; reação evita dano de DES para metade no sucesso, inclusive área, no dano detalhado | Empurrão com ação bônus após Atacar, reação/empunhadura e alvo exclusivo declarados; não é Evasão na falha |
+| Mestre de Armas Grandes | -5/+10 opcional por ataque corpo a corpo com arma pesada proficiente; terceiro recorte de R2 | Ataque bônus por crítico/abate no fluxo de Ação / reação; gatilho e disponibilidade da ação bônus declarados |
+| Mestre de Escudo | DES com alvo exclusivo soma bônus próprio do escudo no assistente; reação evita dano de DES para metade no sucesso, inclusive área, no dano detalhado | Empurrão bônus por disputa após Atacar no vigésimo quarto recorte; reação/empunhadura, alvo exclusivo e efeito do empurrão declarados; não é Evasão na falha |
 | Mobilidade | +3 m no deslocamento | Terreno difícil/Disparada e oportunidade |
 | Observador | +1 INT/SAB; +5 nos passivos de Percepção/Investigação | Leitura labial consultável; contexto de vantagem/desvantagem na mesa |
 | Perito | Três perícias/ferramentas | Revisar escolhas já dominadas e rolagem contextual com ferramenta |
 | Poliglota | +1 INT e três idiomas | Cifras consultáveis |
 | Resiliente | +1 atributo e proficiência em resistência | Não concede vantagem nem bônus adicional além da proficiência |
 | Robusto | +2 PV por nível, inclusive retroativo | PV e ajustes manuais devem ser preservados ao evoluir |
-| Sentinela | Registro | Oportunidade, reação e deslocamento do alvo |
+| Sentinela | Oportunidade na saída mesmo com Desengajar; reação após ataque contra terceiro em fluxo distinto. Oportunidade, inclusive de haste, informa deslocamento zero no acerto | Visibilidade/alcance, alvo sem Sentinela no terceiro benefício e reação declarados; não ignora Mobilidade nem outras formas de evitar oportunidade. Movimento no alvo manual |
 | Sorrateiro | Registro | Ocultação/luz e revelação por ataque falho |
 | Sortudo | Reserva única de três pontos/descanso longo, escolha contextual do d20, ataques recebidos e dado físico; segundo recorte de R2 entregue na PR #20 | Acerto, momento anterior à resolução e anúncio dos usos de outras criaturas são informados pela mesa; escolhas de dados são transitórias |
 | Resistente | +1 CON; mínimo de cura ao gastar Dados de Vida | Efeitos cobertos nos cenários testados de descanso |
