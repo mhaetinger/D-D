@@ -1,6 +1,8 @@
-import { active, state, type Sheet } from './model';
+import { active, level,state, type Sheet } from './model';
 import { incapacityReason } from './concentration';
 import { syncIncapacity } from './health';
+import {endEvasiveFootworkIfStopped} from './evasive-footwork-state';
+import {ownConditionImmunity} from './defensive-traits';
 
 export const CONDITIONS = [
   {id:'agarrado',name:'Agarrado',text:'Deslocamento 0. Termina se quem agarra ficar incapacitado ou se um efeito separar vocês do alcance. Não impede por si só conjurar ou manter concentração.'},
@@ -21,6 +23,8 @@ export const CONDITIONS = [
 export type ConditionId=typeof CONDITIONS[number]['id'];
 const explicit=(c:Sheet,id:string)=>c.ruleState?.conditions?.[id]===true || id==='inconsciente' && c.conscious===false;
 export function hasCondition(c:Sheet,id:string):boolean {
+  if(ownConditionImmunity(c,id).length)return false;
+  if(id==='invisivel' && level(c,'monge')>=18 && active(c,'monge:emptyBody'))return true;
   if(explicit(c,id))return true;
   if(id==='inconsciente')return c.hpCurrent<=0 && !active(c,'druida:wildShape');
   if(id==='caido')return hasCondition(c,'inconsciente');
@@ -30,8 +34,11 @@ export function hasCondition(c:Sheet,id:string):boolean {
 export const derivedCondition=(c:Sheet,id:string)=>id==='caido' && hasCondition(c,'inconsciente') || hasCondition(c,id) && !explicit(c,id);
 export function setCondition(c:Sheet,id:string,enabled:boolean) {
   if(!CONDITIONS.some(x=>x.id===id))throw new Error('Condição desconhecida.');
+  const immune=ownConditionImmunity(c,id);
+  if(enabled && immune.length)throw new Error(immune.join(', ')+': imune à condição. Registro anterior preservado.');
   const s=state(c);
   if(s.conditions!=null && (typeof s.conditions!=='object' || Array.isArray(s.conditions)))throw new Error('Registro de condições ilegível preservado; confira o backup.');
+  endEvasiveFootworkIfStopped(c);
   s.conditions ||= {};
   if(enabled)s.conditions[id]=true;else delete s.conditions[id];
   if(id==='inconsciente' && !enabled && c.conscious===false)c.conscious=true;

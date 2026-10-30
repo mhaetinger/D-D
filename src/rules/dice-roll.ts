@@ -1,15 +1,18 @@
-import { level, type Engine, type Sheet } from './model';
+import { active, level, type Engine, type Sheet } from './model';
 import { hasFeat } from './passives';
 
 export type RollMode = 'normal'|'adv'|'dis';
-export interface RollContext { type:'check'|'attack'|'save'; skill?:string }
-export interface D20Rules { reliableTalent?:boolean; halflingLuck?:boolean; luckyFeat?:boolean }
+export interface RollContext { type:'check'|'attack'|'save'; skill?:string;ability?:string }
+export interface D20Rules { reliableTalent?:boolean; halflingLuck?:boolean; luckyFeat?:boolean;indomitableMight?:number }
 interface DiceGroup { sides:number; faces:number[] }
 interface Reroll { index:number; from:number; to:number }
 type Luck = { extra:number; selected:number; canceled?:false } | { canceled:true };
+export interface PrecisionDie {face:number;sides:number;source:string}
 export interface DiceResult {
   total:number; d20Natural:number|null; breakdown:string[]; appliedMode:RollMode;
   groups:DiceGroup[]; modifier:number; rules:D20Rules; reroll?:Reroll; luck?:Luck;
+  elementalAdept?:{types:string[];adjustment:number};
+  precision?:PrecisionDie;
 }
 const rollDie=(sides:number)=>Math.floor(Math.random()*sides)+1;
 export const hasHalflingLuck=(c:Sheet)=>['halflingLeve','halflingRobusto'].includes(c?.rules?.raceId);
@@ -23,10 +26,11 @@ export function sheetD20Rules(c:Sheet,context:RollContext|null,E:Engine):D20Rule
     luckyFeat:hasFeat(c,E,'Sortudo'),
     reliableTalent:context.type==='check' && level(c,'ladino')>=11 && !!context.skill &&
       Object.hasOwn(E.data.skills,context.skill) && c.skillsProf?.includes(context.skill)===true,
+    ...(context.type==='check' && !active(c,'druida:wildShape') && level(c,'barbaro')>=18 && (context.ability==='str' || !context.ability && context.skill==='atletismo') && Number.isInteger(c.abilities?.str?.score) && c.abilities.str.score>=1 && c.abilities.str.score<=30?{indomitableMight:c.abilities.str.score}:{}),
   };
 }
 
-function summarize(groups:DiceGroup[],modifier:number,appliedMode:RollMode,rules:D20Rules,reroll?:Reroll,luck?:Luck):DiceResult {
+function summarize(groups:DiceGroup[],modifier:number,appliedMode:RollMode,rules:D20Rules,reroll?:Reroll,luck?:Luck,precision?:PrecisionDie):DiceResult {
   let total=0,d20Natural:number|null=null;
   const breakdown:string[]=[];
   for(const {sides,faces} of groups) {
@@ -56,7 +60,19 @@ function summarize(groups:DiceGroup[],modifier:number,appliedMode:RollMode,rules
   }
   total+=modifier;
   if(modifier!==0)breakdown.push(modifier>0?`+${modifier}`:String(modifier));
-  return {total,d20Natural,breakdown,appliedMode,groups,modifier,rules,...(reroll?{reroll}:{}),...(luck?{luck}:{})};
+  if(rules.indomitableMight && total<rules.indomitableMight){
+    breakdown.push(`Força Indomável: total ${total} elevado ao valor de FOR ${rules.indomitableMight}`);
+    total=rules.indomitableMight;
+  }
+  if(precision){total+=precision.face;breakdown.push(precisionDescription(precision));}
+  return {total,d20Natural,breakdown,appliedMode,groups,modifier,rules,...(reroll?{reroll}:{}),...(luck?{luck}:{}),...(precision?{precision}:{})};
+}
+const precisionDescription=(p:PrecisionDie)=>`Ataque de Precisão: d${p.sides}[${p.face}] (+${p.face}) · ${p.source}`;
+/** Bônus separado do d20 natural e de seu modificador. Uma futura escolha de
+ * Sortudo/repetição racial recompõe o total usando esta MESMA face, uma única vez. */
+export function addPrecisionDie(result:DiceResult,precision:PrecisionDie):DiceResult {
+  if(result.precision || result.d20Natural===null || ![6,8,10,12].includes(precision.sides) || !Number.isInteger(precision.face) || precision.face<1 || precision.face>precision.sides)throw new Error('Confira o dado de superioridade; Precisão só pode entrar uma vez neste ataque.');
+  return {...result,total:result.total+precision.face,precision:{...precision},breakdown:[...result.breakdown,precisionDescription(precision)]};
 }
 
 /** O primeiro d20 é o teste; vantagem não repete dados adicionais. Regras
@@ -81,7 +97,7 @@ export function rerollHalfling(result:DiceResult,die=rollDie):DiceResult {
   let luck=result.luck;
   if(index>=0)group.faces[index]=to;
   else if(luck && !luck.canceled)luck={...luck,extra:to};
-  return summarize(groups,result.modifier,result.appliedMode,result.rules,{index:index>=0?index:group.faces.length,from:1,to},luck);
+  return summarize(groups,result.modifier,result.appliedMode,result.rules,{index:index>=0?index:group.faces.length,from:1,to},luck,result.precision);
 }
 
 /** Sortudo de 2014 adiciona um d20 e permite escolher qualquer face, mesmo
@@ -93,10 +109,10 @@ export function addLuckyDie(result:DiceResult,extra:number|null):DiceResult {
   if(!result.rules.luckyFeat || result.luck || result.d20Natural===null)throw new Error('Esta jogada não permite outro uso do talento Sortudo.');
   if(extra!==null && (!Number.isInteger(extra) || extra<1 || extra>20))throw new Error('Informe uma face do d20 entre 1 e 20.');
   const luck:Luck=extra===null?{canceled:true}:{extra,selected:result.groups.find(g=>g.sides===20)!.faces.indexOf(result.d20Natural)};
-  return summarize(result.groups,result.modifier,result.appliedMode,result.rules,result.reroll,luck);
+  return summarize(result.groups,result.modifier,result.appliedMode,result.rules,result.reroll,luck,result.precision);
 }
 export function chooseLuckyDie(result:DiceResult,index:number):DiceResult {
   const faces=luckyFaces(result);
   if(!Number.isInteger(index) || index<0 || index>=faces.length)throw new Error('Escolha um dos d20 desta jogada.');
-  return summarize(result.groups,result.modifier,result.appliedMode,result.rules,result.reroll,{extra:faces.at(-1)!,selected:index});
+  return summarize(result.groups,result.modifier,result.appliedMode,result.rules,result.reroll,{extra:faces.at(-1)!,selected:index},result.precision);
 }

@@ -8,7 +8,7 @@ import { setupHealthUI } from './health-ui';
 import { CONDITIONS, derivedCondition, hasCondition, setCondition } from './conditions';
 import { concentration } from './concentration';
 import { concentrationControls, setupConcentrationUI } from './concentration-ui';
-import { setupWeaponDamageUI } from './weapon-damage-ui';
+import { setupWeaponDamageUI,refreshWeaponDamageLabel } from './weapon-damage-ui';
 import {sheetInput} from '../sheet-edit/ui';
 import {hasFeat} from './passives';
 import { luckRemaining } from './lucky';
@@ -16,12 +16,30 @@ import { setupLuckyUI } from './lucky-ui';
 import {chooseResourceDice} from './resource-roll-ui';
 import {applyRolledResource,finishInterventionWeek,interventionWaiting} from './resource-effects';
 import {dragonbornBreathControls,setupDragonbornBreathUI} from './dragonborn-breath-ui';
+import {rallyControls,useRally} from './rally-ui';
+import {endEvasiveMovement,evasiveDefenseControls,evasiveStartControl,useEvasiveFootwork} from './evasive-footwork-ui';
+import {endEvasiveFootworkIfStopped} from './evasive-footwork-state';
+import {setupLungingAttackUI} from './lunging-attack-ui';
+import {setupRiposteUI} from './riposte-ui';
+import {commandersStrikeControls,setupCommandersStrikeUI} from './commanders-strike-ui';
+import {duelistControls,setupCombatFeatsUI} from './combat-feats-ui';
+import {bardGivingControls,setupSupportActionsUI} from './support-actions-ui';
+import {setupMonkUI} from './monk-ui';
+import {setupCombatActionsUI} from './combat-actions-ui';
+import {setupPhysicalContestsUI} from './physical-contests-ui';
+import {invocationDefinition} from './invocation-casting';
+import {invocationCastControls,setupInvocationCastingUI} from './invocation-casting-ui';
+import {ownConditionImmunity} from './defensive-traits';
+import {situationalSaveControls,setupSituationalSavesUI} from './situational-saves-ui';
+import {feintingStartControl,setupFeintingAttackUI,useFeintingAttack,useFeintingAtTable,endFeintingUI} from './feinting-attack-ui';
 
 export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],showNames=true) {
   const number = (n:number) => Number.isFinite(n)?n:'∞';
+  const manualInvocation=(r:Resource)=>r.id.startsWith('bruxo:invocation-') && !r.action;
   const tip = (r:Resource) => {
-    const ref = r.id==='race:breath'?E.reference('Arma de Sopro',null,'draconato','race'):r.id==='feat:lucky'?E.reference('Sortudo',null,null,'feat'):E.reference(r.name,r.classId);
-    return `data-rule-tooltip="${escape(JSON.stringify({name:r.name,text:r.note,page:ref?.page || E.data.classes[r.classId]?.page,pdfPage:ref?.pdfPage || E.data.classes[r.classId]?.page}))}"`;
+    const ref = r.id==='race:breath'?E.reference('Arma de Sopro',null,'draconato','race'):r.classId==='feat'?E.reference(r.name,null,null,'feat'):E.reference(r.name,r.classId);
+    const text=r.note+(manualInvocation(r)?invocationDefinition(r.name)?.pact?'\n\nConjurar cobra o uso diário e o espaço de Pacto juntos. Em Já resolvi na mesa, Registrar uso corrige somente o contador diário; não gasta nem devolve espaço.':'\n\nRegistro manual: este controle desconta somente o uso diário. Resolva a magia e seus custos separadamente.':'' );
+    return `data-rule-tooltip="${escape(JSON.stringify({name:r.name,text,page:ref?.page || E.data.classes[r.classId]?.page,pdfPage:ref?.pdfPage || E.data.classes[r.classId]?.page}))}"`;
   };
   return resources.map(r=>{
     const maxInput=!r.cost&&Number.isFinite(r.max)&&['counter','pool','toggle'].includes(r.kind)?sheetInput(c,`resourceMax.${r.id}`,c.rules?.resourceMaxOverrides?.[r.id]??'',`Máximo de ${r.name} (vazio = automático)`,'number',{min:0,max:100,placeholder:String(r.max)}):number(r.max);
@@ -34,8 +52,11 @@ export function renderResourceControls(c:Sheet,E:Engine,resources:Resource[],sho
     else if (r.kind==='portent') control = c.ruleState?.portent?.length ? c.ruleState.portent.map((p:Sheet,i:number)=>`<button type="button" data-rule-action="portent" data-index="${i}" ${p.spent?'disabled':''} aria-label="Gastar presságio ${i+1}, resultado ${p.value}">${p.value}${p.spent?' ✓':''}</button>`).join('') : '<button type="button" data-rule-action="portentInitial">Rolar dados iniciais</button>';
     else if (r.kind==='toggle' || r.action==='rage') control = `<button type="button" data-rule-action="toggle" data-resource="${r.id}" aria-pressed="${enabled}">${enabled?'✓ Ativo · encerrar':'Ativar'}</button>${r.action==='rage'?`<span>${number(value)}/${maxInput} usos</span>`:''}`;
     else if (r.kind==='pool') control = `<label>Reserva <input type="number" min="0" max="${r.max}" step="1" data-rule-pool="${r.id}" value="${value}" aria-label="${escape(r.name)} atuais"></label><span>/ ${maxInput}</span>`;
-    else if (r.kind==='counter') control = `<span>${r.cost?`Custo ${r.cost[1]} ${r.cost[0]==='monge:ki'?'Chi':r.cost[0]==='feiticeiro:sorceryPool'?'pt':'uso'}`:`${number(value)}/${maxInput} usos`}</span><button type="button" data-rule-action="use" data-resource="${r.id}" ${value<1 || !affordable?'disabled':''}>Usar</button>${!r.cost?`<button type="button" data-rule-action="refund" data-resource="${r.id}" ${value===r.max?'disabled':''} aria-label="Devolver um uso de ${escape(r.name)}">↶</button>`:''}`;
+    else if (r.kind==='counter') control = `<span>${r.cost?`Custo ${r.cost[1]} ${r.cost[0]==='monge:ki'?'Chi':r.cost[0]==='feiticeiro:sorceryPool'?'pt':'uso'}`:`<span data-resource-balance="${r.id}"${r.id.endsWith(':superiority')?` data-superiority-balance="${r.id}"`:''}>${number(value)}</span>/${maxInput} usos`}</span><button type="button" data-rule-action="use" data-resource="${r.id}" ${manualInvocation(r)?`aria-label="Registrar uso diário de ${escape(r.name)}"`:''} ${value<1 || !affordable?'disabled':''}>${r.id.endsWith(':superiority')?'Usar na mesa':manualInvocation(r)?'Registrar uso':'Usar'}</button>${!r.cost?`<button type="button" data-rule-action="refund" data-resource="${r.id}" ${value===r.max?'disabled':''} aria-label="Devolver um uso de ${escape(r.name)}">↶</button>`:''}${manualInvocation(r)?'<span class="t-text-muted">Magia e custos na mesa</span>':''}`;
     if (r.action==='wildShape') control += `<label>PV da forma <input type="number" min="0" data-rule-beast-hp value="${Number(c.ruleState?.pools?.[r.id] || 0)}"></label><label>PV máximos <input type="number" min="1" data-rule-beast-max value="${Number(c.ruleState?.beastMax || 1)}"></label>${enabled?`<button type="button" data-rule-action="toggle" data-resource="${r.id}">Encerrar forma</button>`:''}`;
+    if(manualInvocation(r) && invocationDefinition(r.name)?.pact)control=invocationCastControls(c,r.name,E)+`<details><summary>Já resolvi na mesa</summary><p>Use somente se o espaço e a magia já foram resolvidos fora deste controle.</p>${control}</details>`;
+    if(r.id==='bardo:inspiration')control=control.replace('>Usar</button>','>Usar na mesa</button>')+bardGivingControls(c,E);
+    if(r.id.endsWith(':superiority'))control+=rallyControls(c,E,r.id)+evasiveStartControl(c,E,r.id)+feintingStartControl(c,E,r.id)+commandersStrikeControls(c,E,r.id);
     if(r.action==='intervention' && interventionWaiting(c))control+='<span>7 dias na aventura</span><button type="button" data-rule-action="interventionWeek" data-resource="clerigo:intervention">Registrar semana transcorrida</button>';
     const needsTarget = ['paladino:sacredWeapon','paladino:enmity','mago:hypnotic'].includes(r.id);
     const target = needsTarget ? r.id==='paladino:sacredWeapon' ? `<label>Arma<select data-rule-target="${r.id}"><option value="">Escolha a arma</option>${c.weapons.map((w:Sheet)=>`<option ${c.ruleState?.targets?.[r.id]===w.name?'selected':''}>${escape(w.name)}</option>`).join('')}</select></label>` : `<input data-rule-target="${r.id}" value="${escape(c.ruleState?.targets?.[r.id] || '')}" placeholder="Alvo" aria-label="Alvo de ${escape(r.name)}">` : '';
@@ -69,7 +90,7 @@ export function defenseControls(c:Sheet,E:Engine) {
     ['spell:shield','Escudo Arcano +5','Marque após usar a reação da magia Escudo Arcano: soma +5 à CA até o início do seu próximo turno, inclusive contra o ataque que a desencadeou, e impede dano de Mísseis Mágicos. Desmarque ao terminar; o espaço e a reação são controlados separadamente.'],
     ['spell:bladeWard','Proteção contra Lâminas · resistência','Até o fim do seu próximo turno, esta magia dá resistência a dano de concussão, cortante e perfurante causado por ataques com armas. Não aumenta a CA. Em Dano detalhado → Calcular por tipo, escolha ataque de arma para aplicar a resistência. No modo já resolvido, aplique-a na mesa.'],
   ];
-  return `<details class="rule-context" data-rule-disclosure="defense"><summary>Ajustes de defesa e efeitos recebidos</summary>
+  return `${situationalSaveControls(c,E)}${evasiveDefenseControls(c,E)}${duelistControls(c,E)}<details class="rule-context" data-rule-disclosure="defense"><summary>Ajustes de defesa e efeitos recebidos</summary>
     <div class="rule-defense-field"><label for="ruleAcFormula" ${help('Fórmula de CA','CA é a Classe de Armadura, o valor que um ataque precisa alcançar para acertar. Automática escolhe a maior fórmula válida; você pode escolher outra das disponíveis. Fórmulas alternativas não se somam. Os bônus abaixo são adicionados à fórmula escolhida.')}>Fórmula de CA</label><select id="ruleAcFormula" data-rule-ac>${ac.options.map(o=>`<option value="${o.id}" ${c.acFormula===o.id?'selected':''}>${escape(o.label)} · ${o.total}</option>`).join('')}<option value="auto" ${!ac.options.some(o=>o.id===c.acFormula)?'selected':''}>Automática · maior válida</option></select></div>
     <div class="rule-defense-grid">${adjustments.map(([id,label,text])=>`<div class="rule-defense-field"><label for="ruleDefense-${id}" ${help(label,text)}>${label}</label><input id="ruleDefense-${id}" type="number" min="-100" max="100" step="1" data-rule-defense="${id}" placeholder="Auto" value="${c[id]===undefined?'':Number(c[id])}"></div>`).join('')}</div>
     <div class="rule-defense-effects">${effects.map(([id,label,text])=>`<div class="rule-effect-row"><label ${help(label,text)}><input type="checkbox" data-rule-effect="${id}" ${active(c,id)?'checked':''}><span>${label}</span></label></div>`).join('')}</div></details>`;
@@ -78,7 +99,7 @@ export function defenseControls(c:Sheet,E:Engine) {
 export function conditionControls(c:Sheet) {
   const fatigue=exhaustion(c);
   const count=CONDITIONS.filter(x=>hasCondition(c,x.id)).length;
-  return `<div class="rule-context rule-controls"><label>Exaustão <select data-rule-exhaustion aria-label="Nível de exaustão">${[0,1,2,3,4,5,6].map(n=>`<option ${n===fatigue.level?'selected':''}>${n}</option>`).join('')}</select></label>${fatigue.level?`<span>${fatigue.penalties.map(escape).join(' · ')}</span>`:''}</div><details class="rule-context" data-rule-disclosure="conditions"><summary title="Marque estados como envenenado, caído ou paralisado. Consulte cada condição para conferir seus efeitos.">Condições${count?` · ${count} ativa(s)`:''}</summary><div class="rule-conditions">${CONDITIONS.map(x=>{const derived=derivedCondition(c,x.id);return `<label class="rule-check" tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name:x.name,text:x.text+(derived?' Decorre do estado atual; encerre sua causa para remover.':'')}))}"><input type="checkbox" data-rule-condition="${x.id}" ${hasCondition(c,x.id)?'checked':''} ${derived?'disabled':''}><span>${x.name}${derived?' · decorrente':''}</span></label>`;}).join('')}</div><p>Concentração, impedimentos de agir/mover e falhas de FOR/DES são aplicados. Outros modos de rolagem, sentidos, alvos, dano e duração seguem a mesa; consulte cada nome.</p></details>`;
+  return `<div class="rule-context rule-controls"><label>Exaustão <select data-rule-exhaustion aria-label="Nível de exaustão">${[0,1,2,3,4,5,6].map(n=>`<option ${n===fatigue.level?'selected':''}>${n}</option>`).join('')}</select></label>${fatigue.level?`<span>${fatigue.penalties.map(escape).join(' · ')}</span>`:''}</div><details class="rule-context" data-rule-disclosure="conditions"><summary title="Marque estados como envenenado, caído ou paralisado. Consulte cada condição para conferir seus efeitos.">Condições${count?` · ${count} ativa(s)`:''}</summary><div class="rule-conditions">${CONDITIONS.map(x=>{const derived=derivedCondition(c,x.id),immune=ownConditionImmunity(c,x.id);return `<div><label class="rule-check" tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name:x.name,text:x.text+(immune.length?' Imune por '+immune.join(', ')+'. Marca anterior preservada; confira a duração na mesa.':'')+(derived?' Decorre do estado atual; encerre sua causa para remover.':'')}))}"><input type="checkbox" data-rule-condition="${x.id}" ${hasCondition(c,x.id)?'checked':''} ${derived || immune.length?'disabled':''}><span>${x.name}${immune.length?' · imune ('+immune.join(', ')+')':derived?' · decorrente':''}</span></label>${immune.length && c.ruleState?.conditions?.[x.id]===true?`<button type="button" data-rule-action="clearImmuneCondition" data-condition="${x.id}" aria-label="Encerrar registro anterior de ${x.name}">Encerrar registro anterior</button>`:''}</div>`;}).join('')}</div><p>Concentração, impedimentos e falhas de FOR/DES são aplicados. Auto Ficha reúne as fontes próprias de vantagem/desvantagem antes de cancelar; o resultado explica as origens. Visibilidade do medo, sentidos especiais, alvos, dano e duração seguem a mesa; consulte cada nome.</p></details>`;
 }
 
 export function hitDiceRecoveryControls(c:Sheet,E:Engine) {
@@ -88,7 +109,7 @@ export function hitDiceRecoveryControls(c:Sheet,E:Engine) {
 export function saveRuleStep(description:string) {
   const host = window as any;
   const focused = document.activeElement as HTMLElement;
-  const attrs = focused ? [...focused.attributes].filter(a=>a.name.startsWith('data-rule-') || a.name.startsWith('data-health-') || a.name.startsWith('data-concentration-') || ['data-resource','data-index','data-class'].includes(a.name)).map(a=>`[${a.name}="${CSS.escape(a.value)}"]`).join('') : '';
+  const attrs = focused ? [...focused.attributes].filter(a=>a.name.startsWith('data-rule-') || a.name.startsWith('data-health-') || a.name.startsWith('data-support-') || a.name.startsWith('data-invocation-') || a.name.startsWith('data-concentration-') || ['data-resource','data-index','data-class'].includes(a.name)).map(a=>`[${a.name}="${CSS.escape(a.value)}"]`).join('') : '';
   const handler=focused?.getAttribute('onclick');
   const focusKey=attrs || (focused?.id?'#'+CSS.escape(focused.id):handler?`[onclick="${CSS.escape(handler)}"]`:'');
   const open = new Map([...document.querySelectorAll<HTMLDetailsElement>('[data-rule-disclosure]')].map(el=>[el.dataset.ruleDisclosure,el.open]));
@@ -111,6 +132,8 @@ export function retainConditionNodes(previous:HTMLElement|null,root:HTMLElement)
     old.checked=input.checked;old.disabled=input.disabled;
     const label=old.closest('label')!,fresh=input.closest('label')!;
     label.dataset.ruleTooltip=fresh.dataset.ruleTooltip;label.querySelector('span')!.textContent=fresh.querySelector('span')!.textContent;
+    const oldClear=label.parentElement!.querySelector<HTMLButtonElement>('[data-rule-action="clearImmuneCondition"]'),freshClear=fresh.parentElement!.querySelector<HTMLButtonElement>('[data-rule-action="clearImmuneCondition"]');
+    if(!freshClear)oldClear?.remove();else if(!oldClear)label.parentElement!.append(freshClear);
   }
   previous.querySelector('summary')!.textContent=next.querySelector('summary')!.textContent;
   next.replaceWith(previous);
@@ -120,6 +143,17 @@ export function setupRuleUI(E: Engine) {
   setupHealthUI(E,save);
   setupConcentrationUI(E,save);
   setupWeaponDamageUI(E,save);
+  setupLungingAttackUI(E,(c,index)=>refreshWeaponDamageLabel(c,index,E));
+  setupRiposteUI(E,(c,index)=>refreshWeaponDamageLabel(c,index,E));
+  setupCommandersStrikeUI(E,save);
+  setupCombatFeatsUI(E,save);
+  setupSupportActionsUI(E,save);
+  setupMonkUI(E,save);
+  setupCombatActionsUI(E);
+  setupPhysicalContestsUI(E,save);
+  setupInvocationCastingUI(E,save);
+  setupSituationalSavesUI(E,save);
+  setupFeintingAttackUI(E);
   setupLuckyUI(E,save);
   setupDragonbornBreathUI(E,save);
   document.addEventListener('change',event=>{
@@ -130,6 +164,7 @@ export function setupRuleUI(E: Engine) {
       try {const result=setCondition(c,input.dataset.ruleCondition,input.checked);save(`Condição · ${CONDITIONS.find(x=>x.id===input.dataset.ruleCondition)?.name || ''}${input.checked?' ativada':' encerrada'}${result.ended?' · encerrou concentração em '+result.ended.name:''}`);}
       catch(error){host.showToast((error as Error).message);input.checked=hasCondition(c,input.dataset.ruleCondition);}return;
     }
+    if(input.hasAttribute('data-rule-exhaustion'))endEvasiveFootworkIfStopped(c);
     const s = state(c);
     if (input.hasAttribute('data-rule-exhaustion')) { c.exhaustion = Math.max(0,Math.min(6,Number(input.value))); c.hpCurrent = c.exhaustion===6?0:Math.min(c.hpCurrent,exhaustion(c).hpMax); if(c.exhaustion===6) markDead(c);else syncIncapacity(c); }
     else if (input.hasAttribute('data-rule-ac')) c.acFormula = input.value;
@@ -158,6 +193,18 @@ export function setupRuleUI(E: Engine) {
     if(r?.id==='race:breath' && !host.requireSheetEdit())return;
     try {
       const action = button.dataset.ruleAction;
+      if(action==='clearImmuneCondition'){
+        const id=button.dataset.condition!;
+        if(!host.requireSheetEdit() || !ownConditionImmunity(c,id).length || c.ruleState?.conditions?.[id]!==true)return;
+        setCondition(c,id,false);save('Encerrou registro anterior · '+(CONDITIONS.find(x=>x.id===id)?.name || id));
+        document.querySelector<HTMLInputElement>(`[data-rule-condition="${CSS.escape(id)}"]`)?.closest('label')?.focus({preventScroll:true});return;
+      }
+      if(action==='rally'){await useRally(c,E,button,save);return;}
+      if(action==='feintStart'){await useFeintingAttack(c,E,button,save);return;}
+      if(action==='feintEnd'){endFeintingUI(c,E,(c,index)=>refreshWeaponDamageLabel(c,index,E));return;}
+      if(action==='feintTable'){await useFeintingAtTable(c,E,button,(c,index)=>refreshWeaponDamageLabel(c,index,E));return;}
+      if(action==='evasiveStart'){await useEvasiveFootwork(c,E,button,save);return;}
+      if(action==='evasiveEnd'){endEvasiveMovement(c,save);return;}
       const oldConcentration=concentration(c);
       if(r && action==='toggle' && !active(c,r.id) && ['clerigo:duplicate','feiticeiro:presence'].includes(r.id) && oldConcentration){
         const before=JSON.stringify(c);
@@ -223,7 +270,7 @@ export function setupRuleUI(E: Engine) {
           } else useResource(c,r,E);
           if (r.action==='wholeness') healHitPoints(c,3*level(c,'monge'));
           if (r.action==='pactRecovery') c.pactMagic.used = 0;
-          if (r.action==='wildShape') { s.active[r.id] = true; host.showToast('Forma ativa. Elemental exige 2 usos no nível 10+; confira a forma no livro.'); }
+          if (r.action==='wildShape') { s.active[r.id] = true; endEvasiveFootworkIfStopped(c); host.showToast('Forma ativa. Elemental exige 2 usos no nível 10+; confira a forma no livro.'); }
         }
       }
       save('Atualizou '+(r?.name || 'recurso')+(oldConcentration && !concentration(c)?' · encerrou concentração em '+oldConcentration.name:''));

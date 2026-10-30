@@ -4,6 +4,13 @@ import { concentration, endConcentration, startConcentration, validateConcentrat
 import { relentlessDC } from './survival';
 import { hasFeat } from './passives';
 import {isDragonborn,racialBreathProfile} from './draconic-ancestry';
+import {superioritySources} from './maneuvers';
+import {clearEvasiveFootwork} from './evasive-footwork-state';
+import {finishLungingAttack,finishFeintingAttack,finishRiposte} from './weapon-attack-session';
+import {clearPendingFeint} from './feinting-state';
+import {endCommand} from './commanders-strike-state';
+import {endReceivedBardic} from './bardic-received';
+import {endMonkReturn} from './monk-state';
 export interface Resource { id:string; classId:string; name:string; max:number; recovery:'short'|'long'|'none'; kind:'counter'|'pool'|'toggle'|'note'|'portent'; note:string; cost?:[string,number]; action?:string }
 
 /** Cada definição usa nível da própria classe, nunca nível total. Sem ficha-modelo. */
@@ -54,6 +61,9 @@ export function resourcesFor(c: Sheet, E: Engine): Resource[] {
     if (sub('bruxo')==='grandeAntigo' && warlock>=6) add('bruxo','entropic','Proteção Entrópica',1,'short','Reação: desvantagem num ataque contra você; se errar, vantagem no próximo ataque contra ele até fim do próximo turno.');
     for (const invocation of selections(c,E,'invocations')) {
       const ref = E.reference(invocation,'bruxo');
+      // Cárceri limita a repetição na mesma criatura, não um uso global/dia.
+      // O contador legado permanece no documento, sem limitar outros alvos.
+      if(norm(invocation)==='correntes de carceri')continue;
       if (ref?.text && /descanso longo/i.test(ref.text)) add('bruxo','invocation-'+norm(invocation).replace(/ /g,'-'),invocation,1,'long',ref.text);
     }
   }
@@ -94,7 +104,6 @@ export function resourcesFor(c: Sheet, E: Engine): Resource[] {
     add('guerreiro','secondWind','Retomar o Fôlego',1,'short',`Ação bônus: cure 1d10 + ${fighter} PV.`, 'counter',{action:'secondWind'});
     if (fighter>=2) add('guerreiro','actionSurge','Surto de Ação',fighter>=17?2:1,'short','Uma ação adicional no seu turno. No nível 17, duas utilizações, no máximo uma por turno.');
     if (fighter>=9) add('guerreiro','indomitable','Indomável',fighter>=17?3:fighter>=13?2:1,'long','Refaça uma resistência que falhou; deve usar o novo resultado.');
-    if (fighter>=3 && sub('guerreiro')==='mestreBatalha') add('guerreiro','superiority','Dados de Superioridade',fighter>=15?6:fighter>=7?5:4,'short',`d${fighter>=18?12:fighter>=10?10:8}. Manobras: ${selections(c,E,'maneuvers').join(', ') || 'consulte suas escolhas'}. Máximo de um dado por ataque, salvo regra da manobra.`);
   }
   const sorcerer = level(c,'feiticeiro');
   if (sorcerer>=2) add('feiticeiro','sorcery','Pontos de Feitiçaria',sorcerer,'long','Conversão: espaços 1–5 custam 2/3/5/6/7 pontos. Metamagias consomem a mesma reserva; não ultrapasse o máximo.','note');
@@ -167,6 +176,7 @@ export function resourcesFor(c: Sheet, E: Engine): Resource[] {
   if (wizard>=6 && sub('mago')==='encantamento') add('mago','instinctive','Encanto Instintivo',1,'none','Reação: escolha atacante e outra criatura ao alcance; após sucesso dele, não pode usar nesse atacante até descanso longo.','toggle');
   if (wizard>=10 && sub('mago')==='transmutacao') add('mago','shapechanger','Metamorfo',1,'short','Conjure Metamorfose em si mesmo sem espaço, virando besta ND 1 ou menor.');
   if (wizard>=14 && sub('mago')==='transmutacao') add('mago','masterTransmuter','Mestre Transmutador',1,'none','Consuma a pedra e escolha a transformação; exige ação e tocar o alvo. Recriar a pedra exige 8 horas.','toggle');
+  for(const source of superioritySources(c,E))add(source.classId,'superiority',source.classId==='feat'?'Adepto Marcial':'Dados de Superioridade',source.max,'short',`d${source.die} · ${source.name}. Recupera em descanso curto ou longo. Auto Ficha: Precisão no resultado do ataque; manobras de dano conhecidas em Adicionais da arma. Trespassante registra separadamente apenas um dado em outra criatura ao alcance; a mesma jogada precisa atingir a segunda CA. Não dobra em crítico nem soma bônus; a tentativa gasta mesmo se não atingir a segunda criatura. Estendido é marcado na arma antes do ataque e gasta ao confirmar Atq, mesmo se errar; Dano inclui o dado já pago no acerto. Golpe do Comandante junto desta reserva cede um ataque da ação Atacar no próprio turno, usa ação bônus e paga um dado antes da reação imediata do aliado. Registre só o dado adicional do ataque dele; não use os bônus desta ficha nem gaste novamente. Contra-Atacar junto da arma usa reação após uma criatura errar uma jogada corpo a corpo contra você; paga antes de atacar, mesmo se errar, e Dano inclui o dado já pago no acerto. Fintar usa ação bônus e um dado para vantagem no próximo ataque contra o alvo escolhido neste turno; marque Finta na arma ou use Resolver na mesa, sem outro gasto. Aparar em Dano detalhado → Calcular por tipo gasta ao Aplicar dano. Inspirar junto desta reserva usa face + CAR para informar PV temporários a um aliado. Passo Evasivo soma a face à CA até parar de se mover; encerre junto da CA. Esses controles incluem o dado e descontam esta origem ao confirmar. Não gaste de novo em Usar na mesa: esse botão registra outras manobras já resolvidas; apenas uma manobra por ataque.`);
   if(hasFeat(c,E,'Sortudo'))add('feat','lucky','Sortudo',3,'long','3 pontos por descanso longo. Gaste 1 antes de resolver um ataque, teste de habilidade ou resistência: role um d20 adicional e escolha a face, mesmo com vantagem/desvantagem. Pode afetar um ataque contra você; pontos de criaturas diferentes se cancelam, sem dado adicional. O Sortudo racial não gasta esta reserva.','counter',{action:'lucky'});
   for(const r of list){const value=c.rules?.resourceMaxOverrides?.[r.id];if(Number.isInteger(value)&&value>=0&&value<=100&&!r.cost)r.max=value;}
   return list;
@@ -187,6 +197,7 @@ export function remaining(c: Sheet, r: Resource) {
   return r.max-used(c,r);
 }
 export function spend(c: Sheet, r: Resource, amount=1) {
+  validateSuperiorityRecord(c,r);
   if (!Number.isInteger(amount) || amount<1 || amount>remaining(c,r)) throw new Error('Recursos insuficientes; nenhuma alteração aplicada.');
   const s = state(c);
   if (r.id==='feiticeiro:sorceryPool') { c.sorceryPoints.current -= amount; return; }
@@ -197,6 +208,7 @@ export function spend(c: Sheet, r: Resource, amount=1) {
 }
 /** Corrigir um clique deve devolver o mesmo uso na magia e no painel. */
 export function refund(c:Sheet,r:Resource) {
+  validateSuperiorityRecord(c,r);
   const recorded=c.ruleState?.used?.[r.id];
   if(r.id==='race:breath' && recorded!==undefined && (!Number.isSafeInteger(recorded) || recorded<0))throw new Error('Registro de uso do sopro ilegível preservado. Confira o registro antes de corrigi-lo.');
   if(r.id==='feat:lucky' && recorded!==undefined && (!Number.isInteger(recorded) || recorded<0))throw new Error('Reserva de Sortudo ilegível preservada. Confira o registro antes de corrigi-lo.');
@@ -204,6 +216,11 @@ export function refund(c:Sheet,r:Resource) {
   state(c).used[r.id] = value;
   for (const spell of arcanumSpells(c,r.id)) spell.usesUsed = value;
   if (r.id==='feiticeiro:tides') c.tidesOfChaosAvailable = true;
+}
+function validateSuperiorityRecord(c:Sheet,r:Resource) {
+  if(!['guerreiro:superiority','feat:superiority'].includes(r.id))return;
+  const recorded=c.ruleState?.used?.[r.id];
+  if(recorded!==undefined && (!Number.isSafeInteger(recorded) || recorded<0))throw new Error('Registro de superioridade ilegível preservado. Confira os usos antes de continuar.');
 }
 export function toggleResource(c: Sheet, r: Resource, E: Engine) {
   const enabled = active(c,r.id);
@@ -254,6 +271,13 @@ export function resetResources(c: Sheet, kind:'short'|'long', E: Engine, random=
   if(kind==='long' && portent && (!count || portent.length!==count || portent.some(n=>!Number.isInteger(n) || n<1 || n>20)))throw new Error('Confira todas as faces de Presságio antes do descanso.');
   const s = state(c);
   // Terminar uma Fúria com Frenesi causa exaustão antes da recuperação do descanso.
+  clearEvasiveFootwork(c);
+  finishLungingAttack(c);
+  finishFeintingAttack(c);clearPendingFeint(c);
+  finishRiposte(c);
+  endCommand(c);
+  endReceivedBardic(c);
+  endMonkReturn(c);
   if (active(c,'barbaro:rage')) toggleResource(c,resourcesFor(c,E).find(r=>r.id==='barbaro:rage')!,E);
   if(deathStatus(c).dead)return;
   s.used['barbaro:relentless']=0;

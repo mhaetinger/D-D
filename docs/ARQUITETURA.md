@@ -1343,3 +1343,654 @@ valida documento, identidade, permissão, Auto Ficha e sequência exposta por
 permanecem. Resultados/repetições vão ao histórico local com `redraw=false`,
 mantendo os nós do diálogo. A escolha transitória não integra documento/backup;
 recarga a descarta, sem restaurar recursos. OFF/Só Pool não entram nesse caminho.
+
+## Revisão delimitada de invocações — 23/10/2026
+
+`features` recompõe por evento a aquisição atual das invocações do bruxo antes
+de montar os ganhos visíveis. Substituições retiram a aquisição anterior e
+reaprendizado mantém só o evento novo, sem editar o histórico ou zerar recursos.
+Os demais tipos de escolha mantêm o contrato anterior. Os contadores sem ação
+automática de invocação em `ui.ts` dizem Registrar uso e explicam a resolução
+manual; `useResource` continua descontando apenas o contador, inclusive quando
+o espaço já foi registrado separadamente. Não duplicar o gasto de Pacto.
+
+Dois overrides explícitos em `spellMeta` corrigem apenas Vitalidade Falsa e
+Rogar Maldição. `spell-effects.ts` produz resumos sem RNG ou aplicação de PV:
+PV temporários não recebem Vida; o 1d8 da maldição pertence a um efeito escolhido
+e a eventos posteriores. Fórmulas próprias permanecem no retorno prioritário.
+`resolveSpellMeta` corrige somente os antigos tipos automáticos reconhecidos
+dessas duas magias, sem reescrever seus campos.
+
+`spell-duration.ts` resolve o perfil de duração/concentração da maldição pelo
+círculo usado. `spellConcentration`, confirmação e aplicação aceitam um último
+argumento opcional, preservando chamadas anteriores. A ficha passa o círculo
+real (Conjuração/Pacto) à prévia e aplicação; a consulta usa o mesmo perfil.
+Registros próprios de duração/concentração e efeitos personalizados continuam
+manuais. Nenhuma tabela de criaturas ou automação completa de invocações foi
+introduzida; esses limites seguem na matriz da auditoria.
+
+## Adepto Elemental — 24/10/2026
+
+`elemental-adept.ts` lê talento e elemento do mesmo evento estruturado, unifica
+as escolhas repetidas e desconsidera campos órfãos e níveis/classes removidos.
+O perfil usa a fórmula final do resolvedor, depois de Gêmea/Afinidade/Evocação.
+Magias personalizadas/fórmulas próprias não ganham automação; uma lista explícita
+mantém manuais os tipos/camadas/rodadas que o catálogo ainda não distingue.
+O motor compartilha a lista de elementos restantes entre pré-requisito e campo
+de escolha, retirando o talento da oferta quando os cinco já foram adquiridos.
+
+`spellDamageContext` passa o mesmo perfil ao lançamento e aos raios posteriores.
+`applyElementalAdept` confere dados/modificador, conserva faces e soma somente
+o número de faces 1, sem RNG ou mutação. A marca transitória no `DiceResult`
+impede reaplicação. A decomposição usa essas mesmas faces tratadas nos componentes;
+o detalhe mostra os valores originais, o ajuste e quais resistências ignorar.
+No texto de 2014, o mínimo se refere a qualquer dado de dano da magia elegível;
+em dano misto, ignorar resistência continua restrito ao elemento escolhido.
+
+Prévia e livro recebem a nota do perfil. OFF registra o lançamento normal e
+orienta a resolução física; Só Pool, d20, cura, armas, sopro e bandeja livre
+não herdam o contexto de magia. Nenhum alvo/PV remoto, resistência recebida ou
+documento recebe o perfil, que não entra em backup/histórico ou sincronização.
+
+## Manobras de dano — sexto recorte de R2, 28/10/2026
+
+`maneuvers.ts` resolve aquisições vigentes por classe/nível e as duas escolhas
+no mesmo evento do Adepto Marcial. Trocar manobra da classe não apaga aquela
+aprendida pelo talento. Define as manobras de dano, CD e origens de superioridade;
+não depende de DOM, recursos, RNG ou armazenamento. `resourcesFor` usa essas
+origens mantendo o id antigo de classe e acrescentando só o id do talento,
+recuperáveis pelo descanso existente. Overrides de máximo continuam explícitos.
+Gastos ilegíveis não são corrigidos por um clique de usar/devolver.
+
+`weapon-damage.ts` cruza as manobras conhecidas com arma automática, recurso
+válido e escolha de habilidade quando há resistência. Exige confirmar a ausência
+de outra manobra no ataque: não deduz esse fato pelo último d20 ou por turno
+inexistente. A parcela da manobra entra depois da Arma; o crítico dobra seus dados, e o resolvedor de
+rerrolagens conserva essa parcela mesmo quando ambos usam d8. Todos os custos
+são validados antes do desconto síncrono de superioridade/Destruição.
+
+A interface reutiliza Adicionais, diálogo, ajudas e registro físico/virtual.
+Campos ocultos são revelados sem recriar select/foco; não prepara/gasta manobra
+por marcar a opção. Mudança para OFF/Só Pool invalida uma confirmação virtual
+pendente antes do RNG. Histórico registra dado/origem/CD e efeito manual do alvo
+junto do custo, sem novos campos em armas, nuvem ou histórico de rolagens.
+A consulta do Adepto explica a errata sem modificar o catálogo/PDF gerado.
+Limites e próximos avanços permanecem na matriz única da auditoria.
+
+No oitavo recorte (28/10), Ameaçador/Encontrão/Provocante/Manobra/Distrativo
+reutilizam o mesmo plano e custo. `damageManeuverResolution` distingue o atributo
+de resistência do alvo (FOR/SAB) da habilidade do atacante para a CD (FOR/DES).
+Manobra/Distrativo têm resistência, habilidade e CD nulas: o contrato recusa
+uma habilidade espúria. A interface oculta/desabilita a escolha de CD nesses
+casos, conservando seu nó e valor para a próxima escolha com resistência.
+A mesma resolução fornece o texto da prévia, histórico e resultado; tamanho,
+duração, condição, movimento/reação do aliado e benefício a outra criatura
+permanecem declarados pela mesa. Não cria campos de alvo ou efeito persistente.
+
+## Ataque de Precisão — sétimo recorte de R2, 28/10/2026
+
+`superiority.ts` reúne a consulta de origens, saldo e legibilidade já usada
+no dano, sem inventar reservas. `precision-attack.ts` valida arma reconhecida,
+conhecimento vigente, resultado de um ataque, origem/face e as confirmações
+antes de somar o dado e gastar. Rede é válida: dano não é requisito de Precisão.
+O fluxo implementa a decisão posterior ao d20; ataque-base físico/manual e
+uso anterior ao d20 permanecem na mesa, com registro do contador existente.
+
+`DiceResult.precision` guarda a face, tamanho e origem do dado adicional,
+separados de grupos/modificador/d20 natural. `summarize` conserva o mesmo
+adicional ao compor Sortudo/halfling, sem relançar, duplicar ou mudar a face
+natural. Não se aplica mínimo/rerrolagem racial a esse dado de superioridade.
+O resultado continua transitório; o histórico registra uma descrição do custo.
+
+`weapon-attack-session.ts` usa WeakMap por objeto de arma e proprietário. O
+ataque real cria uma identidade, independente de um d20 rápido. Precisão marca
+essa sessão; Adicionais recusa outra manobra nela. Dano confirmado encerra a
+sessão/opções do resultado, inclusive no registro físico sem novo lançamento.
+Outra jogada da arma cria outra identidade. Trocar ficha/conta ou modo de dados
+apaga as sessões, sem bloquear o próximo ataque-base físico/manual.
+Esse vínculo não simula turnos, alvos ou ações resolvidas fora do aplicativo.
+
+`precision-attack-ui.ts` reutiliza diálogo, escolha físico/virtual e avisos.
+Antes do RNG/gasto, revalida sequência, snapshot, modo Auto Ficha, conta, arma,
+identidade do ataque e permissão. Cancelar não cobra. O custo usa o salvamento
+existente sem remontar a ficha; saldo e botões da origem atualizam seus nós.
+`sheet.js` só faz a ponte do evento e mantém a apresentação já usada por
+Sortudo. Ao somar Precisão, os botões de faces existentes são conservados.
+Não muda a aparência/gestos do dado, armazenamento de notas, histórico de
+25 registros ou a sincronização manual, nem cria chamadas de rede.
+
+## Recuperação na iniciativa — nono recorte de R2, 28/10/2026
+
+`initiative-recovery.ts` consulta o nível próprio e a subclasse vigente, com
+máximos de `resourcesFor`: Implacável (Mestre de Batalha 15), Inspiração Superior
+(bardo 20) e Auto Aperfeiçoamento (monge 20). Não usa RNG, DOM ou armazenamento.
+Só propõe recuperar quando o saldo é exatamente zero; valores ilegíveis ou
+fora do máximo produzem aviso e permanecem intactos. Ausência de registro usa
+o saldo inicial do app, sem conceder recuperação ou criar estado ao consultar.
+Implacável exige esgotar todas as origens atuais de superioridade e recupera
+um dado na reserva da classe; o dado adicional do Adepto mantém seu gasto.
+O máximo ajustado limita a recuperação; máximo zero não concede recursos.
+
+`rollInitiative` é a ponte do botão existente, com contexto explícito. Em Auto
+Ficha, o gatilho fica depois do RNG bem-sucedido e antes de capturar o snapshot
+de `presentDiceResult`. Recuperação e inspiração heroica consumida entram num
+único passo local. Sortudo/halfling recompõem o mesmo resultado sem passar pelo
+gatilho outra vez. Nome da jogada, pool livre, d20 rápido, testes e ataques não
+declaram uma nova iniciativa. A guarda de permissão antecede RNG/alteração.
+
+`initiative-recovery-ui.ts` confirma uma nova iniciativa física em OFF/Só Pool,
+sem rolar dados. WeakSet evita confirmação concorrente; documento, modo,
+sequência, ficha/conta, botão e permissão são revalidados antes de recuperar.
+Saldo, campo de Chi, botões dependentes de Chi e inspiração heroica atualizam
+somente os trechos afetados. Preserva nós/foco das listas e o desenho do dado.
+Não cria marcador de combate, relógio de turnos, novo contador, chamada remota
+ou envio automático. A mesa declara quando ocorre uma nova iniciativa.
+
+## Modo da iniciativa — décimo recorte de R2, 28/10/2026
+
+`initiative-mode.ts` consulta nível próprio (bárbaro 7/Patrulheiro Revisado 1),
+exaustão, envenenamento e as proficiências vigentes de `armorProficiencies`.
+Não altera dados. Reúne fontes da ficha, modo selecionado e inspiração preparada
+antes de calcular o modo: a presença dos dois tipos sempre resulta em normal,
+independentemente da quantidade de fontes. Não encadeia cancelamentos de pares,
+nem modifica `inspirationRollMode` dos demais contextos.
+
+`rollCurrentPool` só usa esse cálculo com o contexto explícito da iniciativa.
+Captura o perfil em `context.initiativeRoll`, junto ao resultado transitório,
+antes de consumir inspiração e recuperar recursos. `presentDiceResult` explica
+as fontes com texto escapado. Sortudo/halfling conservam esse perfil e modo;
+não recalculam com inspiração já gasta ou com um seletor alterado após lançar.
+O perfil não entra em ficha, histórico ou backup. Bônus numérico, natural do
+d20, aparência/gestos do dado e os demais lançamentos mantêm seus contratos.
+
+OFF/Só Pool excluem inspiração do cálculo, pois o botão não a gasta. Orientam
+quantidade/escolha do dado físico e bônus, junto da confirmação de recuperação
+quando necessária. Medo exige visibilidade que o documento não contém; a ajuda
+pede informar o modo na mesa. Forma Selvagem não presume que equipamento humano
+esteja vestido, e pede conferir DES/equipamento. Surpresa/Fúria e alvos que ainda
+não agiram permanecem na mesa, sem simular turnos ou gastar recursos.
+
+## Sobrevivente — décimo primeiro recorte de R2, 29/10/2026
+
+`survivor.ts` verifica Guerreiro de nível próprio 18 e subclasse Campeão vigente,
+incluindo identificação legada. A prévia pura usa `hitPointMaximum` para o limite
+reduzido por exaustão e aceita somente PV positivos até metade do máximo. Essa
+metade é requisito anterior à cura: `5 + CON` pode ultrapassá-la, até o máximo.
+Morte, PV/CON ilegíveis e Forma Selvagem são recusados sem alterar o documento.
+Sono/incapacitação com PV positivos não bloqueiam o passivo. CON 1 produz zero
+de cura; não cria alteração inútil. Aplicação exige declaração de começo de turno
+e reutiliza `healHitPoints`, preservando os contratos de cura e temporários.
+
+`survivor-ui.ts` acrescenta uma linha compacta junto aos PV, com razão de
+indisponibilidade e ajuda. `health-ui.ts` reutiliza o mesmo controle nos dois
+layouts e encaminha a ação ao diálogo existente. Checkbox obrigatório confirma
+um novo turno, sem repetir o benefício no mesmo turno. WeakSet evita confirmações
+concorrentes. Ficha/identidade, snapshot, conta, botão conectado e permissão são
+revalidados antes da cura; cancelar não altera PV ou histórico. O salvamento
+existente registra uma etapa; desfazer restaura os PV. Se o botão ficar
+indisponível após curar, o foco retorna à linha que explica a condição.
+
+Não há relógio de turnos, contador de usos, dados rolados ou chamadas remotas.
+O controle funciona em OFF/Só Pool/Auto Ficha; não gasta inspiração, Dados de Vida
+ou Retomar o Fôlego. Iniciativa, descanso e recarga não chamam esse gatilho.
+O início de cada turno pertence à mesa, e a ficha não detecta declarações
+repetidas deliberadamente. Estatísticas da besta continuam para R4.
+
+## Aparar — décimo segundo recorte de R2, 29/10/2026
+
+`parry.ts` consulta conhecimento vigente e origens de `superiorityOptions`,
+validando saldo, máximo, registro, face e DES. Aceita Aparar da classe ou do
+Adepto Marcial; dados aprimorados usam o nível próprio do Mestre de Batalha.
+Exige declaração de ataque corpo a corpo de outra criatura, reação disponível
+e nenhuma outra manobra do jogador no ataque. Incapacitação e Forma Selvagem
+impedem o controle; cegueira sozinha não impede Aparar. Não requer arma própria.
+
+`DamagePacket.parry` é opcional. `previewTypedDamage` exige origem de ataque e
+rejeita combinar duas reações com Esquiva Sobrenatural. Calcula a redução
+`max(0, face + DES)` e um orçamento único para toda a ocorrência, alocado pela
+ordem dos tipos após proteção externa/imunidade e antes de resistência e
+vulnerabilidade. Tipos imunes não consomem o orçamento. Um plano sem Aparar
+confere se as defesas já zeram o dano; nesse caso não há uso. Crítico não dobra
+redução nem custo. `parryOrder` declara a ordem entre Aparar e Maestria em
+Armadura Pesada, pois os orçamentos afetam tipos diferentes. Redução adicional
+manual permanece por linha, antes desses dois orçamentos.
+
+`applyTypedDamage` valida plano completo e sobrevivência antes de gastar um dado
+da origem selecionada, descontar proteção e aplicar um único dano final ao corpo.
+Temporários, concentração e morte usam o mesmo fluxo anterior. Custo e dano são
+salvos juntos pelo controle existente; desfazer restaura ambos. Prévia não altera
+ficha, gasto, notas ou máximo. O modo já resolvido mantém seu contrato.
+
+`parry-ui.ts` ocupa um disclosure compacto dentro do dano por tipo, visível só
+para quem conhece Aparar e selecionou ataque. Fonte/face/ordem conservam seus nós.
+O jogador informa a face ou usa `chooseResourceDice`; novas opções opcionais
+desse assistente personalizam texto e validam o contexto antes do RNG, mantendo
+os quatro argumentos antigos. Essa etapa só prepara a face, sem custo ou PV.
+Revalida documento, campos, conta, formulário e permissão; cancelar conserva o
+rascunho. OFF usa face física; virtual preserva pool, modo global e inspiração.
+O envio bloqueia concorrência no mesmo formulário e revalida os campos de Aparar
+e a permissão após eventual teste de sobrevivência. Aplicar inicia outra ocorrência
+com novo formulário. A mesa acompanha ataque, reação e turnos; não há identidade
+de alvo, relógio, novos campos persistidos ou chamadas de nuvem.
+
+
+## Inspirar — décimo terceiro recorte de R2, 29/10/2026
+
+`rules/rally.ts` usa conhecimento vigente de `maneuverTraining` e as reservas
+existentes de `superiorityOptions`. Valida origem/saldo/máximo, registros, face,
+CAR e declaração de aliado/percepção/ação bônus no próprio turno. Calcula
+`max(0, face + CAR)`; `applyRally` valida antes de gastar exatamente um dado.
+Não modifica PV/temporários/estado do usuário nem outra ficha. Incapacitação
+impede a ação; Forma Selvagem continua manual. Não exige que o usuário veja o
+aliado: este é que precisa ver ou ouvir o usuário, confirmado pela mesa.
+
+`rally-ui.ts` acrescenta apenas um botão nas reservas que já existem e revela
+um resultado transitório depois da confirmação. O assistente comum de dados
+aceita `fields` opcionais dentro do diálogo nativo; os quatro argumentos antigos
+continuam iguais. Campos extras mantêm nós/foco ao escolher físico/virtual.
+Documento/conta/botão/permissão e contexto são revalidados antes do RNG e gasto;
+uma trava por ficha evita confirmações concorrentes entre as duas origens.
+Virtual rola um dado normal, sem mexer no pool, modo ou inspiração; OFF permite
+face física. O histórico conserva aliado, face, CAR, total e origem com o gasto,
+e desfazer devolve o dado. O resultado usa texto seguro e quebra nomes longos.
+`refreshSuperiorityControls` também mantém a disponibilidade de Inspirar após
+Precisão. Não existe envio para aliado, relógio de ações, novo dado persistido,
+SQL, consulta ou sincronização automática.
+
+
+## Passo Evasivo — décimo quarto recorte de R2, 29/10/2026
+
+`evasive-footwork.ts` consulta conhecimento atual e origens de superioridade,
+valida face/saldo/máximo/declaração antes de gastar um dado e grava um registro
+opcional `ruleState.evasiveFootwork` com `{version:1, source, die, face}`. Só uma
+ativação entre as origens; encerrar elimina apenas um efeito válido, sem reembolso.
+`armorClass` soma sua face a cada fórmula, inclusive escrita, uma vez; o texto
+explica o bônus e o prazo. Não requer ação/reação nem consciência por uma regra
+genérica: incapacitação isolada não impede movimento. Forma Selvagem fica manual.
+
+`evasive-footwork-state.ts` isola leitura e ciclo sem importar o cálculo de CA
+ou recursos, evitando um ciclo de inicialização. Ler não altera dados; registro
+ilegível/futuro não fornece bônus e continua preservado. Condições impeditivas,
+queda/morte, exaustão 5 e descanso limpam somente o efeito válido. O fluxo de
+condições confere também o estado anterior ao remover uma causa, e cura/retorno
+à vida não retomam um movimento que já terminou. Edição de vida/deslocamento/
+classe trata indisponibilidade na proposta clonada antes/depois da alteração.
+Ao escrever CA atual, subtrai também Passo Evasivo da base, além das magias/ajustes,
+para que encerrar retire o bônus sem duplicação. Erros de edição preservam original.
+
+`evasive-footwork-ui.ts` reutiliza o seletor físico/virtual e diálogo existentes.
+Revalida documento/conta/botão/permissão antes do RNG e da aplicação, com uma trava
+por ficha para cliques concorrentes. Um passo de histórico inclui gasto e efeito;
+outro encerra, e ambos podem ser desfeitos. Controle ativo fica junto à CA;
+**Terminei de me mover** declara a parada. Trocar tema/layout ou recarregar não
+inventa uma parada na aventura; o registro permanece inclusive offline. Distância,
+pausas, ataques de oportunidade e turnos são acompanhados pela mesa. Sem novo
+relógio, sessão compartilhada, SQL ou consultas de nuvem.
+
+
+## Ataque Estendido — décimo quinto recorte de R2, 29/10/2026
+
+`lunging-attack.ts` valida conhecimento vigente, arma corpo a corpo reconhecida,
+capacidade de atacar, fórmula/bônus e origem/saldo legível antes de gastar um
+único dado. Não exige proficiência; arremesso, arma própria e Forma Selvagem não
+são cobertos por este controle. A escolha declara ataque novo no próprio turno,
+ainda não rolado/resolvido e sem outra manobra. O dado é pago antes do d20, mesmo
+se errar; sua face só é rolada no dano de um acerto confirmado.
+
+`lunging-attack-ui.ts` mantém a marca em `WeakSet` por objeto de arma. Marcar não
+gasta, grava nem reconstrói nós. O diálogo reutiliza a confirmação nativa;
+revalida documento, conta, objeto/índice da arma, botão conectado, permissão,
+preparação, sessão anterior, modo/sequência do dado e bônus antes de gastar.
+Uma trava por ficha impede confirmações concorrentes. Gasto entra no histórico
+local uma vez; não altera dados das armas nem persiste faces/alcance/alvos.
+
+`weapon-attack-session.ts` guarda a origem/tamanho pagos num contexto efêmero.
+O ataque automático usa essa mesma identidade; OFF/Só Pool conservam o contexto
+para registrar o total físico. Precisão e outra manobra no dano são bloqueadas,
+inclusive após Sortudo/halfling recomporem o d20. `weapon-damage.ts` inclui o dado
+do tipo da arma, dobrado no crítico; Furtivo, Destruição e –5/+10 conservam seus
+contratos/custos. Rerrolagens restritas à arma deixam o dado da manobra intacto.
+Dano exige confirmar acerto, não desconta superioridade de novo e encerra a sessão.
+
+**Errou / encerrar ataque** elimina contexto e opções do d20, sem devolver uso.
+Outro ataque, inclusive com outra arma, encerra o alcance anterior. Descanso
+limpa o contexto antes da recuperação normal. Troca de ficha/conta/modo, recarga
+e objetos substituídos por desfazer não restauram o ataque. Desfazer/refazer
+restaura o contador do documento; descanso segue a recuperação normal. Se ele ainda
+precisa ser resolvido, a interface orienta usar a mesa com o dado já pago.
+Não há medição de alcance, relógio de ações/turnos, modificação de outro jogador,
+novo campo persistido, SQL ou consulta de nuvem.
+
+
+## Ataque de Finta — décimo sexto recorte de R2, 29/10/2026
+
+`feinting-attack.ts` valida conhecimento vigente, ação bônus/turno/distância
+inicial declarados, alvo, legibilidade e saldo antes de gastar um dado. Não rola
+a face ao fintar. `feinting-state.ts` guarda origem/tamanho/alvo num `WeakMap`
+por ficha: crédito para o próximo ataque contra esse alvo no mesmo turno. Ataque
+contra outra criatura não o consome; alvo/turno são declarações, sem rastreamento
+ou medição. Origem do talento mantém d6 até Superioridade Aprimorada.
+
+`feinting-attack-ui.ts` monta Fintar nas reservas e um estado compacto junto das
+armas. Marcação por arma aponta para a identidade exata do crédito; nova Finta
+não herda marca antiga. Confirmar Atq consome o crédito sem novo gasto e o liga
+à sessão de `weapon-attack-session.ts`. Revalida conta/documento/objeto/botão,
+permissão, preparação, contexto e sequência/modo do dado, com trava por ficha.
+Marcar mantém nós/foco; aceitar atualiza estado e rótulos dos botões existentes,
+inclusive liberando dano virtual quando Finta é o único adicional.
+
+`feintingRollDetails` reúne Finta, modo informado e inspiração antes de cancelar:
+duas vantagens não superam uma desvantagem. Aplica só à jogada elegível, sem mudar
+o seletor global. O resultado explica o modo; Sortudo/halfling preservam a sessão.
+Não deduz sentidos, proximidade de inimigos ou cobertura. Desvantagens continuam
+informadas pela mesa, inclusive ataque à distância perto de inimigo elegível.
+
+`weapon-damage.ts` inclui o dado do tipo da arma, dobrado em crítico; o diálogo
+pede acerto e bloqueia Precisão/outra manobra. Furtivo, Destruição, –5/+10 e
+repetições restritas à arma conservam os contratos. OFF/Só Pool usam registro
+físico e não gastam inspiração preparada. Magia com jogada de ataque, ataque
+próprio/desarmado ou sem jogada de dano são resolvidos na mesa com o crédito já pago; o controle não
+conjura, altera espaços ou inventa dano para Rede. Forma Selvagem fica manual.
+
+Encerrar/errar/fim do turno descarta crédito/sessão sem reembolso. Outro ataque
+após aquele que usou Finta termina a sessão anterior, sem herdar vantagem/dano.
+Descanso limpa antes da recuperação normal; troca de ficha/conta/modo, recarga
+e objetos substituídos por desfazer também descartam o contexto. Desfazer/refazer
+restaura somente o contador do documento. Não persiste alvo/face/crédito, não
+muda outra ficha, não cria relógio/SQL/consulta de nuvem.
+
+## Ataque Trespassante — décimo sétimo recorte de R2, 29/10/2026
+
+`sweeping-attack.ts` verifica a aquisição vigente, arma reconhecida corpo a
+corpo com dano, origem/legibilidade/saldo e a ausência de outra manobra na
+sessão. A mesa declara o acerto original, outra criatura, distância até 1,5 m,
+alcance e se a mesma jogada atingiria a segunda CA. Não inventa outro ataque,
+CD, turno próprio, ação bônus ou reação. Personalizado/Forma Selvagem são
+limites do controle integrado, com resolução manual indicada.
+
+`weapon-damage.ts` inclui Trespassante na escolha única de manobra em Adicionais.
+O plano secundário fica em `sweeping`; **não entra em `parts`, `formula` ou no
+total principal**. Pela quantidade de dano expressa no texto de 2014, recebe
+somente um dado, inclusive se o alvo original sofreu crítico, sem bônus fixos,
+Furtivo, Destruição, dados raciais ou –5/+10. O commit paga um único uso da
+origem, mesmo quando a jogada não atingiria a segunda criatura.
+
+`weapon-damage-ui.ts` mantém os nós do formulário ao alternar a escolha e
+reutiliza a confirmação nativa. Revalida ficha, conta, permissão, arma,
+preparação/sessão, botão e configurações/sequência do dado antes do RNG/gasto.
+O registro físico pede total principal e face secundária separadamente; não
+pede face nem usa RNG secundário em uma tentativa que não atingiria. No virtual,
+o motor normal avalia o dado secundário fora da composição da arma; a bandeja
+mostra o total principal e a legenda informa o dano secundário e seu alvo.
+Um único passo local guarda o custo e os dois resultados.
+
+Repetições recebem apenas o resultado principal e suas partes originais. O
+diálogo identifica o total como dano do alvo original e explica que o secundário
+já foi registrado. Textos do alvo usam textContent/escape e quebram linha;
+`#dice3dResultText` limita a largura e permite quebra em qualquer ponto para
+nomes sem espaços, inclusive na legenda virtual dentro da bandeja móvel. O
+aviso global também tem largura máxima e quebra para esses nomes. Não
+há alvo/face/efeito persistido na ficha. Desfazer/refazer restaura o contador e
+descanso segue a recuperação normal. Não altera outro jogador, catálogos,
+contratos antigos de dano, SQL ou consultas/sincronização de nuvem.
+
+## Contra-Atacar — décimo oitavo recorte de R2, 29/10/2026
+
+`riposte.ts` valida aquisição vigente, arma reconhecida corpo a corpo com dano,
+capacidade de atacar, fórmula/bônus e origem/legibilidade/saldo antes de gastar.
+O usuário identifica a criatura e declara que ela errou uma jogada corpo a corpo
+contra ele, reação disponível, alcance e novo ataque contra ela sem outra manobra.
+Não exige proficiência, turno próprio ou falha de resistência; agarrão/empurrão
+não têm jogada de ataque. Ataque próprio/desarmado e Forma Selvagem são limites
+explícitos do controle, com resolução na mesa.
+
+`riposte-ui.ts` acrescenta o botão compacto junto da arma e reutiliza a janela
+nativa. Uma confirmação por ficha revalida documento/conta/permissão/arma/botão,
+sessão, preparação de crítico/–5/+10, outras manobras e modo/sequência do dado
+antes do custo e RNG. Campos mantêm nós/foco. Cobra um dado antes do ataque,
+sem rolar sua face antecipada; um passo local registra o gasto mesmo se errar.
+
+`rollWeapon(..., 'riposte')` segue o caminho normal de ataque com contexto pago.
+Não é ação Atacar nem ataque de oportunidade e não dispara Ataque Extra. Não
+concede vantagem; modo/inspiração/Sortudo/halfling mantêm as regras existentes.
+`weapon-attack-session.ts` guarda origem/tamanho/alvo em WeakMap; há só um
+contra-ataque pago pendente por ficha, independentemente de arma/origem. Outra
+manobra no mesmo ataque fica bloqueada. Finta pendente com a mesma identificação
+textual não pode ser combinada; outra criatura não consome esse crédito.
+Identidade real, alcance e turno continuam declarados pela mesa.
+
+`weapon-damage.ts` inclui o dado do tipo da arma no dano do acerto, dobrado em
+crítico, sem cobrar novamente. O diálogo pede confirmar o acerto daquele
+contra-ataque. Furtivo por turno, Destruição e –5/+10 conservam seus contratos;
+repetições limitadas à arma excluem o dado de superioridade. OFF/Só Pool usam
+ataque/dano físicos sem RNG nem consumo de inspiração preparada.
+
+Errar/encerrar, outro ataque, descanso, troca de ficha/conta/modo, recarga ou
+objetos substituídos por desfazer descartam o contexto sem reembolso. Remover ou
+substituir a arma invalida sua sessão e não bloqueia novas reações declaradas;
+se ainda precisa resolver o dado já pago, use a mesa. Desfazer/refazer restaura
+somente o contador; descanso segue a recuperação normal. Não há contador de
+reação/rodada inventado, alvo persistido novo, outra ficha alterada, SQL ou
+consulta/sincronização de nuvem.
+
+
+## Golpe do Comandante — décimo nono recorte de R2, 29/10/2026
+
+`src/rules/commanders-strike.ts` valida conhecimento/origem/saldo legível,
+capacidade e as declarações da ação Atacar no próprio turno, um ataque cedido,
+ação bônus e criatura amigável que possa ver ou ouvir o comandante. A emissão
+gasta um dado antes de qualquer ataque; não exige arma do comandante, Ataque
+Extra ou reação dele. O aliado pode recusar ou errar sem devolver o recurso.
+
+`commanders-strike-state.ts` mantém uma única ordem em `WeakMap<Sheet, …>`, com
+origem/tipo do dado capturados e identificação textual do aliado. Não persiste
+turno, alvo, sessão ou faces no documento. Descanso e o descarte global de contexto
+por `clearWeaponAttacks` encerram a ordem; recarga/desfazer substituem o documento
+e não a recriam. Contador salvo e recuperação normal permanecem. Ataques/preparações
+próprios são independentes: dar/resolver a ordem não consome Finta. A reação é
+imediata na mesa; outras rolagens da interface não permitem inferir a cronologia
+desse ataque, e não há relógio automático de turnos.
+
+`commanders-strike-ui.ts` reutiliza diálogo nativo, dado físico/virtual e rolador
+existentes. O aliado resolve o ataque com seus valores na mesa; o módulo registra
+somente `1dN` no acerto ou `2dN` no crítico, uma vez, sem novo custo. Erro/recusa/
+encerramento não rolam. OFF usa físico; Só Pool começa em físico e permite escolher
+explicitamente o dado virtual normal, sem usar pool/modo/inspiração/preparações.
+Uma trava por ficha e guarda de identidade/documento/conta/permissão/nó/ordem/
+modo/sequência antecedem custo/RNG; campos mudam sem substituir nós. Nomes são
+dados escapados e quebram linha no celular. Registrar uma ordem já emitida não
+exige consciência contínua nem cobra a reserva de novo. Não há identidade de
+outro documento, alteração de outra ficha, campo persistido ou consulta de nuvem.
+
+
+## Lote de combate e estabilidade das janelas — 29/10/2026
+
+`html:has(dialog[open])` desativa a ancoragem automática enquanto um diálogo
+está aberto. `window-scroll.js` continua contendo a rodinha; o body não é
+bloqueado e posição não é restaurada por scripts. A falha da CI em Inspirar
+foi reproduzida com mudanças de altura atrás do modal; a regressão força 97 px
+adicionais, sem relaxar a comparação da posição. Testes aguardam fontes e
+transições reais antes de medir, sem espera fixa; a sonda continua forçando uma
+mudança de altura com a janela aberta.
+
+`src/rules/roll-context.ts` reúne as fontes próprias por tipo/habilidade da
+jogada. Reutiliza as fontes da iniciativa; no caminho de `rollCurrentPool`,
+Finta e inspiração entram na mesma lista antes do cancelamento. O resultado
+captura o perfil para Sortudo/repetições. Não infere pelo rótulo da jogada:
+atributos/resistências fornecem a habilidade, perícias usam seus identificadores,
+armas usam estatísticas conhecidas e magias informam a habilidade de conjuração.
+Sem contexto/um d20 único, não aplica fontes da ficha ao pool livre. Metadado de
+Furtividade vem de `equipmentCatalog`, sem editar catálogo gerado. Armadura,
+escudo, tamanho racial e Fúria humanos não são transferidos à Forma Selvagem.
+
+`dice-roll.ts` aceita o mínimo opcional de Força Indomável no perfil capturado:
+compara o TOTAL após modificador com FOR, preserva natural e repete esse cálculo
+com as faces de Sortudo. Só testes de FOR de bárbaro 18 fora da forma recebem
+o mínimo. Passivos apresentados usam fontes conhecidas sem inspiração ou modo
+global; fontes dependentes do alvo/visibilidade continuam declaradas na mesa.
+
+`combat-feats.ts` mantém prévias puras de Duelista Defensivo e Líder Inspirador.
+O primeiro não muda CA: informa o bônus válido só contra um ataque, reconhece
+acuidade/proficiência e trata crítico/igualdade. O segundo não inventa recurso
+diário: o limite pertence ao destinatário e exige declaração do descanso, inclusive
+entre líderes distintos. Só muda `hpTemp`/`hpTempSource` próprios por escolha
+expressa; nenhuma outra ficha é acessada. `combat-feats-ui.ts` reutiliza confirmação,
+prévia e histórico, com trava e guarda de documento/conta/permissão/nó. Campos
+não são remontados e identificações são tratadas como dados. Sem schema, SQL,
+contadores de turno ou consultas de nuvem novos.
+
+
+## Apoio e saldos compatíveis — 29/10/2026
+
+`support-actions.ts` mantém prévias e aplicação de Curandeiro, concessão e
+Interrupção do bardo. Não procura outro personagem: nomes só identificam
+participantes na mesa. Reutiliza cura/máximo de PV, reserva `bardo:inspiration`
+e recuperação existentes. Cura própria usa DV máximos somados das classes;
+alvos externos informam os próprios DV. Tratamentos anteriores, descanso e
+permissão para o 1 PV da estabilização são declarados, sem cadastro crescente
+de alvos nem interpretação de repetição ilimitada do talento.
+
+`inventoryItems[].healerKitUses` é opcional: inteiro de zero a `qty * 10` para
+kits reconhecidos. Ausente significa saldo ainda não conferido, não kit cheio.
+A confirmação do uso permite informar/corrigir saldo legível, consumindo um.
+Campo ilegível bloqueia sem sobrescrever. Edição/importação não reabastece;
+compra de uma unidade nova acrescenta dez somente a saldo conhecido válido,
+antes de aumentar `qty`. Kit novo comprado começa com dez; kit esgotado continua
+no inventário. `coins.ts` calcula pagamento/troco antes da mutação, conserva
+valor e não normaliza moedas que não precisam ser trocadas. A loja não depende
+mais das funções globais de moedas ausentes.
+
+`bardic-received.ts` lê `ruleState.bardicInspiration` opcional, formato
+`{version:1, source, die, combat}`. Um dado, fonte até 80 caracteres, d6/d8/d10/d12
+e flag de Bravura. Ausente/null significa nenhum. Formato desconhecido é
+preservado e bloqueado; uso, encerramento explícito ou descanso só apagam
+registro conhecido. Prazo de dez minutos é de jogo e declarado, sem cronômetro
+real. Desfazer restaura estado consumido como os demais recursos persistidos.
+
+`support-actions-ui.ts` usa confirmação, origem física/virtual e dados normais
+comuns. Prévia atualiza campos sem remontar nós. Guarda documento, conta,
+permissão, nó e modos/sequência antes da primeira rolagem. Após a rolagem própria,
+a sequência da animação muda legitimamente; sem await intermediário, revalida
+estado/modos para aplicar custo e efeito. OFF não chama RNG; Só Pool sugere físico.
+O bônus recebido calcula uma jogada já rolada informada pelo jogador, sem
+recompor o d20 anterior. Bravura duplica o dado adicional no dano crítico da arma,
+não na CA. CA/resultado externo são informativos; não altera valor permanente,
+resolve acerto, aplica dano ou cria chamada entre fichas. Campos opcionais
+passam pelos backups/histórico existentes, sem novo schema, SQL ou sincronização.
+
+O auxiliar `settleSheetAppearance` dos testes aguarda fontes e animações finitas
+de fonte/altura, inclusive SizeMotion iniciado por ResizeObserver. Medir antes
+permitia clamp de scroll no fim de uma folha ainda encolhendo. Não espera a aura
+infinita do dado e mantém comparação exata e sonda posterior de 97 px.
+
+
+## Núcleo de combate do monge — 29/10/2026
+
+`martial-arts.ts` acrescenta uma opção operacional ao editor, sem editar o catálogo
+gerado. Somente `ruleWeapon: Golpe desarmado` ativa o cálculo comum. Nomes livres
+não são homologados. `combat.ts` separa golpe sem arma de arma física, calcula
+proficiência/atributo/dado, mantém ajustes expressos e não aplica Furtivo,
+Destruição, Duelismo ou extras de dado de arma ao golpe. `weapon-damage-ui.ts`
+usa a composição comum também no golpe normal, para respeitar crítico e mínimo
+zero sem alterar o pool livre. Ataques humanos na Forma Selvagem não são usados
+pelo novo controle. Armas de monge já usavam o dado; os requisitos de mãos/armas
+empunhadas continuam declarados na mesa.
+
+`monk.ts` valida reserva de Chi legível antes do custo. Atordoante usa acerto
+corpo a corpo reconhecido, inclusive desarmado; não exige arma de monge ou falta
+de armadura. Cada acerto/limite temporal é declarado, sem contador de turno.
+Mente Tranquila encerra um efeito; marca agregada só é removida por escolha
+expressa de último efeito. `conditions.ts` suprime envenenado em monge 10 sem
+apagar registro antigo e deriva invisibilidade de Corpo Vazio em monge 18.
+
+`DamagePacket.monkDefense` representa Defletir ou Queda Lenta declarados.
+`damage.ts` valida origem, reação e exclusão com Aparar/Esquiva, aloca uma redução
+pela ordem dos tipos e aplica defesas comuns. Proteção Arcana vem antes;
+resistência/vulnerabilidade vêm depois. `monkOrder` explicita ordem com redução
+de armadura. Captura exige redução a zero antes da resistência e participação
+efetiva de Defletir; mão/tamanho são declarados. `monk-defense-ui.ts` prepara
+d10 com origem física/virtual, sem custo/efeito até Aplicar dano.
+
+Devolução é uma operação separada declarada para a mesma reação, permitindo
+uso após a deflexão resolvida na mesa. Informa dados próprios da arma/munição,
+proficiência e dado de Artes Marciais elegível; não infere a arma do dano recebido.
+Chi/inspiração são salvos antes do d20. `monk-state.ts` guarda somente o dano
+pendente desse ataque pago, ligado ao objeto e snapshot. Registro de dano não
+cobra de novo. Alteração, recarga, histórico, troca de contexto/modo e descanso
+descartam a pendência, preservando o custo; não é campo do backup nem do histórico.
+
+`monk-ui.ts` reutiliza origem de dados, rolagens normais/contextuais e confirmação.
+Alma de Diamante não depende de ação/consciência: pode repetir a morte a 0 PV,
+mas não depois de morto. O recurso é pago/salvo antes da nova jogada. Nos fluxos
+de morte/concentração, o jogador prepara a oferta; só uma falha a abre. A falha
+original ainda não está aplicada, portanto a nova jogada é resolvida uma vez
+pelos mesmos módulos, sem desfazer/reaplicar contagens ou concentração. Cancelar
+mantém a original sem custo; contexto obsoleto impede ambos. O modo/bônus original
+é conservado, sem consumir outra inspiração ou oferecer repetição recursiva.
+Sem nova consulta de nuvem, SQL ou relógio de combate.
+
+
+### Imunidades próprias e resistências condicionais
+
+`defensive-traits.ts` deriva imunidades sem reescrever as marcas de condições.
+`model.isConscious` distingue morte/inconsciência de incapacitação para Proteção,
+Coragem e Devoção. Vigilância tem contrato próprio, sem exigir consciência.
+`shield-master.ts` lê somente o bônus do equipamento, sem somar CA total ou
+Escudo Arcano; a escolha de reação é parte transitória de `DamagePacket`.
+
+`situational-saves.ts` calcula uma única resistência declarada por efeito/fonte,
+reutilizando `sheetRollDetails` para cancelar todos os modos uma vez. O assistente
+em `situational-saves-ui.ts` usa a confirmação e o dado comuns, sem alterar o
+bônus permanente ou o pool manual. Valida documento, conta, permissão, nó e
+configuração/sequência de dado antes do RNG. Imunidade e falha automática não
+rolam nem gastam inspiração. CD/modo/ajuste ficam recolhidos; escolhas/resultado
+não viram novos campos persistentes. Rerrolagens adicionais são resolvidas na
+mesa neste assistente; os botões de resistência comuns preservam o fluxo atual.
+
+
+### Ações de talentos e disputas corporais
+
+`combat-actions.ts` valida armas/gatilhos declarados e calcula variantes sem
+editar a arma guardada. `combat-action-state.ts` mantém uma sessão ligada ao
+personagem/arma/ataque, com snapshot: edições invalidam permanentemente até
+encerrar ou declarar outro ataque. Inspiração/Sortudo do d20 são excluídos da
+comparação; `withCombatActionCost` renova a guarda apenas na transação síncrona
+de Precisão/Atordoante do mesmo ataque. Sessões não entram em armazenamento.
+
+`weapon-damage.ts` lê o perfil válido para compor dados/tipos/modificadores,
+críticos, adicionais e repetições existentes. Um perfil vencido bloqueia registrar
+dano, conservando a opção de encerrá-lo. `combat-actions-ui.ts` revalida snapshot,
+conta, permissão, nó, modo/sequência e preparação antes de custo/RNG. O ataque
+com magia tem contexto opcional para proximidade e alvo agarrado, sem conjurar.
+
+`physical-contests.ts` resolve o teste próprio de Atletismo e comparação opcional,
+sem escrever condições/posição do alvo. O d20 virtual usa `rollRuleCheck` na ponte:
+o bônus entra no mesmo cálculo antes do piso de Força Indomável. O assistente
+físico replica essa ordem e aplica Confiável à face tratada. O empate conserva
+a situação anterior; custo/gatilho e aplicação no alvo seguem declarados.
+
+### Conjuração por invocações — 30/10/2026
+
+`invocation-casting.ts` explicita as 19 correspondências do livro de 2014,
+sem inferir custos de palavras no texto ou cadastrar magias conhecidas. Valida
+seleção atual, nível próprio e Pacto exigido, restrições de conjuração e reservas.
+Sete ações usam o contador diário existente junto de Pacto; onze usam o círculo
+base sem espaço. Cárceri exige declaração por criatura, sem contador global.
+Seu contador antigo permanece preservado, sem bloquear outros alvos.
+
+Uma cópia valida custos/consequências antes de aplicar os campos afetados. O
+módulo reutiliza `spellConcentration`, `applyCastConcentration`, `onSpellCast` e
+`resolveSpellEffect`: inclui duração de Maldição por círculo, Proteção Arcana e
+Transposição Benigna. Material dispensado não dispensa V/S. A resistência, quando
+exigida, indica atributo e CD de CAR do bruxo, com proficiência total. Não rola
+ataques, dano, resistência do alvo ou estatísticas de criaturas automaticamente.
+
+`invocation-casting-ui.ts` usa confirmação, balões e escolha físico/virtual
+existentes. A revalidação de documento, conta, permissão, nó e modo/sequência
+precede custo/RNG. Cancelar não altera reservas, concentração ou histórico;
+Vigor revalida antes do d4 e permite manter/substituir temporários sem somar.
+Não chama o fluxo assíncrono genérico de concessão de PV após cobrar o recurso.
+Registrar uso continua disponível em detalhe para uma conjuração já resolvida
+na mesa, sem cobrar novamente o espaço. O botão diário aparece uma única vez
+no controle existente; as demais invocações usam sua característica já montada.
+Não há novo formato persistido, SQL, consulta de nuvem ou cache de jogador.

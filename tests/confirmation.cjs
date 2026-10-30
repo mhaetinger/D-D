@@ -11,3 +11,22 @@ function confirmationActions(page) {
   return {dialog,accept:()=>choose(page.locator('#confirmationAccept')),cancel:()=>choose(dialog.getByRole('button',{name:'Cancelar',exact:true}))};
 }
 module.exports={confirmationActions};
+/** Mudanças de fonte/tema terminam antes de medir a rolagem. Espera eventos
+ * reais, sem atraso fixo; as sondas de altura continuam verificando ancoragem. */
+async function settleSheetAppearance(page) {
+  await page.evaluate(async()=>{
+    await document.fonts.ready;
+    // ResizeObserver pode iniciar SizeMotion depois que a fonte terminar.
+    // Esperar só a transição do html deixava a folha ainda encolhendo no fim
+    // da página. Não esperamos as animações infinitas da aura do dado.
+    const deadline=performance.now()+5000;
+    while(performance.now()<deadline){
+      await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));
+      const layout=document.getAnimations().filter(a=>a.playState==='running' && a.effect?.getKeyframes().some(k=>'height' in k || 'fontSize' in k));
+      if(!layout.length)return;
+      await Promise.all(layout.map(a=>a.finished.catch(()=>{})));
+    }
+    throw Error('A aparência da ficha não estabilizou para medir a rolagem.');
+  });
+}
+module.exports.settleSheetAppearance=settleSheetAppearance;

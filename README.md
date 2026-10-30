@@ -137,6 +137,25 @@ pertinentes sem lançar dados; a aplicação e distribuição de PV ficam na mes
 Cópias antigas recebem a apresentação corrigida sem substituir seus campos.
 Bom Fruto não oferece Gêmea; suas reservas/efeitos são resolvidos na mesa.
 
+Invocações substituídas deixam de aparecer nas características; reaprender uma
+delas mostra somente a aquisição atual, preservando histórico e usos já gastos.
+As 19 invocações de conjuração direta têm **Conjurar** na característica. Sete
+cobram o uso diário e o espaço de Pacto juntos; Conjuração não paga esse custo.
+Onze são à vontade no círculo base, sem reserva diária ou magia conhecida extra.
+Em **Já resolvi na mesa**, **Registrar uso** continua corrigindo somente o uso
+diário de uma magia já resolvida manualmente. Correntes de Cárceri confirma o
+tipo e a repetição por criatura, sem limitar outras criaturas por um contador
+global. Esse limite e os efeitos nos alvos são conferidos na mesa.
+Armadura de Sombras ativa Armadura Arcana em si, sem armadura vestida. Vigor
+Abissal rola 1d4+4 físico/virtual e permite manter ou substituir a reserva de PV
+temporários; não soma nem cura. Componentes dispensados e concentração são
+indicados antes de confirmar. Rituais do Livro de Segredos Antigos continuam no
+grimório. Metamagia neste controle e prazos/estatísticas das formas ficam na mesa.
+Vitalidade Falsa lançada pelo cartão comum do grimório continua sem aplicação
+automática de PV temporários.
+Rogar Maldição registra seu efeito sem dano imediato; duração e concentração
+seguem o círculo escolhido, dispensando concentração a partir do 5º.
+
 Concentração acompanha um efeito ativo do personagem, como Bênção. Combate e
 grimório mostram o mesmo registro. Preparar uma magia só a deixa disponível;
 conjurar registra o efeito, e outra concentração pede substituição. Ao registrar
@@ -184,6 +203,220 @@ dos conjuntos completos; confirme que o uso está disponível neste turno.
 O crítico comum participa; bônus fixos e dados de outras características ficam
 iguais. Fechar em **Retomar depois** conserva as faces nesta sessão, sem outro
 gasto de Destruição. OFF/Só Pool registram o total físico final, resolvido na mesa.
+
+Em desenvolvimento, **Ataque Desarmante**, **Derrubar**, **Ataque Ameaçador**,
+**Ataque de Encontrão**, **Ataque Provocante**, **Ataque de Manobra** e
+**Golpe Distrativo** aparecem em
+**Adicionais** das armas reconhecidas quando o personagem conhece a manobra.
+Escolha a origem do dado e confirme que não usou outra manobra nesse ataque.
+Quando há resistência, escolha FOR/DES para formar a CD: Ameaçador/Provocante
+pedem SAB do alvo; Desarmante/Derrubar/Encontrão pedem FOR. Manobra/Distrativo
+não pedem resistência nem mostram CD. O acerto inclui o dado no dano/crítico e
+desconta um uso; teste, tamanho, duração e efeito no alvo ficam na mesa.
+Manobra usa a reação do aliado e evita oportunidade só do alvo atingido;
+Distrativo beneficia apenas o próximo ataque de outra criatura no prazo indicado.
+Adepto Marcial tem seu dado adicional
+identificado, com recuperação em descanso curto/longo. OFF/Só Pool registram
+o total físico. Manobras sem controle próprio continuam em **Usar na mesa**.
+Também em desenvolvimento, **Ataque Trespassante** aparece em **Adicionais** de
+uma arma reconhecida usada corpo a corpo. Identifique a segunda criatura e
+confirme: o ataque acertou a primeira, a segunda está a até 1,5 m dela e dentro
+do seu alcance. Informe se **a mesma jogada** atingiria a segunda CA. Não role
+outro ataque. O dano principal fica como estava; a segunda recebe somente
+**um dado de superioridade**, do tipo da arma, sem bônus ou dados extras de
+crítico. Se não atingiria, recebe zero, mas a tentativa gasta o dado escolhido.
+No Auto Ficha, role aqui ou registre o total principal e a face secundária
+físicos; OFF/Só Pool usam apenas esse registro. A legenda/histórico distinguem
+os dois danos; repetições da arma alteram só o alvo original. Não usa outra
+manobra no mesmo ataque, nem aplica dano automaticamente a outra ficha.
+Ataques personalizados e Forma Selvagem continuam na mesa.
+
+Em desenvolvimento, **Contra-atacar**, junto da arma corpo a corpo reconhecida,
+confirma uma criatura que errou uma jogada corpo a corpo contra você, reação
+disponível e alcance da arma. Identifique essa criatura, escolha a origem do
+dado e confirme um único ataque contra ela. Gasta o dado antes do ataque,
+mesmo se errar; no acerto, Dano inclui o dado já pago e dobra-o em crítico.
+**Errou / encerrar contra-ataque** descarta o contexto sem devolver o uso.
+Não combina Precisão/outra manobra nem concede vantagem por si. Não é ação
+Atacar ou ataque de oportunidade: Ataque Extra não concede outros ataques aqui.
+OFF/Só Pool usam ataque e total de dano físicos, sem gastar inspiração preparada.
+Reação/gatilho/alcance ficam com a mesa; ataques próprios/desarmados e Forma
+Selvagem continuam manuais. Recarregar/desfazer/trocar contexto não recriam o
+ataque: se necessário, resolva na mesa um dado ainda pago.
+
+Em desenvolvimento, **Auto Ficha** reúne as fontes próprias de vantagem e
+desvantagem antes de cancelar: condições marcadas, exaustão, Fúria e equipamento,
+além de inspiração/Finta e modo informado. O resultado mostra as origens sem
+mudar o seletor global. Armadura/escudo sem proficiência afetam as jogadas de
+FOR/DES; Furtividade usa o catálogo, respeitando Maestria em Armadura Média.
+Criaturas Pequenas têm desvantagem com armas pesadas reconhecidas. Força
+Indomável do bárbaro 18 usa o valor de FOR como mínimo do total de testes de
+FOR, sem mudar a face natural. Contextos de alvos, sentidos especiais e medo
+continuam na mesa; Forma Selvagem não herda equipamento/valores humanos.
+
+**Duelista Defensivo**, junto da CA, confirma uma reação e arma de acuidade
+proficiente empunhada. Informe o total recebido e se é crítico: mostra a CA só
+contra esse ataque, sem torná-la permanente ou aplicar dano. **Líder Inspirador**,
+junto da característica, calcula os temporários de até seis criaturas após o
+discurso. Identifique os outros participantes e escolha se você participa e
+mantém ou substitui seus temporários. Confira o descanso de cada destinatário,
+mesmo que tenha recebido de outro líder; a ficha não conhece outras fichas.
+Temporários não se somam nem curam. Não há limite diário de discursos.
+
+O **monge**, em desenvolvimento, pode cadastrar **Golpe desarmado** em Artes
+Marciais com o cadeado aberto; também aparece entre as opções do editor comum.
+Usa FOR e 1 de dano base normalmente, ou DES e dado de Artes Marciais quando
+estiver sem armadura/escudo e empunhando só armas de monge. Ação/ataque bônus
+continuam conferidos na mesa. **Atordoar após acerto** gasta 1 Chi e informa a
+resistência de CON do alvo; funciona com golpe desarmado. **Mente Tranquila**
+encerra um efeito próprio de encanto/medo; mantenha a marca se outro efeito
+continua causando a condição. Pureza Corporal indica a imunidade a envenenado.
+
+Em **Dano detalhado → Calcular por tipo**, monge escolhe **Defletir Projéteis**
+para um ataque de arma à distância ou **Queda Lenta** para a própria queda.
+Confirme reação e informe o d10 quando necessário. Não gastam Chi. Só marque
+apanhar quando a deflexão zera o dano e houver tamanho adequado/mão livre.
+**Devolver projétil apanhado**, na característica, gasta 1 Chi antes do ataque
+na mesma reação. Confira o dano próprio da arma/munição e alcance 6/18 m;
+não copie o dano recebido ou o bônus do arco para uma flecha. Registre o dano
+se acertar, ou encerre se errou/já resolveu na mesa; não gaste outro Chi.
+
+**Alma de Diamante** permite repetir uma resistência que falhou, antes de aplicar
+o efeito. A nova jogada é obrigatória. Em concentração e morte, marque **Se
+falhar, escolher se uso Alma de Diamante**: a escolha vem antes de aplicar a
+falha; cancelar mantém o resultado original. O ponto é gasto antes de repetir,
+sem pagar outra inspiração. Outros efeitos de escolha de d20 ficam na mesa.
+
+**Curandeiro** oferece tratamento e estabilização junto do talento. Escolha o
+kit do inventário e confira seus usos atuais; kits antigos/importados não são
+presumidos cheios. Tratamento cura 1d6 + 4 + Dados de Vida **máximos do
+destinatário**, sem gastar esses dados. O destinatário precisa do descanso
+exigido pelo talento; para estabilização e 1 PV, confira com a mesa tratamentos
+anteriores e elegibilidade. A aplicação própria respeita o máximo de PV;
+outro destinatário aplica na própria ficha. A loja vende kits novos de dez usos.
+
+**Conceder dado**, junto da Inspiração de Bardo, gasta um uso e informa o dado
+para outra criatura, sem rolá-lo. **Interromper**, no Colégio do Conhecimento,
+usa a mesma reserva e subtrai o dado de ataque, teste ou dano já rolado, após
+confirmar a reação e o momento. Não afeta resistências nem cancela crítico
+natural. Não desconte de novo em **Usar na mesa**.
+
+**Inspiração de Bardo recebida**, junto dos PV, registra um único dado de outro
+bardo por até dez minutos de jogo, conferidos na mesa. Some-o a uma jogada já
+rolada, antes da resolução. Dado da Bravura também permite dano de arma (dois
+dados no crítico) ou reação na CA só contra um ataque. O cálculo consome o dado,
+mesmo sem mudar o resultado; não altera permanentemente CA nem aplica dano.
+Não é a inspiração que concede vantagem. Descanso encerra um registro válido;
+formatos futuros/ilegíveis são preservados. Esses controles estão em
+desenvolvimento, sem envio automático entre fichas.
+
+Também em desenvolvimento, **Comandar ataque** junto da superioridade usa
+**Golpe do Comandante**. Confirme a ação Atacar no seu turno, um ataque ainda
+não realizado que você cede, ação bônus disponível e criatura amigável que pode
+ver ou ouvir você. Paga um dado agora, mesmo se ela não reagir ou errar. O aliado
+pode usar sua reação imediatamente para um ataque com arma corpo a corpo ou à
+distância, com os próprios valores; não precisa de Ataque Extra. Resolva esse
+ataque na mesa e use **Registrar ataque do aliado** somente para o dado adicional
+já pago: uma face no acerto, duas em crítico, físico ou virtual. Não usa os bônus
+ou preparações do comandante e não altera outra ficha. **Já resolvido na mesa /
+encerrar** termina sem outra rolagem ou reembolso. Não gaste novamente em Usar
+na mesa. Uma ordem por vez; recarga/desfazer/troca de contexto não a recriam,
+embora o contador permaneça salvo. Turno, reação imediata e demais valores do
+aliado continuam com a mesa.
+
+Também em desenvolvimento, **Aparar** aparece em **Dano detalhado → Calcular
+por tipo** para quem conhece a manobra. Confirme ataque corpo a corpo de outra
+criatura, reação disponível e nenhuma outra manobra sua no ataque. Escolha a
+origem e informe ou role a face; a prévia reduz **face + DES** antes das
+resistências, uma vez para todo o ataque. Preparar a face não gasta: **Aplicar
+dano** desconta um dado e os PV na mesma etapa de desfazer. Aparar e Esquiva
+Sobrenatural são alternativas de reação. Confira a ordem das linhas no dano
+misto e a ordem das reduções quando usar Maestria em Armadura Pesada.
+
+**Inspirar**, também em desenvolvimento, fica junto de cada reserva de
+superioridade para quem conhece a manobra. Identifique o aliado e confirme ação
+bônus no próprio turno e que ele pode ver ou ouvir você. Informe a face física
+ou role o dado virtual normal: gasta um dado e mostra **face + CAR em PV
+temporários** para comunicar ao aliado. Ele aplica na mesa, escolhendo entre os
+temporários atuais e os novos; não se somam nem curam. Cancelar não gasta;
+desfazer devolve o dado. O resultado fica no histórico, sem alterar outra ficha.
+
+**Passo Evasivo**, em desenvolvimento, usa um dado da reserva escolhida e soma
+sua face à CA enquanto você se move. Não exige ação bônus ou reação. Quando parar,
+use **Terminei de me mover** junto à CA, mesmo que vá continuar o turno; encerrar
+não devolve o dado. A mesa acompanha o movimento e as pausas. Condições que
+impedem movimento, queda a 0 PV, exaustão 5 e descanso encerram o bônus. Recarga
+offline conserva o movimento declarado; forma de besta continua manual.
+
+**Ataque Estendido**, em desenvolvimento, é marcado na arma corpo a corpo
+reconhecida antes de clicar em **Atq**. Escolha a origem e confirme que é um novo
+ataque no próprio turno, ainda não rolado/resolvido e sem outra manobra. Gasta um
+dado mesmo se errar, para **+1,5 m de alcance só nesse ataque**. Ao acertar, clique
+em **Dano** e confirme o acerto: inclui o dado, dobrado no crítico, sem novo gasto.
+Se errar, use **Errou / encerrar ataque**. Não exige ação bônus. OFF/Só Pool
+permitem rolar na mesa e registrar o total físico incluindo o dado. Outro ataque,
+descanso, troca de ficha/modo ou recarga descartam o contexto. Desfazer/refazer
+restaura o contador salvo, sem recriar o ataque. Se perder o contexto de um dado
+ainda pago, resolva-o na mesa. Este
+controle não cobre ataques próprios, desarmados ou em Forma Selvagem.
+
+**Ataque de Finta**, em desenvolvimento, começa em **Fintar**, junto da reserva.
+Confirme ação bônus no próprio turno e uma criatura a até 1,5 m ao fintar; paga
+um dado mesmo se errar ou não atacar. Marque **Finta · contra [alvo]** na arma
+somente para o próximo ataque contra ela, ainda nesse turno. Atq confirma antes
+de usar a vantagem, sem novo gasto. Informe desvantagem no seletor se houver:
+ela anula as fontes de vantagem, inclusive Finta com inspiração. O seletor das
+próximas jogadas não muda. No acerto, Dano inclui o dado já pago e dobra-o no
+crítico. Ataques contra outras criaturas não consomem a escolha; não combine
+outra manobra naquele ataque. OFF/Só Pool permitem total físico.
+Encerre ao terminar o turno ou errar. Magias com jogada de ataque, ataques
+próprios/desarmados e sem jogada de dano usam **Resolver na mesa**, sem outro
+gasto ou conjuração; Rede não ganha dano extra. Forma Selvagem continua manual.
+Recarga/troca de contexto
+ou desfazer descartam a Finta transitória; o contador salvo segue o histórico
+normal. Se perder o contexto de um dado ainda pago, resolva-o na mesa.
+
+Depois de rolar o ataque no **Auto Ficha**, abra a bandeja do dado e use
+**Precisão · usar 1 dado**. Escolha a origem e role o dado de superioridade
+ou informe sua face física; o d20 natural permanece igual. Sortudo e o halfling
+conservam esse bônus ao escolher/repetir o d20. Precisão impede combinar outra
+manobra no mesmo ataque acompanhado; registrar dano encerra a escolha, e outro
+ataque começa uma nova. Em OFF/Só Pool ou com ataque-base físico/manual,
+resolva a jogada na mesa e registre o uso na característica.
+
+Em desenvolvimento, o botão **Iniciativa** também recupera recursos vazios:
+**Implacável** (Mestre de Batalha 15) devolve um dado de superioridade,
+**Inspiração Superior** (bardo 20) devolve um uso de Inspiração de Bardo e
+**Auto Aperfeiçoamento** (monge 20) devolve quatro Chi. Implacável considera
+também o dado adicional do Adepto Marcial. Em OFF/Só Pool, clique depois de
+rolar uma nova iniciativa física e confirme o registro. Repetir o d20 com
+Sortudo não concede outra recuperação. Usa os máximos ajustados da ficha;
+registros ilegíveis são preservados para conferência.
+
+Também em desenvolvimento, Auto Ficha aplica vantagem na iniciativa por
+**Instinto Selvagem** (bárbaro 7) e **Explorador Natural** (Patrulheiro Revisado 1).
+Reúne essas fontes, inspiração preparada, modo informado no dado e desvantagens
+verificadas (exaustão, veneno, armadura/escudo sem proficiência) antes de cancelar
+uma única vez. O resultado explica as fontes; o seletor do dado permanece como
+foi escolhido. OFF/Só Pool orientam a rolagem física, sem gastar inspiração.
+Medo com fonte à vista, equipamento/DES da Forma Selvagem, surpresa e alvos do
+primeiro turno continuam declarados pela mesa.
+
+Em desenvolvimento, **Sobrevivente** (Campeão 18) aparece junto aos PV. No
+início de um novo turno, confirme o uso para recuperar **5 + CON**, se estiver
+com PV positivos e até metade do máximo vigente. A cura pode ultrapassar a
+metade, respeitando o máximo; exaustão usa o máximo reduzido. Não exige ação ou
+consciência, não funciona a 0 PV e não revive. A mesa acompanha os turnos;
+iniciativa, descanso e recarga não disparam o benefício. Na Forma Selvagem,
+PV/CON da besta continuam resolvidos na mesa.
+
+Em desenvolvimento, **Adepto Elemental** trata faces 1 como 2 no dano automático
+de magias reconhecidas do elemento escolhido. O selo mostra **Adepto: 1→2**;
+o livro explica a resistência ignorada, e o resultado conserva as faces originais
+com o ajuste separado. Imunidade continua valendo e o alvo é resolvido na mesa.
+Inclui círculos superiores, Gêmea, raios e parcelas mistas reconhecidas. Fórmulas
+próprias e escolhas de elemento/efeito ficam na mesa; OFF orienta os dados físicos,
+e o pool livre conserva seu funcionamento. Cobertura precisa na auditoria.
 
 O modo selecionado na bandeja também aparece ao redor do dado recolhido:
 **vantagem** tem névoa suave e **↑**; **desvantagem**, pequenas chamas e **↓**.

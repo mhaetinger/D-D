@@ -4,6 +4,16 @@ import {weaponPowerAttack,weaponPowerAttackOption} from './weapon-power-attack';
 import {canEditSheet} from '../sheet-edit/access';
 import {weaponRerollOptions} from './weapon-rerolls';
 import {offerWeaponRerolls,resumeWeaponReroll} from './weapon-rerolls-ui';
+import {damageManeuverResolution,maneuverDC} from './maneuvers';
+import {sweepingDamage,sweepingAttackDefinition} from './sweeping-attack';
+import {evaluateDicePool} from './dice-roll';
+import {currentWorkspaceKey} from '../storage/account-scope';
+import {attackHasManeuver,currentWeaponAttack,finishWeaponAttack} from './weapon-attack-session';
+import {lungingAttackTools} from './lunging-attack-ui';
+import {feintingWeaponTools} from './feinting-attack-ui';
+import {riposteTools} from './riposte-ui';
+import {combatActionTools,refreshCombatActionTools} from './combat-actions-ui';
+import {combatActionState,combatActionPlan} from './combat-action-state';
 
 const tip=(name:string,text:string)=>`tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name,text}))}"`;
 // Preparação efêmera por objeto de arma: não altera ficha, notas ou histórico,
@@ -18,14 +28,21 @@ export function weaponAttackBonus(c:Sheet,entry:Sheet,E:Engine) {
   const bonus=Number(base)-5;return bonus>=0?'+'+bonus:String(bonus);
 }
 export function weaponDamageLabel(c:Sheet,entry:Sheet,E:Engine,critical=weaponCriticalPrepared(entry),powerAttack=weaponPowerAttackPrepared(c,entry,E)) {
-  if(!critical && !powerAttack)return 'Dano '+weaponDamageOptions(c,entry,E).w.damage;
+  if(!critical && !powerAttack && !currentWeaponAttack(c,entry)?.lunging && !currentWeaponAttack(c,entry)?.feinting && !currentWeaponAttack(c,entry)?.riposte && !combatActionState(c,entry))return 'Dano '+weaponDamageOptions(c,entry,E).w.damage;
   try {return `${critical?'Dano crítico':'Dano'} `+previewWeaponDamage(c,entry,{critical,powerAttack},E).formula;}
   catch {return `${critical?'Dano crítico':'Dano'} · conferir`;}
 }
-function refreshWeaponDamageLabel(c:Sheet,index:number,E:Engine) {
-  const entry=c.weapons[index],card=document.querySelector(`[data-weapon-card="${index}"]`);
+export function refreshWeaponDamageLabel(c:Sheet,index:number,E:Engine) {
+  const entry=c.weapons[index];refreshCombatActionTools(c,entry,index,E);const card=document.querySelector(`[data-weapon-card="${index}"]`);
   const label=card?.querySelector('[data-weapon-damage-text]');if(label)label.textContent=weaponDamageLabel(c,entry,E);
   const attack=card?.querySelector('[data-weapon-attack-text]');if(attack)attack.textContent='Atq '+weaponAttackBonus(c,entry,E);
+  const record=card?.querySelector<HTMLButtonElement>('[data-rule-weapon-damage]');
+  if(record){
+    const o=weaponDamageOptions(c,entry,E),session=currentWeaponAttack(c,entry),additional=o.sneak || o.colossus || o.smite || o.maneuvers.length>0 || !!session?.lunging || !!session?.feinting || !!session?.riposte || !!combatActionState(c,entry);
+    // Finta já foi paga em outro passo: liberar o dano virtual atualiza o botão
+    // existente, sem reconstruir a lista ou perder seu foco.
+    record.toggleAttribute('data-weapon-record-only',!additional);record.textContent=additional?'Adicionais':'Registrar dano';record.setAttribute('aria-label',`${additional?'Adicionais':'Registrar dano'} de ${o.w.name}`);
+  }
 }
 export function setWeaponPowerAttackPrepared(c:Sheet,index:number,E:Engine,selected:boolean) {
   const entry=c.weapons[index];if(!entry)return;
@@ -44,9 +61,9 @@ export function setWeaponCriticalPrepared(c:Sheet,index:number,E:Engine,critical
   refreshWeaponDamageLabel(c,index,E);
 }
 export function renderWeaponDamageTools(c:Sheet,entry:Sheet,index:number,E:Engine) {
-  const options=weaponDamageOptions(c,entry,E),additional=options.sneak || options.colossus || options.smite;
+  const options=weaponDamageOptions(c,entry,E),additional=options.sneak || options.colossus || options.smite || options.maneuvers.length>0 || !!currentWeaponAttack(c,entry)?.lunging || !!currentWeaponAttack(c,entry)?.feinting || !!currentWeaponAttack(c,entry)?.riposte || !!combatActionState(c,entry);
   const power=weaponPowerAttackOption(c,entry,E);
-  return `<div class="weapon-tools mt-2 flex flex-wrap items-center gap-x-3 gap-y-1"><label class="inline-flex items-center gap-1.5" ${tip('Preparar dano crítico','No Auto Ficha, cada ataque desta arma atualiza a marca pelo d20 natural escolhido, respeitando seu intervalo de crítico. Você também pode marcar manualmente. Isso só prepara a fórmula: clique em Dano para rolar. Os dados do ataque dobram, os bônus fixos entram uma vez. Confirmar o dano retira a marca; cancelar mantém a preparação.')}><input type="checkbox" data-weapon-critical-toggle="${index}" ${weaponCriticalPrepared(entry)?'checked':''}> Crítico</label><button type="button" data-rule-weapon-damage="${index}" ${additional?'':'data-weapon-record-only'} class="underline decoration-dotted text-left" aria-label="${additional?'Adicionais':'Registrar dano'} de ${escape(options.w.name)}">${additional?'Adicionais':'Registrar dano'}</button>${power?`<label class="inline-flex items-center gap-1.5" ${tip(power.name,'2014: escolha antes de cada ataque com esta arma proficiente. Aplica –5 na jogada; se acertar, +10 do tipo da arma, uma vez, inclusive no crítico. Confirme acerto/erro na mesa. A escolha termina ao confirmar o dano; se errou, desmarque antes de continuar. OFF/Só Pool permitem registrar o total físico já incluindo +10. Totais cadastrados e outras armas não mudam. Cobertura, alcance e o ataque bônus de Mestre de Armas Grandes continuam na mesa.')}><input type="checkbox" data-weapon-power-toggle="${index}" ${weaponPowerAttackPrepared(c,entry,E)?'checked':''} ${canEditSheet(c)?'':'disabled'} aria-label="${escape(power.name)}: –5 no ataque e +10 no dano"> –5 ataque / +10 dano</label>`:''}</div>`;
+  return `<div class="weapon-tools mt-2 flex flex-wrap items-center gap-x-3 gap-y-1"><label class="inline-flex items-center gap-1.5" ${tip('Preparar dano crítico','No Auto Ficha, cada ataque desta arma atualiza a marca pelo d20 natural escolhido, respeitando seu intervalo de crítico. Você também pode marcar manualmente. Isso só prepara a fórmula: clique em Dano para rolar. Os dados do ataque dobram, os bônus fixos entram uma vez. Confirmar o dano retira a marca; cancelar mantém a preparação.')}><input type="checkbox" data-weapon-critical-toggle="${index}" ${weaponCriticalPrepared(entry)?'checked':''}> Crítico</label><button type="button" data-rule-weapon-damage="${index}" ${additional?'':'data-weapon-record-only'} class="underline decoration-dotted text-left" aria-label="${additional?'Adicionais':'Registrar dano'} de ${escape(options.w.name)}">${additional?'Adicionais':'Registrar dano'}</button>${power?`<label class="inline-flex items-center gap-1.5" ${tip(power.name,'2014: escolha antes de cada ataque com esta arma proficiente. Aplica –5 na jogada; se acertar, +10 do tipo da arma, uma vez, inclusive no crítico. Confirme acerto/erro na mesa. A escolha termina ao confirmar o dano; se errou, desmarque antes de continuar. OFF/Só Pool permitem registrar o total físico já incluindo +10. Totais cadastrados e outras armas não mudam. Cobertura e alcance continuam na mesa; o ataque bônus de Mestre de Armas Grandes fica em Ação / reação.')}><input type="checkbox" data-weapon-power-toggle="${index}" ${weaponPowerAttackPrepared(c,entry,E)?'checked':''} ${canEditSheet(c)?'':'disabled'} aria-label="${escape(power.name)}: –5 no ataque e +10 no dano"> –5 ataque / +10 dano</label>`:''}${lungingAttackTools(c,entry,index,E)}${feintingWeaponTools(c,entry,index,E)}${riposteTools(c,entry,index,E)}${combatActionTools(c,entry,index,E)}</div>`;
 }
 /** O botão comum trata crítico/–5/+10 preparados. Em OFF/Só Pool abre o
  * registro físico existente; em Auto Ficha rola no clique, nunca na marcação. */
@@ -54,13 +71,14 @@ export function rollPreparedWeaponDamage(c:Sheet,index:number,E:Engine,save:(des
   const entry=c.weapons[index];if(!entry)return false;
   if(resumeWeaponReroll(c,entry))return true;
   const critical=weaponCriticalPrepared(entry),powerAttack=weaponPowerAttackPrepared(c,entry,E),rerolls=weaponRerollOptions(c,entry,E);
-  if(!critical && !powerAttack && !rerolls.savage && !rerolls.greatWeapon)return false;
+  if(combatActionState(c,entry) || currentWeaponAttack(c,entry)?.lunging || currentWeaponAttack(c,entry)?.feinting || currentWeaponAttack(c,entry)?.riposte){document.querySelector<HTMLButtonElement>(`[data-rule-weapon-damage="${index}"]`)?.click();return true;}
+  if(!critical && !powerAttack && !rerolls.savage && !rerolls.greatWeapon && !weaponDamageOptions(c,entry,E).w.unarmed)return false;
   const host=window as any;
   if(!host.ruleDiceSettings().automatic) {document.querySelector<HTMLButtonElement>(`[data-rule-weapon-damage="${index}"]`)?.click();return true;}
   try {
     if(!canEditSheet(c))throw new Error('A edição desta ficha está bloqueada pelo mestre.');
     const plan=previewWeaponDamage(c,entry,{critical,powerAttack},E),result=host.rollWeaponFormula(plan.formula,(critical?'Crítico: ':'Dano: ')+plan.name);
-    commitWeaponDamage(c,entry,{critical,powerAttack},E);preparedCritical.delete(entry);preparedPowerAttack.delete(entry);
+    commitWeaponDamage(c,entry,{critical,powerAttack},E);finishWeaponAttack(c,entry);host.clearPendingWeaponAttack?.(entry);preparedCritical.delete(entry);preparedPowerAttack.delete(entry);
     save(`${critical?'Crítico':'Dano'} · ${plan.name} · ${plan.summary} · total ${result.total} (virtual)`);
     offerWeaponRerolls(c,entry,plan,result,E);
   }catch(error){host.showToast((error as Error).message);}
@@ -85,23 +103,45 @@ export function setupWeaponDamageUI(E:Engine,save:(description:string)=>void) {
     if(resumeWeaponReroll(c,entry))return;
     try {
       if(!canEditSheet(c))throw new Error('A edição desta ficha está bloqueada pelo mestre.');
-      const {w,automatic,sneak,colossus,smite}=weaponDamageOptions(c,entry,E);
+      const {w,automatic,sneak,colossus,smite,maneuvers,superiority}=weaponDamageOptions(c,entry,E);
       previewWeaponDamage(c,entry,{},E);
       const manualOnly=trigger.hasAttribute('data-weapon-record-only') || !host.ruleDiceSettings().automatic;
+      const attack=currentWeaponAttack(c,entry),precisionUsed=!!attack?.precisionUsed,lunging=attack?.lunging,feinting=attack?.feinting,riposte=attack?.riposte,maneuverUsed=attackHasManeuver(attack);
       const critical=weaponCriticalPrepared(entry),powerAttack=weaponPowerAttackPrepared(c,entry,E),before=JSON.stringify(c),controls=document.createElement('div');
+      const workspace=currentWorkspaceKey(),settings=host.ruleDiceSettings();
       controls.className='rule-context rule-dialog-fields';
-      controls.innerHTML=`${critical?'<p><strong>Crítico preparado na arma · dados extras já incluídos abaixo.</strong></p>':''}
+      controls.innerHTML=`${combatActionPlan(c,entry,E)?`<p><strong>${escape(combatActionPlan(c,entry,E)!.name)} · ${escape(combatActionPlan(c,entry,E)!.choice.target)}.</strong> ${escape(combatActionPlan(c,entry,E)!.note)}</p><label class="rule-check"><input type="checkbox" required data-combat-action-hit> Acertei este ataque contra o alvo declarado</label>`:''}${critical?'<p><strong>Crítico preparado na arma · dados extras já incluídos abaixo.</strong></p>':''}
+      ${lunging?`<p><strong>Ataque Estendido · alcance +1,5 m neste ataque · ${escape(lunging.name)} d${lunging.die} já pago.</strong> No acerto, o dado entra no dano e dobra em crítico, sem novo gasto. Não combine outra manobra.</p><label class="rule-check"><input type="checkbox" required data-lunging-hit> Acertei este ataque estendido; o alcance e o alvo foram conferidos na mesa</label>`:''}
+      ${feinting?`<p class="min-w-0 break-words"><strong>Ataque de Finta · ${escape(feinting.target)} · ${escape(feinting.name)} d${feinting.die} já pago.</strong> Só este ataque. No acerto, inclui o dado e dobra em crítico, sem novo gasto.</p><label class="rule-check"><input type="checkbox" required data-feinting-hit> Acertei o ataque da Finta contra esse alvo, no mesmo turno e sem outra manobra</label>`:''}
+      ${riposte?`<p class="min-w-0 break-words"><strong>Contra-Atacar · ${escape(riposte.target)} · ${escape(riposte.name)} d${riposte.die} já pago.</strong> Um ataque com reação contra essa criatura. No acerto, inclui o dado e dobra em crítico, sem novo gasto.</p><label class="rule-check"><input type="checkbox" required data-riposte-hit> Acertei este contra-ataque contra a criatura que errou, sem outra manobra</label>`:''}
       ${powerAttack?`<p><strong>${escape(weaponPowerAttackOption(c,entry,E)!.name)} · –5 no ataque / +10 no dano.</strong> Confirme que escolheu antes do ataque e acertou. O total físico já deve incluir +10.</p>`:''}
       ${sneak?`<label ${tip('Ataque Furtivo','Uma vez por turno, não por rodada, com arma de acuidade ou à distância. Ao escolher, confirme que ainda não usou neste turno: houve vantagem ou outro inimigo do alvo a até 1,5 m, não incapacitado, sem desvantagem no ataque. Vantagem e desvantagem se cancelam. A ficha não controla os turnos da mesa.')}>Ataque Furtivo <select data-weapon-sneak><option value="">Não usar</option><option value="advantage">Vantagem · uso disponível neste turno</option><option value="ally">Inimigo próximo elegível · sem desvantagem · uso disponível</option></select></label>`:''}
       ${colossus?`<label class="rule-check" ${tip('Assassino de Colossos','Uma vez por turno ao atingir uma criatura que já está abaixo dos PV máximos. Confirme o estado do alvo e o uso disponível. O dado adicional também dobra em crítico.')}><input type="checkbox" data-weapon-colossus> Alvo já ferido · Colossos disponível neste turno</label>`:''}
+      ${maneuvers.length?`<label ${tip('Manobra no acerto','2014: após acertar uma criatura com arma, escolha uma manobra conhecida. Manobras que acrescentam o dado ao dano do alvo original dobram esse dado em crítico. Trespassante causa somente um dado a OUTRA criatura, separado, sem dobrar ou somar bônus. Apenas uma manobra por ataque: não combine com Precisão, Estendido, Finta ou Contra-Atacar. Alvos, alcance e efeitos são conferidos na mesa. Outras manobras sem controle próprio continuam em Usar na mesa na característica.')}>Manobra <select data-weapon-maneuver ${maneuverUsed?'disabled':''}><option value="">Sem manobra</option>${maneuvers.map(m=>`<option value="${m.id}">${escape(m.name)}${m.id==='sweeping'?' · outra criatura':''}</option>`).join('')}</select></label>
+      ${precisionUsed?'<p>Precisão já usada neste ataque: não combine outra manobra. O dano da arma continua normal.</p>':''}
+      <div data-weapon-maneuver-fields hidden>
+      <label>Dado de superioridade <select data-weapon-superiority>${superiority.map(s=>`<option value="${s.id}" ${s.remaining>0?'':'disabled'}>${escape(s.name)} · d${s.die} · ${s.readable?`${s.remaining}/${s.resource.max}`:'conferir registro'}</option>`).join('')}</select></label>
+      <label data-weapon-maneuver-ability-label>Habilidade da CD <select data-weapon-maneuver-ability><option value="str">FOR · CD ${maneuverDC(c,'str')}</option><option value="dex">DES · CD ${maneuverDC(c,'dex')}</option></select></label>
+      <label class="rule-check"><input type="checkbox" data-weapon-no-other-maneuver> Nenhuma outra manobra usada neste ataque, inclusive Precisão</label>
+      <p data-weapon-maneuver-effect></p>
+      <fieldset data-weapon-sweeping-fields hidden class="t-inset rounded p-2 min-w-0">
+      <legend>Outra criatura · Trespassante</legend>
+      <label>Segunda criatura <input type="text" maxlength="80" data-weapon-sweeping-target></label>
+      <label class="rule-check"><input type="checkbox" data-weapon-sweeping-declared> Acertei uma criatura corpo a corpo; a segunda está a até 1,5 m dela e dentro do meu alcance</label>
+      <label>A mesma jogada atingiria a CA da segunda criatura? <select data-weapon-sweeping-hit><option value="">Conferir na mesa…</option><option value="hit">Sim · um dado</option><option value="miss">Não · zero dano</option></select></label>
+      <label data-weapon-sweeping-face-label>Face física do dado de superioridade <input type="number" min="1" step="1" data-weapon-sweeping-face></label>
+      <p>Não role outro ataque. Só o dano da segunda criatura fica separado; o total do alvo original continua abaixo.</p></fieldset></div>`:''}
       ${smite?`<label ${tip('Destruição Divina','Após acertar corpo a corpo com arma, gaste um espaço de qualquer classe: 2d8 no 1º nível, +1d8 por nível até 5d8, e +1d8 contra corruptor ou morto-vivo. Pacto também serve. Não é conjuração nem ação bônus de 2024; não recebe melhorias de uma magia lançada. Arremesso e ataque desarmado não são elegíveis neste controle.')}>Destruição Divina <select data-weapon-smite><option value="">Sem gastar espaço</option>${smiteSlots(c).map(s=>`<option value="${escape(s.value)}" ${s.remaining?'':'disabled'}>${escape(s.label)}</option>`).join('')}</select></label><label class="rule-check" data-weapon-favored-label hidden ${tip('Corruptor ou morto-vivo','Acrescenta mais 1d8 à Destruição Divina, até 6d8 antes do crítico. Confirme o tipo do alvo na mesa; não é um segundo espaço.')}><input type="checkbox" data-weapon-favored> Alvo corruptor ou morto-vivo</label>`:''}
       ${!automatic?'<p>Fórmula personalizada: o crítico dobra os dados informados. Adicionais de classe/raça e exceções do alvo continuam na mesa.</p>':''}
       ${Object.values(weaponRerollOptions(c,entry,E)).some(Boolean)?'<p class="t-text-muted">Dados físicos: resolva as repetições da arma na mesa e informe o total final. Ao rolar aqui, as opções aparecem depois do resultado.</p>':''}
       <output data-weapon-preview role="status" aria-live="polite"></output>
       ${manualOnly?'':'<label>Dados <select data-weapon-source><option value="physical">Já rolei os dados · registrar total</option><option value="virtual">Rolar aqui</option></select></label>'}
-      <div data-weapon-total-label><label ${tip('Dano já rolado','Informe o total dos seus dados físicos ou de outro rolador, incluindo bônus e os dados extras do crítico quando aplicável, antes das defesas do alvo. Não há nova rolagem nem multiplicação desse número. Se escolheu Destruição, registrar desconta um único espaço.')}>Dano que você já rolou <input type="number" min="0" max="1000000" step="1" required data-weapon-total></label><p class="t-text-muted">Inclua bônus e dados do crítico. Este total será registrado sem rolar novamente.</p></div>`;
+      <div data-weapon-total-label><label ${tip('Dano já rolado','Informe o total dos seus dados físicos ou de outro rolador, incluindo bônus e os dados extras do crítico quando aplicável, antes das defesas do alvo. Não há nova rolagem nem multiplicação desse número. Se escolheu Destruição, registrar desconta um único espaço.')}><span data-weapon-total-title>Dano que você já rolou</span> <input type="number" min="0" max="1000000" step="1" required data-weapon-total></label><p class="t-text-muted">Inclua bônus e dados do crítico. Este total será registrado sem rolar novamente.</p></div>`;
       const source=controls.querySelector<HTMLSelectElement>('[data-weapon-source]');
       if(source)source.value='virtual';
+      const maneuver=controls.querySelector<HTMLSelectElement>('[data-weapon-maneuver]'),superiorityInput=controls.querySelector<HTMLSelectElement>('[data-weapon-superiority]'),abilityInput=controls.querySelector<HTMLSelectElement>('[data-weapon-maneuver-ability]');
+      if(superiorityInput)superiorityInput.value=superiority.find(s=>s.remaining>0)?.id || superiority[0]?.id || '';
+      if(abilityInput)abilityInput.value=maneuverDC(c,'dex')>maneuverDC(c,'str')?'dex':'str';
       const isVirtual=()=>source?.value==='virtual';
       const choice=():WeaponDamageChoice=>({
         critical,powerAttack,
@@ -109,11 +149,28 @@ export function setupWeaponDamageUI(E:Engine,save:(description:string)=>void) {
         colossus:!!controls.querySelector<HTMLInputElement>('[data-weapon-colossus]')?.checked,
         smiteSlot:controls.querySelector<HTMLSelectElement>('[data-weapon-smite]')?.value || '',
         smiteFavored:!!controls.querySelector<HTMLInputElement>('[data-weapon-favored]')?.checked,
+        ...(maneuver?.value?{maneuver:maneuver.value as WeaponDamageChoice['maneuver'],superiority:superiorityInput!.value,...(maneuvers.find(m=>m.id===maneuver.value)?.save?{maneuverAbility:abilityInput!.value as 'str'|'dex'}:{}),noOtherManeuver:!!controls.querySelector<HTMLInputElement>('[data-weapon-no-other-maneuver]')?.checked}:{}),
+        ...(maneuver?.value==='sweeping'?{sweeping:{target:controls.querySelector<HTMLInputElement>('[data-weapon-sweeping-target]')!.value,declared:controls.querySelector<HTMLInputElement>('[data-weapon-sweeping-declared]')!.checked,wouldHit:({hit:true,miss:false} as Record<string,boolean>)[controls.querySelector<HTMLSelectElement>('[data-weapon-sweeping-hit]')!.value]}}:{}),
       });
       const update=()=>{
+        const maneuverFields=controls.querySelector<HTMLElement>('[data-weapon-maneuver-fields]');
+        if(maneuverFields){
+          maneuverFields.hidden=!maneuver?.value;
+          const selected=maneuvers.find(m=>m.id===maneuver?.value);
+          controls.querySelector<HTMLElement>('[data-weapon-maneuver-ability-label]')!.hidden=!selected?.save;
+          abilityInput!.disabled=!selected?.save;
+          controls.querySelector<HTMLElement>('[data-weapon-maneuver-effect]')!.textContent=selected?.id==='sweeping'?sweepingAttackDefinition.effect:selected?damageManeuverResolution(c,selected,selected.save?abilityInput!.value as 'str'|'dex':undefined).note:'';
+          const sweeping=selected?.id==='sweeping',fields=controls.querySelector<HTMLFieldSetElement>('[data-weapon-sweeping-fields]')!;
+          fields.hidden=!sweeping;fields.disabled=!sweeping;
+          for(const field of fields.querySelectorAll<HTMLInputElement|HTMLSelectElement>('[data-weapon-sweeping-target],[data-weapon-sweeping-declared],[data-weapon-sweeping-hit]'))field.required=sweeping;
+          const face=fields.querySelector<HTMLInputElement>('[data-weapon-sweeping-face]')!,needsFace=sweeping && !isVirtual() && choice().sweeping?.wouldHit===true;
+          face.disabled=!needsFace;face.required=needsFace;face.max=String(superiority.find(s=>s.id===superiorityInput?.value)?.die || 0);
+          fields.querySelector<HTMLElement>('[data-weapon-sweeping-face-label]')!.hidden=!needsFace;
+        }
         const virtual=isVirtual(),total=controls.querySelector<HTMLInputElement>('[data-weapon-total]')!;
         total.required=!virtual;total.disabled=virtual;
         controls.querySelector<HTMLElement>('[data-weapon-total-label]')!.hidden=virtual;
+        controls.querySelector<HTMLElement>('[data-weapon-total-title]')!.textContent=maneuver?.value==='sweeping'?'Dano do alvo original já rolado':'Dano que você já rolou';
         if(controls.isConnected)document.querySelector<HTMLButtonElement>('#confirmationAccept')!.textContent=virtual?'Rolar dano':'Registrar dano';
         const favored=controls.querySelector<HTMLInputElement>('[data-weapon-favored]');
         if(favored) {
@@ -123,14 +180,15 @@ export function setupWeaponDamageUI(E:Engine,save:(description:string)=>void) {
         const target=controls.querySelector<HTMLOutputElement>('[data-weapon-preview]')!;
         try {
           const p=previewWeaponDamage(c,entry,choice(),E);
-          target.textContent=`${p.summary}. Total: ${p.formula}${p.slot?` · gasta 1 espaço de ${p.slot.value==='pact'?'Pacto':'Conjuração'} do ${p.slot.level}º`:''}.`;
+          target.classList.add('break-words','min-w-0');
+          target.textContent=`${p.summary}. ${p.sweeping?'Alvo original':'Total'}: ${p.formula}${p.slot?` · gasta 1 espaço de ${p.slot.value==='pact'?'Pacto':'Conjuração'} do ${p.slot.level}º`:''}${p.maneuver?` · gasta 1 dado de ${p.maneuver.source.name} (d${p.maneuver.source.die})`:''}.${p.sweeping?` Separado · ${p.sweeping.target}: ${p.sweeping.wouldHit?p.sweeping.formula+' '+p.sweeping.type+'; sem bônus nem dados extras de crítico':'0 dano; a mesma jogada não atingiria'}.`:''}`;
         }catch(error){target.textContent=(error as Error).message;}
       };
       controls.addEventListener('input',update);controls.addEventListener('change',update);update();
       const form=document.querySelector<HTMLFormElement>('#confirmationDialog form')!;
       const validate=(event:SubmitEvent)=>{
         if((event.submitter as HTMLButtonElement)?.value!=='confirm')return;
-        try {previewWeaponDamage(c,entry,choice(),E);}catch(error){event.preventDefault();host.showToast((error as Error).message);}
+        try {if(combatActionState(c,entry) && !controls.querySelector<HTMLInputElement>('[data-combat-action-hit]')?.checked)throw new Error('Confirme o acerto da ação declarada.');if(riposte && !controls.querySelector<HTMLInputElement>('[data-riposte-hit]')!.checked)throw new Error('Confirme o acerto deste contra-ataque.');if(feinting && !controls.querySelector<HTMLInputElement>('[data-feinting-hit]')!.checked)throw new Error('Confirme o acerto da Finta.');if(lunging && !controls.querySelector<HTMLInputElement>('[data-lunging-hit]')!.checked)throw new Error('Confirme o acerto deste ataque estendido.');if(choice().maneuver && attackHasManeuver(currentWeaponAttack(c,entry)))throw new Error(precisionUsed?'Precisão já foi usada neste ataque. Não combine outra manobra.':'Este ataque já usou uma manobra. Não combine outra.');previewWeaponDamage(c,entry,choice(),E);}catch(error){event.preventDefault();host.showToast((error as Error).message);}
       };
       form.addEventListener('submit',validate);
       let confirmed=false;
@@ -138,18 +196,26 @@ export function setupWeaponDamageUI(E:Engine,save:(description:string)=>void) {
       try {confirmed=await host.confirmDestructiveAction('Dano · '+w.name,message,isVirtual()?'Rolar dano':'Registrar dano',controls);}
       finally {form.removeEventListener('submit',validate);}
       if(!confirmed)return;
-      if(host.getChar()!==c || c.weapons[index]!==entry || JSON.stringify(c)!==before || !trigger.isConnected || weaponCriticalPrepared(entry)!==critical || weaponPowerAttackPrepared(c,entry,E)!==powerAttack || !canEditSheet(c))throw new Error('A ficha ou a preparação mudou durante a escolha. Confira o ataque e tente novamente.');
+      if(riposte && !controls.querySelector<HTMLInputElement>('[data-riposte-hit]')!.checked || lunging && !controls.querySelector<HTMLInputElement>('[data-lunging-hit]')!.checked || feinting && !controls.querySelector<HTMLInputElement>('[data-feinting-hit]')!.checked)throw new Error('Confirme o acerto; nenhum dano foi registrado.');
+      if(currentWorkspaceKey()!==workspace || JSON.stringify(host.ruleDiceSettings())!==JSON.stringify(settings) || currentWeaponAttack(c,entry)!==attack || host.getChar()!==c || c.weapons[index]!==entry || JSON.stringify(c)!==before || !trigger.isConnected || weaponCriticalPrepared(entry)!==critical || weaponPowerAttackPrepared(c,entry,E)!==powerAttack || !canEditSheet(c))throw new Error('A ficha ou a preparação mudou durante a escolha. Confira o ataque e tente novamente.');
       const selected=choice(),plan=previewWeaponDamage(c,entry,selected,E),virtual=isVirtual();
       const physical=Number(controls.querySelector<HTMLInputElement>('[data-weapon-total]')!.value);
       if(!virtual && (!Number.isSafeInteger(physical) || physical<0 || physical>1000000))throw new Error('Informe um total inteiro de 0 a 1.000.000; nenhum espaço foi gasto.');
-      if(virtual && !host.ruleDiceSettings().enabled)throw new Error('Dados virtuais desativados; registre o resultado físico. Nenhum espaço foi gasto.');
+      if(virtual && !host.ruleDiceSettings().automatic)throw new Error('Auto Ficha desativado; registre o resultado físico. Nenhum recurso foi gasto.');
+      const sweep=plan.sweeping;
+      if(sweep?.wouldHit && !virtual)sweepingDamage(sweep,Number(controls.querySelector<HTMLInputElement>('[data-weapon-sweeping-face]')!.value));
       // O rolador só apresenta o resultado, sem alterar o documento. Se ele
       // falhar, não houve gasto; não há await entre validar, rolar e descontar.
-      const result=virtual?host.rollWeaponFormula(plan.formula,`${plan.critical?'Crítico':'Dano'}: ${plan.name}`):{total:physical};
-      commitWeaponDamage(c,entry,selected,E);
+      // O dado secundário usa o mesmo motor normal, fora da fórmula da arma:
+      // não recebe crítico, inspiração, –5/+10 ou repetições. A bandeja mostra
+      // o dano principal, com o resultado secundário explícito na legenda.
+      const secondary=sweep?sweepingDamage(sweep,sweep.wouldHit?(virtual?evaluateDicePool({[sweep.source.die]:1},0,'normal').total:Number(controls.querySelector<HTMLInputElement>('[data-weapon-sweeping-face]')!.value)):undefined):undefined;
+      const secondaryText=sweep?` · Trespassante: ${secondary} ${sweep.type} em ${sweep.target}`:'';
+      const result=virtual?host.rollWeaponFormula(plan.formula,`${plan.critical?'Crítico':'Dano'}: ${plan.name}${secondaryText}`):{total:physical};
+      commitWeaponDamage(c,entry,selected,E);finishWeaponAttack(c,entry);host.clearPendingWeaponAttack?.(entry);
       preparedCritical.delete(entry);preparedPowerAttack.delete(entry);
-      save(`${plan.critical?'Crítico':'Dano'} · ${plan.name} · ${plan.summary} · total ${result.total} (${virtual?'virtual':'físico'})${plan.slot?` · gastou 1 espaço de ${plan.slot.value==='pact'?'Pacto':'Conjuração'} do ${plan.slot.level}º`:''}${selected.sneak?' · Furtivo: uso deste turno confirmado pela mesa':''}${selected.colossus?' · Colossos: alvo ferido e uso deste turno confirmados':''}`);
-      host.showToast(`${plan.critical?'Crítico':'Dano'} · ${result.total} · ${plan.formula}`);
+      save(`${plan.critical?'Crítico':'Dano'} · ${plan.name} · ${plan.summary} · ${sweep?'alvo original ':''}total ${result.total} (${virtual?'virtual':'físico'})${secondaryText}${plan.slot?` · gastou 1 espaço de ${plan.slot.value==='pact'?'Pacto':'Conjuração'} do ${plan.slot.level}º`:''}${plan.maneuver?` · gastou 1 dado de ${plan.maneuver.source.name} (d${plan.maneuver.source.die}) · ${plan.maneuver.note}`:''}${plan.lunging?' · Estendido já pago; sem novo gasto de superioridade':''}${plan.feinting?' · Finta contra '+plan.feinting.target+' já paga; sem novo gasto de superioridade':''}${plan.riposte?' · Contra-Atacar contra '+plan.riposte.target+' já pago; sem novo gasto de superioridade':''}${selected.sneak?' · Furtivo: uso deste turno confirmado pela mesa':''}${selected.colossus?' · Colossos: alvo ferido e uso deste turno confirmados':''}`);
+      host.showToast(`${plan.critical?'Crítico':'Dano'}${sweep?' no alvo original':''} · ${result.total} · ${plan.formula}${secondaryText}${plan.maneuver && !sweep?' · '+plan.maneuver.note:''}`);
       if(virtual)offerWeaponRerolls(c,entry,plan,result,E);
     }catch(error){host.showToast(error instanceof Error?error.message:'Não foi possível registrar o dano deste ataque.');}
   });

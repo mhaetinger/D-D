@@ -35,9 +35,9 @@ async function show(p:Pending) {
     </div>`).join('')}
     ${greatWeapon?`<span class="t-text-muted" ${tip('Combate com Armas Grandes','Clique nos dados 1 ou 2 que deseja repetir. Cada dado aceita uma repetição pelo estilo; a nova face vale mesmo se for 1 ou 2. A arma deve ser elegível e empunhada com duas mãos. Adicionais de outras características não são repetidos.')}>↻ Repetir 1/2 · nova face obrigatória ⓘ</span>`:''}
     ${savage?`<label class="rule-check" ${tip('Atacante Bestial','Uma vez por turno, repete todos os dados da arma e permite escolher um dos conjuntos completos. Não combina a melhor face de cada conjunto. Confirme com a mesa que ainda não usou neste turno.')}><input type="checkbox" data-weapon-savage-available> Atacante Bestial disponível neste turno ⓘ</label><button type="button" data-weapon-savage-reroll class="t-btn px-2 py-1 rounded" disabled>Atacante Bestial · repetir arma</button>`:''}
-    <p class="t-text-muted">Adicionais e bônus mantidos · gastos já registrados.</p>`;
+    <p class="t-text-muted">Adicionais e bônus mantidos · gastos já registrados.${p.plan.sweeping?' Trespassante na outra criatura já registrado separadamente; aqui muda somente o dano do alvo original.':''}</p>`;
   const update=()=>{
-    controls.querySelector<HTMLOutputElement>('[data-weapon-reroll-total]')!.textContent=`Dano total: ${weaponRerollResult(p.roll).total} · ${p.plan.formula}`;
+    controls.querySelector<HTMLOutputElement>('[data-weapon-reroll-total]')!.textContent=`${p.plan.sweeping?'Dano do alvo original':'Dano total'}: ${weaponRerollResult(p.roll).total} · ${p.plan.formula}`;
     for(const [i,row] of [...controls.querySelectorAll<HTMLElement>('[data-weapon-set]')].entries()){
       const set=p.roll.sets[i];row.hidden=!set;if(!set)continue;
       const radio=row.querySelector<HTMLInputElement>('[data-weapon-set-choice]')!;radio.checked=p.roll.selected===i;

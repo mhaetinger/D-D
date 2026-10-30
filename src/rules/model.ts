@@ -12,11 +12,19 @@ export function subclass(c: Sheet, id: string, E: Engine) {
 }
 export const selections = (c: Sheet, E: Engine, key: string) => E.selections(c, null, key) || [];
 export function active(c: Sheet, id: string) { return !!c.ruleState?.active?.[id]; }
+/** Incapacitado não significa inconsciente. Auras que exigem consciência
+ * continuam durante atordoamento/paralisia, mas não após morte ou queda. */
+export function isConscious(c:Sheet) {
+  return !c.ruleState?.death?.dead && !(Number(c.ruleState?.death?.failures)>=3) && !(Number(c.exhaustion)>=6)
+    && c.conscious!==false && c.ruleState?.conditions?.inconsciente!==true
+    && !(c.hpCurrent<=0 && !active(c,'druida:wildShape'));
+}
+export const ownProtectionAura=(c:Sheet)=>level(c,'paladino')>=6 && isConscious(c)?Math.max(1,ability(c,'cha')):0;
 /** Bônus compartilhado pelos testes da ficha e pelas defesas ao receber dano. */
 export function savingThrowBonus(c:Sheet,key:string) {
   const stone=active(c,'mago:stone') && c.ruleState?.targets?.['mago:stone']==='constitution';
   const trained=c.abilities[key].saveProf || level(c,'monge')>=14 || stone && key==='con';
-  const aura=level(c,'paladino')>=6 && c.hpCurrent>0 && c.conscious!==false && !c.ruleState?.conditions?.inconsciente?Math.max(1,ability(c,'cha')):0;
+  const aura=ownProtectionAura(c);
   return ability(c,key)+(trained?proficiency(c):0)+aura;
 }
 export function state(c: Sheet) {

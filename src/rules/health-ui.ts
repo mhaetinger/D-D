@@ -1,11 +1,14 @@
 import { applyDamage, applyTypedDamage, concentrationSaveDetails } from './combat';
+import {offerDiamondReroll} from './monk-ui';
 import { damageControls, readDamagePacket, setupDamageUI } from './damage-ui';
 import { arcaneWardPoints, previewTypedDamage, typedDamageSummary } from './damage';
 import { previewSurvival, survivalOptions, type SurvivalChoice } from './survival';
 import { consumeInspiration, deathSaveBonus, deathStatus, hitDiceRemaining, hitPointMaximum, inspirationRollMode, resolveDeathSave, returnToLife, songOfRestDie, spendHitDie, stabilize, validateHitDie } from './health';
-import { ability, active, escape, state, type Engine, type Sheet } from './model';
+import { ability, active, escape, level,state, type Engine, type Sheet } from './model';
 import { hasHalflingLuck } from './dice-roll';
 import { luckyResource, luckRemaining } from './lucky';
+import {survivorControls,useSurvivor} from './survivor-ui';
+import {canEditSheet} from '../sheet-edit/access';
 
 const tip=(name:string,text:string)=>`tabindex="0" data-rule-tooltip="${escape(JSON.stringify({name,text}))}"`;
 const action=(id:string,label:string,disabled=false,attrs='')=>`<button type="button" data-health-action="${id}" ${disabled?'disabled':''} ${attrs}>${label}</button>`;
@@ -17,7 +20,7 @@ export function deathControls(c:Sheet,E:Engine) {
   const d=deathStatus(c),shape=active(c,'druida:wildShape');
   const help=tip('Caindo a 0 PV','Três sucessos estabilizam e zeram as contagens; três falhas matam. 1 natural vale duas falhas; 20 natural recupera 1 PV. Dano a 0 PV causa uma falha, duas se crítico, mesmo quando absorvido por temporários. Proteção externa impede esse dano. Cura comum não revive. Estabilize somente após o efeito ou Medicina CD 10 resolvido na mesa.');
   const controls=d.dead?`<strong role="status" ${help}>Morto</strong>${action('revive','Registrar retorno à vida')}`:c.hpCurrent===0 && !shape?`<div role="status"><strong ${help}>${d.stable?'Estável · inconsciente':'Inconsciente · 0 PV'}</strong>${!d.stable?`<span> · Sucessos ${d.successes}/3 · Falhas ${d.failures}/3</span>`:''}</div>${!d.stable?`${action('deathSave','Teste contra a morte')}${action('stabilize','Registrar estabilização')}`:'<span>Não realiza testes contra a morte. Cura ou 1 PV após 1d4 horas encerra a inconsciência; registre a recuperação nos PV.</span>'}`:'';
-  return `${controls?`<div class="rule-context rule-controls" data-health-status>${controls}</div>`:''}${!d.dead?damageControls(c,E):''}`;
+  return `${survivorControls(c,E)}${controls?`<div class="rule-context rule-controls" data-health-status>${controls}</div>`:''}${!d.dead?damageControls(c,E):''}`;
 }
 export function hitDiceControls(c:Sheet,E:Engine) {
   return `<div class="rule-context space-y-1.5"><p class="font-bold t-text-muted" ${tip('Dados de Vida · descanso curto','No fim de um descanso curto de ao menos 1 hora, gaste um Dado de Vida por vez e some Constituição, mínimo 0 de cura. Você pode decidir gastar outro depois do resultado. A 0 PV, resolva a estabilização antes de registrar esse descanso. Em multiclasse, escolha a classe. Resistente aplica o mínimo do talento. Canção do Descanso exige ouvir a atuação e só acrescenta uma vez no descanso. Não conclui outro descanso nem recupera recursos de classe.')}>Dados de Vida · descanso curto</p><div class="rule-hit-dice">${c.classes.map((cls:Sheet)=>`<div class="t-inset rule-controls"><span><strong>${hitDiceRemaining(cls)}/${cls.level}d${Number(cls.hitDie)||'?'}</strong> · ${escape(E.data.classes[cls.classId]?.name || cls.classId)}</span>${action('hitDieSpend','Gastar',!hitDiceRemaining(cls) || deathStatus(c).dead || c.hpCurrent<=0 && !active(c,'druida:wildShape') && !deathStatus(c).stable,`data-class="${escape(cls.classId)}" aria-label="Gastar Dado de Vida de ${escape(E.data.classes[cls.classId]?.name || cls.classId)}"`)}</div>`).join('')}</div></div>`;
@@ -89,6 +92,7 @@ async function chooseDamageSurvival(c:Sheet,received:number,form:HTMLElement,E:E
   }
   return {choice,description:previewSurvival(c,received,choice)!.description,inspired:d.inspired && !(virtual && (optionsD20.lucky || optionsD20.askLucky))};
 }
+const pendingDamage=new WeakSet<HTMLElement>();
 export function setupHealthUI(E:Engine,save:(description:string)=>void) {
   const host=window as any;
   setupDamageUI(E);
@@ -99,22 +103,28 @@ export function setupHealthUI(E:Engine,save:(description:string)=>void) {
     const c=host.getChar();if(!c) return;
     const id=button.dataset.healthAction;
     try {
+      if(id==='survivor'){await useSurvivor(c,E,button,save);return;}
       if(id==='damage') {
         const controls=button.closest<HTMLElement>('[data-damage-controls]')!;
-        const typed=controls.querySelector<HTMLSelectElement>('[data-damage-mode]')!.value==='typed';
-        const input=controls.querySelector<HTMLInputElement>('[data-health-damage]')!,n=Number(input.value),critical=controls.querySelector<HTMLInputElement>('[data-health-critical]')!.checked;
-        if(!typed && (!Number.isInteger(n) || n<=0)) throw new Error('Informe um dano inteiro maior que zero.');
-        const packet=typed?readDamagePacket(controls):null,received=packet?previewTypedDamage(c,packet,E).received:Math.max(0,n-arcaneWardPoints(c));
-        const survival=await chooseDamageSurvival(c,received,controls,E);if(!survival)return;
-        if(host.getChar()!==c || !controls.isConnected)return;
-        let description:string;
-        if(packet) {
-          const result=applyTypedDamage(c,packet,E,survival.choice);
-          description=`Dano por tipo · ${typedDamageSummary(result)} · ${damageDescription(c,result.absorption,result.received,result.critical)}`;
-        }else description=damageDescription(c,applyDamage(c,n,{critical,survival:survival.choice}),n,critical);
-        if(!c.hpTemp)c.hpTempSource='';
-        if(survival.inspired)consumeInspiration(c);
-        save(description+(survival.description?' · '+survival.description:'')+(survival.inspired?' · usou inspiração':''));return;
+        if(pendingDamage.has(controls))return;
+        pendingDamage.add(controls);
+        try{
+          const typed=controls.querySelector<HTMLSelectElement>('[data-damage-mode]')!.value==='typed';
+          const input=controls.querySelector<HTMLInputElement>('[data-health-damage]')!,n=Number(input.value),critical=controls.querySelector<HTMLInputElement>('[data-health-critical]')!.checked;
+          if(!typed && (!Number.isInteger(n) || n<=0)) throw new Error('Informe um dano inteiro maior que zero.');
+          const packet=typed?readDamagePacket(controls):null,received=packet?previewTypedDamage(c,packet,E).received:Math.max(0,n-arcaneWardPoints(c));
+          const survival=await chooseDamageSurvival(c,received,controls,E);if(!survival)return;
+          if(host.getChar()!==c || !controls.isConnected)return;
+          if((packet?.parry || packet?.monkDefense || packet?.shieldMaster) && (!canEditSheet(c) || controls.querySelector<HTMLSelectElement>('[data-damage-mode]')!.value!=='typed' || JSON.stringify(readDamagePacket(controls))!==JSON.stringify(packet)))throw new Error('A permissão ou o dano mudou. A reação não foi aplicada; nenhum dado foi gasto.');
+          let description:string;
+          if(packet) {
+            const result=applyTypedDamage(c,packet,E,survival.choice);
+            description=`Dano por tipo · ${typedDamageSummary(result)} · ${damageDescription(c,result.absorption,result.received,result.critical)}`;
+          }else description=damageDescription(c,applyDamage(c,n,{critical,survival:survival.choice}),n,critical);
+          if(!c.hpTemp)c.hpTempSource='';
+          if(survival.inspired)consumeInspiration(c);
+          save(description+(survival.description?' · '+survival.description:'')+(survival.inspired?' · usou inspiração':''));return;
+        }finally{pendingDamage.delete(controls);}
       }
       if(id==='inspirationReceive') { c.heroicInspiration=true;save('Recebeu inspiração · 2014');return; }
       if(id==='inspirationUse') {
@@ -158,6 +168,7 @@ export function setupHealthUI(E:Engine,save:(description:string)=>void) {
         resolveDeathSave(structuredClone(c),10);
         const controls=document.createElement('div');controls.className='rule-context rule-dialog-fields';
         controls.innerHTML=`${sourceControls(20)}<label>Modo <select data-health-mode><option value="normal">Normal</option><option value="adv">Vantagem</option><option value="dis">Desvantagem</option></select></label><label title="Some somente bônus recebidos, como uma magia de um aliado. Nenhuma habilidade é somada neste teste.">Bônus recebido <input type="number" min="-100" max="100" value="0" step="1" data-health-bonus></label>${deathSaveBonus(c)?`<p>Alma de Diamante: +${deathSaveBonus(c)} já incluído.</p>`:''}<p>Use a face natural: 1 = duas falhas; 20 = recupera 1 PV.</p>`;
+        if(level(c,'monge')>=14)controls.insertAdjacentHTML('beforeend','<label class="rule-check"><input type="checkbox" data-health-diamond-ready> Se falhar, escolher se uso Alma de Diamante · 1 Chi</label>');
         chooseSource(controls);
         const modeSelect=controls.querySelector<HTMLSelectElement>('[data-health-mode]')!;
         modeSelect.value=host.ruleDiceSettings().mode;
@@ -169,9 +180,10 @@ export function setupHealthUI(E:Engine,save:(description:string)=>void) {
         const virtual=controls.querySelector<HTMLSelectElement>('[data-health-source]')!.value==='virtual',bonus=Number(controls.querySelector<HTMLInputElement>('[data-health-bonus]')!.value),face=Number(controls.querySelector<HTMLInputElement>('[data-health-face]')!.value);
         resolveDeathSave(structuredClone(c),virtual?10:face,bonus);
         const mode=inspirationRollMode(c,controls.querySelector<HTMLSelectElement>('[data-health-mode]')!.value as 'normal'|'adv'|'dis');
-        const natural=virtual?await host.resolveRuleD20('Teste contra a morte',mode,{type:'save'},{...ruleD20Options(controls,!!(c.heroicInspiration && c.ruleState?.inspirationReady)),key:'death-save'}):face;
+        let natural=virtual?await host.resolveRuleD20('Teste contra a morte',mode,{type:'save'},{...ruleD20Options(controls,!!(c.heroicInspiration && c.ruleState?.inspirationReady)),key:'death-save'}):face;
         if(natural===null)return;
         if(host.getChar()!==c)return;
+        if(controls.querySelector<HTMLInputElement>('[data-health-diamond-ready]')?.checked)natural=await offerDiamondReroll(c,E,{natural,bonus:deathSaveBonus(c)+bonus,dc:10,mode,label:'Teste contra a morte',death:true,valid:()=>host.getChar()===c && button.isConnected});
         const result=resolveDeathSave(c,natural,bonus),inspired=consumeInspiration(c);
         save(`Teste contra a morte: d20 ${natural}, total ${result.total} · ${result.outcome}${inspired?' · usou inspiração':''}`);host.showToast(result.outcome);return;
       }

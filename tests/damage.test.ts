@@ -40,7 +40,8 @@ test('Fúria básica não protege em armadura pesada; Urso de nível 3 não é o
 test('resistências raciais exigem identificação da raça e ancestral; classe tem ancestral independente',()=>{
   const c=make();c.rules.raceId='tiefling';assert.equal(previewTypedDamage(c,packet(),E).received,10);
   c.rules.raceId='anaoColina';assert.equal(previewTypedDamage(c,packet('poison'),E).received,10);assert.equal(previewTypedDamage(c,packet(),E).received,21);
-  c.rules.raceId='halflingRobusto';assert.equal(previewTypedDamage(c,packet('poison'),E).received,21,'vantagem contra veneno não é resistência a dano');
+  c.rules.raceId='halflingRobusto';assert.equal(previewTypedDamage(c,packet('poison'),E).received,10,'Resiliência dos Robustos também concede resistência ao dano de veneno (p. 28)');
+  c.rules.raceId='halflingLeve';assert.equal(previewTypedDamage(c,packet('poison'),E).received,21);
   c.rules.raceId='draconato';c.rules.history=[{classId:'guerreiro',level:1,answers:{raceDragon:'Ouro — fogo'}}];assert.equal(previewTypedDamage(c,packet(),E).received,10);
   c.classes=[{classId:'feiticeiro',level:6,subclassId:'draconica'}];c.rules.history.push({classId:'feiticeiro',level:1,answers:{dragon:'Azul — elétrico'}});state(c).active['feiticeiro:elementalAffinity']=true;
   assert.equal(previewTypedDamage(c,packet('lightning'),E).received,10);assert.equal(previewTypedDamage(c,packet(),E).received,10);

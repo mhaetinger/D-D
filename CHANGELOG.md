@@ -1,5 +1,624 @@
 # Changelog
 
+## Não lançado — Conjuração por invocações — 2026-10-30
+
+- Vigésimo quinto recorte, R5 na PR #35. As 19 invocações de conjuração direta
+  usam Conjurar na característica, sem adicionar magia conhecida. Sete cobram
+  uso diário e espaço de Pacto juntos; onze são à vontade no círculo base.
+  Curto recupera Pacto sem liberar uso diário; longo recupera ambos.
+- Correntes de Cárceri exige nível próprio/Pacto da Corrente, tipo de criatura
+  e confirmação de não repetição naquela criatura desde o descanso longo.
+  Retirado o limite diário global incorreto, com a chave antiga preservada.
+- Concentração/duração e consequências usam os módulos do grimório, incluindo
+  Maldição no Pacto 3/4/5, Proteção Arcana e Transposição Benigna. Armadura de
+  Sombras ativa a fórmula existente em si, sem vestir armadura. Vigor Abissal
+  usa d4 físico/virtual +4 e permite manter/substituir temporários, sem somar ou
+  curar. Resistências indicam atributo/CD de CAR do bruxo, com proficiência total.
+- Confirmação compacta informa custos, componentes dispensados, tempo/duração e
+  troca de concentração. Registrar uso permanece em Já resolvi na mesa, para
+  não cobrar espaço novamente. Guardas antecedem RNG/custo; Só Pool bloqueia,
+  OFF aceita físico. Rituais, Metamagia por esse controle, alvos, formas e prazos
+  mantêm seus limites explícitos. Sem SQL, nova consulta de nuvem ou publicação.
+- 776 testes Node (21 casos novos), tipos/build e 11 roteiros Chromium aprovados:
+  invocações novas/anteriores, concentração, PV, ataques de magia, regras
+  auditadas, consulta, ajudas, curas, monge e ações de combate. Incluem
+  celular/GG/temas/layouts/toque, físico/virtual/OFF/Só Pool, cancelamento/guardas,
+  escolhas/nós/rodinha, notas/outras fichas e offline. Suíte remota: 59 roteiros.
+
+## Não lançado — Talentos, ações e disputas de combate — 2026-10-30
+
+- Vigésimo quarto recorte de R2/R3/R6, agrupado na PR #35. Armas automáticas
+  elegíveis usam Ação / reação para declarar ataque bônus, oportunidade ou
+  contexto do alvo sem reescrever o cadastro. Uma sessão por personagem/acerto;
+  custo de ação é declarado na mesa, sem contador fictício de turnos.
+- Maestria em Arma de Haste prepara cabo d4 de concussão, com habilidade/magia,
+  crítico e adicionais comuns. Lança incluída pela errata de 2014; lança longa
+  só permite oportunidade na entrada. Dado de Artes Marciais é escolha elegível;
+  não trata ataque bônus como segunda arma. Repetições identificam os dados
+  efetivos do cabo, sem repetir dados de outras fontes.
+- Besta de mão prepara ataque bônus, mantendo munição/mão livre; escudo bloqueia
+  esse uso. Especialista em Besta retira só a desvantagem por inimigo próximo,
+  inclusive no contexto opcional de ataques de magia; outras fontes permanecem.
+  O fluxo não registra nova conjuração nem gasta espaço ao rolar ataque mágico.
+- Investida prepara ataque após Disparada; +5 somente com deslocamento em linha
+  reta confirmado e sem dobrar no crítico. Armas Grandes tem ataque bônus por
+  crítico/abate declarado, sem exigir pesada nessa parte do talento. Sentinela
+  diferencia oportunidade de reação após ataque contra terceiro; somente
+  oportunidade informa deslocamento zero no acerto.
+- Assistente de disputas usa Atletismo contra total declarado do oponente, com
+  empate mantendo a situação anterior. Inclui agarrar, empurrar/derrubar,
+  imobilizar com ação inteira e empurrões bônus de Escudo/Investida. Reutiliza
+  modos, inspiração, Confiável e piso do total de Força Indomável. Alvo,
+  condições/posição e economia de ações continuam na mesa.
+- Sessões não entram no backup/histórico; edição invalida sem ressuscitar ao
+  voltar ao valor antigo. Inspiração/Sortudo e custos de Precisão/Atordoante do
+  mesmo ataque conservam seu contexto. Cancelamento/guardas precedem RNG/gasto;
+  físico/virtual/OFF/Só Pool, foco e rolagem usam os módulos comuns.
+- 755 testes Node, tipos/build e 13 roteiros Chromium aprovados: ações, dano,
+  –5/+10, repetições, Precisão, monge, magias, Estendido, Finta, Contra-Atacar,
+  lote de combate, editor e dado. Incluem celular/GG/temas/layouts/toque,
+  físico/virtual/OFF/Só Pool, guardas/cancelamento/nós/rodinha e offline.
+  Suíte remota ampliada para 58 roteiros. Sem SQL, consulta de nuvem, edição de
+  catálogo gerado, dados pessoais ou publicação.
+
+## Não lançado — Defesas e resistências condicionais — 2026-10-30
+
+- Vigésimo terceiro recorte de R2/R3 na PR #35. Um assistente de resistência
+  reúne atributo/efeito/fonte, bônus do escudo quando elegível, modo e inspiração
+  para uma jogada. Reutiliza dado físico/virtual, confirma antes de rolar/gastar
+  e conserva os bônus permanentes e o pool. CD/modo/ajuste ficam recolhidos.
+- Inclui fontes raciais, Sentido de Perigo, Abjuração e vantagem de Matador de
+  Conjuradores nas condições declaradas. Imunidade/falha automática não rolam
+  nem gastam inspiração; 1/20 não são sucesso/falha automática de resistência.
+  Sortudo e outras rerrolagens ficam na mesa neste assistente.
+- Coragem/Devoção, Fúria Inconsciente, Defesa Sedutora e veneno da Terra/Pureza
+  derivam imunidade sem apagar marcas anteriores; registro encerrado na mesa
+  pode ser retirado explicitamente, com desfazer. Auras de Proteção/Coragem/
+  Devoção verificam consciência sem confundir com incapacitação. Vigilância dos
+  Anciões conserva seu requisito próprio, resiste dano de magias conjuradas e
+  não divide duas vezes com outra resistência. Auras recebidas/aliados manuais.
+- Mestre de Escudo soma bônus próprio apenas a DES contra alvo exclusivo no
+  assistente; no dano por tipo, reação após sucesso em DES para metade pode
+  evitar dano, inclusive de área. Não reduz na falha nem gasta reação quando
+  Evasão já zera; não combina reações e preserva Proteção Arcana/concentração
+  quando o dano é zero. Empurrão após Atacar permanece na mesa.
+- Corrigida resistência do halfling robusto ao dano de veneno; o teste anterior
+  também tinha omitido esse benefício do livro. Pés-leves não o recebem.
+- 733 testes Node, tipos/build e nove roteiros Chromium aprovados: defesas,
+  monge, PV, dano, concentração, rolagens condicionais, Aparar, combate e consulta.
+  Cobrem celular/GG/temas/layouts, físico/virtual/OFF/Só Pool, cancelamento/guardas,
+  foco/nós/rodinha, registros antigos/desfazer/isolamento e offline real.
+  Suíte remota ampliada para 57 roteiros. Sem SQL, nova consulta de nuvem,
+  alteração de catálogos gerados, dados pessoais ou publicação.
+
+## Não lançado — Combate do monge — 2026-10-29
+
+- Vigésimo segundo recorte de R2, com avanço de R3, na PR #35. Golpe desarmado
+  vinculado explicitamente usa o editor/rolador comuns, proficiência, FOR normal
+  ou DES/Artes Marciais sem armadura/escudo, d4/d6/d8/d10 pelo nível próprio,
+  crítico e dano mínimo zero. Especialista em Briga usa d4 quando aplicável.
+  Golpes de Chi indicam a propriedade mágica sem inventar bônus numérico;
+  bônus que exigem arma física não são concedidos por tratar o golpe como ataque.
+- Ataque Atordoante gasta a reserva comum de Chi após confirmar acerto corpo a
+  corpo, inclusive desarmado: CON contra 8 + SAB + proficiência. Não adiciona o
+  limite de uma tentativa por turno de 2024; alvo e fim do próximo turno na mesa.
+- Defletir Projéteis e Queda Lenta integram o dano detalhado por tipo: uma reação,
+  um orçamento de redução por ocorrência, ordem com armadura explícita, antes
+  de resistência/vulnerabilidade. Defletir usa d10 + DES + nível próprio; Queda
+  usa 5 × nível próprio. Não gastam Chi. Apanhar exige zero pela deflexão antes
+  de resistência, tamanho adequado e mão livre declarados.
+- Devolver projétil apanhado gasta 1 Chi antes do ataque proficiente, mesmo no
+  erro; alcance 6/18 m e mesma reação declarados. Usa os dados próprios informados
+  do projétil ou Artes Marciais elegível. Acerto/crítico têm registro físico ou
+  virtual de dano sem novo custo. Devolução paga é transitória: não reaparece
+  por recarga/desfazer/troca de contexto; o custo continua no histórico.
+- Mente Tranquila encerra um efeito próprio de encanto/medo com ação, sem Chi.
+  Só retira a marca se o jogador confirmar que era o último efeito. Pureza
+  Corporal impede envenenado sem apagar registros antigos. Corpo Vazio também
+  concede invisibilidade derivada às jogadas, além das defesas já existentes.
+- Alma de Diamante repete resistência com 1 Chi, usando obrigatoriamente a nova
+  jogada. Concentração e morte oferecem repetição na falha quando preparada na
+  janela, antes de aplicar a consequência original, sem duplicar contagens,
+  testes ou inspiração. Pode funcionar a 0 PV; não exige ação nem revive mortos.
+- Modos/origem física/virtual, permissões, custos e janelas reutilizam módulos
+  comuns. Valores da Forma Selvagem continuam na mesa. Sem SQL, consulta de
+  nuvem, dados pessoais, catálogo gerado alterado ou publicação.
+- Verificados 711 testes Node, tipos/build e nove roteiros Chromium, incluindo
+  monge, PV/concentração/dano, editor/ataques, Aparar, rolagens condicionais e
+  apoio. Cobrem celular/GG/temas/layouts, físico/virtual/OFF/Só Pool, cancelamento,
+  guardas/desfazer/isolamento e offline real. CI ampliada para 56 roteiros.
+
+## Não lançado — Apoio, Curandeiro e bardo — 2026-10-29
+
+- Vigésimo primeiro recorte de R2, com avanço delimitado de R3/R6, na PR #35.
+  Curandeiro calcula tratamento por DV máximos do destinatário e estabilização
+  com 1 PV. Desconta um uso do kit só após confirmar; cura própria respeita o
+  máximo vigente, sem gastar DV ou somar temporários. Elegibilidade por
+  tratamentos/descansos anteriores é conferida na mesa, inclusive na estabilização.
+- Kits antigos/importados exigem saldo declarado. Campo opcional guarda usos da
+  pilha; não remove kits vazios nem altera peso/quantidade. Compra de kit novo
+  acrescenta dez usos conhecidos. Saldos ilegíveis são preservados e bloqueados.
+- Corrigidas as funções ausentes no pagamento/exibição da loja. Validação antes
+  do desconto, preferência pela moeda do preço e troco só do necessário, sem
+  converter toda a bolsa. Compra de kit incluída com preço/peso do livro 2014.
+- Bardo concede dado sem rolar e Palavras de Interrupção usa a mesma reserva,
+  respeitando níveis próprios, recuperação e Colégio do Conhecimento. Interrupção
+  reduz ataque/teste/dano rolado (inclusive mágico), não resistência; dano mínimo
+  zero e crítico natural preservado. Reação/alcance/momento confirmados na mesa.
+- Registro opcional de um dado recebido de outro bardo, separado da inspiração
+  de vantagem. Calcula bônus em jogada informada; Bravura admite dano de arma
+  (dois dados no crítico) e CA só de um ataque, com reação. Consome ao rolar;
+  prazo de jogo declarado, sem relógio real ou acesso a outra ficha. Descanso
+  encerra somente formato conhecido. Dados futuros/ilegíveis são preservados.
+- Físico/virtual/OFF/Só Pool, prévias e cancelamento reutilizam módulos comuns;
+  documento/conta/permissão/nó/modo/sequência conferidos antes de rolar ou gastar.
+  Sem SQL, consultas de nuvem, dados pessoais ou alteração de catálogos gerados.
+- O auxiliar de teste aguarda também animações de altura iniciadas pelo
+  ResizeObserver depois da fonte. A comparação de scroll continua exata;
+  mantém a regressão de +97 px, sem afrouxar a contenção da rodinha.
+- Verificados 690 testes Node, tipos/build e seis roteiros Chromium: apoio, PV,
+  recursos/regras, Inspirar, lote de combate e dado; inclui 320px/GG, três temas,
+  dois layouts, toque, cancelamento/guardas/desfazer, texto não confiável e offline
+  real sob `/D-D/`. CI ampliada para 55 roteiros; resultado remoto na PR #35.
+
+## Não lançado — Lote de combate e janelas — 2026-10-29
+
+- Corrigido o reposicionamento automático da página atrás de diálogos: a rodinha
+  já era contida, mas a ancoragem do navegador movia a ficha após mudanças de
+  altura/fonte. Desativa somente essa ancoragem enquanto houver diálogo aberto;
+  não bloqueia o body. Regressão força +97 px atrás de Inspirar, além da rodinha.
+- Vigésimo recorte de R2, com integração parcial em R3/R6: Auto Ficha reúne
+  condições, exaustão, equipamento, Fúria, invisibilidade, Finta, inspiração e
+  modo informado antes de cancelar vantagens/desvantagens. Resultado identifica
+  as fontes; Sortudo conserva o perfil capturado. Pool livre conserva seu contrato.
+- FOR/DES respeitam armadura/escudo sem proficiência; Furtividade reconhece o
+  catálogo e Maestria em Armadura Média remove só a penalidade da armadura média.
+  Arma pesada reconhecida impõe desvantagem a criatura Pequena. Caído/cego/impedido,
+  veneno e exaustão diferenciam ataque, habilidade e resistência. Passivos de
+  Percepção/Investigação refletem o contexto conhecido, sem modo global/inspiração.
+- Fúria dá vantagem em testes/resistências de FOR sem armadura pesada. Força
+  Indomável do bárbaro 18 aplica mínimo de FOR ao total de um teste, preservando
+  a face natural e as repetições de Sortudo. Valores humanos em Forma Selvagem
+  e contextos de alvos/sentidos/medo permanecem na mesa.
+- Duelista Defensivo junto da CA registra reação declarada com arma de acuidade
+  proficiente: soma proficiência somente contra o ataque recebido. Prévia distingue
+  erro, igualdade e crítico, sem alterar CA permanente ou aplicar dano.
+- Líder Inspirador junto da característica calcula nível total + CAR para até
+  seis participantes, incluindo você. Declaração confirma discurso, alcance,
+  comunicação e descanso de cada destinatário desde o último benefício de qualquer
+  líder. Temporários próprios só são substituídos por escolha explícita; demais
+  fichas ficam na mesa. Não cria reserva diária nem soma temporários.
+- Sem campo persistido novo, SQL, consulta de nuvem, catálogo gerado alterado ou
+  publicação. Mantidos notas, histórico limitado, modos do dado e isolamento.
+- Verificados **665 testes Node**, tipos/build e **12 roteiros Chromium**: lote de
+  combate, Inspirar, Finta, Precisão, rolagens condicionais, passivos, iniciativa,
+  Contra-Atacar, Estendido, ataque de magia, Sortudo e dado. Incluem físico/virtual/
+  OFF/Só Pool, natural/mínimo/Sortudo, fontes antes do cancelamento, prévias,
+  crítico/CA/temporários, cancelamento/concorrência/conta/permissão/nós/foco,
+  notas/histórico/desfazer/isolamento, toque/320px/GG/três temas/dois layouts/scroll/
+  XSS e offline real sob `/D-D/`. Contraprova com ancoragem antiga forçada falhou
+  exatamente em +97 px; com a correção passou. A CI completa exige **54 roteiros**
+  e PostgreSQL descartável; resultado remoto na PR #35.
+
+## Não lançado — Golpe do Comandante — 2026-10-29
+
+- Décimo nono recorte de R2: **Comandar ataque** junto da superioridade confirma
+  ação Atacar no próprio turno, um ataque cedido, ação bônus e criatura amigável
+  que pode ver ou ouvir você. Gasta um dado antes de ela decidir a reação imediata
+  para um ataque com arma, corpo a corpo ou à distância. Não exige Ataque Extra.
+- O ataque do aliado permanece na mesa. Registrar resultado informa somente o
+  dado adicional já pago, físico ou virtual, dobrado em crítico. Erro, recusa ou
+  encerramento mantêm o gasto; não usa arma/bônus/preparações do comandante nem
+  altera outra ficha. Não gaste novamente em Usar na mesa.
+- Uma ordem pendente por ficha, entre as origens. Campos conservam nós/foco;
+  contexto/conta/permissão/modo/sequência são conferidos antes do custo ou RNG.
+  Descanso, troca de contexto, desfazer e recarga descartam a ordem; só o contador
+  é salvo/restaurado. A reação imediata é declarada na mesa, sem relógio de turno.
+- As **16/16 manobras** têm controles dentro dos limites registrados na auditoria;
+  R2 e as demais frentes do livro continuam parciais. Sem novo campo persistido,
+  SQL, consulta de nuvem, edição de catálogo ou publicação.
+- Verificados **650 testes Node**, tipos/build e **doze roteiros Chromium**:
+  Comandante, Inspirar, Passo Evasivo, Aparar, manobras, Precisão, Estendido,
+  Finta, Contra-Atacar, Trespassante, dado e regras. Incluem custo antecipado,
+  acerto/crítico/erro/recusa, origens, físico/virtual/OFF/Só Pool, isolamento das
+  preparações do comandante, validação/contexto/conta/permissão, descanso/
+  desfazer/recarga, notas/histórico/XSS/nós/foco, toque/320px/GG/três temas/dois
+  layouts/scroll e offline real sob `/D-D/`. CI completa exige agora 53 roteiros
+  e banco descartável; resultado remoto na PR #35.
+
+## Não lançado — Contra-Atacar — 2026-10-29
+
+- Décimo oitavo recorte de R2: botão Contra-atacar junto da arma corpo a corpo
+  reconhecida. Identifica a criatura que errou sua jogada corpo a corpo contra
+  você e confirma reação disponível, alcance e um ataque novo contra ela.
+  Paga um dado antes do ataque, mesmo se errar; no acerto, Dano inclui o dado
+  já pago e dobra-o no crítico, sem outro gasto. Regra/limites na auditoria.
+- Uma reação não é ação Atacar nem ataque de oportunidade; não dispara Ataque
+  Extra nem concede vantagem por si. Preserva modo/inspiração, Sortudo/halfling,
+  Furtivo por turno, Destruição, –5/+10 e repetições só dos dados da arma.
+  Não combina Precisão/Trespassante/outra manobra no mesmo ataque. Finta pendente
+  com a mesma identificação textual é recusada; outra criatura não a consome.
+- Uma sessão paga pendente evita cobrança duplicada entre armas/origens.
+  Errou/encerrar, outro ataque, descanso, troca de contexto, recarga e desfazer
+  descartam o contexto sem reembolso. Somente o contador é salvo/restaurado;
+  descanso recupera normalmente. Arma removida/substituída não trava novo uso.
+- OFF/Só Pool usam ataque e dano físicos, sem RNG ou consumo de inspiração.
+  Origem/legibilidade/saldo e contexto/conta/permissão/arma/nó/preparação/modo/
+  sequência são revalidados antes do gasto. Campos conservam nós/foco.
+  Ataques próprios/desarmados e Forma Selvagem continuam na mesa.
+- Sem campo persistido novo, efeito em outra ficha, SQL, consulta de nuvem,
+  catálogo alterado ou publicação. Cobertura de manobras **15/16**; falta
+  **Golpe do Comandante**, sem concluir as demais etapas do livro.
+- Verificados **637 testes Node**, tipos/build e **onze roteiros Chromium**:
+  Contra-Atacar, Trespassante, Finta, Estendido, Precisão, manobras, dano de arma,
+  –5/+10, repetições, dado e regras. Incluem custo antecipado/erro/crítico,
+  origens/Sortudos/modos/inspiração, físico/virtual/OFF/Só Pool, validação antes
+  do RNG/gasto, contexto/conta/permissão, descanso/desfazer/recarga, notas/
+  histórico/XSS/nós/foco, toque/320px/GG/três temas/dois layouts/scroll e offline
+  real sob `/D-D/`. CI completa exige agora 52 roteiros e banco descartável.
+
+
+## Não lançado — Ataque Trespassante — 2026-10-29
+
+- Décimo sétimo recorte de R2: Trespassante em Adicionais da arma corpo a corpo
+  reconhecida. Confirma acerto original, segunda criatura até 1,5 m da primeira
+  e dentro do alcance; um seletor informa se a mesma jogada atingiria a segunda
+  CA. Não rola outro ataque nem exige turno próprio, ação bônus ou reação.
+- Dano secundário separado: somente um dado de superioridade do tipo da arma,
+  sem bônus/dados extras de crítico, Furtivo, Destruição ou –5/+10. Dano principal
+  preservado. Tentativa gasta um uso da origem mesmo quando não atingiria a
+  segunda criatura; nesse caso registra zero sem RNG secundário.
+- Auto Ficha oferece virtual/físico; OFF/Só Pool registram total principal e
+  face secundária distintos. Bandeja mantém o total principal com o secundário
+  identificado na legenda/histórico. Repetições mudam apenas dados da arma no
+  alvo original; explicação e título do total distinguem esse ajuste.
+- Mantém a escolha de uma manobra por ataque, bloqueia combinação com Precisão/
+  Estendido/Finta, revalida contexto/conta/permissão/modo/sequência antes do RNG
+  e preserva nós/foco. Origem, saldo/registro ilegível, crítico e campos físicos
+  são conferidos antes de gastar. Textos do alvo são dados e quebram linha,
+  inclusive na legenda do resultado virtual e no aviso: nomes longos não alargam
+  a bandeja do dado nem ultrapassam a tela do celular.
+- Ataques próprios/Forma Selvagem e aplicação de dano no outro personagem
+  continuam na mesa. Sem campo persistido novo, SQL, consulta de nuvem, edição
+  de catálogo ou publicação. Auditoria atualizada: **14/16** manobras; faltam
+  **Contra-Atacar e Golpe do Comandante**, sem concluir as demais etapas.
+- Verificados **624 testes Node**, tipos/build e **dez roteiros Chromium**:
+  Trespassante, Finta, Estendido, Precisão, manobras, dano de arma, –5/+10,
+  repetições, dado e regras. Incluem dois alvos, crítico/Destruição, origens/
+  tentativa sem atingir, OFF/Só Pool/físico/virtual, validação antes do RNG/
+  gasto, conta/permissão/contexto, desfazer/notas/histórico, XSS/nós/foco,
+  toque/320px/GG/três temas/dois layouts/scroll e offline real sob `/D-D/`.
+  CI completa exige agora 51 roteiros e PostgreSQL descartável; resultados na PR #35.
+
+
+## Não lançado — Ataque de Finta — 2026-10-29
+
+- Décimo sexto recorte de R2: Fintar junto da reserva confirma ação bônus no
+  próprio turno e alvo até 1,5 m, gastando um dado sem rolar a face antecipada.
+  Marque Finta na arma só para o próximo ataque contra aquele alvo neste turno;
+  Atq confirma antes de usar. Ataques contra outras criaturas não usam a escolha.
+- Vantagem da Finta, modo informado e inspiração são reunidos antes de cancelar:
+  duas vantagens não superam desvantagem. Não altera o seletor global. Dano pede
+  acerto, inclui o dado já pago e dobra-o no crítico, sem novo gasto. Bloqueia
+  Precisão/outra manobra; conserva Sortudos, Furtivo, Destruição, –5/+10 e
+  repetições restritas à arma. Finta sozinha também permite dano virtual.
+- OFF/Só Pool registram total físico sem RNG ou gasto da inspiração preparada.
+  Resolver na mesa usa o crédito para magia com ataque, ataque próprio/desarmado
+  ou sem jogada de dano, sem conjurar/cobrar espaço ou inventar dano para Rede.
+  Forma Selvagem continua manual. O livro e a errata estão referenciados na auditoria.
+- Controle compacto junto das armas distingue crédito de ataque já feito.
+  Encerrar/errar/fim do turno não reembolsam. Descanso recupera normalmente;
+  troca de contexto, outro ataque após aquele da Finta, recarga ou desfazer não
+  recriam a vantagem. Apenas o contador é salvo/restaurado. Revalida contexto,
+  conta, permissão, arma, nó e dado, com trava para confirmações concorrentes.
+- Marcação e rótulos atualizam os nós existentes. Nomes longos quebram linha
+  no celular e textos do alvo são tratados como dados. Sem campo persistido,
+  SQL, nova consulta de nuvem ou mudança em fichas/notas existentes.
+- Verificados 613 testes Node, tipos/build e dez roteiros Chromium: Finta,
+  Estendido, Precisão, manobras, dano de arma, –5/+10, rerrolagens, dado, modo da
+  iniciativa e regras. Incluem origens/dados/erro/crítico, vantagem/inspiração/
+  desvantagem, escolha por alvo, manual/OFF/Só Pool, cancelamento/concorrência/
+  contexto/conta/permissão, descanso/desfazer/recarga, texto não confiável, nós/
+  foco/scroll, toque emulado/320px/GG/temas/layouts, notas/histórico/offline /D-D/.
+  CI exige 50 roteiros e banco descartável; resultados na PR #35.
+  Cobertura: 13/16 manobras; três pendentes. Sem publicação.
+
+## Não lançado — Ataque Estendido — 2026-10-29
+
+- Décimo quinto recorte de R2: Estendido é preparado na arma corpo a corpo
+  reconhecida antes de Atq. Confirma origem, novo ataque no próprio turno e
+  nenhuma outra manobra; paga um dado antes do d20, inclusive se errar, para
+  +1,5 m de alcance apenas nesse ataque. Não exige ação bônus. O fluxo explicita
+  o momento do original de 2014, ambíguo no PDF traduzido, sem editar o catálogo.
+- Dano pede confirmar acerto e inclui o dado já pago, dobrado no crítico, sem
+  descontar superioridade novamente. Bloqueia Precisão/outra manobra no ataque,
+  inclusive após Sortudo/halfling; conserva Furtivo, Destruição, –5/+10 e as
+  repetições restritas aos dados da arma. OFF/Só Pool registram o total físico.
+- Errou/encerrar e outro ataque, inclusive de outra arma, descartam o contexto
+  sem reembolso. Descanso, troca de contexto, recarga e desfazer também encerram;
+  apenas o contador é salvo/restaurado, sem recriar o ataque. A interface orienta
+  resolver na mesa o dado
+  pago se perder o contexto. Ataques próprios/desarmados e forma de besta
+  continuam manuais neste controle. Sem campo persistido, SQL ou nova consulta.
+- Marcar/cancelar não gastam, rolam ou registram. Confirmação revalida documento,
+  arma, conta, permissão, botão, preparação e estado do dado antes do gasto/RNG;
+  cliques concorrentes não duplicam. Preserva notas, fichas e salvamento existente.
+- Verificados 597 testes Node, tipos/build e oito roteiros Chromium: Estendido,
+  Precisão, manobras, dano de arma, –5/+10, rerrolagens, dado e regras. Incluem
+  escolha antecipada/erro/acerto/crítico, origem do talento, manobra isolada,
+  Destruição/inspiração/Sortudos, físico/OFF/Só Pool, contexto/conta/permissão,
+  descanso/outro ataque/desfazer, nós/foco/scroll, 320px/GG/temas/layouts e
+  notas/histórico/offline /D-D/. CI exige 49 roteiros e banco descartável;
+  resultados na PR #35. Cobertura: 12/16 manobras; quatro pendentes. Sem publicação.
+
+## Não lançado — Passo Evasivo — 2026-10-29
+
+- Décimo quarto recorte de R2: Passo Evasivo usa um dado da reserva escolhida
+  e soma a face à CA até parar de se mover, conforme 2014. Não exige ação bônus
+  ou reação. Botão junto da reserva; controle ativo e **Terminei de me mover**
+  junto à CA. A mesa declara o movimento e as pausas, mesmo dentro do turno.
+- Face física em OFF/Só Pool/Auto ou um dado virtual normal, com dados aprimorados
+  pelo nível próprio do Mestre de Batalha. Um gasto/efeito por confirmação;
+  encerrar não devolve o dado, recomeçar paga outro. Cancelar não gasta; revalida
+  documento/conta/permissão e contexto antes do RNG. Desfazer inclui gasto/efeito.
+- Aplica a face uma vez a cada fórmula de CA, inclusive escrita. Corrigir o total
+  atual desconta o bônus da base, evitando torná-lo permanente. Condições que
+  impedem movimento, queda/morte, exaustão 5, descanso e correções impeditivas da
+  ficha encerram, sem retomar após remover a causa. Incapacitação isolada não
+  impede movimento. Forma Selvagem permanece manual.
+- Registro opcional pequeno mantém o movimento declarado por recarga/offline.
+  Valores ilegíveis/futuros ficam preservados, sem bônus. Sem relógio automático,
+  novos contadores, SQL ou chamadas de nuvem. Preserva pool, inspiração, notas,
+  nuvem manual e histórico local de 25 registros. Retomada ficou mais compacta;
+  os detalhes históricos continuam no changelog e na auditoria única.
+- Verificados 586 testes Node, tipos/build e oito roteiros Chromium: Passo Evasivo,
+  regras, edição na ficha, Precisão, PV, dano, Aparar e Inspirar. Incluem físico/
+  virtual/OFF, cancelar/concorrência/contexto antes do RNG, conta/permissão,
+  CA/gasto/encerrar/desfazer, condições/queda/exaustão/descanso sem retomada,
+  CA escrita/deslocamento, pool/inspiração, nós/scroll, 320px/GG/temas/layouts
+  e notas/histórico/offline /D-D/. CI exige 48 roteiros e banco descartável;
+  resultados na PR #35. Cobertura de manobras: 11/16. Sem publicação.
+
+## Não lançado — Inspirar — 2026-10-29
+
+- Décimo terceiro recorte de R2: quem conhece Inspirar recebe um botão compacto
+  junto de cada reserva de superioridade. Um único diálogo identifica o aliado
+  e confirma ação bônus no próprio turno e que o aliado pode ver ou ouvir o
+  personagem. Calcula dado da origem + CAR e gasta exatamente um dado.
+- Usa face física em OFF/Só Pool/Auto ou um dado virtual normal quando habilitado,
+  com dados aprimorados pelo nível próprio do Mestre de Batalha. Preserva pool,
+  modo global e inspiração. CAR negativo não recebe mínimo 1 artificial;
+  resultado não positivo concede zero temporários, com o gasto normal.
+- Resultado visível e histórico informam aliado, face, CAR, total e origem.
+  O aliado aplica na mesa, sem somar temporários, curar ou estabilizar; não altera
+  a própria vida ou outra ficha. Desfazer devolve o dado. Forma Selvagem continua
+  manual; ação/percepção/turno são declarados pela mesa.
+- Revalida conhecimento, saldo/máximo, face/CAR, ficha, conta, botão e permissão
+  antes de RNG/gasto. Cancelamento/campos inválidos não gastam; uma confirmação
+  por ficha evita concorrência entre as origens. Preserva registros ilegíveis.
+  Reutiliza o assistente de dados com campos opcionais; nomes viram texto seguro
+  e quebram em telas pequenas. Sem novo contador, migração ou chamada de nuvem.
+- Verificados 573 testes Node, tipos/build e seis roteiros Chromium: Inspirar,
+  Aparar, Precisão, manobras, PV e 32 cenários das correções auditadas. Incluem
+  físico/virtual/OFF, cancelamento/concorrência/contexto antes do RNG, desfazer,
+  outras fichas/PV preservados, pool/inspiração, nós/foco/scroll, 320px/GG/temas/
+  layouts, texto não confiável/nomes longos e notas/histórico/offline /D-D/.
+  A CI exige 47 roteiros e banco descartável; resultados na PR #35.
+  Cobertura de manobras: 10/16, seis pendentes na auditoria. Sem publicação.
+
+## Não lançado — Aparar — 2026-10-29
+
+- Décimo segundo recorte de R2: Dano detalhado por tipo oferece Aparar a quem
+  conhece a manobra pela classe ou Adepto Marcial. Confirma ataque corpo a corpo
+  de outra criatura, reação disponível e nenhuma outra manobra sua no ataque.
+  Reduz face + DES, com dado da origem escolhida, incluindo os aprimorados.
+- A face pode ser física ou virtual; sua preparação não gasta nem altera PV,
+  pool ou inspiração. Aplicar dano valida o plano completo e desconta um dado
+  junto dos PV, em uma etapa de desfazer. Evita envio concorrente no formulário;
+  revalida campos/conta/documento/permissão antes de RNG ou aplicação.
+- Um orçamento de redução por ataque misto, alocado pela ordem dos tipos;
+  proteção/imunidade antes e resistência/vulnerabilidade depois. A ordem entre
+  Aparar e Maestria em Armadura Pesada é explícita. Não combina duas reações com
+  Esquiva Sobrenatural. Crítico não dobra redução/custo; concentração/morte usam
+  um único dano final. Forma Selvagem continua manual.
+- Mantém contratos dos quatro argumentos do assistente de dados e do dano já
+  resolvido. Conhecimento, registros ilegíveis, saldo e máximo são revalidados;
+  campos mantêm seus nós/foco. Sem novo contador de reação, alvo ou turno,
+  migração, chamadas de nuvem ou alteração de catálogo. Entrega na PR #35,
+  sem publicação; histórico local de 25 registros e nuvem manual preservados.
+- Verificados 564 testes Node, tipos/build e sete roteiros Chromium: Aparar,
+  dano, PV, Precisão, manobras, correções auditadas e Sobrevivente. Incluem
+  origens/dados/ordem, prévia sem gasto, físico/virtual/OFF, cancelamento,
+  revalidação antes do RNG, clique duplo, custo/dano/desfazer, CON único,
+  nós/foco/scroll, 320px/GG/temas/layouts, notas e offline /D-D/.
+  A CI exige 46 roteiros e banco descartável; resultados na PR.
+
+## Não lançado — Sobrevivente — 2026-10-29
+
+- Décimo primeiro recorte de R2: Campeão de nível próprio 18 recebe controle
+  compacto junto aos PV para Sobrevivente. No começo de um turno declarado,
+  recupera 5 + CON com PV positivos até metade do máximo vigente. A cura pode
+  ultrapassar a metade, até o máximo; exaustão considera o máximo reduzido.
+- Não exige ação ou consciência, não funciona a 0 PV e não revive. Forma
+  Selvagem continua com PV/CON resolvidos na mesa. Reutiliza a cura existente,
+  sem gastar inspiração, Retomar o Fôlego, Dados de Vida ou temporários.
+- Checkbox obrigatório confirma novo turno sem repetir o benefício. Cancela
+  sem alterações; revalida documento, ficha/conta, botão e permissão. Evita
+  confirmações concorrentes e registra cura/desfazer numa etapa local. Funciona
+  em OFF/Só Pool/Auto, sem RNG. A mesa acompanha os turnos: não há relógio ou
+  cura automática na iniciativa, descanso ou recarga.
+- Verificados 552 testes Node, tipos/build e sete roteiros Chromium:
+  Sobrevivente, PV, dano, cadeado, modo/recuperação na iniciativa e ajudas.
+  Incluem limites, passivo em sono/incapacitação, cancelamento/concorrência,
+  mudanças de contexto/permissão, desfazer, condições/nós/foco/scroll,
+  320px/GG/três temas/dois layouts, notas e offline /D-D/. CI exige 45 roteiros.
+  Entrega agrupada na PR #35, sem publicação; nuvem manual e histórico de
+  25 registros preservados.
+
+## Não lançado — modo da iniciativa — 2026-10-28
+
+- Décimo recorte de R2: Auto Ficha aplica vantagem por Instinto Selvagem
+  (bárbaro 7) e Explorador Natural (Patrulheiro Revisado 1, adaptação).
+  Reúne classe, inspiração preparada, modo informado e desvantagens verificadas
+  por exaustão, envenenamento e armadura/escudo sem proficiência antes de cancelar
+  uma única vez, independentemente da quantidade de fontes.
+- O resultado explica as fontes e mantém o perfil ao usar Sortudo/halfling;
+  preserva bônus, natural do d20 e modo global escolhido. OFF/Só Pool orientam
+  o dado físico, sem gastar inspiração, junto da recuperação quando aplicável.
+  Medo depende de visibilidade informada; DES/equipamento da Forma Selvagem,
+  surpresa/Fúria e alvos do primeiro turno continuam na mesa.
+- Verificados 543 testes Node, tipos/build e sete roteiros Chromium: modo da
+  iniciativa, recuperação na iniciativa, Sortudo, R2 inicial, 32 cenários
+  auditados, dado e ajudas. Incluem cancelamento único, fontes capturadas,
+  inspiração/desfazer, RNG/permissão, físico/virtual, recuperação, notas,
+  320px/GG/três temas/dois layouts e offline /D-D/. A CI exige 44 roteiros.
+  Nuvem manual, histórico de 25 registros e aparência/gestos do dado preservados.
+  Entrega agrupada na PR #35, sem publicação.
+
+## Não lançado — recuperação na iniciativa — 2026-10-28
+
+- Nono recorte de R2: o botão Iniciativa recupera um dado de superioridade por
+  Implacável (Mestre de Batalha 15), um uso de Inspiração de Bardo por Inspiração
+  Superior (bardo 20) ou quatro Chi por Auto Aperfeiçoamento (monge 20), somente
+  com a reserva vazia. Implacável considera também o dado do Adepto Marcial.
+- Auto Ficha recupera após o lançamento e registra junto da inspiração heroica
+  consumida, em um passo de desfazer. Sortudo racial/talento só recompõe o d20;
+  pool livre, rótulo da jogada e outros testes não disparam nova recuperação.
+  OFF/Só Pool permitem confirmar uma nova iniciativa física pelo mesmo botão,
+  sem rolar dados. Cancelar conserva recursos e resultado anterior.
+- Nível próprio/subclasse e máximos vigentes limitam a recuperação; valores
+  ilegíveis ou acima do máximo permanecem para conferência. Revalida ficha,
+  documento, conta, modo, sequência e permissão antes da confirmação física.
+  Atualiza saldo, ações dependentes de Chi e inspiração sem reconstruir listas
+  ou sobrescrever rascunhos de outras reservas. Preserva nuvem manual e histórico
+  local limitado a 25 registros. Entrega agrupada na PR #35, sem publicação.
+- Verificados 534 testes Node, tipos/build e nove roteiros Chromium: iniciativa,
+  Precisão, Sortudo, R2 inicial, regras/cenários auditados, dado, cadeado e manobras. Incluem todas
+  as origens, físico/virtual, cancelamento/concorrência/conta/permissão, erro de
+  RNG, desfazer conjunto, nós/foco/rascunhos, 320px/GG/temas/layouts e offline
+  /D-D/. A CI passa a exigir 43 roteiros e banco descartável.
+  O cenário auditado do bardo agora confere a fórmula enviada ao rolador pelo
+  clique no botão, preservando a verificação de Versatilidade sem depender do HTML.
+
+## Não lançado — cinco manobras de dano e efeitos — 2026-10-28
+
+- Oitavo recorte de R2: Ameaçador, Encontrão, Provocante, Manobra e Golpe
+  Distrativo conhecidos passam a aparecer em Adicionais da arma. Reutilizam
+  origem de superioridade, dado no dano/crítico e gasto único ao confirmar.
+- Ameaçador/Provocante pedem SAB do alvo; Encontrão pede FOR de alvos Grandes
+  ou menores, sem retirar o dano de alvos maiores. A CD continua formada por
+  FOR/DES do atacante. Manobra/Distrativo não pedem resistência nem mostram CD;
+  alternar as opções preserva controles, foco e escolha anterior.
+- Os textos distinguem duração dos efeitos, reação/movimento do aliado e
+  oportunidade apenas do alvo atingido; Distrativo beneficia só o próximo
+  ataque de outra criatura no prazo. Esses efeitos ficam com a mesa.
+  Precisão bloqueia combinar qualquer uma das sete manobras de dano no mesmo
+  ataque acompanhado. Furtivo/Destruição e as repetições da arma mantêm seus contratos.
+- Verificados 525 testes Node, tipos/build e nove roteiros Chromium: manobras,
+  Precisão, crítico/adicionais, rerrolagens, R2 inicial, Sortudo, ajudas, dado e
+  cadeado. Incluem origens/crítico, cancelamento/gasto único, nós/foco/scroll,
+  320px/GG/três temas/dois layouts e offline /D-D/. A CI exige os 42 roteiros
+  e banco descartável. Avanço agrupado na PR #35, sem publicação.
+  A matriz registra as oito manobras restantes e os demais contextos parciais.
+
+## Não lançado — Ataque de Precisão — 2026-10-28
+
+- Sétimo recorte de R2: depois do ataque automático da arma, a bandeja oferece
+  Precisão para quem conhece a manobra e tem saldo. Escolhe a origem de
+  superioridade e rola/informa somente seu dado, com gasto único ao confirmar.
+- Conserva d20 natural, modo, bônus, pool e inspiração. Sortudo e o halfling
+  mantêm o mesmo adicional ao escolher/repetir faces, antes ou depois de Precisão.
+  O dado de superioridade não participa da repetição racial; 1/20 naturais e
+  crítico ampliado do Campeão continuam usando o d20, sem decidir CA/acerto.
+- A sessão do ataque impede combinar Desarmante/Derrubar com Precisão, mantendo
+  dano normal, Furtivo e Destruição. Registrar dano encerra as opções do ataque;
+  uma nova jogada da arma inicia outra. Mudanças de arma/ficha/conta/permissão,
+  modo ou jogada invalidam uma confirmação antiga antes do RNG/gasto. Sair de
+  Auto Ficha encerra o vínculo automático, liberando a próxima jogada física.
+- Prévia/cancelamento não gastam nem rolam. Saldo e escolhas atualizam seus nós,
+  sem desmontar botões de Sortudo; desfazer devolve o custo. Dados/fórmulas-base
+  manuais e OFF/Só Pool continuam na mesa com Usar na mesa. Não muda o dado
+  flutuante, notas, nuvem manual, limite de 25 registros ou catálogos gerados.
+- Verificados 520 testes Node, tipos/build e nove roteiros Chromium: Precisão,
+  manobras, crítico/adicionais, rerrolagens, Sortudo, R2 inicial, dado, ajudas e
+  cadeado. Cobertos cancelamento/concorrência, físico/virtual, crítico ampliado,
+  inspiração, foco/nós/scroll, 320px/GG/temas/layouts e offline /D-D/.
+  A CI exige 42 roteiros e PostgreSQL descartável. Sem SQL ou publicação;
+  avanço agrupado na PR #35, que já reunia as três entregas anteriores.
+
+## Não lançado — manobras no acerto — 2026-10-28
+
+- Sexto recorte de R2: Ataque Desarmante/Derrubar conhecidas aparecem em
+  Adicionais das armas do catálogo. Escolha origem do dado e FOR/DES para CD;
+  o acerto soma o dado ao dano, dobra no crítico e desconta só a origem escolhida.
+  Furtivo/Destruição coexistem; repetições da arma conservam os dados da manobra.
+- Adepto Marcial recebe o dado adicional da errata 2014, identificado separado
+  dos dados da classe. Superioridade Aprimorada melhora os dados em 10/18 de
+  Mestre de Batalha. Mantém o contador antigo, máximos editados e usos; recupera
+  ambas as origens no descanso existente. Consulta explica a errata do PDF local.
+- Uma manobra por ataque exige confirmação, inclusive quanto a Precisão usada
+  na mesa. Mostra CD, teste de FOR e limite de tamanho de Derrubar; efeitos nos
+  alvos continuam manuais. Precisão e as outras manobras permanecem no roteiro.
+- Cancelamento/prévia não gastam nem rolam. Confirmação virtual revalida Auto
+  Ficha, documento, arma e permissão. OFF/Só Pool registram o total físico final.
+  Uso/custo entram no mesmo passo; desfazer restaura ambos. Fichas, notas, dado
+  flutuante, sincronização manual e limite de 25 registros são preservados.
+- Verificados 512 testes Node, tipos/build e sete roteiros Chromium: manobras,
+  crítico/adicionais, rerrolagens, recursos, ajudas, dado e cadeado. Incluídos
+  esgotamento/concorrência, foco/scroll, 320px/GG/temas/layouts e offline /D-D/.
+  A suíte completa da CI passa a exigir 41 roteiros e banco descartável.
+  Sem SQL, catálogos gerados ou publicação; desenvolvimento agrupado com a PR #34.
+
+## Não lançado — Adepto Elemental — 2026-10-24
+
+- Quinto recorte de R2: prévia/livro identificam o benefício e a resistência
+  ignorada; Auto Ficha trata faces 1 como 2 no dano de magia elegível. Mantém
+  faces originais, ajuste explícito, bônus fixos e imunidade, sem nova rolagem.
+- Integra truques, círculos superiores, Gêmea, dano por raio e parcelas mistas
+  reconhecidas. Raios posteriores mantêm o mínimo sem repetir Afinidade/Evocação
+  ou cobrar outro espaço. OFF orienta dados físicos; Só Pool conserva a guarda.
+- Fórmulas próprias/tipos contextuais ficam na mesa. D20, cura, arma, sopro e
+  bandeja livre não recebem o efeito. Não aplica dano em alvos ou fichas remotas.
+- O criador deixa de oferecer o talento após os cinco elementos, evitando uma
+  seleção sem opções. Escolhas, histórico e dados existentes são preservados.
+- Verificados 504 testes Node, tipos/build e sete roteiros Chromium pertinentes:
+  Adepto Elemental, ataques de magia, passivos, curas, invocações, dado e ajudas.
+  Incluídos cancelamento/gastos, compatibilidade, notas/outra ficha, mobile/GG/
+  temas/layouts e offline `/D-D/`. A CI exige 40 roteiros. Sem SQL ou publicação.
+
+## Não lançado — estabilidade da conferência offline — 2026-10-24
+
+- O roteiro de invocações aguarda a aba do grimório terminar de carregar antes
+  de interagir após recarga offline. Corrige a corrida do próprio teste observada
+  na CI, sem pausa fixa ou alteração no carregamento da aplicação.
+- Conferido localmente com CPU reduzida a um quarto da velocidade, rede desligada
+  e dados fictícios: classificação de magias, fórmula própria e notas preservadas.
+- Retomada deixa de apontar a PR #21, já concluída, como trabalho em aberto.
+  A revisão permanece na PR de desenvolvimento, sem publicação no site.
+
+## Não lançado — revisão de quatro invocações — 2026-10-23
+
+- Concluída a revisão delimitada de Armadura de Sombras, Vigor Abissal,
+  Escultor de Carne e Sinal de Mau Agouro, a partir das reproduções parciais
+  do Claude, com fontes e resultados consolidados na auditoria.
+- A lista mostra somente a aquisição atual de cada invocação: trocadas saem e
+  reaprendidas não duplicam. Histórico, usos gastos e registros próprios ficam.
+- Contadores manuais dizem Registrar uso e indicam magia/custos na mesa.
+  Não aprendem magias automaticamente nem descontam Pacto pela segunda vez.
+- Vitalidade Falsa identifica PV temporários, com aumento por círculo no resumo,
+  sem cura/Vida ou aplicação automática. Rogar Maldição deixa de rolar 1d8 ao
+  conjurar; duração/concentração seguem o espaço escolhido (sem concentração
+  a partir do 5º). Cópias antigas recebem o indicativo correto sem regravação;
+  fórmulas e efeitos próprios continuam prioritários.
+- Publicações passam a ser agrupadas em entregas mais importantes, conforme
+  orientação do responsável. Esta rodada permanece em desenvolvimento.
+- Verificados 494 testes Node, tipos/build e seis roteiros Chromium pertinentes:
+  invocações, concentração, consulta de características, ajudas, curas auditadas
+  e regras/recursos. Cobertos cópias antigas/fórmulas próprias, gastos/cancelamento,
+  notas/outra ficha, 320px/GG/temas/layouts e offline sob `/D-D/`. Diagnóstico
+  puro: 3.321 verificações sem divergências. CI passa a exigir 39 roteiros.
+  Sem SQL, catálogos gerados, conta real ou alteração no dado flutuante.
+
 ## Não lançado — rerrolagens de dano de arma — 2026-10-23
 
 - Combate com Armas Grandes oferece repetição opcional de cada 1/2 da arma
